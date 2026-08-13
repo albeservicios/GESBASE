@@ -18,22 +18,31 @@ import { firebaseConfig } from
 "./firebase-config.js";
 
 
-// Inicializar Firebase
+// ==========================================
+// INICIALIZAR FIREBASE
+// ==========================================
+
 const app = initializeApp(firebaseConfig);
 
 
-// Servicios
+// ==========================================
+// SERVICIOS FIREBASE
+// ==========================================
+
 const auth = getAuth(app);
 
 const db = getFirestore(app);
 
-const storage = getStorage(app);
+const almacenamiento = getStorage(app);
 
 
-// Exportar
+// ==========================================
+// EXPORTAR SERVICIOS
+// ==========================================
+
 export {
     app,
     auth,
     db,
-    storage
+    almacenamiento
 };
