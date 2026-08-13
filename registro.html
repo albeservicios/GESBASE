@@ -413,19 +413,80 @@
 </div>
 
 
-<script>
+<!-- ==========================================
+     FIREBASE
+     ========================================== -->
 
-    /*
-     * ==========================================
-     * GESBASE
-     * REGISTRO - INTERFAZ BETA 1
-     * ==========================================
-     *
-     * La conexión con Firebase se agregará
-     * en el siguiente paso.
-     *
-     */
+<script type="module">
 
+    import {
+        initializeApp
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+
+    import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        updateProfile
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+    import {
+        getFirestore,
+        doc,
+        setDoc
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+    // ==========================================
+    // CONFIGURACIÓN FIREBASE GESBASE
+    // ==========================================
+
+    const firebaseConfig = {
+
+        apiKey:
+            "AIzaSyDDCQ7WhS9Gy8DwQGZ01VaFTmSgV2rjs9o",
+
+        authDomain:
+            "gesbase-4bf94.firebaseapp.com",
+
+        projectId:
+            "gesbase-4bf94",
+
+        storageBucket:
+            "gesbase-4bf94.firebasestorage.app",
+
+        messagingSenderId:
+            "64959778874",
+
+        appId:
+            "1:64959778874:web:c3bc129c3cee8cb77d6503",
+
+        measurementId:
+            "G-CCKGSRVGEX"
+
+    };
+
+
+    // ==========================================
+    // INICIALIZAR FIREBASE
+    // ==========================================
+
+    const app =
+        initializeApp(firebaseConfig);
+
+
+    const auth =
+        getAuth(app);
+
+
+    const db =
+        getFirestore(app);
+
+
+    // ==========================================
+    // ELEMENTOS
+    // ==========================================
 
     const formulario =
         document.getElementById(
@@ -445,6 +506,10 @@
         );
 
 
+    // ==========================================
+    // MENSAJES
+    // ==========================================
+
     function mostrarMensaje(
         texto,
         tipo
@@ -459,9 +524,13 @@
     }
 
 
+    // ==========================================
+    // REGISTRO
+    // ==========================================
+
     formulario.addEventListener(
         "submit",
-        function(evento) {
+        async function(evento) {
 
             evento.preventDefault();
 
@@ -508,6 +577,28 @@
                 ).value.trim();
 
 
+            // ==================================
+            // VALIDACIONES
+            // ==================================
+
+            if (
+                !nombre ||
+                !apellido ||
+                !email ||
+                !telefono ||
+                !empresa
+            ) {
+
+                mostrarMensaje(
+                    "Completá todos los campos obligatorios.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
             if (
                 password.length < 6
             ) {
@@ -537,52 +628,211 @@
             }
 
 
-            if (
-                !nombre ||
-                !apellido ||
-                !email ||
-                !telefono ||
-                !empresa
-            ) {
+            // ==================================
+            // DESACTIVAR BOTÓN
+            // ==================================
+
+            boton.disabled = true;
+
+            boton.textContent =
+                "Creando cuenta...";
+
+
+            try {
+
+
+                // ==================================
+                // CREAR USUARIO EN FIREBASE
+                // ==================================
+
+                const credencial =
+                    await createUserWithEmailAndPassword(
+                        auth,
+                        email,
+                        password
+                    );
+
+
+                const usuario =
+                    credencial.user;
+
+
+                // ==================================
+                // GUARDAR NOMBRE EN AUTH
+                // ==================================
+
+                await updateProfile(
+                    usuario,
+                    {
+                        displayName:
+                            nombre + " " + apellido
+                    }
+                );
+
+
+                // ==================================
+                // GUARDAR DATOS EN FIRESTORE
+                // ==================================
+
+                await setDoc(
+                    doc(
+                        db,
+                        "usuarios",
+                        usuario.uid
+                    ),
+                    {
+
+                        uid:
+                            usuario.uid,
+
+                        nombre:
+                            nombre,
+
+                        apellido:
+                            apellido,
+
+                        email:
+                            email,
+
+                        telefono:
+                            telefono,
+
+                        empresa:
+                            empresa,
+
+                        rol:
+                            "usuario",
+
+                        estado:
+                            "activo",
+
+                        fechaRegistro:
+                            new Date().toISOString()
+
+                    }
+                );
+
+
+                // ==================================
+                // ÉXITO
+                // ==================================
 
                 mostrarMensaje(
-                    "Completá todos los campos obligatorios.",
+                    "Cuenta creada correctamente. Ya podés iniciar sesión.",
+                    "exito"
+                );
+
+
+                formulario.reset();
+
+
+                boton.textContent =
+                    "Cuenta creada";
+
+
+                // ==================================
+                // IR AL LOGIN
+                // ==================================
+
+                setTimeout(
+                    function() {
+
+                        window.location.href =
+                            "login.html";
+
+                    },
+                    1500
+                );
+
+
+            } catch (error) {
+
+
+                console.error(
+                    "Error de Firebase:",
+                    error
+                );
+
+
+                let textoError =
+                    "No se pudo crear la cuenta.";
+
+
+                if (
+                    error.code ===
+                    "auth/email-already-in-use"
+                ) {
+
+                    textoError =
+                        "Ese correo electrónico ya está registrado.";
+
+                }
+
+
+                else if (
+                    error.code ===
+                    "auth/invalid-email"
+                ) {
+
+                    textoError =
+                        "El correo electrónico no es válido.";
+
+                }
+
+
+                else if (
+                    error.code ===
+                    "auth/weak-password"
+                ) {
+
+                    textoError =
+                        "La contraseña es demasiado débil.";
+
+                }
+
+
+                else if (
+                    error.code ===
+                    "auth/network-request-failed"
+                ) {
+
+                    textoError =
+                        "No hay conexión con Firebase. Revisá tu conexión a Internet.";
+
+                }
+
+
+                else if (
+                    error.code ===
+                    "permission-denied"
+                ) {
+
+                    textoError =
+                        "Firebase rechazó el acceso a la base de datos. Hay que revisar las reglas de Firestore.";
+
+                }
+
+
+                mostrarMensaje(
+                    textoError,
                     "error"
                 );
 
-                return;
+
+                boton.disabled = false;
+
+                boton.textContent =
+                    "Crear cuenta";
 
             }
-
-
-            /*
-             * Por ahora solamente comprobamos
-             * que el formulario esté correcto.
-             *
-             * Firebase Authentication se conectará
-             * en el próximo paso.
-             */
-
-            mostrarMensaje(
-                "Formulario correcto. La conexión con Firebase se realizará en el siguiente paso.",
-                "exito"
-            );
-
-
-            console.log(
-                "Datos preparados para registro:",
-                {
-                    nombre,
-                    apellido,
-                    email,
-                    telefono,
-                    empresa
-                }
-            );
 
         }
     );
 
+
+    // ==========================================
+    // VOLVER
+    // ==========================================
 
     document
         .getElementById(
