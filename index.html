@@ -323,6 +323,7 @@
         <div class="sesion">
 
             <button
+                type="button"
                 id="btnCerrarSesion"
             >
                 Cerrar sesión
@@ -337,29 +338,30 @@
 
 <script type="module">
 
+    // ==========================================
+    // FIREBASE
+    // ==========================================
+
     import {
         auth
-    } from "./firebase.js";
+    } from "./Js/firebase.js";
 
 
     import {
         onAuthStateChanged,
         signOut
-    } from
-    "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
     // ==========================================
     // NAVEGACIÓN
     // ==========================================
 
-    window.irA =
-        function(pagina) {
+    window.irA = function(pagina) {
 
-            window.location.href =
-                pagina;
+        window.location.href = pagina;
 
-        };
+    };
 
 
     // ==========================================
@@ -381,14 +383,8 @@
                 estado.textContent =
                     "No iniciado";
 
-
-                // ==================================
-                // PROTEGER GESBASE
-                // ==================================
-
                 window.location.href =
                     "login.html";
-
 
                 return;
 
@@ -397,7 +393,6 @@
 
             estado.textContent =
                 "Sesión activa";
-
 
             console.log(
                 "GESBASE - Usuario:",
@@ -413,29 +408,44 @@
     // ==========================================
 
     document
-        .getElementById(
-            "btnCerrarSesion"
-        )
+        .getElementById("btnCerrarSesion")
         .addEventListener(
             "click",
             async function() {
 
-                try {
-
-                    await signOut(
-                        auth
+                const boton =
+                    document.getElementById(
+                        "btnCerrarSesion"
                     );
 
+                boton.disabled = true;
+
+                boton.textContent =
+                    "Cerrando sesión...";
+
+
+                try {
+
+                    await signOut(auth);
 
                     window.location.href =
                         "login.html";
 
 
-                } catch(error) {
+                } catch (error) {
 
                     console.error(
-                        "Error cerrando sesión:",
+                        "Error al cerrar sesión:",
                         error
+                    );
+
+                    boton.disabled = false;
+
+                    boton.textContent =
+                        "Cerrar sesión";
+
+                    alert(
+                        "No se pudo cerrar la sesión. Revisá la conexión con Firebase."
                     );
 
                 }
