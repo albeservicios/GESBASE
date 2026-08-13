@@ -14,6 +14,9 @@ import { getFirestore } from
 import { getStorage } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 
+import { firebaseConfig } from
+"./firebase-config.js";
+
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
