@@ -350,18 +350,14 @@ Volver a mis presupuestos
 
 </main>
 </div>
-
-<script type="module">
-
 import {
-    auth,
-    db
-} from "./Js/firebase.js";
-
+    collection,
+    addDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
 import {
     collection,
     addDoc,
@@ -628,34 +624,17 @@ viaticos.addEventListener(
     "input",
     calcularTotal
 );
-
-
-/* MENSAJE */
-
-function mostrarMensaje(
-    texto,
-    tipo
-){
-
-    mensaje.textContent =
-    texto;
-
-    mensaje.className =
-    "mensaje " + tipo;
-}
-
-
 /* GENERAR NÚMERO DE AGENDA */
 
-async function obtenerNumeroAgenda(){
-
-    /*
-       Si el usuario ingresó un número,
-       usamos exactamente ese número.
-    */
+function obtenerNumeroAgenda(){
 
     const numeroIngresado =
     numeroAgenda.value.trim();
+
+    /*
+       Si la empresa envió un número,
+       se utiliza ese número.
+    */
 
     if(numeroIngresado !== ""){
 
@@ -663,45 +642,18 @@ async function obtenerNumeroAgenda(){
 
     }
 
-
     /*
-       Si no ingresó número,
-       generamos uno automáticamente.
+       Si no enviaron número,
+       GESBASE genera uno automáticamente.
     */
 
-    let numeroValido = false;
-
-    let numeroGenerado = "";
-
-
-    while(!numeroValido){
-
-        numeroGenerado =
-        String(
-            Math.floor(
-                100000 +
-                Math.random() * 900000
-            )
-        );
-
-
-        /*
-           Verificamos que no exista
-           otro presupuesto con ese
-           número de agenda.
-        */
-
-        const consulta =
-        query(
-            collection(
-                db,
-                "presupuestos"
-            ),
-            where(
-                "numeroAgenda",
-                "==",
-                numeroGenerado
-            )
+    return String(
+        Math.floor(
+            100000 +
+            Math.random() * 900000
+        )
+    );
+}
         );
 
 
