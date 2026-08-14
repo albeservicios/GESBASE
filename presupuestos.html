@@ -2,8 +2,11 @@
 <html lang="es">
 
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <meta name="theme-color" content="#111827">
 
 <title>Mis presupuestos - GESBASE</title>
@@ -77,7 +80,7 @@ main{
 .boton-nuevo{
     background:#111827;
     color:white;
-    text-decoration:none;
+    border:none;
 }
 
 .boton-actualizar{
@@ -94,6 +97,10 @@ main{
     font-size:15px;
     margin-bottom:18px;
     outline:none;
+}
+
+.buscador:focus{
+    border-color:#2563eb;
 }
 
 .cargando{
@@ -227,6 +234,7 @@ main{
 }
 
 </style>
+
 </head>
 
 
@@ -261,18 +269,13 @@ Verificando usuario...
 
 <div class="acciones">
 
-<!-- IMPORTANTE:
-     ESTE BOTÓN CREA UN PRESUPUESTO NUEVO.
-     NO LLEVA ID.
--->
-
-<a
-    href="./presupuesto.html"
+<button
+    type="button"
+    id="btnNuevo"
     class="boton-nuevo"
-    id="btnNuevoPresupuesto"
 >
 + NUEVO PRESUPUESTO
-</a>
+</button>
 
 
 <button
@@ -326,7 +329,7 @@ No se encontraron presupuestos.
 
 
 <a
-    href="./index.html"
+    href="index.html"
     class="boton-volver"
 >
 ⬅️ VOLVER A GESBASE
@@ -391,8 +394,8 @@ document.getElementById("buscador");
 const btnActualizar =
 document.getElementById("btnActualizar");
 
-const btnNuevoPresupuesto =
-document.getElementById("btnNuevoPresupuesto");
+const btnNuevo =
+document.getElementById("btnNuevo");
 
 
 // ==========================================
@@ -408,20 +411,12 @@ let presupuestos = [];
 // NUEVO PRESUPUESTO
 // ==========================================
 
-btnNuevoPresupuesto.addEventListener(
+btnNuevo.addEventListener(
     "click",
-    function(event){
-
-        event.preventDefault();
-
-        /*
-         * IMPORTANTE:
-         * Siempre abre presupuesto.html
-         * sin ID.
-         */
+    function(){
 
         window.location.href =
-            "./presupuesto.html";
+        "./presupuesto.html";
 
     }
 );
@@ -463,7 +458,7 @@ function dinero(valor){
 
 
 // ==========================================
-// NÚMERO PRESUPUESTO
+// NÚMERO
 // ==========================================
 
 function numeroPresupuesto(id){
@@ -498,10 +493,10 @@ function numeroPresupuesto(id){
 function mostrarError(mensaje){
 
     errorElemento.textContent =
-        mensaje;
+    mensaje;
 
     errorElemento.style.display =
-        "block";
+    "block";
 
 }
 
@@ -605,7 +600,7 @@ async function eliminarPresupuesto(id){
 
 
 // ==========================================
-// CREAR TARJETA
+// TARJETA
 // ==========================================
 
 function crearTarjeta(
@@ -617,7 +612,7 @@ function crearTarjeta(
     document.createElement("div");
 
     tarjeta.className =
-        "presupuesto";
+    "presupuesto";
 
 
     const numero =
@@ -705,9 +700,6 @@ function crearTarjeta(
             $${dinero(datos.total)}
         </div>
 
-
-        <!-- VER PRESUPUESTO -->
-
         <a
             href="./ver-presupuesto.html?id=${encodeURIComponent(id)}"
             class="boton boton-ver"
@@ -715,18 +707,12 @@ function crearTarjeta(
             👁️ VER PRESUPUESTO
         </a>
 
-
-        <!-- EDITAR PRESUPUESTO -->
-
         <a
             href="./editar-presupuesto.html?id=${encodeURIComponent(id)}"
             class="boton boton-editar"
         >
             ✏️ EDITAR PRESUPUESTO
         </a>
-
-
-        <!-- ELIMINAR -->
 
         <button
             type="button"
@@ -738,13 +724,11 @@ function crearTarjeta(
     `;
 
 
-    const botonEliminar =
-    tarjeta.querySelector(
+    tarjeta
+    .querySelector(
         ".boton-eliminar"
-    );
-
-
-    botonEliminar.addEventListener(
+    )
+    .addEventListener(
         "click",
         function(){
 
@@ -760,16 +744,16 @@ function crearTarjeta(
 
 
 // ==========================================
-// MOSTRAR PRESUPUESTOS
+// MOSTRAR
 // ==========================================
 
 function mostrarPresupuestos(){
 
     lista.innerHTML =
-        "";
+    "";
 
     sinBusqueda.style.display =
-        "none";
+    "none";
 
 
     const termino =
@@ -779,7 +763,7 @@ function mostrarPresupuestos(){
 
 
     let filtrados =
-        presupuestos;
+    presupuestos;
 
 
     if(termino){
@@ -789,42 +773,41 @@ function mostrarPresupuestos(){
             function(item){
 
                 const datos =
-                    item.datos;
-
-
-                const cliente =
-                String(
-                    datos.cliente ||
-                    ""
-                ).toLowerCase();
-
-
-                const agenda =
-                String(
-                    datos.numeroAgenda ||
-                    ""
-                ).toLowerCase();
-
-
-                const lugar =
-                String(
-                    datos.lugarTrabajo ||
-                    ""
-                ).toLowerCase();
-
-
-                const descripcion =
-                String(
-                    datos.descripcion ||
-                    ""
-                ).toLowerCase();
+                item.datos;
 
 
                 return (
-                    cliente.includes(termino) ||
-                    agenda.includes(termino) ||
-                    lugar.includes(termino) ||
-                    descripcion.includes(termino)
+
+                    String(
+                        datos.cliente || ""
+                    )
+                    .toLowerCase()
+                    .includes(termino)
+
+                    ||
+
+                    String(
+                        datos.numeroAgenda || ""
+                    )
+                    .toLowerCase()
+                    .includes(termino)
+
+                    ||
+
+                    String(
+                        datos.lugarTrabajo || ""
+                    )
+                    .toLowerCase()
+                    .includes(termino)
+
+                    ||
+
+                    String(
+                        datos.descripcion || ""
+                    )
+                    .toLowerCase()
+                    .includes(termino)
+
                 );
 
             }
@@ -842,7 +825,7 @@ function mostrarPresupuestos(){
         ){
 
             sinBusqueda.style.display =
-                "block";
+            "block";
 
         }
 
@@ -881,43 +864,35 @@ async function cargarPresupuestos(){
     try{
 
         errorElemento.style.display =
-            "none";
-
+        "none";
 
         cargando.style.display =
-            "block";
-
+        "block";
 
         lista.innerHTML =
-            "";
-
+        "";
 
         sinPresupuestos.style.display =
-            "none";
-
+        "none";
 
         sinBusqueda.style.display =
-            "none";
+        "none";
 
 
         usuarioElemento.textContent =
-            "Usuario: " +
-            (
-                usuarioActual.email ||
-                "Usuario autenticado"
-            );
-
-
-        const referencia =
-        collection(
-            db,
-            "presupuestos"
+        "Usuario: " +
+        (
+            usuarioActual.email ||
+            "Usuario autenticado"
         );
 
 
         const consulta =
         query(
-            referencia,
+            collection(
+                db,
+                "presupuestos"
+            ),
             where(
                 "uid",
                 "==",
@@ -933,7 +908,7 @@ async function cargarPresupuestos(){
 
 
         presupuestos =
-            [];
+        [];
 
 
         resultado.forEach(
@@ -942,10 +917,10 @@ async function cargarPresupuestos(){
                 presupuestos.push({
 
                     id:
-                        documento.id,
+                    documento.id,
 
                     datos:
-                        documento.data()
+                    documento.data()
 
                 });
 
@@ -958,22 +933,21 @@ async function cargarPresupuestos(){
 
                 const fechaA =
                 String(
-                    a.datos.fecha ||
-                    ""
+                    a.datos.fecha || ""
                 );
-
 
                 const fechaB =
                 String(
-                    b.datos.fecha ||
-                    ""
+                    b.datos.fecha || ""
                 );
 
 
                 if(
                     fechaA === fechaB
                 ){
+
                     return 0;
+
                 }
 
 
@@ -987,7 +961,7 @@ async function cargarPresupuestos(){
 
 
         cargando.style.display =
-            "none";
+        "none";
 
 
         if(
@@ -995,7 +969,7 @@ async function cargarPresupuestos(){
         ){
 
             sinPresupuestos.style.display =
-                "block";
+            "block";
 
             return;
 
@@ -1008,13 +982,13 @@ async function cargarPresupuestos(){
     catch(error){
 
         console.error(
-            "Error cargando presupuestos:",
+            "Error cargando:",
             error
         );
 
 
         cargando.style.display =
-            "none";
+        "none";
 
 
         mostrarError(
@@ -1046,22 +1020,20 @@ btnActualizar.addEventListener(
     async function(){
 
         btnActualizar.disabled =
-            true;
-
+        true;
 
         btnActualizar.textContent =
-            "⏳ CARGANDO...";
+        "⏳ CARGANDO...";
 
 
         await cargarPresupuestos();
 
 
         btnActualizar.disabled =
-            false;
-
+        false;
 
         btnActualizar.textContent =
-            "🔄 ACTUALIZAR";
+        "🔄 ACTUALIZAR";
 
     }
 );
@@ -1087,7 +1059,7 @@ onAuthStateChanged(
 
 
         usuarioActual =
-            usuario;
+        usuario;
 
 
         cargarPresupuestos();
@@ -1098,4 +1070,5 @@ onAuthStateChanged(
 </script>
 
 </body>
+
 </html>
