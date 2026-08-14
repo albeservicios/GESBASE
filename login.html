@@ -60,7 +60,7 @@
         }
 
         main {
-            padding: 24px 20px 35px;
+            padding: 25px 20px 35px;
         }
 
         h1 {
@@ -71,12 +71,12 @@
         .descripcion {
             color: #6b7280;
             font-size: 14px;
-            margin-bottom: 25px;
             line-height: 1.5;
+            margin-bottom: 25px;
         }
 
         .campo {
-            margin-bottom: 17px;
+            margin-bottom: 18px;
         }
 
         label {
@@ -93,7 +93,6 @@
             border-radius: 10px;
             font-size: 16px;
             outline: none;
-            background: white;
         }
 
         input:focus {
@@ -118,7 +117,6 @@
 
         .boton-principal:disabled {
             opacity: .6;
-            cursor: not-allowed;
         }
 
         .boton-secundario {
@@ -150,8 +148,8 @@
         .registro {
             text-align: center;
             margin-top: 25px;
-            font-size: 14px;
             color: #6b7280;
+            font-size: 14px;
         }
 
         .registro a {
@@ -189,8 +187,8 @@
         </h1>
 
         <p class="descripcion">
-            Ingresá con tu correo electrónico y contraseña
-            para acceder a GESBASE.
+            Ingresá a tu cuenta para continuar
+            utilizando GESBASE.
         </p>
 
 
@@ -248,10 +246,10 @@
 
             <button
                 type="button"
-                id="btnVolver"
                 class="boton boton-secundario"
+                onclick="window.location.href='registro.html'"
             >
-                Volver
+                Crear una cuenta
             </button>
 
 
@@ -260,81 +258,37 @@
 
         <div class="registro">
 
-            ¿No tenés una cuenta?
+            ¿Todavía no tenés cuenta?
 
             <a href="registro.html">
-                Crear cuenta
+                Registrate
             </a>
 
         </div>
+
 
     </main>
 
 </div>
 
 
-<!-- ==========================================
-     FIREBASE
-     ========================================== -->
-
 <script type="module">
 
+    // ==========================================
+    // FIREBASE
+    // ==========================================
+
     import {
-        initializeApp
-    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        auth
+    } from "./Js/firebase.js";
 
 
     import {
-        getAuth,
-        signInWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+        signInWithEmailAndPassword,
+        onAuthStateChanged
+    } from
+    "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-
-    // ==========================================
-    // CONFIGURACIÓN FIREBASE GESBASE
-    // ==========================================
-
-    const firebaseConfig = {
-
-        apiKey:
-            "AIzaSyDDCQ7WhS9Gy8DwQGZ01VaFTmSgV2rjs9o",
-
-        authDomain:
-            "gesbase-4bf94.firebaseapp.com",
-
-        projectId:
-            "gesbase-4bf94",
-
-        storageBucket:
-            "gesbase-4bf94.firebasestorage.app",
-
-        messagingSenderId:
-            "64959778874",
-
-        appId:
-            "1:64959778874:web:c3bc129c3cee8cb77d6503",
-
-        measurementId:
-            "G-CCKGSRVGEX"
-
-    };
-
-
-    // ==========================================
-    // INICIALIZAR FIREBASE
-    // ==========================================
-
-    const app =
-        initializeApp(firebaseConfig);
-
-
-    const auth =
-        getAuth(app);
-
-
-    // ==========================================
-    // ELEMENTOS
-    // ==========================================
 
     const formulario =
         document.getElementById(
@@ -354,10 +308,6 @@
         );
 
 
-    // ==========================================
-    // MENSAJE
-    // ==========================================
-
     function mostrarMensaje(
         texto,
         tipo
@@ -370,6 +320,26 @@
             "mensaje " + tipo;
 
     }
+
+
+    // ==========================================
+    // SI YA ESTÁ LOGUEADO
+    // ==========================================
+
+    onAuthStateChanged(
+        auth,
+        function(usuario) {
+
+            if (usuario) {
+
+                window.location.replace(
+                    "index.html"
+                );
+
+            }
+
+        }
+    );
 
 
     // ==========================================
@@ -416,36 +386,19 @@
                 );
 
 
-                boton.textContent =
-                    "Ingresando...";
-
-
-                // ==================================
-                // POR AHORA
-                // ==================================
-                // Luego reemplazaremos esta dirección
-                // por la pantalla principal protegida.
-
-                setTimeout(
-                    function() {
-
-                        window.location.href =
-                            "index.html";
-
-                    },
-                    1000
+                window.location.replace(
+                    "index.html"
                 );
 
 
             } catch (error) {
 
                 console.error(
-                    "Error de inicio de sesión:",
                     error
                 );
 
 
-                let textoError =
+                let texto =
                     "No se pudo iniciar sesión.";
 
 
@@ -454,63 +407,53 @@
                     "auth/invalid-credential"
                 ) {
 
-                    textoError =
-                        "El correo o la contraseña son incorrectos.";
+                    texto =
+                        "Email o contraseña incorrectos.";
 
                 }
 
 
-                else if (
+                if (
                     error.code ===
                     "auth/user-not-found"
                 ) {
 
-                    textoError =
-                        "No existe una cuenta con ese correo.";
+                    texto =
+                        "No existe una cuenta con ese email.";
 
                 }
 
 
-                else if (
+                if (
                     error.code ===
                     "auth/wrong-password"
                 ) {
 
-                    textoError =
+                    texto =
                         "La contraseña es incorrecta.";
 
                 }
 
 
-                else if (
+                if (
                     error.code ===
                     "auth/invalid-email"
                 ) {
 
-                    textoError =
-                        "El correo electrónico no es válido.";
-
-                }
-
-
-                else if (
-                    error.code ===
-                    "auth/network-request-failed"
-                ) {
-
-                    textoError =
-                        "No hay conexión con Firebase.";
+                    texto =
+                        "El email no es válido.";
 
                 }
 
 
                 mostrarMensaje(
-                    textoError,
+                    texto,
                     "error"
                 );
 
 
-                boton.disabled = false;
+                boton.disabled =
+                    false;
 
                 boton.textContent =
                     "Iniciar sesión";
@@ -519,25 +462,6 @@
 
         }
     );
-
-
-    // ==========================================
-    // VOLVER
-    // ==========================================
-
-    document
-        .getElementById(
-            "btnVolver"
-        )
-        .addEventListener(
-            "click",
-            function() {
-
-                window.location.href =
-                    "index.html";
-
-            }
-        );
 
 </script>
 
