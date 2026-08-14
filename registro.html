@@ -397,7 +397,8 @@ Iniciar sesión
 // ==========================================
 
 import {
-    auth
+    auth,
+    db
 } from "./Js/firebase.js";
 
 
@@ -405,6 +406,14 @@ import {
     createUserWithEmailAndPassword
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    doc,
+    setDoc,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
 // ==========================================
@@ -542,7 +551,7 @@ btnVolver.addEventListener(
 
 
 // ==========================================
-// REGISTRO FIREBASE
+// REGISTRO
 // ==========================================
 
 formRegistro.addEventListener(
@@ -641,7 +650,7 @@ formRegistro.addEventListener(
         try{
 
             // ==================================
-            // CREAR USUARIO FIREBASE
+            // CREAR USUARIO
             // ==================================
 
             const resultado =
@@ -652,35 +661,61 @@ formRegistro.addEventListener(
             );
 
 
-            console.log(
-                "Usuario creado:",
-                resultado.user.uid
+            const usuario =
+            resultado.user;
+
+
+            // ==================================
+            // GUARDAR PERFIL EN FIRESTORE
+            // ==================================
+
+            await setDoc(
+
+                doc(
+                    db,
+                    "usuarios",
+                    usuario.uid
+                ),
+
+                {
+
+                    uid:
+                    usuario.uid,
+
+                    nombre:
+                    nombre,
+
+                    apellido:
+                    apellido,
+
+                    razonSocial:
+                    razonSocial,
+
+                    cuit:
+                    cuitValor,
+
+                    telefono:
+                    telefono,
+
+                    email:
+                    email,
+
+                    creado:
+                    serverTimestamp()
+
+                }
+
             );
 
+
+            // ==================================
+            // ÉXITO
+            // ==================================
 
             mostrarMensaje(
                 "Cuenta creada correctamente.",
                 "exito"
             );
-
-
-            /*
-            ======================================
-            IMPORTANTE
-
-            En este paso todavía NO guardamos:
-
-            nombre
-            apellido
-            razón social
-            CUIT
-            teléfono
-
-            Eso lo haremos en el siguiente paso
-            utilizando Firestore.
-
-            ======================================
-            */
 
 
             setTimeout(
@@ -736,6 +771,14 @@ formRegistro.addEventListener(
 
                     texto =
                     "El registro con email y contraseña no está habilitado en Firebase.";
+
+                    break;
+
+
+                case "permission-denied":
+
+                    texto =
+                    "Firebase rechazó el acceso a los datos.";
 
                     break;
 
