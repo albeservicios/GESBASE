@@ -2161,4 +2161,315 @@ btnPDF.addEventListener(
             );
 
 
-            pdf
+            pdf.setFontSize(
+                9
+            );
+
+
+            pdf.text(
+                "Indicar valores sin IVA",
+                margen,
+                y
+            );
+
+
+            y += 7;
+
+
+            const materiales =
+            Number(
+                datosPresupuesto.materiales
+            ) || 0;
+
+
+            const manoObra =
+            Number(
+                datosPresupuesto.manoObra
+            ) || 0;
+
+
+            const viaticos =
+            Number(
+                datosPresupuesto.viaticos
+            ) || 0;
+
+
+            const flete =
+            Number(
+                datosPresupuesto.flete
+            ) || 0;
+
+
+            const total =
+            materiales +
+            manoObra +
+            viaticos +
+            flete;
+
+
+            function importePDF(
+                etiqueta,
+                valor
+            ){
+
+                if(
+                    y > 270
+                ){
+
+                    pdf.addPage();
+
+                    y = 20;
+
+                }
+
+
+                pdf.setFont(
+                    "helvetica",
+                    "normal"
+                );
+
+
+                pdf.setFontSize(
+                    10
+                );
+
+
+                pdf.text(
+                    etiqueta,
+                    margen,
+                    y
+                );
+
+
+                pdf.text(
+                    "$" +
+                    dinero(valor),
+                    150,
+                    y
+                );
+
+
+                y += 6;
+
+            }
+
+
+            importePDF(
+                "Importe Material",
+                materiales
+            );
+
+
+            importePDF(
+                "Importe Mano de Obra",
+                manoObra
+            );
+
+
+            importePDF(
+                "Viáticos",
+                viaticos
+            );
+
+
+            importePDF(
+                "Flete",
+                flete
+            );
+
+
+            y += 2;
+
+
+            pdf.line(
+                margen,
+                y,
+                margen + ancho,
+                y
+            );
+
+
+            y += 9;
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.setFontSize(
+                13
+            );
+
+
+            pdf.text(
+                "PRESUPUESTO:",
+                margen,
+                y
+            );
+
+
+            pdf.text(
+                "$" +
+                dinero(total),
+                150,
+                y
+            );
+
+
+            y += 10;
+
+
+            pdf.line(
+                margen,
+                y,
+                margen + ancho,
+                y
+            );
+
+
+            y += 7;
+
+
+            // =================================
+            // CONSIDERACIONES
+            // =================================
+
+            if(
+                y > 260
+            ){
+
+                pdf.addPage();
+
+                y = 20;
+
+            }
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.setFontSize(
+                11
+            );
+
+
+            pdf.text(
+                "OTRAS CONSIDERACIONES",
+                margen,
+                y
+            );
+
+
+            y += 7;
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            pdf.setFontSize(
+                9
+            );
+
+
+            const consideraciones =
+            "VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE REVISAR DICHA COTIZACIÓN.";
+
+
+            const textoConsideraciones =
+            pdf.splitTextToSize(
+                consideraciones,
+                ancho
+            );
+
+
+            pdf.text(
+                textoConsideraciones,
+                margen,
+                y
+            );
+
+
+            // =================================
+            // GUARDAR
+            // =================================
+
+            const numero =
+            numeroPresupuesto(
+                presupuestoId
+            );
+
+
+            pdf.save(
+                "Pedido-de-Presupuesto-" +
+                numero +
+                ".pdf"
+            );
+
+
+        }
+        catch(error){
+
+            console.error(
+                "ERROR GENERANDO PDF:",
+                error
+            );
+
+
+            alert(
+                "No se pudo generar el PDF:\n\n" +
+                error.message
+            );
+
+        }
+        finally{
+
+            btnPDF.disabled =
+            false;
+
+            btnPDF.textContent =
+            "📄 GENERAR PDF";
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// INICIO
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    function(usuario){
+
+        if(!usuario){
+
+            window.location.href =
+            "login.html";
+
+            return;
+
+        }
+
+
+        cargarPresupuesto(
+            usuario
+        );
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
