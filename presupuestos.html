@@ -86,6 +86,13 @@ main {
     box-shadow: 0 2px 7px rgba(0,0,0,.06);
 }
 
+.numero {
+    font-size: 13px;
+    font-weight: bold;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
 .presupuesto h2 {
     font-size: 18px;
     margin-bottom: 8px;
@@ -169,7 +176,6 @@ GESBASE
 
 </header>
 
-
 <main>
 
 <div
@@ -179,12 +185,10 @@ GESBASE
 Verificando usuario...
 </div>
 
-
 <div
     id="error"
     class="error"
 ></div>
-
 
 <div
     id="cargando"
@@ -193,23 +197,18 @@ Verificando usuario...
 Cargando presupuestos...
 </div>
 
-
 <div
     id="lista"
     class="lista"
 ></div>
-
 
 <div
     id="sinPresupuestos"
     class="sin-presupuestos"
     style="display:none;"
 >
-
 Todavía no tenés presupuestos.
-
 </div>
-
 
 <div class="botones">
 
@@ -219,7 +218,6 @@ Todavía no tenés presupuestos.
 >
 + Nuevo presupuesto
 </button>
-
 
 <button
     class="volver"
@@ -234,7 +232,6 @@ Volver a GESBASE
 
 </div>
 
-
 <script type="module">
 
 // ==========================================
@@ -246,12 +243,10 @@ import {
     db
 } from "./Js/firebase.js";
 
-
 import {
     onAuthStateChanged
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
 
 import {
     collection,
@@ -267,33 +262,23 @@ import {
 // ==========================================
 
 const usuarioElemento =
-document.getElementById(
-    "usuario"
-);
+document.getElementById("usuario");
 
 const cargando =
-document.getElementById(
-    "cargando"
-);
+document.getElementById("cargando");
 
 const lista =
-document.getElementById(
-    "lista"
-);
+document.getElementById("lista");
 
 const sinPresupuestos =
-document.getElementById(
-    "sinPresupuestos"
-);
+document.getElementById("sinPresupuestos");
 
 const errorElemento =
-document.getElementById(
-    "error"
-);
+document.getElementById("error");
 
 
 // ==========================================
-// MOSTRAR ERROR
+// ERROR
 // ==========================================
 
 function mostrarError(texto) {
@@ -308,7 +293,7 @@ function mostrarError(texto) {
 
 
 // ==========================================
-// FORMATEAR DINERO
+// DINERO
 // ==========================================
 
 function dinero(valor) {
@@ -326,6 +311,38 @@ function dinero(valor) {
 
 
 // ==========================================
+// NÚMERO DE PRESUPUESTO
+// ==========================================
+
+function numeroPresupuesto(
+    documentoId
+) {
+
+    let codigo = "";
+
+    for (
+        let i = 0;
+        i < documentoId.length;
+        i++
+    ) {
+
+        codigo +=
+            documentoId
+            .charCodeAt(i);
+
+    }
+
+    const numero =
+        parseInt(codigo, 10)
+        % 1000000;
+
+    return String(numero)
+        .padStart(6, "0");
+
+}
+
+
+// ==========================================
 // CARGAR PRESUPUESTOS
 // ==========================================
 
@@ -336,7 +353,8 @@ async function cargarPresupuestos(
     try {
 
         usuarioElemento.textContent =
-            "Usuario: " + usuario.email;
+            "Usuario: " +
+            usuario.email;
 
 
         const referencia =
@@ -389,16 +407,27 @@ async function cargarPresupuestos(
                     documento.data();
 
 
+                const numero =
+                    numeroPresupuesto(
+                        documento.id
+                    );
+
+
                 const tarjeta =
                     document.createElement(
                         "div"
                     );
+
 
                 tarjeta.className =
                     "presupuesto";
 
 
                 tarjeta.innerHTML = `
+
+                    <div class="numero">
+                        Presupuesto #${numero}
+                    </div>
 
                     <h2>
                         ${datos.cliente || "Sin cliente"}
@@ -467,7 +496,7 @@ async function cargarPresupuestos(
 
 
 // ==========================================
-// CONTROL DE SESIÓN
+// SESIÓN
 // ==========================================
 
 onAuthStateChanged(
@@ -494,7 +523,7 @@ onAuthStateChanged(
 
 
 // ==========================================
-// NUEVO PRESUPUESTO
+// NUEVO
 // ==========================================
 
 document
