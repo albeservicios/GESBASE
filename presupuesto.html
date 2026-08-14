@@ -91,6 +91,7 @@ label{
 }
 
 input,
+select,
 textarea{
     width:100%;
     padding:13px;
@@ -100,9 +101,19 @@ textarea{
     background:white;
 }
 
+select{
+    cursor:pointer;
+}
+
 textarea{
     min-height:110px;
     resize:vertical;
+}
+
+.ayuda{
+    margin-top:6px;
+    font-size:12px;
+    color:#6b7280;
 }
 
 .material-item{
@@ -213,6 +224,10 @@ button:disabled{
     font-size:13px;
 }
 
+.cliente-cargando{
+    color:#6b7280;
+}
+
 </style>
 
 </head>
@@ -238,6 +253,10 @@ button:disabled{
 Verificando sesión...
 </div>
 
+
+<!-- ==========================================
+     EMPRESA
+========================================== -->
 
 <div class="empresa-info">
 
@@ -279,20 +298,34 @@ Datos de la empresa
 </div>
 
 
+<!-- ==========================================
+     CLIENTE
+========================================== -->
+
 <div class="campo">
 
 <label for="cliente">
 Cliente
 </label>
 
-<input
-    type="text"
-    id="cliente"
-    placeholder="Nombre del cliente"
->
+<select id="cliente">
+
+<option value="">
+Cargando clientes...
+</option>
+
+</select>
+
+<div class="ayuda">
+Seleccioná un cliente de tu agenda.
+</div>
 
 </div>
 
+
+<!-- ==========================================
+     NÚMERO DE AGENDA
+========================================== -->
 
 <div class="campo">
 
@@ -310,6 +343,10 @@ N.º de agenda
 </div>
 
 
+<!-- ==========================================
+     FECHA
+========================================== -->
+
 <div class="campo">
 
 <label for="fecha">
@@ -323,6 +360,10 @@ Fecha
 
 </div>
 
+
+<!-- ==========================================
+     LUGAR
+========================================== -->
 
 <div class="campo">
 
@@ -339,6 +380,10 @@ Lugar de trabajo
 </div>
 
 
+<!-- ==========================================
+     DESCRIPCIÓN
+========================================== -->
+
 <div class="campo">
 
 <label for="descripcion">
@@ -352,6 +397,10 @@ Descripción del trabajo
 
 </div>
 
+
+<!-- ==========================================
+     MATERIALES
+========================================== -->
 
 <div class="campo">
 
@@ -372,6 +421,10 @@ Materiales
 </div>
 
 
+<!-- ==========================================
+     VALOR MATERIALES
+========================================== -->
+
 <div class="campo">
 
 <label for="materiales">
@@ -388,6 +441,10 @@ Valor total de materiales
 
 </div>
 
+
+<!-- ==========================================
+     MANO DE OBRA
+========================================== -->
 
 <div class="campo">
 
@@ -406,6 +463,10 @@ Mano de obra
 </div>
 
 
+<!-- ==========================================
+     VIÁTICOS
+========================================== -->
+
 <div class="campo">
 
 <label for="viaticos">
@@ -423,11 +484,17 @@ Viáticos
 </div>
 
 
+<!-- ==========================================
+     RESUMEN
+========================================== -->
+
 <div class="resumen">
 
 <div class="resumen-linea">
 
-<span>Materiales</span>
+<span>
+Materiales
+</span>
 
 <strong>
 $ <span id="resumenMateriales">0,00</span>
@@ -435,10 +502,11 @@ $ <span id="resumenMateriales">0,00</span>
 
 </div>
 
-
 <div class="resumen-linea">
 
-<span>Mano de obra</span>
+<span>
+Mano de obra
+</span>
 
 <strong>
 $ <span id="resumenManoObra">0,00</span>
@@ -446,10 +514,11 @@ $ <span id="resumenManoObra">0,00</span>
 
 </div>
 
-
 <div class="resumen-linea">
 
-<span>Viáticos</span>
+<span>
+Viáticos
+</span>
 
 <strong>
 $ <span id="resumenViaticos">0,00</span>
@@ -457,10 +526,11 @@ $ <span id="resumenViaticos">0,00</span>
 
 </div>
 
-
 <div class="resumen-linea resumen-total">
 
-<span>TOTAL GENERAL</span>
+<span>
+TOTAL GENERAL
+</span>
 
 <strong>
 $ <span id="total">0,00</span>
@@ -477,6 +547,10 @@ $ <span id="total">0,00</span>
 ></div>
 
 
+<!-- ==========================================
+     GUARDAR
+========================================== -->
+
 <button
     type="button"
     class="guardar"
@@ -485,6 +559,10 @@ $ <span id="total">0,00</span>
 GUARDAR PRESUPUESTO
 </button>
 
+
+<!-- ==========================================
+     VOLVER
+========================================== -->
 
 <button
     type="button"
@@ -500,6 +578,10 @@ VOLVER A MIS PRESUPUESTOS
 
 
 <script type="module">
+
+// ==========================================
+// FIREBASE
+// ==========================================
 
 import {
     auth,
@@ -521,6 +603,10 @@ import {
     getDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
 
 const estadoSesion =
 document.getElementById("estadoSesion");
@@ -595,6 +681,10 @@ const btnVolver =
 document.getElementById("btnVolver");
 
 
+// ==========================================
+// VARIABLES
+// ==========================================
+
 let usuarioActual = null;
 
 let datosEmpresa = {
@@ -607,6 +697,10 @@ let datosEmpresa = {
     logoUrl:""
 };
 
+
+// ==========================================
+// FECHA ACTUAL
+// ==========================================
 
 const ahora =
 new Date();
@@ -623,6 +717,10 @@ String(
 ).padStart(2,"0");
 
 
+// ==========================================
+// MENSAJE
+// ==========================================
+
 function mostrarMensaje(
     texto,
     tipo
@@ -636,6 +734,10 @@ function mostrarMensaje(
 
 }
 
+
+// ==========================================
+// CARGAR EMPRESA
+// ==========================================
 
 async function cargarEmpresa(){
 
@@ -707,26 +809,127 @@ async function cargarEmpresa(){
             error
         );
 
-        empresaNombre.textContent =
-        "Sin informar";
+    }
 
-        empresaRazonSocial.textContent =
-        "Sin informar";
+}
 
-        empresaCuit.textContent =
-        "Sin informar";
 
-        empresaTelefono.textContent =
-        "Sin informar";
+// ==========================================
+// CARGAR CLIENTES
+// ==========================================
 
-        empresaEmail.textContent =
-        usuarioActual.email ||
-        "Sin informar";
+async function cargarClientes(){
+
+    if(!usuarioActual){
+        return;
+    }
+
+    cliente.innerHTML = `
+        <option value="">
+            Cargando clientes...
+        </option>
+    `;
+
+    try{
+
+        const referencia =
+        collection(
+            db,
+            "clientes"
+        );
+
+        const consulta =
+        query(
+            referencia,
+            where(
+                "uid",
+                "==",
+                usuarioActual.uid
+            )
+        );
+
+        const resultado =
+        await getDocs(
+            consulta
+        );
+
+        cliente.innerHTML = `
+            <option value="">
+                Seleccionar cliente...
+            </option>
+        `;
+
+        if(
+            resultado.empty
+        ){
+
+            cliente.innerHTML = `
+                <option value="">
+                    No hay clientes cargados
+                </option>
+            `;
+
+            return;
+
+        }
+
+        resultado.forEach(
+            function(documento){
+
+                const datos =
+                documento.data();
+
+                const nombre =
+                datos.nombre ||
+                datos.nombreCompleto ||
+                datos.razonSocial ||
+                datos.empresa ||
+                "Cliente sin nombre";
+
+                const opcion =
+                document.createElement("option");
+
+                opcion.value =
+                nombre;
+
+                opcion.textContent =
+                nombre;
+
+                cliente.appendChild(
+                    opcion
+                );
+
+            }
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando clientes:",
+            error
+        );
+
+        cliente.innerHTML = `
+            <option value="">
+                Error cargando clientes
+            </option>
+        `;
+
+        mostrarMensaje(
+            "No se pudieron cargar los clientes: " +
+            error.message,
+            "error"
+        );
 
     }
 
 }
 
+
+// ==========================================
+// AUTENTICACIÓN
+// ==========================================
 
 onAuthStateChanged(
     auth,
@@ -754,9 +957,15 @@ onAuthStateChanged(
 
         await cargarEmpresa();
 
+        await cargarClientes();
+
     }
 );
 
+
+// ==========================================
+// AGREGAR MATERIAL
+// ==========================================
 
 function agregarMaterial(){
 
@@ -780,7 +989,6 @@ function agregarMaterial(){
             placeholder="Cantidad"
             min="0"
             step="1"
-            class="material-cantidad"
         >
 
         <button
@@ -793,7 +1001,9 @@ function agregarMaterial(){
     `;
 
     fila
-    .querySelector(".btn-quitar")
+    .querySelector(
+        ".btn-quitar"
+    )
     .addEventListener(
         "click",
         function(){
@@ -816,6 +1026,10 @@ btnAgregar.addEventListener(
 );
 
 
+// ==========================================
+// OBTENER MATERIALES
+// ==========================================
+
 function obtenerMateriales(){
 
     const filas =
@@ -830,22 +1044,29 @@ function obtenerMateriales(){
 
             const tipo =
             fila
-            .querySelector(".material-tipo")
+            .querySelector(
+                ".material-tipo"
+            )
             .value
             .trim();
 
             const cantidad =
             Number(
                 fila
-                .querySelector(".material-cantidad")
+                .querySelector(
+                    ".material-cantidad"
+                )
                 .value
             ) || 0;
 
             if(tipo){
 
                 lista.push({
+
                     tipo:tipo,
+
                     cantidad:cantidad
+
                 });
 
             }
@@ -857,6 +1078,10 @@ function obtenerMateriales(){
 
 }
 
+
+// ==========================================
+// DINERO
+// ==========================================
 
 function formatoDinero(valor){
 
@@ -873,16 +1098,26 @@ function formatoDinero(valor){
 }
 
 
+// ==========================================
+// TOTAL
+// ==========================================
+
 function calcularTotal(){
 
     const valorMateriales =
-    Number(materiales.value) || 0;
+    Number(
+        materiales.value
+    ) || 0;
 
     const valorManoObra =
-    Number(manoObra.value) || 0;
+    Number(
+        manoObra.value
+    ) || 0;
 
     const valorViaticos =
-    Number(viaticos.value) || 0;
+    Number(
+        viaticos.value
+    ) || 0;
 
     const totalGeneral =
     valorMateriales +
@@ -930,6 +1165,10 @@ viaticos.addEventListener(
 );
 
 
+// ==========================================
+// NÚMERO DE AGENDA
+// ==========================================
+
 async function obtenerNumeroAgenda(){
 
     const ingresado =
@@ -941,11 +1180,9 @@ async function obtenerNumeroAgenda(){
 
     }
 
-    let numero;
-
     while(true){
 
-        numero =
+        const numero =
         String(
             Math.floor(
                 100000 +
@@ -982,6 +1219,10 @@ async function obtenerNumeroAgenda(){
 }
 
 
+// ==========================================
+// GUARDAR PRESUPUESTO
+// ==========================================
+
 btnGuardar.addEventListener(
     "click",
     async function(){
@@ -997,10 +1238,12 @@ btnGuardar.addEventListener(
 
         }
 
-        if(!cliente.value.trim()){
+        if(
+            !cliente.value.trim()
+        ){
 
             mostrarMensaje(
-                "Ingresá el nombre del cliente.",
+                "Seleccioná un cliente.",
                 "error"
             );
 
@@ -1010,7 +1253,9 @@ btnGuardar.addEventListener(
 
         }
 
-        if(!lugarTrabajo.value.trim()){
+        if(
+            !lugarTrabajo.value.trim()
+        ){
 
             mostrarMensaje(
                 "Ingresá el lugar de trabajo.",
@@ -1023,7 +1268,9 @@ btnGuardar.addEventListener(
 
         }
 
-        if(!descripcion.value.trim()){
+        if(
+            !descripcion.value.trim()
+        ){
 
             mostrarMensaje(
                 "Ingresá la descripción del trabajo.",
@@ -1040,13 +1287,19 @@ btnGuardar.addEventListener(
         obtenerMateriales();
 
         const valorMateriales =
-        Number(materiales.value) || 0;
+        Number(
+            materiales.value
+        ) || 0;
 
         const valorManoObra =
-        Number(manoObra.value) || 0;
+        Number(
+            manoObra.value
+        ) || 0;
 
         const valorViaticos =
-        Number(viaticos.value) || 0;
+        Number(
+            viaticos.value
+        ) || 0;
 
         const totalGeneral =
         valorMateriales +
@@ -1065,26 +1318,32 @@ btnGuardar.addEventListener(
             await obtenerNumeroAgenda();
 
             await addDoc(
+
                 collection(
                     db,
                     "presupuestos"
                 ),
+
                 {
 
                     uid:
                     usuarioActual.uid,
 
                     empresaNombre:
-                    datosEmpresa.nombreEmpresa || "",
+                    datosEmpresa.nombreEmpresa ||
+                    "",
 
                     empresaRazonSocial:
-                    datosEmpresa.razonSocial || "",
+                    datosEmpresa.razonSocial ||
+                    "",
 
                     empresaCuit:
-                    datosEmpresa.cuit || "",
+                    datosEmpresa.cuit ||
+                    "",
 
                     empresaTelefono:
-                    datosEmpresa.telefono || "",
+                    datosEmpresa.telefono ||
+                    "",
 
                     empresaEmail:
                     datosEmpresa.email ||
@@ -1092,10 +1351,12 @@ btnGuardar.addEventListener(
                     "",
 
                     empresaDireccion:
-                    datosEmpresa.direccion || "",
+                    datosEmpresa.direccion ||
+                    "",
 
                     empresaLogo:
-                    datosEmpresa.logoUrl || "",
+                    datosEmpresa.logoUrl ||
+                    "",
 
                     cliente:
                     cliente.value.trim(),
@@ -1131,6 +1392,7 @@ btnGuardar.addEventListener(
                     serverTimestamp()
 
                 }
+
             );
 
             mostrarMensaje(
@@ -1180,6 +1442,10 @@ btnGuardar.addEventListener(
 );
 
 
+// ==========================================
+// VOLVER
+// ==========================================
+
 btnVolver.addEventListener(
     "click",
     function(){
@@ -1190,6 +1456,10 @@ btnVolver.addEventListener(
     }
 );
 
+
+// ==========================================
+// TOTAL INICIAL
+// ==========================================
 
 calcularTotal();
 
