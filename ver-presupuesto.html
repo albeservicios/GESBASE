@@ -5,15 +5,9 @@
 
 <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta
-    name="theme-color"
-    content="#111827"
->
+<meta name="theme-color" content="#111827">
 
 <title>Ver presupuesto - GESBASE</title>
 
@@ -208,6 +202,14 @@ button:disabled{
     color:#991b1b;
     padding:15px;
     border-radius:10px;
+    line-height:1.5;
+}
+
+.diagnostico{
+    margin-top:10px;
+    font-size:12px;
+    color:#6b7280;
+    word-break:break-word;
 }
 
 </style>
@@ -242,18 +244,19 @@ Cargando presupuesto...
 ></div>
 
 <div
+    id="diagnostico"
+    class="diagnostico"
+    style="display:none;"
+></div>
+
+<div
     id="contenido"
     style="display:none;"
 >
 
-<div
-    id="vistaPresupuesto"
-    class="presupuesto"
->
+<div class="presupuesto">
 
-<!-- ================================= -->
 <!-- EMPRESA -->
-<!-- ================================= -->
 
 <div class="empresa">
 
@@ -304,9 +307,7 @@ Mail: -
 PEDIDO DE PRESUPUESTO
 </div>
 
-<!-- ================================= -->
 <!-- CLIENTE -->
-<!-- ================================= -->
 
 <div class="seccion">
 
@@ -352,9 +353,7 @@ Fecha:
 
 </div>
 
-<!-- ================================= -->
 <!-- CONTRATISTA -->
-<!-- ================================= -->
 
 <div class="seccion">
 
@@ -424,9 +423,7 @@ Mail:
 
 </div>
 
-<!-- ================================= -->
 <!-- DETALLE -->
-<!-- ================================= -->
 
 <div class="seccion">
 
@@ -499,9 +496,7 @@ Otros:
 
 </div>
 
-<!-- ================================= -->
 <!-- IMPORTES -->
-<!-- ================================= -->
 
 <div class="seccion">
 
@@ -579,9 +574,7 @@ $ <span id="importeTotal">0,00</span>
 
 </div>
 
-<!-- ================================= -->
 <!-- CONSIDERACIONES -->
-<!-- ================================= -->
 
 <div class="seccion">
 
@@ -628,27 +621,75 @@ VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE
 
 </div>
 
-<!-- ================================= -->
 <!-- JSPDF -->
-<!-- ================================= -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script type="module">
 
-import {
+console.log("GESBASE VER PRESUPUESTO INICIANDO");
+
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+let firebaseModulo;
+
+try{
+
+    firebaseModulo =
+    await import("./Js/firebase.js");
+
+    console.log(
+        "1. firebase.js cargado correctamente"
+    );
+
+}
+catch(error){
+
+    console.error(
+        "ERROR firebase.js:",
+        error
+    );
+
+    mostrarError(
+        "No se pudo cargar Firebase: " +
+        error.message
+    );
+
+    throw error;
+
+}
+
+
+const {
     auth,
     db
-} from "./Js/firebase.js";
+} =
+firebaseModulo;
 
-import {
+
+const {
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} =
+await import(
+    "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js"
+);
 
-import {
+
+const {
     doc,
     getDoc
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} =
+await import(
+    "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"
+);
+
+
+console.log(
+    "2. Firebase Auth y Firestore cargados"
+);
 
 
 // ==========================================
@@ -660,6 +701,9 @@ document.getElementById("cargando");
 
 const errorElemento =
 document.getElementById("error");
+
+const diagnostico =
+document.getElementById("diagnostico");
 
 const contenido =
 document.getElementById("contenido");
@@ -741,7 +785,7 @@ document.getElementById("btnPDF");
 
 
 // ==========================================
-// ID PRESUPUESTO
+// ID
 // ==========================================
 
 const parametros =
@@ -753,13 +797,17 @@ const presupuestoId =
 parametros.get("id");
 
 
+console.log(
+    "3. ID presupuesto:",
+    presupuestoId
+);
+
+
 let datosPresupuesto = {};
 
 let datosEmpresa = {};
 
 let datosUsuario = {};
-
-let logoDataURL = null;
 
 
 // ==========================================
@@ -803,7 +851,7 @@ function dinero(valor){
 
 
 // ==========================================
-// NÚMERO DE PRESUPUESTO
+// NÚMERO
 // ==========================================
 
 function numeroPresupuesto(id){
@@ -832,59 +880,105 @@ function numeroPresupuesto(id){
 
 
 // ==========================================
-// CARGAR EMPRESA
+// ERROR
+// ==========================================
+
+function mostrarError(mensaje){
+
+    cargando.style.display =
+    "none";
+
+    contenido.style.display =
+    "none";
+
+    errorElemento.textContent =
+    mensaje;
+
+    errorElemento.style.display =
+    "block";
+
+    console.error(
+        "GESBASE ERROR:",
+        mensaje
+    );
+
+}
+
+
+// ==========================================
+// DIAGNÓSTICO
+// ==========================================
+
+function mostrarDiagnostico(mensaje){
+
+    diagnostico.textContent =
+    mensaje;
+
+    diagnostico.style.display =
+    "block";
+
+}
+
+
+// ==========================================
+// EMPRESA
 // ==========================================
 
 async function cargarEmpresa(usuario){
 
+    console.log(
+        "5. Cargando datos de usuario..."
+    );
+
     datosEmpresa = {};
+
     datosUsuario = {};
 
-    // ======================================
-    // USUARIO
-    // ======================================
 
-    try{
+    const referenciaUsuario =
+    doc(
+        db,
+        "usuarios",
+        usuario.uid
+    );
 
-        const referenciaUsuario =
-        doc(
-            db,
-            "usuarios",
-            usuario.uid
+
+    const resultadoUsuario =
+    await getDoc(
+        referenciaUsuario
+    );
+
+
+    console.log(
+        "6. Lectura usuarios terminada"
+    );
+
+
+    if(
+        resultadoUsuario.exists()
+    ){
+
+        datosUsuario =
+        resultadoUsuario.data();
+
+        console.log(
+            "7. Usuario encontrado:",
+            datosUsuario
         );
-
-        const resultadoUsuario =
-        await getDoc(
-            referenciaUsuario
-        );
-
-        if(
-            resultadoUsuario.exists()
-        ){
-
-            datosUsuario =
-            resultadoUsuario.data();
-
-        }
 
     }
-    catch(error){
+    else{
 
         console.warn(
-            "No se pudo cargar usuario:",
-            error
+            "Usuario sin documento en Firestore"
         );
 
     }
 
 
     // ======================================
-    // EMPRESA
+    // EMPRESA POR empresaId
     // ======================================
-
-    let empresaEncontrada =
-    false;
-
 
     const empresaId =
     datosUsuario.empresaId ||
@@ -892,6 +986,12 @@ async function cargarEmpresa(usuario){
 
 
     if(empresaId){
+
+        console.log(
+            "8. Buscando empresa:",
+            empresaId
+        );
+
 
         try{
 
@@ -902,10 +1002,12 @@ async function cargarEmpresa(usuario){
                 empresaId
             );
 
+
             const resultadoEmpresa =
             await getDoc(
                 referenciaEmpresa
             );
+
 
             if(
                 resultadoEmpresa.exists()
@@ -914,8 +1016,10 @@ async function cargarEmpresa(usuario){
                 datosEmpresa =
                 resultadoEmpresa.data();
 
-                empresaEncontrada =
-                true;
+                console.log(
+                    "9. Empresa encontrada:",
+                    datosEmpresa
+                );
 
             }
 
@@ -923,7 +1027,7 @@ async function cargarEmpresa(usuario){
         catch(error){
 
             console.warn(
-                "Error empresaId:",
+                "No se pudo cargar empresa:",
                 error
             );
 
@@ -933,12 +1037,19 @@ async function cargarEmpresa(usuario){
 
 
     // ======================================
-    // COMPATIBILIDAD CON EMPRESA POR UID
+    // EMPRESA POR UID
     // ======================================
 
-    if(!empresaEncontrada){
+    if(
+        Object.keys(datosEmpresa).length === 0
+    ){
 
         try{
+
+            console.log(
+                "10. Buscando empresa por UID..."
+            );
+
 
             const referenciaEmpresa =
             doc(
@@ -947,10 +1058,12 @@ async function cargarEmpresa(usuario){
                 usuario.uid
             );
 
+
             const resultadoEmpresa =
             await getDoc(
                 referenciaEmpresa
             );
+
 
             if(
                 resultadoEmpresa.exists()
@@ -959,8 +1072,9 @@ async function cargarEmpresa(usuario){
                 datosEmpresa =
                 resultadoEmpresa.data();
 
-                empresaEncontrada =
-                true;
+                console.log(
+                    "11. Empresa encontrada por UID"
+                );
 
             }
 
@@ -968,7 +1082,7 @@ async function cargarEmpresa(usuario){
         catch(error){
 
             console.warn(
-                "No se encontró empresa por UID:",
+                "Empresa por UID no encontrada:",
                 error
             );
 
@@ -1012,10 +1126,6 @@ async function cargarEmpresa(usuario){
     usuario.email ||
     "";
 
-
-    // ======================================
-    // MOSTRAR EMPRESA
-    // ======================================
 
     empresaNombre.textContent =
     nombreEmpresa;
@@ -1108,16 +1218,22 @@ async function cargarEmpresa(usuario){
 
     }
 
+
+    console.log(
+        "12. Datos de empresa terminados"
+    );
+
 }
 
 
 // ==========================================
-// MOSTRAR MATERIALES
+// MATERIALES
 // ==========================================
 
 function mostrarMateriales(lista){
 
-    materialesLista.innerHTML = "";
+    materialesLista.innerHTML =
+    "";
 
 
     if(
@@ -1139,12 +1255,14 @@ function mostrarMateriales(lista){
             const linea =
             document.createElement("div");
 
+
             linea.className =
             "material-linea";
 
 
             const tipo =
             document.createElement("span");
+
 
             tipo.textContent =
             texto(material.tipo);
@@ -1153,14 +1271,20 @@ function mostrarMateriales(lista){
             const cantidad =
             document.createElement("span");
 
+
             cantidad.textContent =
             "Cantidad: " +
             texto(material.cantidad);
 
 
-            linea.appendChild(tipo);
+            linea.appendChild(
+                tipo
+            );
 
-            linea.appendChild(cantidad);
+
+            linea.appendChild(
+                cantidad
+            );
 
 
             materialesLista.appendChild(
@@ -1179,6 +1303,11 @@ function mostrarMateriales(lista){
 
 async function cargarPresupuesto(usuario){
 
+    console.log(
+        "4. Iniciando carga del presupuesto..."
+    );
+
+
     if(!presupuestoId){
 
         mostrarError(
@@ -1192,6 +1321,12 @@ async function cargarPresupuesto(usuario){
 
     try{
 
+        console.log(
+            "4.1 Buscando documento:",
+            presupuestoId
+        );
+
+
         const referencia =
         doc(
             db,
@@ -1203,6 +1338,11 @@ async function cargarPresupuesto(usuario){
         const resultado =
         await getDoc(
             referencia
+        );
+
+
+        console.log(
+            "4.2 Lectura del presupuesto terminada"
         );
 
 
@@ -1223,14 +1363,27 @@ async function cargarPresupuesto(usuario){
         resultado.data();
 
 
+        console.log(
+            "4.3 Presupuesto encontrado:",
+            datosPresupuesto
+        );
+
+
         // ==================================
         // SEGURIDAD
         // ==================================
 
         if(
-            datosPresupuesto.uid !==
-            usuario.uid
+            datosPresupuesto.uid &&
+            datosPresupuesto.uid !== usuario.uid
         ){
+
+            console.error(
+                "UID diferente",
+                datosPresupuesto.uid,
+                usuario.uid
+            );
+
 
             mostrarError(
                 "No tenés permiso para ver este presupuesto."
@@ -1399,11 +1552,16 @@ async function cargarPresupuesto(usuario){
         contenido.style.display =
         "block";
 
+
+        console.log(
+            "13. PRESUPUESTO CARGADO CORRECTAMENTE"
+        );
+
     }
     catch(error){
 
         console.error(
-            "Error cargando presupuesto:",
+            "ERROR CARGANDO PRESUPUESTO:",
             error
         );
 
@@ -1413,33 +1571,21 @@ async function cargarPresupuesto(usuario){
             error.message
         );
 
+
+        mostrarDiagnostico(
+            "Detalle técnico: " +
+            error.code +
+            " | " +
+            error.message
+        );
+
     }
 
 }
 
 
 // ==========================================
-// ERROR
-// ==========================================
-
-function mostrarError(mensaje){
-
-    cargando.style.display =
-    "none";
-
-
-    errorElemento.textContent =
-    mensaje;
-
-
-    errorElemento.style.display =
-    "block";
-
-}
-
-
-// ==========================================
-// GENERAR PDF
+// PDF
 // ==========================================
 
 btnPDF.addEventListener(
@@ -1455,9 +1601,10 @@ btnPDF.addEventListener(
 
         try{
 
-            // =================================
-            // COMPROBAR JSPDF
-            // =================================
+            console.log(
+                "PDF: iniciando..."
+            );
+
 
             if(
                 !window.jspdf ||
@@ -1465,7 +1612,7 @@ btnPDF.addEventListener(
             ){
 
                 throw new Error(
-                    "La librería PDF no se pudo cargar. Verificá la conexión a Internet."
+                    "La librería PDF no se pudo cargar."
                 );
 
             }
@@ -1679,7 +1826,7 @@ btnPDF.addEventListener(
 
 
             // =================================
-            // CLIENTE / AGENDA / FECHA
+            // CLIENTE
             // =================================
 
             pdf.setFont(
@@ -2414,11 +2561,15 @@ btnPDF.addEventListener(
             );
 
 
+            console.log(
+                "PDF generado correctamente"
+            );
+
         }
         catch(error){
 
             console.error(
-                "ERROR GENERANDO PDF:",
+                "ERROR PDF:",
                 error
             );
 
@@ -2447,23 +2598,65 @@ btnPDF.addEventListener(
 // INICIO
 // ==========================================
 
+console.log(
+    "14. Esperando autenticación..."
+);
+
+
 onAuthStateChanged(
     auth,
-    function(usuario){
+    async function(usuario){
+
+        console.log(
+            "15. Cambio de autenticación:",
+            usuario
+        );
+
 
         if(!usuario){
 
-            window.location.href =
-            "login.html";
+            console.log(
+                "16. No hay usuario autenticado"
+            );
+
+
+            mostrarError(
+                "No hay una sesión iniciada. Volvé al login."
+            );
+
 
             return;
 
         }
 
 
-        cargarPresupuesto(
-            usuario
+        console.log(
+            "16. Usuario autenticado:",
+            usuario.uid
         );
+
+
+        try{
+
+            await cargarPresupuesto(
+                usuario
+            );
+
+        }
+        catch(error){
+
+            console.error(
+                "ERROR GENERAL:",
+                error
+            );
+
+
+            mostrarError(
+                "Error general: " +
+                error.message
+            );
+
+        }
 
     }
 );
