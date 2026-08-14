@@ -50,7 +50,6 @@ header h1 {
 
 header p {
     margin-top: 6px;
-    font-size: 14px;
     color: #d1d5db;
 }
 
@@ -75,27 +74,28 @@ main {
 .lista {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 15px;
 }
 
 .presupuesto {
-    padding: 17px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid #d1d5db;
+    border-radius: 14px;
     background: white;
-    box-shadow: 0 2px 7px rgba(0,0,0,.06);
+    box-shadow: 0 3px 10px rgba(0,0,0,.08);
 }
 
 .numero {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: bold;
     color: #6b7280;
     margin-bottom: 8px;
 }
 
-.presupuesto h2 {
-    font-size: 18px;
-    margin-bottom: 8px;
+.cliente {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
 .dato {
@@ -107,53 +107,76 @@ main {
 .descripcion {
     margin-top: 10px;
     line-height: 1.45;
-    color: #374151;
 }
 
 .total {
-    margin-top: 13px;
+    margin-top: 14px;
     font-size: 20px;
     font-weight: bold;
 }
 
+/* =====================================
+   BOTÓN VER
+===================================== */
+
+.boton-ver {
+    display: block;
+    width: 100%;
+    margin-top: 18px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #111827;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.boton-ver:active {
+    transform: scale(.98);
+}
+
+/* =====================================
+   BOTONES INFERIORES
+===================================== */
+
+.boton-nuevo,
+.boton-volver {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.boton-nuevo {
+    background: #111827;
+    color: white;
+}
+
+.boton-volver {
+    background: #e5e7eb;
+    color: #111827;
+}
+
 .sin-presupuestos {
     text-align: center;
-    padding: 30px 15px;
+    padding: 30px;
     color: #6b7280;
 }
 
 .error {
+    display: none;
     background: #fee2e2;
     color: #991b1b;
     padding: 14px;
     border-radius: 10px;
     margin-bottom: 15px;
-    display: none;
-}
-
-.botones {
-    margin-top: 20px;
-}
-
-button {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-bottom: 10px;
-}
-
-.nuevo {
-    background: #111827;
-    color: white;
-}
-
-.volver {
-    background: #e5e7eb;
-    color: #111827;
 }
 
 </style>
@@ -176,6 +199,7 @@ GESBASE
 
 </header>
 
+
 <main>
 
 <div
@@ -185,10 +209,12 @@ GESBASE
 Verificando usuario...
 </div>
 
+
 <div
     id="error"
     class="error"
 ></div>
+
 
 <div
     id="cargando"
@@ -197,10 +223,12 @@ Verificando usuario...
 Cargando presupuestos...
 </div>
 
+
 <div
     id="lista"
     class="lista"
 ></div>
+
 
 <div
     id="sinPresupuestos"
@@ -210,27 +238,26 @@ Cargando presupuestos...
 Todavía no tenés presupuestos.
 </div>
 
-<div class="botones">
 
-<button
-    class="nuevo"
-    id="btnNuevo"
+<a
+    href="presupuesto.html"
+    class="boton-nuevo"
 >
-+ Nuevo presupuesto
-</button>
++ NUEVO PRESUPUESTO
+</a>
 
-<button
-    class="volver"
-    id="btnVolver"
+
+<a
+    href="index.html"
+    class="boton-volver"
 >
-Volver a GESBASE
-</button>
-
-</div>
+VOLVER A GESBASE
+</a>
 
 </main>
 
 </div>
+
 
 <script type="module">
 
@@ -243,10 +270,12 @@ import {
     db
 } from "./Js/firebase.js";
 
+
 import {
     onAuthStateChanged
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
 
 import {
     collection,
@@ -278,21 +307,6 @@ document.getElementById("error");
 
 
 // ==========================================
-// ERROR
-// ==========================================
-
-function mostrarError(texto) {
-
-    errorElemento.textContent =
-        texto;
-
-    errorElemento.style.display =
-        "block";
-
-}
-
-
-// ==========================================
 // DINERO
 // ==========================================
 
@@ -311,44 +325,39 @@ function dinero(valor) {
 
 
 // ==========================================
-// NÚMERO DE PRESUPUESTO
+// NÚMERO
 // ==========================================
 
-function numeroPresupuesto(
-    documentoId
-) {
+function numeroPresupuesto(id) {
 
-    let codigo = "";
+    let suma = 0;
 
     for (
         let i = 0;
-        i < documentoId.length;
+        i < id.length;
         i++
     ) {
 
-        codigo +=
-            documentoId
-            .charCodeAt(i);
+        suma +=
+            id.charCodeAt(i);
 
     }
 
-    const numero =
-        parseInt(codigo, 10)
-        % 1000000;
-
-    return String(numero)
-        .padStart(6, "0");
+    return String(
+        suma % 1000000
+    ).padStart(
+        6,
+        "0"
+    );
 
 }
 
 
 // ==========================================
-// CARGAR PRESUPUESTOS
+// CARGAR
 // ==========================================
 
-async function cargarPresupuestos(
-    usuario
-) {
+async function cargarPresupuestos(usuario) {
 
     try {
 
@@ -426,12 +435,12 @@ async function cargarPresupuestos(
                 tarjeta.innerHTML = `
 
                     <div class="numero">
-                        Presupuesto #${numero}
+                        PRESUPUESTO #${numero}
                     </div>
 
-                    <h2>
+                    <div class="cliente">
                         ${datos.cliente || "Sin cliente"}
-                    </h2>
+                    </div>
 
                     <div class="dato">
                         📅 Fecha:
@@ -458,9 +467,16 @@ async function cargarPresupuestos(
                     </div>
 
                     <div class="total">
-                        Total:
+                        TOTAL:
                         $${dinero(datos.total)}
                     </div>
+
+                    <a
+                        href="ver-presupuesto.html?id=${documento.id}"
+                        class="boton-ver"
+                    >
+                        👁️ VER PRESUPUESTO
+                    </a>
 
                 `;
 
@@ -476,7 +492,7 @@ async function cargarPresupuestos(
     } catch (error) {
 
         console.error(
-            "Error cargando presupuestos:",
+            "Error:",
             error
         );
 
@@ -485,10 +501,13 @@ async function cargarPresupuestos(
             "none";
 
 
-        mostrarError(
-            "No se pudieron cargar los presupuestos: " +
-            error.message
-        );
+        errorElemento.textContent =
+            "Error al cargar: " +
+            error.message;
+
+
+        errorElemento.style.display =
+            "block";
 
     }
 
@@ -501,7 +520,7 @@ async function cargarPresupuestos(
 
 onAuthStateChanged(
     auth,
-    async function(usuario) {
+    function(usuario) {
 
         if (!usuario) {
 
@@ -514,43 +533,9 @@ onAuthStateChanged(
         }
 
 
-        await cargarPresupuestos(
+        cargarPresupuestos(
             usuario
         );
-
-    }
-);
-
-
-// ==========================================
-// NUEVO
-// ==========================================
-
-document
-.getElementById("btnNuevo")
-.addEventListener(
-    "click",
-    function() {
-
-        window.location.href =
-            "presupuesto.html";
-
-    }
-);
-
-
-// ==========================================
-// VOLVER
-// ==========================================
-
-document
-.getElementById("btnVolver")
-.addEventListener(
-    "click",
-    function() {
-
-        window.location.href =
-            "index.html";
 
     }
 );
