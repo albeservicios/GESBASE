@@ -93,6 +93,7 @@ input{
     border-radius:10px;
     font-size:16px;
     outline:none;
+    background:white;
 }
 
 input:focus{
@@ -159,6 +160,12 @@ input:focus{
     text-decoration:none;
 }
 
+.ayuda{
+    font-size:12px;
+    color:#6b7280;
+    margin-top:5px;
+}
+
 </style>
 
 </head>
@@ -188,12 +195,14 @@ Crear cuenta
 </h1>
 
 <p class="descripcion">
-Registrá tu empresa para comenzar a utilizar GESBASE.
+Registrá los datos de tu empresa para comenzar a utilizar GESBASE.
 </p>
 
 
 <form id="formRegistro">
 
+
+<!-- NOMBRE -->
 
 <div class="campo">
 
@@ -212,6 +221,8 @@ Nombre
 </div>
 
 
+<!-- APELLIDO -->
+
 <div class="campo">
 
 <label for="apellido">
@@ -228,6 +239,72 @@ Apellido
 
 </div>
 
+
+<!-- RAZÓN SOCIAL -->
+
+<div class="campo">
+
+<label for="razonSocial">
+Razón social
+</label>
+
+<input
+    type="text"
+    id="razonSocial"
+    placeholder="Nombre o razón social de la empresa"
+    autocomplete="organization"
+    required
+>
+
+</div>
+
+
+<!-- CUIT -->
+
+<div class="campo">
+
+<label for="cuit">
+CUIT
+</label>
+
+<input
+    type="text"
+    id="cuit"
+    placeholder="Ejemplo: 20-12345678-9"
+    inputmode="numeric"
+    autocomplete="off"
+    maxlength="13"
+    required
+>
+
+<div class="ayuda">
+Ingresá el CUIT de la empresa o titular.
+</div>
+
+</div>
+
+
+<!-- TELÉFONO -->
+
+<div class="campo">
+
+<label for="telefono">
+Teléfono
+</label>
+
+<input
+    type="tel"
+    id="telefono"
+    placeholder="Tu teléfono"
+    autocomplete="tel"
+    inputmode="tel"
+    required
+>
+
+</div>
+
+
+<!-- EMAIL -->
 
 <div class="campo">
 
@@ -246,38 +323,7 @@ Email
 </div>
 
 
-<div class="campo">
-
-<label for="telefono">
-Teléfono
-</label>
-
-<input
-    type="tel"
-    id="telefono"
-    placeholder="Tu teléfono"
-    autocomplete="tel"
->
-
-</div>
-
-
-<div class="campo">
-
-<label for="empresa">
-Nombre de empresa
-</label>
-
-<input
-    type="text"
-    id="empresa"
-    placeholder="Nombre de tu empresa"
-    autocomplete="organization"
-    required
->
-
-</div>
-
+<!-- CONTRASEÑA -->
 
 <div class="campo">
 
@@ -297,6 +343,8 @@ Contraseña
 </div>
 
 
+<!-- CONFIRMAR CONTRASEÑA -->
+
 <div class="campo">
 
 <label for="passwordConfirmar">
@@ -315,11 +363,15 @@ Confirmar contraseña
 </div>
 
 
+<!-- MENSAJE -->
+
 <div
     id="mensaje"
     class="mensaje"
 ></div>
 
+
+<!-- CREAR CUENTA -->
 
 <button
     type="submit"
@@ -329,6 +381,8 @@ Confirmar contraseña
 Crear cuenta
 </button>
 
+
+<!-- VOLVER -->
 
 <button
     type="button"
@@ -358,21 +412,7 @@ Iniciar sesión
 </div>
 
 
-<script type="module">
-
-/*
-==================================================
-GESBASE
-REGISTRO
-==================================================
-
-ESTE PRIMER PASO SOLO CREA LA INTERFAZ.
-
-NO CONECTAMOS TODAVÍA FIREBASE.
-
-==================================================
-*/
-
+<script>
 
 const formRegistro =
 document.getElementById(
@@ -386,16 +426,91 @@ document.getElementById(
 );
 
 
+const cuit =
+document.getElementById(
+    "cuit"
+);
+
+
+/*
+==================================================
+FORMATO CUIT
+==================================================
+Permite ingresar solamente números y agrega
+automáticamente los guiones.
+==================================================
+*/
+
+cuit.addEventListener(
+    "input",
+    function(){
+
+        let valor =
+            this.value.replace(
+                /\D/g,
+                ""
+            );
+
+        if(valor.length > 11){
+
+            valor =
+                valor.substring(
+                    0,
+                    11
+                );
+
+        }
+
+        if(valor.length > 2){
+
+            valor =
+                valor.substring(0,2)
+                + "-"
+                + valor.substring(2);
+
+        }
+
+        if(valor.length > 11){
+
+            valor =
+                valor.substring(0,11)
+                + "-"
+                + valor.substring(11);
+
+        }
+
+        this.value =
+            valor;
+
+    }
+);
+
+
+/*
+==================================================
+VOLVER AL LOGIN
+==================================================
+*/
+
 btnVolver.addEventListener(
     "click",
     function(){
 
         window.location.href =
-        "login.html";
+            "login.html";
 
     }
 );
 
+
+/*
+==================================================
+REGISTRO
+==================================================
+Por ahora solamente comprobamos el formulario.
+Firebase se conectará en el siguiente paso.
+==================================================
+*/
 
 formRegistro.addEventListener(
     "submit",
@@ -403,9 +518,43 @@ formRegistro.addEventListener(
 
         evento.preventDefault();
 
-        alert(
-            "La pantalla de registro está funcionando. La conexión con Firebase se agregará en el siguiente paso."
-        );
+
+        const password =
+            document.getElementById(
+                "password"
+            ).value;
+
+
+        const passwordConfirmar =
+            document.getElementById(
+                "passwordConfirmar"
+            ).value;
+
+
+        const mensaje =
+            document.getElementById(
+                "mensaje"
+            );
+
+
+        if(password !== passwordConfirmar){
+
+            mensaje.textContent =
+                "Las contraseñas no coinciden.";
+
+            mensaje.className =
+                "mensaje error";
+
+            return;
+
+        }
+
+
+        mensaje.textContent =
+            "Los datos están completos. La conexión con Firebase se realizará en el siguiente paso.";
+
+        mensaje.className =
+            "mensaje exito";
 
     }
 );
