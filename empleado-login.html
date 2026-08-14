@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Acceso empleado - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.contenedor{
+    width:100%;
+    max-width:420px;
+}
+
+.logo{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.logo h1{
+    font-size:32px;
+    color:#111827;
+}
+
+.logo p{
+    margin-top:6px;
+    color:#6b7280;
+    font-size:14px;
+}
+
+.tarjeta{
+    background:white;
+    border-radius:16px;
+    padding:25px;
+    box-shadow:0 4px 20px rgba(0,0,0,.08);
+    border:1px solid #e5e7eb;
+}
+
+.tarjeta h2{
+    text-align:center;
+    font-size:21px;
+    margin-bottom:8px;
+}
+
+.subtitulo{
+    text-align:center;
+    color:#6b7280;
+    font-size:14px;
+    margin-bottom:25px;
+}
+
+.campo{
+    margin-bottom:16px;
+}
+
+.campo label{
+    display:block;
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.campo input{
+    width:100%;
+    padding:14px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    font-size:16px;
+    background:white;
+}
+
+.campo input:focus{
+    outline:none;
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.12);
+}
+
+.boton{
+    width:100%;
+    border:none;
+    border-radius:10px;
+    padding:15px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:8px;
+}
+
+.boton-entrar{
+    background:#2563eb;
+    color:white;
+}
+
+.boton-entrar:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+.boton-admin{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.mensaje{
+    padding:13px;
+    border-radius:10px;
+    font-size:14px;
+    margin-bottom:15px;
+    display:none;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.exito{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.cargando{
+    text-align:center;
+    color:#6b7280;
+    font-size:14px;
+    margin-top:15px;
+    display:none;
+}
+
+.privacidad{
+    text-align:center;
+    color:#9ca3af;
+    font-size:12px;
+    margin-top:20px;
+    line-height:1.5;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="contenedor">
+
+
+<div class="logo">
+
+<h1>GESBASE</h1>
+
+<p>Gestión empresarial</p>
+
+</div>
+
+
+<div class="tarjeta">
+
+
+<h2>Acceso empleado</h2>
+
+<div class="subtitulo">
+Ingresá para registrar tu jornada laboral
+</div>
+
+
+<div
+    id="mensajeError"
+    class="mensaje error"
+></div>
+
+
+<div
+    id="mensajeExito"
+    class="mensaje exito"
+></div>
+
+
+<form id="formLogin">
+
+
+<div class="campo">
+
+<label for="email">
+Email
+</label>
+
+<input
+    type="email"
+    id="email"
+    placeholder="empleado@email.com"
+    autocomplete="username"
+    required
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="password">
+Contraseña
+</label>
+
+<input
+    type="password"
+    id="password"
+    placeholder="Contraseña"
+    autocomplete="current-password"
+    required
+>
+
+</div>
+
+
+<button
+    type="submit"
+    id="btnEntrar"
+    class="boton boton-entrar"
+>
+INGRESAR
+</button>
+
+
+</form>
+
+
+<div
+    id="cargando"
+    class="cargando"
+>
+Verificando acceso...
+</div>
+
+
+<button
+    type="button"
+    id="btnAdministrador"
+    class="boton boton-admin"
+>
+ACCESO ADMINISTRADOR
+</button>
+
+
+</div>
+
+
+<div class="privacidad">
+
+El acceso del empleado permite registrar únicamente
+su propia jornada laboral.
+
+</div>
+
+
+</div>
+
+
+<script type="module">
+
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    query,
+    where,
+    getDocs
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const formLogin =
+document.getElementById("formLogin");
+
+const email =
+document.getElementById("email");
+
+const password =
+document.getElementById("password");
+
+const btnEntrar =
+document.getElementById("btnEntrar");
+
+const btnAdministrador =
+document.getElementById("btnAdministrador");
+
+const mensajeError =
+document.getElementById("mensajeError");
+
+const mensajeExito =
+document.getElementById("mensajeExito");
+
+const cargando =
+document.getElementById("cargando");
+
+
+// ==========================================
+// MENSAJES
+// ==========================================
+
+function mostrarError(mensaje){
+
+    mensajeError.textContent =
+    mensaje;
+
+    mensajeError.style.display =
+    "block";
+
+    mensajeExito.style.display =
+    "none";
+
+}
+
+
+function mostrarExito(mensaje){
+
+    mensajeExito.textContent =
+    mensaje;
+
+    mensajeExito.style.display =
+    "block";
+
+    mensajeError.style.display =
+    "none";
+
+}
+
+
+function limpiarMensajes(){
+
+    mensajeError.style.display =
+    "none";
+
+    mensajeExito.style.display =
+    "none";
+
+}
+
+
+// ==========================================
+// COMPROBAR SI ES EMPLEADO
+// ==========================================
+
+async function comprobarEmpleado(usuario){
+
+    try{
+
+        const referencia =
+        collection(
+            db,
+            "empleados"
+        );
+
+
+        /*
+         * Buscamos el empleado utilizando
+         * el UID del usuario autenticado.
+         */
+
+        const consulta =
+        query(
+            referencia,
+            where(
+                "uid",
+                "==",
+                usuario.uid
+            )
+        );
+
+
+        const resultados =
+        await getDocs(
+            consulta
+        );
+
+
+        if(
+            resultados.empty
+        ){
+
+            /*
+             * No existe un empleado asociado
+             * a este usuario.
+             */
+
+            await signOut(auth);
+
+            throw new Error(
+                "Este usuario no tiene un perfil de empleado asociado."
+            );
+
+        }
+
+
+        let empleadoActivo =
+        false;
+
+
+        resultados.forEach(
+            function(documento){
+
+                const datos =
+                documento.data();
+
+
+                if(
+                    datos.estado ===
+                    "Activo"
+                ){
+
+                    empleadoActivo =
+                    true;
+
+                }
+
+            }
+        );
+
+
+        if(!empleadoActivo){
+
+            await signOut(auth);
+
+            throw new Error(
+                "El empleado se encuentra inactivo."
+            );
+
+        }
+
+
+        return true;
+
+    }
+    catch(error){
+
+        console.error(
+            "Error comprobando empleado:",
+            error
+        );
+
+
+        if(
+            error.message.includes(
+                "no tiene un perfil"
+            ) ||
+            error.message.includes(
+                "se encuentra inactivo"
+            )
+        ){
+
+            throw error;
+
+        }
+
+
+        throw new Error(
+            "No se pudo verificar el perfil del empleado: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// LOGIN
+// ==========================================
+
+formLogin.addEventListener(
+    "submit",
+    async function(event){
+
+        event.preventDefault();
+
+
+        limpiarMensajes();
+
+
+        const emailValor =
+        email.value.trim();
+
+
+        const passwordValor =
+        password.value;
+
+
+        if(!emailValor){
+
+            mostrarError(
+                "Ingresá el email."
+            );
+
+            email.focus();
+
+            return;
+
+        }
+
+
+        if(!passwordValor){
+
+            mostrarError(
+                "Ingresá la contraseña."
+            );
+
+            password.focus();
+
+            return;
+
+        }
+
+
+        btnEntrar.disabled =
+        true;
+
+        btnEntrar.textContent =
+        "INGRESANDO...";
+
+        cargando.style.display =
+        "block";
+
+
+        try{
+
+            // =================================
+            // AUTENTICAR
+            // =================================
+
+            const resultado =
+            await signInWithEmailAndPassword(
+                auth,
+                emailValor,
+                passwordValor
+            );
+
+
+            const usuario =
+            resultado.user;
+
+
+            // =================================
+            // VERIFICAR EMPLEADO
+            // =================================
+
+            await comprobarEmpleado(
+                usuario
+            );
+
+
+            mostrarExito(
+                "Acceso correcto. Ingresando..."
+            );
+
+
+            /*
+             * Guardamos una marca para que
+             * fichaje.html pueda identificar
+             * que el acceso se realizó desde
+             * el portal de empleados.
+             */
+
+            sessionStorage.setItem(
+                "gesbase_tipo_acceso",
+                "empleado"
+            );
+
+
+            setTimeout(
+                function(){
+
+                    window.location.href =
+                    "fichaje.html";
+
+                },
+                500
+            );
+
+        }
+        catch(error){
+
+            console.error(
+                "Error de acceso:",
+                error
+            );
+
+
+            let mensaje =
+            "No se pudo iniciar sesión.";
+
+
+            if(
+                error.code ===
+                "auth/invalid-credential"
+            ){
+
+                mensaje =
+                "Email o contraseña incorrectos.";
+
+            }
+            else if(
+                error.code ===
+                "auth/user-not-found"
+            ){
+
+                mensaje =
+                "No existe un usuario con ese email.";
+
+            }
+            else if(
+                error.code ===
+                "auth/wrong-password"
+            ){
+
+                mensaje =
+                "La contraseña es incorrecta.";
+
+            }
+            else if(
+                error.code ===
+                "auth/invalid-email"
+            ){
+
+                mensaje =
+                "El email ingresado no es válido.";
+
+            }
+            else if(
+                error.code ===
+                "auth/too-many-requests"
+            ){
+
+                mensaje =
+                "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
+
+            }
+            else if(
+                error.message
+            ){
+
+                mensaje =
+                error.message;
+
+            }
+
+
+            mostrarError(
+                mensaje
+            );
+
+        }
+        finally{
+
+            btnEntrar.disabled =
+            false;
+
+            btnEntrar.textContent =
+            "INGRESAR";
+
+            cargando.style.display =
+            "none";
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// ACCESO ADMINISTRADOR
+// ==========================================
+
+btnAdministrador.addEventListener(
+    "click",
+    async function(){
+
+        /*
+         * Cerramos cualquier sesión anterior
+         * antes de ir al login general.
+         */
+
+        try{
+
+            await signOut(auth);
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudo cerrar sesión:",
+                error
+            );
+
+        }
+
+
+        window.location.href =
+        "login.html";
+
+    }
+);
+
+
+// ==========================================
+// CONTROL DE SESIÓN
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        /*
+         * Si ya existe una sesión y la marca
+         * indica que estamos entrando como
+         * empleado, comprobamos nuevamente
+         * el perfil.
+         */
+
+        if(
+            usuario &&
+            sessionStorage.getItem(
+                "gesbase_tipo_acceso"
+            ) ===
+            "empleado"
+        ){
+
+            try{
+
+                await comprobarEmpleado(
+                    usuario
+                );
+
+
+                window.location.href =
+                "fichaje.html";
+
+            }
+            catch(error){
+
+                console.warn(
+                    error
+                );
+
+            }
+
+        }
+
+    }
+);
+
+
+</script>
+
+
+</body>
+
+</html>
