@@ -58,6 +58,14 @@ main {
     padding: 20px;
 }
 
+.usuario {
+    background: #f3f4f6;
+    padding: 13px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+
 .cargando {
     text-align: center;
     padding: 35px 10px;
@@ -84,14 +92,20 @@ main {
 }
 
 .dato {
-    margin-top: 6px;
+    margin-top: 7px;
     font-size: 14px;
     color: #4b5563;
 }
 
+.descripcion {
+    margin-top: 10px;
+    line-height: 1.45;
+    color: #374151;
+}
+
 .total {
-    margin-top: 12px;
-    font-size: 19px;
+    margin-top: 13px;
+    font-size: 20px;
     font-weight: bold;
 }
 
@@ -99,6 +113,15 @@ main {
     text-align: center;
     padding: 30px 15px;
     color: #6b7280;
+}
+
+.error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    display: none;
 }
 
 .botones {
@@ -126,15 +149,6 @@ button {
     color: #111827;
 }
 
-.error {
-    background: #fee2e2;
-    color: #991b1b;
-    padding: 14px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    display: none;
-}
-
 </style>
 
 </head>
@@ -157,6 +171,14 @@ GESBASE
 
 
 <main>
+
+<div
+    id="usuario"
+    class="usuario"
+>
+Verificando usuario...
+</div>
+
 
 <div
     id="error"
@@ -220,13 +242,34 @@ Volver a GESBASE
 // ==========================================
 
 import {
-    auth
+    auth,
+    db
 } from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    query,
+    where,
+    getDocs
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
 // ==========================================
 // ELEMENTOS
 // ==========================================
+
+const usuarioElemento =
+document.getElementById(
+    "usuario"
+);
 
 const cargando =
 document.getElementById(
@@ -243,25 +286,193 @@ document.getElementById(
     "sinPresupuestos"
 );
 
-const error =
+const errorElemento =
 document.getElementById(
     "error"
 );
 
 
 // ==========================================
-// COMPROBAR SESIÓN
+// MOSTRAR ERROR
 // ==========================================
 
-import {
-    onAuthStateChanged
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+function mostrarError(texto) {
 
+    errorElemento.textContent =
+        texto;
+
+    errorElemento.style.display =
+        "block";
+
+}
+
+
+// ==========================================
+// FORMATEAR DINERO
+// ==========================================
+
+function dinero(valor) {
+
+    return Number(valor || 0)
+        .toLocaleString(
+            "es-AR",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+
+}
+
+
+// ==========================================
+// CARGAR PRESUPUESTOS
+// ==========================================
+
+async function cargarPresupuestos(
+    usuario
+) {
+
+    try {
+
+        usuarioElemento.textContent =
+            "Usuario: " + usuario.email;
+
+
+        const referencia =
+            collection(
+                db,
+                "presupuestos"
+            );
+
+
+        const consulta =
+            query(
+                referencia,
+                where(
+                    "uid",
+                    "==",
+                    usuario.uid
+                )
+            );
+
+
+        const resultado =
+            await getDocs(
+                consulta
+            );
+
+
+        cargando.style.display =
+            "none";
+
+
+        if (
+            resultado.empty
+        ) {
+
+            sinPresupuestos.style.display =
+                "block";
+
+            return;
+
+        }
+
+
+        lista.innerHTML = "";
+
+
+        resultado.forEach(
+            function(documento) {
+
+                const datos =
+                    documento.data();
+
+
+                const tarjeta =
+                    document.createElement(
+                        "div"
+                    );
+
+                tarjeta.className =
+                    "presupuesto";
+
+
+                tarjeta.innerHTML = `
+
+                    <h2>
+                        ${datos.cliente || "Sin cliente"}
+                    </h2>
+
+                    <div class="dato">
+                        📅 Fecha:
+                        ${datos.fecha || "-"}
+                    </div>
+
+                    <div class="descripcion">
+                        ${datos.descripcion || "Sin descripción"}
+                    </div>
+
+                    <div class="dato">
+                        Materiales:
+                        $${dinero(datos.materiales)}
+                    </div>
+
+                    <div class="dato">
+                        Mano de obra:
+                        $${dinero(datos.manoObra)}
+                    </div>
+
+                    <div class="dato">
+                        Viáticos:
+                        $${dinero(datos.viaticos)}
+                    </div>
+
+                    <div class="total">
+                        Total:
+                        $${dinero(datos.total)}
+                    </div>
+
+                `;
+
+
+                lista.appendChild(
+                    tarjeta
+                );
+
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Error cargando presupuestos:",
+            error
+        );
+
+
+        cargando.style.display =
+            "none";
+
+
+        mostrarError(
+            "No se pudieron cargar los presupuestos: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// CONTROL DE SESIÓN
+// ==========================================
 
 onAuthStateChanged(
     auth,
-    function(usuario) {
+    async function(usuario) {
 
         if (!usuario) {
 
@@ -274,16 +485,9 @@ onAuthStateChanged(
         }
 
 
-        // Por ahora solo comprobamos
-        // que la pantalla reconoce
-        // al usuario conectado.
-
-        cargando.style.display =
-            "none";
-
-
-        sinPresupuestos.style.display =
-            "block";
+        await cargarPresupuestos(
+            usuario
+        );
 
     }
 );
