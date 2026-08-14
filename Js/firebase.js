@@ -26,7 +26,7 @@ const app = initializeApp(firebaseConfig);
 
 
 // ==========================================
-// SERVICIOS FIREBASE
+// SERVICIOS
 // ==========================================
 
 const auth = getAuth(app);
@@ -37,7 +37,7 @@ const almacenamiento = getStorage(app);
 
 
 // ==========================================
-// EXPORTAR SERVICIOS
+// EXPORTAR
 // ==========================================
 
 export {
