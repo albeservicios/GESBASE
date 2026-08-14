@@ -50,6 +50,15 @@ main{
     padding:20px;
 }
 
+.estado{
+    margin-bottom:18px;
+    padding:12px;
+    border-radius:10px;
+    background:#f3f4f6;
+    color:#4b5563;
+    font-size:13px;
+}
+
 .empresa-info{
     margin-bottom:20px;
     padding:16px;
@@ -91,7 +100,6 @@ label{
 }
 
 input,
-select,
 textarea{
     width:100%;
     padding:13px;
@@ -101,19 +109,15 @@ textarea{
     background:white;
 }
 
-select{
-    cursor:pointer;
+input:focus,
+textarea:focus{
+    outline:none;
+    border-color:#2563eb;
 }
 
 textarea{
     min-height:110px;
     resize:vertical;
-}
-
-.ayuda{
-    margin-top:6px;
-    font-size:12px;
-    color:#6b7280;
 }
 
 .material-item{
@@ -193,6 +197,7 @@ button{
 
 button:disabled{
     opacity:.6;
+    cursor:not-allowed;
 }
 
 .mensaje{
@@ -213,19 +218,6 @@ button:disabled{
     display:block;
     background:#fee2e2;
     color:#991b1b;
-}
-
-.estado{
-    margin-bottom:18px;
-    padding:12px;
-    border-radius:10px;
-    background:#f3f4f6;
-    color:#4b5563;
-    font-size:13px;
-}
-
-.cliente-cargando{
-    color:#6b7280;
 }
 
 </style>
@@ -308,17 +300,11 @@ Datos de la empresa
 Cliente
 </label>
 
-<select id="cliente">
-
-<option value="">
-Cargando clientes...
-</option>
-
-</select>
-
-<div class="ayuda">
-Seleccioná un cliente de tu agenda.
-</div>
+<input
+    type="text"
+    id="cliente"
+    placeholder="Nombre del cliente"
+>
 
 </div>
 
@@ -502,6 +488,7 @@ $ <span id="resumenMateriales">0,00</span>
 
 </div>
 
+
 <div class="resumen-linea">
 
 <span>
@@ -514,6 +501,7 @@ $ <span id="resumenManoObra">0,00</span>
 
 </div>
 
+
 <div class="resumen-linea">
 
 <span>
@@ -525,6 +513,7 @@ $ <span id="resumenViaticos">0,00</span>
 </strong>
 
 </div>
+
 
 <div class="resumen-linea resumen-total">
 
@@ -702,8 +691,7 @@ let datosEmpresa = {
 // FECHA ACTUAL
 // ==========================================
 
-const ahora =
-new Date();
+const ahora = new Date();
 
 fecha.value =
 ahora.getFullYear() +
@@ -809,118 +797,21 @@ async function cargarEmpresa(){
             error
         );
 
-    }
+        empresaNombre.textContent =
+        "Sin informar";
 
-}
+        empresaRazonSocial.textContent =
+        "Sin informar";
 
+        empresaCuit.textContent =
+        "Sin informar";
 
-// ==========================================
-// CARGAR CLIENTES
-// ==========================================
+        empresaTelefono.textContent =
+        "Sin informar";
 
-async function cargarClientes(){
-
-    if(!usuarioActual){
-        return;
-    }
-
-    cliente.innerHTML = `
-        <option value="">
-            Cargando clientes...
-        </option>
-    `;
-
-    try{
-
-        const referencia =
-        collection(
-            db,
-            "clientes"
-        );
-
-        const consulta =
-        query(
-            referencia,
-            where(
-                "uid",
-                "==",
-                usuarioActual.uid
-            )
-        );
-
-        const resultado =
-        await getDocs(
-            consulta
-        );
-
-        cliente.innerHTML = `
-            <option value="">
-                Seleccionar cliente...
-            </option>
-        `;
-
-        if(
-            resultado.empty
-        ){
-
-            cliente.innerHTML = `
-                <option value="">
-                    No hay clientes cargados
-                </option>
-            `;
-
-            return;
-
-        }
-
-        resultado.forEach(
-            function(documento){
-
-                const datos =
-                documento.data();
-
-                const nombre =
-                datos.nombre ||
-                datos.nombreCompleto ||
-                datos.razonSocial ||
-                datos.empresa ||
-                "Cliente sin nombre";
-
-                const opcion =
-                document.createElement("option");
-
-                opcion.value =
-                nombre;
-
-                opcion.textContent =
-                nombre;
-
-                cliente.appendChild(
-                    opcion
-                );
-
-            }
-        );
-
-    }
-    catch(error){
-
-        console.error(
-            "Error cargando clientes:",
-            error
-        );
-
-        cliente.innerHTML = `
-            <option value="">
-                Error cargando clientes
-            </option>
-        `;
-
-        mostrarMensaje(
-            "No se pudieron cargar los clientes: " +
-            error.message,
-            "error"
-        );
+        empresaEmail.textContent =
+        usuarioActual.email ||
+        "Sin informar";
 
     }
 
@@ -956,8 +847,6 @@ onAuthStateChanged(
         );
 
         await cargarEmpresa();
-
-        await cargarClientes();
 
     }
 );
@@ -1001,9 +890,7 @@ function agregarMaterial(){
     `;
 
     fila
-    .querySelector(
-        ".btn-quitar"
-    )
+    .querySelector(".btn-quitar")
     .addEventListener(
         "click",
         function(){
@@ -1044,18 +931,14 @@ function obtenerMateriales(){
 
             const tipo =
             fila
-            .querySelector(
-                ".material-tipo"
-            )
+            .querySelector(".material-tipo")
             .value
             .trim();
 
             const cantidad =
             Number(
                 fila
-                .querySelector(
-                    ".material-cantidad"
-                )
+                .querySelector(".material-cantidad")
                 .value
             ) || 0;
 
@@ -1080,7 +963,7 @@ function obtenerMateriales(){
 
 
 // ==========================================
-// DINERO
+// FORMATO DINERO
 // ==========================================
 
 function formatoDinero(valor){
@@ -1099,7 +982,7 @@ function formatoDinero(valor){
 
 
 // ==========================================
-// TOTAL
+// CALCULAR TOTAL
 // ==========================================
 
 function calcularTotal(){
@@ -1174,11 +1057,18 @@ async function obtenerNumeroAgenda(){
     const ingresado =
     numeroAgenda.value.trim();
 
+    // Si el usuario escribió uno,
+    // se utiliza ese número.
     if(ingresado){
 
         return ingresado;
 
     }
+
+    // ======================================
+    // GENERAR NÚMERO AUTOMÁTICO
+    // SOLO DENTRO DEL USUARIO ACTUAL
+    // ======================================
 
     while(true){
 
@@ -1192,15 +1082,26 @@ async function obtenerNumeroAgenda(){
 
         const consulta =
         query(
+
             collection(
                 db,
                 "presupuestos"
             ),
+
+            // IMPORTANTE:
+            // limitar la consulta al usuario actual
+            where(
+                "uid",
+                "==",
+                usuarioActual.uid
+            ),
+
             where(
                 "numeroAgenda",
                 "==",
                 numero
             )
+
         );
 
         const resultado =
@@ -1208,7 +1109,9 @@ async function obtenerNumeroAgenda(){
             consulta
         );
 
-        if(resultado.empty){
+        if(
+            resultado.empty
+        ){
 
             return numero;
 
@@ -1227,6 +1130,10 @@ btnGuardar.addEventListener(
     "click",
     async function(){
 
+        // ==================================
+        // COMPROBAR SESIÓN
+        // ==================================
+
         if(!usuarioActual){
 
             mostrarMensaje(
@@ -1238,12 +1145,17 @@ btnGuardar.addEventListener(
 
         }
 
+
+        // ==================================
+        // CLIENTE
+        // ==================================
+
         if(
             !cliente.value.trim()
         ){
 
             mostrarMensaje(
-                "Seleccioná un cliente.",
+                "Ingresá el nombre del cliente.",
                 "error"
             );
 
@@ -1252,6 +1164,11 @@ btnGuardar.addEventListener(
             return;
 
         }
+
+
+        // ==================================
+        // LUGAR
+        // ==================================
 
         if(
             !lugarTrabajo.value.trim()
@@ -1268,6 +1185,11 @@ btnGuardar.addEventListener(
 
         }
 
+
+        // ==================================
+        // DESCRIPCIÓN
+        // ==================================
+
         if(
             !descripcion.value.trim()
         ){
@@ -1282,6 +1204,11 @@ btnGuardar.addEventListener(
             return;
 
         }
+
+
+        // ==================================
+        // DATOS
+        // ==================================
 
         const lista =
         obtenerMateriales();
@@ -1306,16 +1233,31 @@ btnGuardar.addEventListener(
         valorManoObra +
         valorViaticos;
 
+
+        // ==================================
+        // BLOQUEAR BOTÓN
+        // ==================================
+
         btnGuardar.disabled =
         true;
 
         btnGuardar.textContent =
         "GUARDANDO...";
 
+
         try{
+
+            // ==================================
+            // NÚMERO DE AGENDA
+            // ==================================
 
             const numeroAgendaFinal =
             await obtenerNumeroAgenda();
+
+
+            // ==================================
+            // GUARDAR EN FIRESTORE
+            // ==================================
 
             await addDoc(
 
@@ -1326,8 +1268,17 @@ btnGuardar.addEventListener(
 
                 {
 
+                    // ==========================
+                    // SEGURIDAD
+                    // ==========================
+
                     uid:
                     usuarioActual.uid,
+
+
+                    // ==========================
+                    // EMPRESA
+                    // ==========================
 
                     empresaNombre:
                     datosEmpresa.nombreEmpresa ||
@@ -1358,6 +1309,11 @@ btnGuardar.addEventListener(
                     datosEmpresa.logoUrl ||
                     "",
 
+
+                    // ==========================
+                    // PRESUPUESTO
+                    // ==========================
+
                     cliente:
                     cliente.value.trim(),
 
@@ -1373,20 +1329,45 @@ btnGuardar.addEventListener(
                     descripcion:
                     descripcion.value.trim(),
 
+
+                    // ==========================
+                    // MATERIALES
+                    // ==========================
+
                     materialesLista:
                     lista,
 
                     materiales:
                     valorMateriales,
 
+
+                    // ==========================
+                    // MANO DE OBRA
+                    // ==========================
+
                     manoObra:
                     valorManoObra,
+
+
+                    // ==========================
+                    // VIÁTICOS
+                    // ==========================
 
                     viaticos:
                     valorViaticos,
 
+
+                    // ==========================
+                    // TOTAL
+                    // ==========================
+
                     total:
                     totalGeneral,
+
+
+                    // ==========================
+                    // FECHA FIRESTORE
+                    // ==========================
 
                     creado:
                     serverTimestamp()
@@ -1395,16 +1376,28 @@ btnGuardar.addEventListener(
 
             );
 
+
+            // ==================================
+            // ÉXITO
+            // ==================================
+
             mostrarMensaje(
-                "Presupuesto guardado correctamente.",
+                "Presupuesto guardado correctamente. N.º de agenda: " +
+                numeroAgendaFinal,
                 "exito"
             );
+
 
             btnGuardar.disabled =
             false;
 
             btnGuardar.textContent =
             "GUARDAR PRESUPUESTO";
+
+
+            // ==================================
+            // VOLVER
+            // ==================================
 
             setTimeout(
                 function(){
@@ -1424,11 +1417,13 @@ btnGuardar.addEventListener(
                 error
             );
 
+
             mostrarMensaje(
-                "No se pudo guardar: " +
+                "No se pudo guardar el presupuesto: " +
                 error.message,
                 "error"
             );
+
 
             btnGuardar.disabled =
             false;
