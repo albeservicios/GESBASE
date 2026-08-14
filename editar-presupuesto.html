@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Editar presupuesto - GESBASE</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.contenedor {
+    max-width: 600px;
+    margin: auto;
+    min-height: 100vh;
+    background: white;
+}
+
+header {
+    background: #111827;
+    color: white;
+    padding: 25px 20px;
+}
+
+header h1 {
+    font-size: 24px;
+}
+
+header p {
+    margin-top: 6px;
+    color: #d1d5db;
+}
+
+main {
+    padding: 20px;
+}
+
+.campo {
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    font-size: 16px;
+}
+
+textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.total {
+    margin-top: 20px;
+    padding: 18px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    font-size: 21px;
+    font-weight: bold;
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.guardar {
+    background: #111827;
+    color: white;
+}
+
+.volver {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.mensaje {
+    display: none;
+    margin-top: 15px;
+    padding: 13px;
+    border-radius: 10px;
+}
+
+.exito {
+    display: block;
+    background: #dcfce7;
+    color: #166534;
+}
+
+.error {
+    display: block;
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.cargando {
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<header>
+
+<h1>
+Editar presupuesto
+</h1>
+
+<p>
+GESBASE
+</p>
+
+</header>
+
+
+<main>
+
+<div
+    id="cargando"
+    class="cargando"
+>
+Cargando presupuesto...
+</div>
+
+
+<div
+    id="formulario"
+    style="display:none;"
+>
+
+<div class="campo">
+
+<label for="cliente">
+Cliente
+</label>
+
+<input
+    type="text"
+    id="cliente"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="fecha">
+Fecha
+</label>
+
+<input
+    type="date"
+    id="fecha"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="descripcion">
+Descripción del trabajo
+</label>
+
+<textarea
+    id="descripcion"
+></textarea>
+
+</div>
+
+
+<div class="campo">
+
+<label for="materiales">
+Materiales
+</label>
+
+<input
+    type="number"
+    id="materiales"
+    min="0"
+    step="0.01"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="manoObra">
+Mano de obra
+</label>
+
+<input
+    type="number"
+    id="manoObra"
+    min="0"
+    step="0.01"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="viaticos">
+Viáticos
+</label>
+
+<input
+    type="number"
+    id="viaticos"
+    min="0"
+    step="0.01"
+>
+
+</div>
+
+
+<div class="total">
+
+TOTAL:
+$ <span id="total">0,00</span>
+
+</div>
+
+
+<div
+    id="mensaje"
+    class="mensaje"
+></div>
+
+
+<button
+    id="btnGuardar"
+    class="guardar"
+>
+Guardar cambios
+</button>
+
+
+<button
+    id="btnVolver"
+    class="volver"
+>
+Volver a presupuestos
+</button>
+
+</div>
+
+</main>
+
+</div>
+
+
+<script type="module">
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    doc,
+    getDoc,
+    updateDoc
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const cargando =
+document.getElementById("cargando");
+
+const formulario =
+document.getElementById("formulario");
+
+const cliente =
+document.getElementById("cliente");
+
+const fecha =
+document.getElementById("fecha");
+
+const descripcion =
+document.getElementById("descripcion");
+
+const materiales =
+document.getElementById("materiales");
+
+const manoObra =
+document.getElementById("manoObra");
+
+const viaticos =
+document.getElementById("viaticos");
+
+const total =
+document.getElementById("total");
+
+const mensaje =
+document.getElementById("mensaje");
+
+const btnGuardar =
+document.getElementById("btnGuardar");
+
+
+// ==========================================
+// ID DEL PRESUPUESTO
+// ==========================================
+
+const parametros =
+new URLSearchParams(
+    window.location.search
+);
+
+const presupuestoId =
+parametros.get("id");
+
+
+// ==========================================
+// TOTAL
+// ==========================================
+
+function calcularTotal() {
+
+    const m =
+        Number(materiales.value) || 0;
+
+    const mo =
+        Number(manoObra.value) || 0;
+
+    const v =
+        Number(viaticos.value) || 0;
+
+    const resultado =
+        m + mo + v;
+
+
+    total.textContent =
+        resultado.toLocaleString(
+            "es-AR",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+
+
+    return resultado;
+
+}
+
+
+materiales.addEventListener(
+    "input",
+    calcularTotal
+);
+
+manoObra.addEventListener(
+    "input",
+    calcularTotal
+);
+
+viaticos.addEventListener(
+    "input",
+    calcularTotal
+);
+
+
+// ==========================================
+// MOSTRAR MENSAJE
+// ==========================================
+
+function mostrarMensaje(
+    texto,
+    tipo
+) {
+
+    mensaje.textContent =
+        texto;
+
+    mensaje.className =
+        "mensaje " + tipo;
+
+}
+
+
+// ==========================================
+// CARGAR PRESUPUESTO
+// ==========================================
+
+async function cargarPresupuesto(
+    usuario
+) {
+
+    if (!presupuestoId) {
+
+        cargando.textContent =
+            "No se encontró el presupuesto.";
+
+        return;
+
+    }
+
+
+    try {
+
+        const referencia =
+            doc(
+                db,
+                "presupuestos",
+                presupuestoId
+            );
+
+
+        const resultado =
+            await getDoc(
+                referencia
+            );
+
+
+        if (!resultado.exists()) {
+
+            throw new Error(
+                "El presupuesto no existe."
+            );
+
+        }
+
+
+        const datos =
+            resultado.data();
+
+
+        // ==================================
+        // SEGURIDAD
+        // ==================================
+
+        if (
+            datos.uid !== usuario.uid
+        ) {
+
+            throw new Error(
+                "No tenés permiso para editar este presupuesto."
+            );
+
+        }
+
+
+        cliente.value =
+            datos.cliente || "";
+
+
+        fecha.value =
+            datos.fecha || "";
+
+
+        descripcion.value =
+            datos.descripcion || "";
+
+
+        materiales.value =
+            datos.materiales || 0;
+
+
+        manoObra.value =
+            datos.manoObra || 0;
+
+
+        viaticos.value =
+            datos.viaticos || 0;
+
+
+        calcularTotal();
+
+
+        cargando.style.display =
+            "none";
+
+        formulario.style.display =
+            "block";
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        cargando.textContent =
+            error.message;
+
+    }
+
+}
+
+
+// ==========================================
+// GUARDAR CAMBIOS
+// ==========================================
+
+btnGuardar.addEventListener(
+    "click",
+    async function() {
+
+        const usuario =
+            auth.currentUser;
+
+
+        if (!usuario) {
+
+            mostrarMensaje(
+                "La sesión no está activa.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (!presupuestoId) {
+
+            mostrarMensaje(
+                "No se encontró el presupuesto.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            cliente.value.trim() === ""
+        ) {
+
+            mostrarMensaje(
+                "Ingresá el cliente.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            descripcion.value.trim() === ""
+        ) {
+
+            mostrarMensaje(
+                "Ingresá la descripción.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        const valorMateriales =
+            Number(
+                materiales.value
+            ) || 0;
+
+
+        const valorManoObra =
+            Number(
+                manoObra.value
+            ) || 0;
+
+
+        const valorViaticos =
+            Number(
+                viaticos.value
+            ) || 0;
+
+
+        const valorTotal =
+            valorMateriales +
+            valorManoObra +
+            valorViaticos;
+
+
+        btnGuardar.disabled =
+            true;
+
+        btnGuardar.textContent =
+            "Guardando...";
+
+
+        try {
+
+            const referencia =
+                doc(
+                    db,
+                    "presupuestos",
+                    presupuestoId
+                );
+
+
+            const existente =
+                await getDoc(
+                    referencia
+                );
+
+
+            if (!existente.exists()) {
+
+                throw new Error(
+                    "El presupuesto ya no existe."
+                );
+
+            }
+
+
+            if (
+                existente.data().uid !==
+                usuario.uid
+            ) {
+
+                throw new Error(
+                    "No tenés permiso para modificarlo."
+                );
+
+            }
+
+
+            await updateDoc(
+                referencia,
+                {
+
+                    cliente:
+                        cliente.value.trim(),
+
+                    fecha:
+                        fecha.value,
+
+                    descripcion:
+                        descripcion.value.trim(),
+
+                    materiales:
+                        valorMateriales,
+
+                    manoObra:
+                        valorManoObra,
+
+                    viaticos:
+                        valorViaticos,
+
+                    total:
+                        valorTotal
+
+                }
+            );
+
+
+            mostrarMensaje(
+                "Cambios guardados correctamente.",
+                "exito"
+            );
+
+
+            setTimeout(
+                function() {
+
+                    window.location.href =
+                        "presupuestos.html";
+
+                },
+                800
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            mostrarMensaje(
+                "Error: " +
+                error.message,
+                "error"
+            );
+
+
+            btnGuardar.disabled =
+                false;
+
+            btnGuardar.textContent =
+                "Guardar cambios";
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// VOLVER
+// ==========================================
+
+document
+.getElementById("btnVolver")
+.addEventListener(
+    "click",
+    function() {
+
+        window.location.href =
+            "presupuestos.html";
+
+    }
+);
+
+
+// ==========================================
+// SESIÓN
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    function(usuario) {
+
+        if (!usuario) {
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        cargarPresupuesto(
+            usuario
+        );
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
