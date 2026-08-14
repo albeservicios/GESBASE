@@ -2,13 +2,23 @@
 <html lang="es">
 
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111827">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
 
 <title>Empleados - GESBASE</title>
 
 <style>
+
 *{
     box-sizing:border-box;
     margin:0;
@@ -87,11 +97,11 @@ h2{
     width:100%;
     border:none;
     border-radius:10px;
-    padding:14px;
-    font-size:16px;
+    padding:13px;
+    font-size:15px;
     font-weight:bold;
     cursor:pointer;
-    margin-top:10px;
+    margin-top:8px;
 }
 
 .boton-principal{
@@ -104,8 +114,13 @@ h2{
     color:#111827;
 }
 
-.boton-editar{
-    background:#2563eb;
+.boton-fichaje{
+    background:#111827;
+    color:white;
+}
+
+.boton-acceso{
+    background:#16a34a;
     color:white;
 }
 
@@ -114,8 +129,18 @@ h2{
     color:white;
 }
 
-.boton-alta{
+.boton-reactivar{
     background:#16a34a;
+    color:white;
+}
+
+.boton-editar{
+    background:#2563eb;
+    color:white;
+}
+
+.boton-eliminar{
+    background:#6b7280;
     color:white;
 }
 
@@ -132,34 +157,53 @@ h2{
     background:white;
 }
 
-.empleado.activo{
-    border-left:5px solid #16a34a;
-}
-
 .empleado.inactivo{
-    border-left:5px solid #dc2626;
-    opacity:.8;
+    opacity:.72;
+    background:#f9fafb;
 }
 
-.nombre{
-    font-size:18px;
+.empleado-cabecera{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.foto-empleado{
+    width:65px;
+    height:65px;
+    border-radius:50%;
+    object-fit:cover;
+    background:#e5e7eb;
+    flex-shrink:0;
+}
+
+.foto-placeholder{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+}
+
+.empleado-nombre{
+    font-size:17px;
     font-weight:bold;
 }
 
-.puesto{
-    color:#6b7280;
+.empleado-puesto{
     margin-top:4px;
+    font-size:13px;
+    color:#6b7280;
 }
 
-.datos{
+.datos-empleado{
     margin-top:14px;
-    padding-top:12px;
     border-top:1px solid #e5e7eb;
+    padding-top:12px;
 }
 
 .dato{
-    padding:5px 0;
     font-size:14px;
+    padding:4px 0;
 }
 
 .etiqueta{
@@ -168,11 +212,11 @@ h2{
 
 .estado{
     display:inline-block;
-    margin-top:8px;
-    padding:5px 10px;
+    padding:5px 9px;
     border-radius:20px;
     font-size:12px;
     font-weight:bold;
+    margin-top:8px;
 }
 
 .estado-activo{
@@ -185,28 +229,33 @@ h2{
     color:#991b1b;
 }
 
+.acceso{
+    margin-top:12px;
+    padding:10px;
+    border-radius:9px;
+    background:#f3f4f6;
+    font-size:13px;
+}
+
+.acceso-ok{
+    color:#166534;
+    background:#dcfce7;
+}
+
+.acceso-sin{
+    color:#92400e;
+    background:#fef3c7;
+}
+
 .acciones{
+    margin-top:12px;
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:8px;
-    margin-top:14px;
 }
 
-.mensaje{
-    padding:14px;
-    border-radius:10px;
-    margin-bottom:15px;
-    display:none;
-}
-
-.error{
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-.exito{
-    background:#dcfce7;
-    color:#166534;
+.acciones button{
+    margin-top:0;
 }
 
 .cargando{
@@ -217,14 +266,48 @@ h2{
 
 .vacio{
     text-align:center;
-    padding:30px;
+    padding:30px 15px;
+    color:#6b7280;
     border:1px dashed #d1d5db;
     border-radius:12px;
-    color:#6b7280;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:15px;
+    display:none;
+}
+
+.exito{
+    background:#dcfce7;
+    color:#166534;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:15px;
+    display:none;
 }
 
 .oculto{
     display:none !important;
+}
+
+.separador{
+    margin:25px 0;
+    border:none;
+    border-top:1px solid #e5e7eb;
+}
+
+.nota{
+    background:#eff6ff;
+    color:#1e40af;
+    padding:12px;
+    border-radius:10px;
+    font-size:13px;
+    margin-bottom:15px;
+    line-height:1.5;
 }
 
 @media(max-width:500px){
@@ -238,7 +321,9 @@ h2{
     }
 
 }
+
 </style>
+
 </head>
 
 <body>
@@ -246,18 +331,29 @@ h2{
 <div class="contenedor">
 
 <header>
-    <h1>GESBASE</h1>
-    <p>Gestión de empleados</p>
+
+<h1>GESBASE</h1>
+
+<p>Gestión de empleados</p>
+
 </header>
 
 <main>
 
-<div id="mensajeError" class="mensaje error"></div>
-<div id="mensajeExito" class="mensaje exito"></div>
+<div
+    id="mensajeError"
+    class="error"
+></div>
 
-<!-- =============================== -->
+<div
+    id="mensajeExito"
+    class="exito"
+></div>
+
+
+<!-- ================================= -->
 <!-- FORMULARIO -->
-<!-- =============================== -->
+<!-- ================================= -->
 
 <div class="formulario">
 
@@ -266,70 +362,115 @@ Nuevo empleado
 </h2>
 
 <div class="campo">
-<label>Nombre</label>
+
+<label for="nombre">
+Nombre
+</label>
+
 <input
-    id="nombre"
     type="text"
+    id="nombre"
     placeholder="Nombre"
 >
+
 </div>
 
+
 <div class="campo">
-<label>Apellido</label>
+
+<label for="apellido">
+Apellido
+</label>
+
 <input
-    id="apellido"
     type="text"
+    id="apellido"
     placeholder="Apellido"
 >
+
 </div>
 
+
 <div class="campo">
-<label>DNI</label>
+
+<label for="dni">
+DNI
+</label>
+
 <input
-    id="dni"
     type="text"
-    inputmode="numeric"
+    id="dni"
     placeholder="DNI"
+    inputmode="numeric"
 >
+
 </div>
 
+
 <div class="campo">
-<label>Teléfono</label>
+
+<label for="telefono">
+Teléfono
+</label>
+
 <input
-    id="telefono"
     type="tel"
+    id="telefono"
     placeholder="Teléfono"
 >
+
 </div>
 
+
 <div class="campo">
-<label>Email del empleado</label>
+
+<label for="email">
+Email
+</label>
+
 <input
-    id="email"
     type="email"
-    placeholder="empleado@email.com"
+    id="email"
+    placeholder="Email"
 >
+
 </div>
 
+
 <div class="campo">
-<label>Puesto / función</label>
+
+<label for="puesto">
+Puesto / función
+</label>
+
 <input
-    id="puesto"
     type="text"
+    id="puesto"
     placeholder="Ej.: Oficial de mantenimiento"
 >
+
 </div>
 
+
 <div class="campo">
-<label>Fecha de ingreso</label>
+
+<label for="fechaIngreso">
+Fecha de ingreso
+</label>
+
 <input
-    id="fechaIngreso"
     type="date"
+    id="fechaIngreso"
 >
+
 </div>
 
+
 <div class="campo">
-<label>Estado</label>
+
+<label for="estado">
+Estado
+</label>
 
 <select id="estado">
 
@@ -345,41 +486,6 @@ Inactivo
 
 </div>
 
-<!-- =============================== -->
-<!-- SUELDO -->
-<!-- =============================== -->
-
-<div class="campo">
-
-<label>
-Monto por día trabajado
-</label>
-
-<input
-    id="montoDia"
-    type="number"
-    min="0"
-    step="0.01"
-    placeholder="Ej.: 30000"
->
-
-</div>
-
-<div class="campo">
-
-<label>
-Horas de jornada diaria
-</label>
-
-<input
-    id="horasDia"
-    type="number"
-    min="1"
-    step="0.5"
-    value="8"
->
-
-</div>
 
 <button
     id="btnGuardar"
@@ -387,6 +493,7 @@ Horas de jornada diaria
 >
 GUARDAR EMPLEADO
 </button>
+
 
 <button
     id="btnCancelar"
@@ -397,13 +504,25 @@ CANCELAR EDICIÓN
 
 </div>
 
-<!-- =============================== -->
+
+<hr class="separador">
+
+
+<!-- ================================= -->
 <!-- LISTADO -->
-<!-- =============================== -->
+<!-- ================================= -->
 
 <h2>
 Empleados
 </h2>
+
+<div class="nota">
+
+<b>Acceso del empleado:</b>
+cada empleado puede tener su propio usuario para ingresar a GESBASE y realizar su fichaje.
+
+</div>
+
 
 <div
     id="cargando"
@@ -411,6 +530,7 @@ Empleados
 >
 Cargando empleados...
 </div>
+
 
 <div
     id="listaEmpleados"
@@ -422,16 +542,24 @@ Cargando empleados...
 
 </div>
 
+
 <script type="module">
+
+
+// ==========================================
+// FIREBASE ADMIN
+// ==========================================
 
 import {
     auth,
     db
 } from "./Js/firebase.js";
 
+
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
 
 import {
     collection,
@@ -440,10 +568,29 @@ import {
     getDoc,
     doc,
     updateDoc,
+    deleteDoc,
     query,
     where,
     serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// FIREBASE SECUNDARIO
+// ==========================================
+
+import {
+    initializeApp,
+    getApps
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+import {
+    getAuth,
+    createUserWithEmailAndPassword
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
 // ==========================================
@@ -474,12 +621,6 @@ document.getElementById("fechaIngreso");
 const estado =
 document.getElementById("estado");
 
-const montoDia =
-document.getElementById("montoDia");
-
-const horasDia =
-document.getElementById("horasDia");
-
 const btnGuardar =
 document.getElementById("btnGuardar");
 
@@ -506,9 +647,17 @@ document.getElementById("mensajeExito");
 // VARIABLES
 // ==========================================
 
-let usuarioActual = null;
-let empresaId = "";
-let empleadoEditandoId = null;
+let usuarioActual =
+null;
+
+let datosUsuario =
+{};
+
+let empresaId =
+"";
+
+let empleadoEditandoId =
+null;
 
 
 // ==========================================
@@ -517,26 +666,44 @@ let empleadoEditandoId = null;
 
 function mostrarError(mensaje){
 
-    mensajeError.textContent = mensaje;
-    mensajeError.style.display = "block";
+    mensajeError.textContent =
+    mensaje;
 
-    mensajeExito.style.display = "none";
+    mensajeError.style.display =
+    "block";
+
+    mensajeExito.style.display =
+    "none";
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
 
 }
+
 
 function mostrarExito(mensaje){
 
-    mensajeExito.textContent = mensaje;
-    mensajeExito.style.display = "block";
+    mensajeExito.textContent =
+    mensaje;
 
-    mensajeError.style.display = "none";
+    mensajeExito.style.display =
+    "block";
+
+    mensajeError.style.display =
+    "none";
 
 }
 
+
 function limpiarMensajes(){
 
-    mensajeError.style.display = "none";
-    mensajeExito.style.display = "none";
+    mensajeError.style.display =
+    "none";
+
+    mensajeExito.style.display =
+    "none";
 
 }
 
@@ -562,52 +729,24 @@ function texto(valor){
 
 
 // ==========================================
-// DINERO
-// ==========================================
-
-function dinero(valor){
-
-    return Number(
-        valor || 0
-    ).toLocaleString(
-        "es-AR",
-        {
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
-        }
-    );
-
-}
-
-
-// ==========================================
 // FECHA
 // ==========================================
 
 function fechaHoy(){
 
-    const fecha =
+    const hoy =
     new Date();
 
-    const año =
-    fecha.getFullYear();
-
-    const mes =
-    String(
-        fecha.getMonth()+1
-    ).padStart(2,"0");
-
-    const dia =
-    String(
-        fecha.getDate()
-    ).padStart(2,"0");
-
     return (
-        año +
+        hoy.getFullYear() +
         "-" +
-        mes +
+        String(
+            hoy.getMonth()+1
+        ).padStart(2,"0") +
         "-" +
-        dia
+        String(
+            hoy.getDate()
+        ).padStart(2,"0")
     );
 
 }
@@ -617,7 +756,7 @@ function fechaHoy(){
 // CARGAR USUARIO
 // ==========================================
 
-async function cargarUsuario(){
+async function cargarDatosUsuario(){
 
     const referencia =
     doc(
@@ -626,29 +765,82 @@ async function cargarUsuario(){
         usuarioActual.uid
     );
 
+
     const resultado =
     await getDoc(
         referencia
     );
 
+
     if(
         resultado.exists()
     ){
 
-        const datos =
+        datosUsuario =
         resultado.data();
 
-        empresaId =
-        datos.empresaId ||
-        usuarioActual.uid;
+    }
+
+
+    empresaId =
+    datosUsuario.empresaId ||
+    usuarioActual.uid;
+
+}
+
+
+// ==========================================
+// OBTENER FIREBASE SECUNDARIO
+// ==========================================
+
+function obtenerAuthSecundario(){
+
+    const appPrincipal =
+    getApps()[0];
+
+    if(!appPrincipal){
+
+        throw new Error(
+            "No se encontró la configuración de Firebase."
+        );
 
     }
-    else{
 
-        empresaId =
-        usuarioActual.uid;
+
+    let appSecundaria;
+
+
+    const aplicaciones =
+    getApps();
+
+
+    appSecundaria =
+    aplicaciones.find(
+        function(app){
+
+            return (
+                app.name ===
+                "GESBASE-Empleado"
+            );
+
+        }
+    );
+
+
+    if(!appSecundaria){
+
+        appSecundaria =
+        initializeApp(
+            appPrincipal.options,
+            "GESBASE-Empleado"
+        );
 
     }
+
+
+    return getAuth(
+        appSecundaria
+    );
 
 }
 
@@ -662,12 +854,23 @@ function limpiarFormulario(){
     empleadoEditandoId =
     null;
 
-    nombre.value = "";
-    apellido.value = "";
-    dni.value = "";
-    telefono.value = "";
-    email.value = "";
-    puesto.value = "";
+    nombre.value =
+    "";
+
+    apellido.value =
+    "";
+
+    dni.value =
+    "";
+
+    telefono.value =
+    "";
+
+    email.value =
+    "";
+
+    puesto.value =
+    "";
 
     fechaIngreso.value =
     fechaHoy();
@@ -675,46 +878,18 @@ function limpiarFormulario(){
     estado.value =
     "Activo";
 
-    montoDia.value =
-    "";
-
-    horasDia.value =
-    "8";
 
     tituloFormulario.textContent =
     "Nuevo empleado";
 
+
     btnGuardar.textContent =
     "GUARDAR EMPLEADO";
+
 
     btnCancelar.classList.add(
         "oculto"
     );
-
-}
-
-
-// ==========================================
-// CALCULAR SUELDOS
-// ==========================================
-
-function calcularSueldos(monto){
-
-    const diario =
-    Number(monto) || 0;
-
-    return {
-
-        semanal:
-        diario * 5,
-
-        quincenal:
-        diario * 15,
-
-        mensual:
-        diario * 22
-
-    };
 
 }
 
@@ -731,6 +906,7 @@ async function cargarEmpleados(){
     listaEmpleados.innerHTML =
     "";
 
+
     try{
 
         const referencia =
@@ -739,117 +915,87 @@ async function cargarEmpleados(){
             "empleados"
         );
 
-        let resultados;
 
-        try{
+        const consulta =
+        query(
+            referencia,
+            where(
+                "empresaId",
+                "==",
+                empresaId
+            )
+        );
 
-            const consulta =
-            query(
-                referencia,
-                where(
-                    "empresaId",
-                    "==",
-                    empresaId
-                )
-            );
 
-            resultados =
-            await getDocs(
-                consulta
-            );
+        const resultados =
+        await getDocs(
+            consulta
+        );
 
-        }
-        catch(error){
-
-            console.warn(
-                error
-            );
-
-            const consulta =
-            query(
-                referencia,
-                where(
-                    "uid",
-                    "==",
-                    usuarioActual.uid
-                )
-            );
-
-            resultados =
-            await getDocs(
-                consulta
-            );
-
-        }
 
         cargando.style.display =
         "none";
+
 
         if(
             resultados.empty
         ){
 
-            listaEmpleados.innerHTML = `
-                <div class="vacio">
-                    <strong>No hay empleados cargados.</strong>
-                    <br><br>
-                    Agregá el primer empleado.
-                </div>
+            listaEmpleados.innerHTML =
+            `
+            <div class="vacio">
+                <strong>No hay empleados cargados.</strong>
+                <br><br>
+                Agregá el primer empleado.
+            </div>
             `;
 
             return;
 
         }
 
-        const empleados = [];
+
+        const empleados =
+        [];
+
 
         resultados.forEach(
-            documento => {
+            function(documento){
 
                 empleados.push({
-
-                    id:
-                    documento.id,
-
+                    id:documento.id,
                     ...documento.data()
-
                 });
 
             }
         );
 
+
         empleados.sort(
-            (a,b) => {
+            function(a,b){
 
-                const nombreA =
-                (
-                    texto(a.apellido) +
-                    " " +
-                    texto(a.nombre)
-                ).toLowerCase();
-
-                const nombreB =
-                (
-                    texto(b.apellido) +
-                    " " +
-                    texto(b.nombre)
-                ).toLowerCase();
-
-                return nombreA.localeCompare(
-                    nombreB
+                return (
+                    (
+                        texto(a.nombre) +
+                        " " +
+                        texto(a.apellido)
+                    )
+                    .toLowerCase()
+                ).localeCompare(
+                    (
+                        texto(b.nombre) +
+                        " " +
+                        texto(b.apellido)
+                    )
+                    .toLowerCase()
                 );
 
             }
         );
 
+
         empleados.forEach(
-            empleado => {
-
-                mostrarEmpleado(
-                    empleado
-                );
-
-            }
+            mostrarEmpleado
         );
 
     }
@@ -858,9 +1004,7 @@ async function cargarEmpleados(){
         cargando.style.display =
         "none";
 
-        console.error(
-            error
-        );
+        console.error(error);
 
         mostrarError(
             "No se pudieron cargar los empleados: " +
@@ -881,18 +1025,66 @@ function mostrarEmpleado(empleado){
     const tarjeta =
     document.createElement("div");
 
+
     tarjeta.className =
-    "empleado " +
-    (
-        empleado.estado === "Activo"
-        ?
-        "activo"
-        :
-        "inactivo"
+    "empleado";
+
+
+    if(
+        empleado.estado !==
+        "Activo"
+    ){
+
+        tarjeta.classList.add(
+            "inactivo"
+        );
+
+    }
+
+
+    // ======================================
+    // CABECERA
+    // ======================================
+
+    const cabecera =
+    document.createElement("div");
+
+    cabecera.className =
+    "empleado-cabecera";
+
+
+    const foto =
+    document.createElement("div");
+
+    foto.className =
+    "foto-empleado";
+
+
+    foto.classList.add(
+        "foto-placeholder"
+    );
+
+    foto.textContent =
+    "👤";
+
+
+    cabecera.appendChild(
+        foto
     );
 
 
-    const nombreCompleto =
+    const informacion =
+    document.createElement("div");
+
+
+    const nombreEmpleado =
+    document.createElement("div");
+
+    nombreEmpleado.className =
+    "empleado-nombre";
+
+
+    nombreEmpleado.textContent =
     (
         texto(empleado.nombre) +
         " " +
@@ -900,160 +1092,371 @@ function mostrarEmpleado(empleado){
     ).trim();
 
 
-    tarjeta.innerHTML = `
+    const puestoEmpleado =
+    document.createElement("div");
 
-        <div class="nombre">
-            ${nombreCompleto || "Sin nombre"}
-        </div>
-
-        <div class="puesto">
-            ${texto(empleado.puesto) || "Sin puesto"}
-        </div>
-
-        <div class="datos">
-
-            <div class="dato">
-                <span class="etiqueta">DNI:</span>
-                ${texto(empleado.dni) || "-"}
-            </div>
-
-            <div class="dato">
-                <span class="etiqueta">Teléfono:</span>
-                ${texto(empleado.telefono) || "-"}
-            </div>
-
-            <div class="dato">
-                <span class="etiqueta">Email:</span>
-                ${texto(empleado.email) || "-"}
-            </div>
-
-            <div class="dato">
-                <span class="etiqueta">Ingreso:</span>
-                ${texto(empleado.fechaIngreso) || "-"}
-            </div>
-
-            <div class="dato">
-                <span class="etiqueta">Monto diario:</span>
-                $ ${dinero(empleado.montoDia)}
-            </div>
-
-            <div class="dato">
-                <span class="etiqueta">Por hora:</span>
-                $ ${dinero(empleado.montoHora)}
-            </div>
-
-            <div class="dato">
-                <span class="etiqueta">Semanal:</span>
-                $ ${dinero(empleado.sueldoSemanal)}
-            </div>
-
-            <div class="dato">
-                <span class="etiqueta">Quincenal:</span>
-                $ ${dinero(empleado.sueldoQuincenal)}
-            </div>
-
-            <div class="dato">
-                <span class="etiqueta">Mensual:</span>
-                $ ${dinero(empleado.sueldoMensual)}
-            </div>
-
-            <span class="estado ${
-                empleado.estado === "Activo"
-                ?
-                "estado-activo"
-                :
-                "estado-inactivo"
-            }">
-
-                ${
-                    empleado.estado === "Activo"
-                    ?
-                    "ACTIVO"
-                    :
-                    "INACTIVO"
-                }
-
-            </span>
-
-        </div>
-
-        <div class="acciones">
-
-            <button
-                class="boton boton-editar"
-                data-editar
-            >
-                ✏️ EDITAR
-            </button>
-
-            ${
-                empleado.estado === "Activo"
-
-                ?
-
-                `
-                <button
-                    class="boton boton-baja"
-                    data-baja
-                >
-                    ⛔ DAR DE BAJA
-                </button>
-                `
-
-                :
-
-                `
-                <button
-                    class="boton boton-alta"
-                    data-alta
-                >
-                    ✅ REACTIVAR
-                </button>
-                `
-            }
-
-        </div>
-    `;
+    puestoEmpleado.className =
+    "empleado-puesto";
 
 
-    tarjeta
-    .querySelector("[data-editar]")
-    .addEventListener(
-        "click",
-        () => editarEmpleado(empleado)
+    puestoEmpleado.textContent =
+    texto(
+        empleado.puesto
+    ) ||
+    "Sin puesto";
+
+
+    informacion.appendChild(
+        nombreEmpleado
+    );
+
+    informacion.appendChild(
+        puestoEmpleado
     );
 
 
-    const botonBaja =
-    tarjeta.querySelector("[data-baja]");
+    cabecera.appendChild(
+        informacion
+    );
 
-    if(botonBaja){
 
-        botonBaja.addEventListener(
-            "click",
-            () => cambiarEstado(
+    tarjeta.appendChild(
+        cabecera
+    );
+
+
+    // ======================================
+    // DATOS
+    // ======================================
+
+    const datos =
+    document.createElement("div");
+
+    datos.className =
+    "datos-empleado";
+
+
+    agregarDato(
+        datos,
+        "DNI",
+        empleado.dni
+    );
+
+
+    agregarDato(
+        datos,
+        "Teléfono",
+        empleado.telefono
+    );
+
+
+    agregarDato(
+        datos,
+        "Email",
+        empleado.email
+    );
+
+
+    agregarDato(
+        datos,
+        "Ingreso",
+        empleado.fechaIngreso
+    );
+
+
+    const estadoElemento =
+    document.createElement("span");
+
+    estadoElemento.className =
+    "estado";
+
+
+    if(
+        empleado.estado ===
+        "Activo"
+    ){
+
+        estadoElemento.classList.add(
+            "estado-activo"
+        );
+
+        estadoElemento.textContent =
+        "ACTIVO";
+
+    }
+    else{
+
+        estadoElemento.classList.add(
+            "estado-inactivo"
+        );
+
+        estadoElemento.textContent =
+        "INACTIVO";
+
+    }
+
+
+    datos.appendChild(
+        estadoElemento
+    );
+
+
+    tarjeta.appendChild(
+        datos
+    );
+
+
+    // ======================================
+    // ACCESO
+    // ======================================
+
+    const acceso =
+    document.createElement("div");
+
+    acceso.className =
+    "acceso";
+
+
+    if(
+        empleado.authUid
+    ){
+
+        acceso.classList.add(
+            "acceso-ok"
+        );
+
+        acceso.innerHTML =
+        "🔐 <b>Acceso creado</b><br>" +
+        texto(
+            empleado.email
+        );
+
+    }
+    else{
+
+        acceso.classList.add(
+            "acceso-sin"
+        );
+
+        acceso.innerHTML =
+        "🔓 <b>Sin acceso de empleado</b>";
+
+    }
+
+
+    tarjeta.appendChild(
+        acceso
+    );
+
+
+    // ======================================
+    // ACCIONES
+    // ======================================
+
+    const acciones =
+    document.createElement("div");
+
+    acciones.className =
+    "acciones";
+
+
+    // --------------------------------------
+    // FICHAJE
+    // --------------------------------------
+
+    const btnFichaje =
+    document.createElement("button");
+
+    btnFichaje.className =
+    "boton boton-fichaje";
+
+    btnFichaje.textContent =
+    "⏱️ FICHAJE";
+
+
+    btnFichaje.onclick =
+    function(){
+
+        window.location.href =
+        "fichaje.html?empleadoId=" +
+        encodeURIComponent(
+            empleado.id
+        );
+
+    };
+
+
+    acciones.appendChild(
+        btnFichaje
+    );
+
+
+    // --------------------------------------
+    // ACCESO
+    // --------------------------------------
+
+    const btnAcceso =
+    document.createElement("button");
+
+    btnAcceso.className =
+    "boton boton-acceso";
+
+
+    if(
+        empleado.authUid
+    ){
+
+        btnAcceso.textContent =
+        "🔐 ACCESO CREADO";
+
+        btnAcceso.disabled =
+        true;
+
+        btnAcceso.style.opacity =
+        ".6";
+
+    }
+    else{
+
+        btnAcceso.textContent =
+        "👤 CREAR ACCESO";
+
+        btnAcceso.onclick =
+        function(){
+
+            crearAccesoEmpleado(
+                empleado
+            );
+
+        };
+
+    }
+
+
+    acciones.appendChild(
+        btnAcceso
+    );
+
+
+    // --------------------------------------
+    // EDITAR
+    // --------------------------------------
+
+    const btnEditar =
+    document.createElement("button");
+
+    btnEditar.className =
+    "boton boton-editar";
+
+    btnEditar.textContent =
+    "✏️ EDITAR";
+
+
+    btnEditar.onclick =
+    function(){
+
+        editarEmpleado(
+            empleado
+        );
+
+    };
+
+
+    acciones.appendChild(
+        btnEditar
+    );
+
+
+    // --------------------------------------
+    // BAJA / REACTIVAR
+    // --------------------------------------
+
+    const btnEstado =
+    document.createElement("button");
+
+
+    if(
+        empleado.estado ===
+        "Activo"
+    ){
+
+        btnEstado.className =
+        "boton boton-baja";
+
+        btnEstado.textContent =
+        "🚫 DAR DE BAJA";
+
+
+        btnEstado.onclick =
+        function(){
+
+            cambiarEstadoEmpleado(
                 empleado,
                 "Inactivo"
-            )
-        );
+            );
+
+        };
 
     }
+    else{
+
+        btnEstado.className =
+        "boton boton-reactivar";
+
+        btnEstado.textContent =
+        "✅ REACTIVAR";
 
 
-    const botonAlta =
-    tarjeta.querySelector("[data-alta]");
+        btnEstado.onclick =
+        function(){
 
-    if(botonAlta){
-
-        botonAlta.addEventListener(
-            "click",
-            () => cambiarEstado(
+            cambiarEstadoEmpleado(
                 empleado,
                 "Activo"
-            )
-        );
+            );
+
+        };
 
     }
+
+
+    acciones.appendChild(
+        btnEstado
+    );
+
+
+    // --------------------------------------
+    // ELIMINAR
+    // --------------------------------------
+
+    const btnEliminar =
+    document.createElement("button");
+
+    btnEliminar.className =
+    "boton boton-eliminar";
+
+    btnEliminar.textContent =
+    "🗑️ ELIMINAR";
+
+
+    btnEliminar.onclick =
+    function(){
+
+        eliminarEmpleado(
+            empleado
+        );
+
+    };
+
+
+    acciones.appendChild(
+        btnEliminar
+    );
+
+
+    tarjeta.appendChild(
+        acciones
+    );
 
 
     listaEmpleados.appendChild(
@@ -1064,15 +1467,475 @@ function mostrarEmpleado(empleado){
 
 
 // ==========================================
-// EDITAR
+// AGREGAR DATO
 // ==========================================
 
-function editarEmpleado(empleado){
+function agregarDato(
+    contenedor,
+    etiqueta,
+    valor
+){
+
+    if(
+        !valor
+    ){
+
+        return;
+
+    }
+
+
+    const elemento =
+    document.createElement("div");
+
+    elemento.className =
+    "dato";
+
+
+    const etiquetaElemento =
+    document.createElement("span");
+
+    etiquetaElemento.className =
+    "etiqueta";
+
+    etiquetaElemento.textContent =
+    etiqueta +
+    ": ";
+
+
+    const valorElemento =
+    document.createElement("span");
+
+    valorElemento.textContent =
+    texto(valor);
+
+
+    elemento.appendChild(
+        etiquetaElemento
+    );
+
+    elemento.appendChild(
+        valorElemento
+    );
+
+
+    contenedor.appendChild(
+        elemento
+    );
+
+}
+
+
+// ==========================================
+// CREAR ACCESO
+// ==========================================
+
+async function crearAccesoEmpleado(
+    empleado
+){
 
     limpiarMensajes();
 
+
+    if(
+        empleado.authUid
+    ){
+
+        mostrarError(
+            "Este empleado ya tiene un acceso creado."
+        );
+
+        return;
+
+    }
+
+
+    const emailEmpleado =
+    texto(
+        empleado.email
+    ).trim()
+    .toLowerCase();
+
+
+    if(!emailEmpleado){
+
+        mostrarError(
+            "El empleado debe tener un email para crearle el acceso."
+        );
+
+        return;
+
+    }
+
+
+    const contraseña =
+    prompt(
+        "Crear contraseña para " +
+        empleado.nombre +
+        " " +
+        empleado.apellido +
+        "\n\n" +
+        "La contraseña debe tener al menos 6 caracteres."
+    );
+
+
+    if(
+        contraseña === null
+    ){
+
+        return;
+
+    }
+
+
+    if(
+        contraseña.length < 6
+    ){
+
+        mostrarError(
+            "La contraseña debe tener al menos 6 caracteres."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        !confirm(
+            "¿Crear acceso para:\n\n" +
+            empleado.nombre +
+            " " +
+            empleado.apellido +
+            "\n" +
+            emailEmpleado +
+            "\n\n" +
+            "El empleado utilizará este email y contraseña para ingresar."
+        )
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        const authSecundario =
+        obtenerAuthSecundario();
+
+
+        const resultado =
+        await createUserWithEmailAndPassword(
+            authSecundario,
+            emailEmpleado,
+            contraseña
+        );
+
+
+        const nuevoAuthUid =
+        resultado.user.uid;
+
+
+        // ==================================
+        // GUARDAR USUARIO EMPLEADO
+        // ==================================
+
+        await updateDoc(
+            doc(
+                db,
+                "empleados",
+                empleado.id
+            ),
+            {
+
+                authUid:
+                nuevoAuthUid,
+
+                accesoActivo:
+                true,
+
+                email:
+                emailEmpleado,
+
+                accesoCreado:
+                serverTimestamp(),
+
+                actualizado:
+                serverTimestamp()
+
+            }
+        );
+
+
+        // ==================================
+        // DOCUMENTO DEL USUARIO
+        // ==================================
+
+        await setearUsuarioEmpleado(
+            nuevoAuthUid,
+            empleado
+        );
+
+
+        mostrarExito(
+            "Acceso creado correctamente para " +
+            empleado.nombre +
+            " " +
+            empleado.apellido +
+            "."
+        );
+
+
+        await cargarEmpleados();
+
+    }
+    catch(error){
+
+        console.error(
+            "Error creando acceso:",
+            error
+        );
+
+
+        let mensaje =
+        error.message;
+
+
+        if(
+            error.code ===
+            "auth/email-already-in-use"
+        ){
+
+            mensaje =
+            "Ese email ya está registrado en Firebase.";
+
+        }
+
+
+        if(
+            error.code ===
+            "auth/invalid-email"
+        ){
+
+            mensaje =
+            "El email del empleado no es válido.";
+
+        }
+
+
+        if(
+            error.code ===
+            "auth/weak-password"
+        ){
+
+            mensaje =
+            "La contraseña es demasiado débil.";
+
+        }
+
+
+        mostrarError(
+            "No se pudo crear el acceso: " +
+            mensaje
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// CREAR DOCUMENTO DE USUARIO EMPLEADO
+// ==========================================
+
+async function setearUsuarioEmpleado(
+    authUid,
+    empleado
+){
+
+    await import(
+        "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"
+    );
+
+
+    const referencia =
+    doc(
+        db,
+        "usuarios",
+        authUid
+    );
+
+
+    const existente =
+    await getDoc(
+        referencia
+    );
+
+
+    if(
+        !existente.exists()
+    ){
+
+        await import(
+            "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"
+        );
+
+
+        const {
+            setDoc
+        } =
+        await import(
+            "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"
+        );
+
+
+        await setDoc(
+            referencia,
+            {
+
+                nombre:
+                texto(empleado.nombre),
+
+                apellido:
+                texto(empleado.apellido),
+
+                email:
+                texto(empleado.email),
+
+                telefono:
+                texto(empleado.telefono),
+
+                empresaId:
+                empresaId,
+
+                perfil:
+                "empleado",
+
+                empleadoId:
+                empleado.id,
+
+                estado:
+                "Activo",
+
+                creado:
+                serverTimestamp()
+
+            }
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// CAMBIAR ESTADO
+// ==========================================
+
+async function cambiarEstadoEmpleado(
+    empleado,
+    nuevoEstado
+){
+
+    limpiarMensajes();
+
+
+    const accion =
+    nuevoEstado ===
+    "Activo"
+    ?
+    "reactivar"
+    :
+    "dar de baja";
+
+
+    if(
+        !confirm(
+            "¿Querés " +
+            accion +
+            " a " +
+            empleado.nombre +
+            " " +
+            empleado.apellido +
+            "?"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        await updateDoc(
+            doc(
+                db,
+                "empleados",
+                empleado.id
+            ),
+            {
+
+                estado:
+                nuevoEstado,
+
+                accesoActivo:
+                nuevoEstado ===
+                "Activo",
+
+                actualizado:
+                serverTimestamp()
+
+            }
+        );
+
+
+        mostrarExito(
+            "Empleado " +
+            (
+                nuevoEstado ===
+                "Activo"
+                ?
+                "reactivado"
+                :
+                "dado de baja"
+            ) +
+            " correctamente."
+        );
+
+
+        await cargarEmpleados();
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        mostrarError(
+            "No se pudo cambiar el estado: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// EDITAR
+// ==========================================
+
+function editarEmpleado(
+    empleado
+){
+
+    limpiarMensajes();
+
+
     empleadoEditandoId =
     empleado.id;
+
 
     nombre.value =
     texto(empleado.nombre);
@@ -1099,21 +1962,19 @@ function editarEmpleado(empleado){
     texto(empleado.estado) ||
     "Activo";
 
-    montoDia.value =
-    empleado.montoDia || "";
-
-    horasDia.value =
-    empleado.horasDia || "8";
 
     tituloFormulario.textContent =
     "Editar empleado";
 
+
     btnGuardar.textContent =
     "GUARDAR CAMBIOS";
+
 
     btnCancelar.classList.remove(
         "oculto"
     );
+
 
     window.scrollTo({
         top:0,
@@ -1124,377 +1985,277 @@ function editarEmpleado(empleado){
 
 
 // ==========================================
-// CAMBIAR ESTADO
+// CANCELAR
 // ==========================================
 
-async function cambiarEstado(
-    empleado,
-    nuevoEstado
-){
+btnCancelar.onclick =
+function(){
+
+    limpiarFormulario();
 
     limpiarMensajes();
 
-    const accion =
-    nuevoEstado === "Activo"
-    ?
-    "reactivar"
-    :
-    "dar de baja";
-
-    const confirmar =
-    confirm(
-        "¿Querés " +
-        accion +
-        " a " +
-        texto(empleado.nombre) +
-        " " +
-        texto(empleado.apellido) +
-        "?"
-    );
-
-    if(!confirmar){
-        return;
-    }
-
-    try{
-
-        await updateDoc(
-            doc(
-                db,
-                "empleados",
-                empleado.id
-            ),
-            {
-
-                estado:
-                nuevoEstado,
-
-                actualizado:
-                serverTimestamp()
-
-            }
-        );
-
-        mostrarExito(
-            nuevoEstado === "Activo"
-            ?
-            "Empleado reactivado correctamente."
-            :
-            "Empleado dado de baja correctamente."
-        );
-
-        await cargarEmpleados();
-
-    }
-    catch(error){
-
-        console.error(
-            error
-        );
-
-        mostrarError(
-            "No se pudo cambiar el estado: " +
-            error.message
-        );
-
-    }
-
-}
+};
 
 
 // ==========================================
 // GUARDAR
 // ==========================================
 
-btnGuardar.addEventListener(
-    "click",
-    async function(){
+btnGuardar.onclick =
+async function(){
 
-        limpiarMensajes();
+    limpiarMensajes();
 
-        const nombreValor =
-        nombre.value.trim();
 
-        const apellidoValor =
-        apellido.value.trim();
+    const nombreValor =
+    nombre.value.trim();
 
-        const dniValor =
-        dni.value.trim();
+    const apellidoValor =
+    apellido.value.trim();
 
-        const telefonoValor =
-        telefono.value.trim();
+    const dniValor =
+    dni.value.trim();
 
-        const emailValor =
-        email.value.trim();
+    const telefonoValor =
+    telefono.value.trim();
 
-        const puestoValor =
-        puesto.value.trim();
+    const emailValor =
+    email.value.trim();
 
-        const fechaValor =
-        fechaIngreso.value;
+    const puestoValor =
+    puesto.value.trim();
 
-        const estadoValor =
-        estado.value;
+    const fechaIngresoValor =
+    fechaIngreso.value;
 
-        const diario =
-        Number(
-            montoDia.value
-        ) || 0;
+    const estadoValor =
+    estado.value;
 
-        const horas =
-        Number(
-            horasDia.value
-        ) || 8;
 
+    if(!nombreValor){
 
-        if(!nombreValor){
+        mostrarError(
+            "Ingresá el nombre."
+        );
 
-            mostrarError(
-                "Ingresá el nombre."
-            );
-
-            nombre.focus();
-
-            return;
-
-        }
-
-
-        if(!apellidoValor){
-
-            mostrarError(
-                "Ingresá el apellido."
-            );
-
-            apellido.focus();
-
-            return;
-
-        }
-
-
-        if(!dniValor){
-
-            mostrarError(
-                "Ingresá el DNI."
-            );
-
-            dni.focus();
-
-            return;
-
-        }
-
-
-        if(!puestoValor){
-
-            mostrarError(
-                "Ingresá el puesto o función."
-            );
-
-            puesto.focus();
-
-            return;
-
-        }
-
-
-        if(diario <= 0){
-
-            mostrarError(
-                "Ingresá el monto por día."
-            );
-
-            montoDia.focus();
-
-            return;
-
-        }
-
-
-        if(horas <= 0){
-
-            mostrarError(
-                "Las horas de jornada deben ser mayores a cero."
-            );
-
-            horasDia.focus();
-
-            return;
-
-        }
-
-
-        btnGuardar.disabled =
-        true;
-
-        btnGuardar.textContent =
-        "GUARDANDO...";
-
-
-        try{
-
-            const sueldos =
-            calcularSueldos(
-                diario
-            );
-
-
-            const montoHora =
-            diario / horas;
-
-
-            const datos = {
-
-                uid:
-                usuarioActual.uid,
-
-                empresaId:
-                empresaId,
-
-                nombre:
-                nombreValor,
-
-                apellido:
-                apellidoValor,
-
-                dni:
-                dniValor,
-
-                telefono:
-                telefonoValor,
-
-                email:
-                emailValor,
-
-                puesto:
-                puestoValor,
-
-                fechaIngreso:
-                fechaValor,
-
-                estado:
-                estadoValor,
-
-                montoDia:
-                diario,
-
-                horasDia:
-                horas,
-
-                montoHora:
-                montoHora,
-
-                sueldoSemanal:
-                sueldos.semanal,
-
-                sueldoQuincenal:
-                sueldos.quincenal,
-
-                sueldoMensual:
-                sueldos.mensual,
-
-                actualizado:
-                serverTimestamp()
-
-            };
-
-
-            if(
-                empleadoEditandoId
-            ){
-
-                await updateDoc(
-                    doc(
-                        db,
-                        "empleados",
-                        empleadoEditandoId
-                    ),
-                    datos
-                );
-
-                mostrarExito(
-                    "Empleado actualizado correctamente."
-                );
-
-            }
-            else{
-
-                datos.creado =
-                serverTimestamp();
-
-                await addDoc(
-                    collection(
-                        db,
-                        "empleados"
-                    ),
-                    datos
-                );
-
-                mostrarExito(
-                    "Empleado creado correctamente."
-                );
-
-            }
-
-
-            limpiarFormulario();
-
-            await cargarEmpleados();
-
-        }
-        catch(error){
-
-            console.error(
-                "Error:",
-                error
-            );
-
-            mostrarError(
-                "No se pudo guardar el empleado: " +
-                error.message
-            );
-
-        }
-        finally{
-
-            btnGuardar.disabled =
-            false;
-
-            if(
-                empleadoEditandoId
-            ){
-
-                btnGuardar.textContent =
-                "GUARDAR CAMBIOS";
-
-            }
-            else{
-
-                btnGuardar.textContent =
-                "GUARDAR EMPLEADO";
-
-            }
-
-        }
+        return;
 
     }
-);
 
 
-// ==========================================
-// CANCELAR
-// ==========================================
+    if(!apellidoValor){
 
-btnCancelar.addEventListener(
-    "click",
-    function(){
+        mostrarError(
+            "Ingresá el apellido."
+        );
+
+        return;
+
+    }
+
+
+    if(!dniValor){
+
+        mostrarError(
+            "Ingresá el DNI."
+        );
+
+        return;
+
+    }
+
+
+    if(!puestoValor){
+
+        mostrarError(
+            "Ingresá el puesto o función."
+        );
+
+        return;
+
+    }
+
+
+    btnGuardar.disabled =
+    true;
+
+    btnGuardar.textContent =
+    "GUARDANDO...";
+
+
+    try{
+
+        const datosEmpleado = {
+
+            uid:
+            usuarioActual.uid,
+
+            empresaId:
+            empresaId,
+
+            nombre:
+            nombreValor,
+
+            apellido:
+            apellidoValor,
+
+            dni:
+            dniValor,
+
+            telefono:
+            telefonoValor,
+
+            email:
+            emailValor,
+
+            puesto:
+            puestoValor,
+
+            fechaIngreso:
+            fechaIngresoValor,
+
+            estado:
+            estadoValor,
+
+            actualizado:
+            serverTimestamp()
+
+        };
+
+
+        if(
+            empleadoEditandoId
+        ){
+
+            await updateDoc(
+                doc(
+                    db,
+                    "empleados",
+                    empleadoEditandoId
+                ),
+                datosEmpleado
+            );
+
+
+            mostrarExito(
+                "Empleado actualizado correctamente."
+            );
+
+        }
+        else{
+
+            datosEmpleado.creado =
+            serverTimestamp();
+
+
+            await addDoc(
+                collection(
+                    db,
+                    "empleados"
+                ),
+                datosEmpleado
+            );
+
+
+            mostrarExito(
+                "Empleado creado correctamente."
+            );
+
+        }
+
 
         limpiarFormulario();
-        limpiarMensajes();
+
+        await cargarEmpleados();
 
     }
-);
+    catch(error){
+
+        console.error(error);
+
+        mostrarError(
+            "No se pudo guardar el empleado: " +
+            error.message
+        );
+
+    }
+    finally{
+
+        btnGuardar.disabled =
+        false;
+
+
+        btnGuardar.textContent =
+        empleadoEditandoId
+        ?
+        "GUARDAR CAMBIOS"
+        :
+        "GUARDAR EMPLEADO";
+
+    }
+
+};
+
+
+// ==========================================
+// ELIMINAR
+// ==========================================
+
+async function eliminarEmpleado(
+    empleado
+){
+
+    limpiarMensajes();
+
+
+    if(
+        !confirm(
+            "¿Eliminar definitivamente a " +
+            empleado.nombre +
+            " " +
+            empleado.apellido +
+            "?\n\n" +
+            "Para una baja normal recomendamos usar DAR DE BAJA."
+        )
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        await deleteDoc(
+            doc(
+                db,
+                "empleados",
+                empleado.id
+            )
+        );
+
+
+        mostrarExito(
+            "Empleado eliminado."
+        );
+
+
+        await cargarEmpleados();
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        mostrarError(
+            "No se pudo eliminar el empleado: " +
+            error.message
+        );
+
+    }
+
+}
 
 
 // ==========================================
@@ -1521,22 +2282,23 @@ onAuthStateChanged(
 
         try{
 
-            await cargarUsuario();
+            await cargarDatosUsuario();
+
 
             fechaIngreso.value =
             fechaHoy();
+
 
             await cargarEmpleados();
 
         }
         catch(error){
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             cargando.style.display =
             "none";
+
 
             mostrarError(
                 "No se pudo iniciar el módulo: " +
@@ -1551,4 +2313,5 @@ onAuthStateChanged(
 </script>
 
 </body>
+
 </html>
