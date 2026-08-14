@@ -194,7 +194,6 @@ button{
 
 </head>
 
-
 <body>
 
 <div class="contenedor">
@@ -211,9 +210,7 @@ Configuración de GESBASE
 
 </header>
 
-
 <main>
-
 
 <div
     id="mensaje"
@@ -237,7 +234,6 @@ Cargando información de la empresa...
 Logo de la empresa
 </div>
 
-
 <div class="logo-contenedor">
 
 <div
@@ -247,13 +243,11 @@ Logo de la empresa
 Sin logo
 </div>
 
-
 <input
     type="file"
     id="logo"
     accept="image/png,image/jpeg,image/webp"
 >
-
 
 <div class="nota">
 Formatos permitidos: JPG, PNG o WEBP.
@@ -371,7 +365,6 @@ Dirección
 Guardar cambios
 </button>
 
-
 </div>
 
 
@@ -386,14 +379,12 @@ Volver al panel
 
 </div>
 
-
 </main>
 
 </div>
 
 
 <script type="module">
-
 
 // ==========================================
 // FIREBASE
@@ -432,8 +423,7 @@ import {
 // STORAGE
 // ==========================================
 
-const storage =
-getStorage();
+const storage = getStorage();
 
 
 // ==========================================
@@ -488,22 +478,18 @@ let logoActual = "";
 // MENSAJES
 // ==========================================
 
-function mostrarMensaje(
-    texto,
-    tipo
-){
+function mostrarMensaje(texto,tipo){
 
-    mensaje.textContent =
-    texto;
+    mensaje.textContent = texto;
 
     mensaje.className =
-    "mensaje " + tipo;
+        "mensaje " + tipo;
 
 }
 
 
 // ==========================================
-// VISTA PREVIA DEL LOGO
+// VISTA PREVIA LOGO
 // ==========================================
 
 logo.addEventListener(
@@ -511,31 +497,31 @@ logo.addEventListener(
     function(){
 
         const archivo =
-        logo.files[0];
+            logo.files[0];
 
         if(!archivo){
             return;
         }
 
         const lector =
-        new FileReader();
+            new FileReader();
 
         lector.onload =
-        function(evento){
+            function(evento){
 
-            logoPreview.innerHTML = "";
+                logoPreview.innerHTML = "";
 
-            const imagen =
-            document.createElement("img");
+                const imagen =
+                    document.createElement("img");
 
-            imagen.src =
-            evento.target.result;
+                imagen.src =
+                    evento.target.result;
 
-            logoPreview.appendChild(
-                imagen
-            );
+                logoPreview.appendChild(
+                    imagen
+                );
 
-        };
+            };
 
         lector.readAsDataURL(
             archivo
@@ -560,39 +546,30 @@ onAuthStateChanged(
             );
 
             return;
-
         }
 
 
         usuarioActual =
-        usuario;
+            usuario;
 
 
         try{
 
-            /*
-             * IMPORTANTE:
-             * La empresa está guardada
-             * utilizando el UID del usuario.
-             */
-
             empresaRef =
-            doc(
-                db,
-                "empresas",
-                usuario.uid
-            );
+                doc(
+                    db,
+                    "empresas",
+                    usuario.uid
+                );
 
 
             const documento =
-            await getDoc(
-                empresaRef
-            );
+                await getDoc(
+                    empresaRef
+                );
 
 
-            if(
-                !documento.exists()
-            ){
+            if(!documento.exists()){
 
                 mostrarMensaje(
                     "No se encontró la empresa asociada a esta cuenta.",
@@ -600,51 +577,45 @@ onAuthStateChanged(
                 );
 
                 return;
-
             }
 
 
             const datos =
-            documento.data();
+                documento.data();
 
 
-            // ==================================
-            // CARGAR DATOS
-            // ==================================
+            // DATOS
 
             nombreEmpresa.value =
-            datos.nombreEmpresa ||
-            "";
+                datos.nombreEmpresa || "";
+
 
             razonSocial.value =
-            datos.razonSocial ||
-            "";
+                datos.razonSocial || "";
+
 
             cuit.value =
-            datos.cuit ||
-            "";
+                datos.cuit || "";
+
 
             telefono.value =
-            datos.telefono ||
-            "";
+                datos.telefono || "";
+
 
             email.value =
-            datos.email ||
-            usuario.email ||
-            "";
+                datos.email ||
+                usuario.email ||
+                "";
+
 
             direccion.value =
-            datos.direccion ||
-            "";
+                datos.direccion || "";
 
 
-            // ==================================
-            // CARGAR LOGO
-            // ==================================
+            // LOGO
 
             logoActual =
-            datos.logoUrl ||
-            "";
+                datos.logoUrl || "";
 
 
             if(logoActual){
@@ -652,13 +623,13 @@ onAuthStateChanged(
                 logoPreview.innerHTML = "";
 
                 const imagen =
-                document.createElement("img");
+                    document.createElement("img");
 
                 imagen.src =
-                logoActual;
+                    logoActual;
 
                 imagen.alt =
-                "Logo de la empresa";
+                    "Logo de la empresa";
 
                 logoPreview.appendChild(
                     imagen
@@ -668,10 +639,10 @@ onAuthStateChanged(
 
 
             mensaje.style.display =
-            "none";
+                "none";
 
             contenido.style.display =
-            "block";
+                "block";
 
 
         }catch(error){
@@ -703,6 +674,12 @@ btnGuardar.addEventListener(
     async function(){
 
         if(!usuarioActual){
+
+            mostrarMensaje(
+                "No hay una sesión activa.",
+                "error"
+            );
+
             return;
         }
 
@@ -719,7 +696,6 @@ btnGuardar.addEventListener(
             nombreEmpresa.focus();
 
             return;
-
         }
 
 
@@ -735,52 +711,57 @@ btnGuardar.addEventListener(
             razonSocial.focus();
 
             return;
-
         }
 
 
         btnGuardar.disabled =
-        true;
+            true;
 
         btnGuardar.textContent =
-        "Guardando...";
+            "Guardando...";
 
 
         try{
 
             let logoUrl =
-            logoActual;
+                logoActual;
 
 
             // ==================================
-            // SUBIR LOGO SI SE SELECCIONÓ
+            // SUBIR LOGO
             // ==================================
 
             const archivo =
-            logo.files[0];
+                logo.files[0];
 
 
             if(archivo){
 
+                mostrarMensaje(
+                    "Paso 1/2: subiendo logo...",
+                    "cargando"
+                );
+
+
                 const extension =
-                archivo.name
-                .split(".")
-                .pop()
-                .toLowerCase();
+                    archivo.name
+                    .split(".")
+                    .pop()
+                    .toLowerCase();
 
 
                 const ruta =
-                "empresas/" +
-                usuarioActual.uid +
-                "/logo." +
-                extension;
+                    "empresas/" +
+                    usuarioActual.uid +
+                    "/logo." +
+                    extension;
 
 
                 const referenciaLogo =
-                ref(
-                    storage,
-                    ruta
-                );
+                    ref(
+                        storage,
+                        ruta
+                    );
 
 
                 await uploadBytes(
@@ -790,57 +771,67 @@ btnGuardar.addEventListener(
 
 
                 logoUrl =
-                await getDownloadURL(
-                    referenciaLogo
-                );
+                    await getDownloadURL(
+                        referenciaLogo
+                    );
 
             }
 
 
             // ==================================
-            // ACTUALIZAR FIRESTORE
+            // FIRESTORE
             // ==================================
+
+            mostrarMensaje(
+                "Paso 2/2: guardando datos...",
+                "cargando"
+            );
+
 
             await updateDoc(
                 empresaRef,
                 {
 
                     nombreEmpresa:
-                    nombreEmpresa.value.trim(),
+                        nombreEmpresa.value.trim(),
 
                     razonSocial:
-                    razonSocial.value.trim(),
+                        razonSocial.value.trim(),
 
                     cuit:
-                    cuit.value.trim(),
+                        cuit.value.trim(),
 
                     telefono:
-                    telefono.value.trim(),
+                        telefono.value.trim(),
 
                     email:
-                    email.value.trim(),
+                        email.value.trim(),
 
                     direccion:
-                    direccion.value.trim(),
+                        direccion.value.trim(),
 
                     logoUrl:
-                    logoUrl
+                        logoUrl
 
                 }
             );
 
 
+            // ==================================
+            // ÉXITO
+            // ==================================
+
             mostrarMensaje(
-                "Datos de la empresa actualizados correctamente.",
+                "✅ Datos de la empresa guardados correctamente.",
                 "exito"
             );
 
 
             btnGuardar.disabled =
-            false;
+                false;
 
             btnGuardar.textContent =
-            "Guardar cambios";
+                "Guardar cambios";
 
 
         }catch(error){
@@ -852,17 +843,19 @@ btnGuardar.addEventListener(
 
 
             mostrarMensaje(
-                "No se pudieron guardar los cambios: " +
+                "❌ No se pudo guardar: " +
+                error.code +
+                " — " +
                 error.message,
                 "error"
             );
 
 
             btnGuardar.disabled =
-            false;
+                false;
 
             btnGuardar.textContent =
-            "Guardar cambios";
+                "Guardar cambios";
 
         }
 
@@ -879,7 +872,7 @@ btnVolver.addEventListener(
     function(){
 
         window.location.href =
-        "index.html";
+            "index.html";
 
     }
 );
