@@ -73,8 +73,8 @@ main{
 }
 
 .logo-empresa{
-    max-width:120px;
-    max-height:80px;
+    max-width:150px;
+    max-height:90px;
     object-fit:contain;
     margin-bottom:10px;
 }
@@ -633,7 +633,6 @@ VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE
 
 <script type="module">
 
-
 // ==========================================
 // FIREBASE
 // ==========================================
@@ -646,15 +645,13 @@ import {
 
 import {
     onAuthStateChanged
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
 import {
     doc,
     getDoc
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
 // ==========================================
@@ -741,7 +738,7 @@ document.getElementById("btnPDF");
 
 
 // ==========================================
-// ID DEL PRESUPUESTO
+// ID PRESUPUESTO
 // ==========================================
 
 const parametros =
@@ -758,6 +755,8 @@ let datosPresupuesto = {};
 let datosEmpresa = {};
 
 let datosUsuario = {};
+
+let logoDataURL = null;
 
 
 // ==========================================
@@ -800,7 +799,7 @@ function dinero(valor){
 
 
 // ==========================================
-// NÚMERO DE PRESUPUESTO
+// NÚMERO PRESUPUESTO
 // ==========================================
 
 function numeroPresupuesto(id){
@@ -892,73 +891,185 @@ function mostrarMateriales(lista){
 
 
 // ==========================================
-// CARGAR DATOS DE LA EMPRESA
+// CONVERTIR LOGO A DATA URL
+// ==========================================
+
+async function convertirImagenADataURL(url){
+
+    return new Promise(
+        function(resolve,reject){
+
+            const imagen =
+            new Image();
+
+            imagen.crossOrigin =
+            "anonymous";
+
+
+            imagen.onload =
+            function(){
+
+                try{
+
+                    const canvas =
+                    document.createElement(
+                        "canvas"
+                    );
+
+
+                    canvas.width =
+                    imagen.naturalWidth;
+
+
+                    canvas.height =
+                    imagen.naturalHeight;
+
+
+                    const contexto =
+                    canvas.getContext(
+                        "2d"
+                    );
+
+
+                    contexto.drawImage(
+                        imagen,
+                        0,
+                        0
+                    );
+
+
+                    const dataURL =
+                    canvas.toDataURL(
+                        "image/png"
+                    );
+
+
+                    resolve(
+                        dataURL
+                    );
+
+
+                }catch(error){
+
+                    reject(error);
+
+                }
+
+            };
+
+
+            imagen.onerror =
+            function(){
+
+                reject(
+                    new Error(
+                        "No se pudo cargar el logo."
+                    )
+                );
+
+            };
+
+
+            imagen.src =
+            url;
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// CARGAR DATOS EMPRESA
 // ==========================================
 
 async function cargarEmpresa(usuario){
 
-    /*
-     * PRIMERO:
-     * Buscamos los datos actuales
-     * en empresas/{uid}
-     */
+    datosEmpresa = {};
 
-    const referenciaEmpresa =
-    doc(
-        db,
-        "empresas",
-        usuario.uid
-    );
+    datosUsuario = {};
 
 
-    const resultadoEmpresa =
-    await getDoc(
-        referenciaEmpresa
-    );
+    // ======================================
+    // EMPRESAS
+    // ======================================
+
+    try{
+
+        const referenciaEmpresa =
+        doc(
+            db,
+            "empresas",
+            usuario.uid
+        );
 
 
-    if(
-        resultadoEmpresa.exists()
-    ){
-
-        datosEmpresa =
-        resultadoEmpresa.data();
-
-    }
+        const resultadoEmpresa =
+        await getDoc(
+            referenciaEmpresa
+        );
 
 
-    /*
-     * SEGUNDO:
-     * Buscamos nombre y apellido
-     * del usuario.
-     */
+        if(
+            resultadoEmpresa.exists()
+        ){
 
-    const referenciaUsuario =
-    doc(
-        db,
-        "usuarios",
-        usuario.uid
-    );
+            datosEmpresa =
+            resultadoEmpresa.data();
 
+        }
 
-    const resultadoUsuario =
-    await getDoc(
-        referenciaUsuario
-    );
+    }catch(error){
 
-
-    if(
-        resultadoUsuario.exists()
-    ){
-
-        datosUsuario =
-        resultadoUsuario.data();
+        console.warn(
+            "No se pudo cargar empresas:",
+            error
+        );
 
     }
 
 
     // ======================================
-    // DATOS ACTUALES DE EMPRESA
+    // USUARIOS
+    // ======================================
+
+    try{
+
+        const referenciaUsuario =
+        doc(
+            db,
+            "usuarios",
+            usuario.uid
+        );
+
+
+        const resultadoUsuario =
+        await getDoc(
+            referenciaUsuario
+        );
+
+
+        if(
+            resultadoUsuario.exists()
+        ){
+
+            datosUsuario =
+            resultadoUsuario.data();
+
+        }
+
+    }catch(error){
+
+        console.warn(
+            "No se pudo cargar usuarios:",
+            error
+        );
+
+    }
+
+
+    // ======================================
+    // DATOS ACTUALES
     // ======================================
 
     const nombreEmpresa =
@@ -972,7 +1083,7 @@ async function cargarEmpresa(usuario){
     const razon =
     datosEmpresa.razonSocial ||
     datosUsuario.razonSocial ||
-    "Battauz Julián Ezequiel";
+    "";
 
 
     const cuitValor =
@@ -1023,33 +1134,18 @@ async function cargarEmpresa(usuario){
 
 
     // ======================================
-    // LOGO
-    // ======================================
-
-    if(
-        datosEmpresa.logoUrl
-    ){
-
-        logoEmpresa.src =
-        datosEmpresa.logoUrl;
-
-        logoEmpresa.style.display =
-        "inline-block";
-
-    }
-
-
-    // ======================================
-    // DATOS CONTRATISTA
+    // CONTRATISTA
     // ======================================
 
     const nombre =
     datosUsuario.nombre ||
+    datosEmpresa.nombre ||
     "";
 
 
     const apellido =
     datosUsuario.apellido ||
+    datosEmpresa.apellido ||
     "";
 
 
@@ -1073,6 +1169,55 @@ async function cargarEmpresa(usuario){
 
     email.textContent =
     texto(emailValor);
+
+
+    // ======================================
+    // LOGO
+    // ======================================
+
+    const logoURL =
+    datosEmpresa.logoUrl ||
+    datosEmpresa.logo ||
+    datosUsuario.logoUrl ||
+    datosUsuario.logo ||
+    "";
+
+
+    if(logoURL){
+
+        logoEmpresa.src =
+        logoURL;
+
+
+        logoEmpresa.style.display =
+        "inline-block";
+
+
+        /*
+         * Intentamos convertirlo a Data URL
+         * para poder incorporarlo al PDF.
+         */
+
+        try{
+
+            logoDataURL =
+            await convertirImagenADataURL(
+                logoURL
+            );
+
+        }catch(error){
+
+            console.warn(
+                "No se pudo preparar el logo para PDF:",
+                error
+            );
+
+            logoDataURL =
+            null;
+
+        }
+
+    }
 
 }
 
@@ -1146,7 +1291,7 @@ async function cargarPresupuesto(usuario){
 
 
         // ==================================
-        // EMPRESA
+        // EMPRESA ACTUAL
         // ==================================
 
         await cargarEmpresa(
@@ -1155,7 +1300,7 @@ async function cargarPresupuesto(usuario){
 
 
         // ==================================
-        // DATOS PRESUPUESTO
+        // DATOS
         // ==================================
 
         fecha.textContent =
@@ -1279,7 +1424,7 @@ async function cargarPresupuesto(usuario){
 
 
 // ==========================================
-// MOSTRAR ERROR
+// ERROR
 // ==========================================
 
 function mostrarError(mensaje){
@@ -1304,7 +1449,7 @@ function mostrarError(mensaje){
 
 btnPDF.addEventListener(
     "click",
-    function(){
+    async function(){
 
         const {
             jsPDF
@@ -1312,22 +1457,864 @@ btnPDF.addEventListener(
         window.jspdf;
 
 
-        const pdf =
-        new jsPDF({
-            orientation:"portrait",
-            unit:"mm",
-            format:"a4"
-        });
+        if(!jsPDF){
+
+            alert(
+                "No se pudo cargar el generador PDF."
+            );
+
+            return;
+
+        }
 
 
-        const margen = 18;
+        btnPDF.disabled =
+        true;
 
-        const ancho = 174;
+        btnPDF.textContent =
+        "Generando PDF...";
 
-        let y = 18;
+
+        try{
+
+            const pdf =
+            new jsPDF({
+                orientation:"portrait",
+                unit:"mm",
+                format:"a4"
+            });
 
 
-        function linea(){
+            const margen =
+            18;
+
+
+            const ancho =
+            174;
+
+
+            let y =
+            18;
+
+
+            // ==================================
+            // FUNCIONES PDF
+            // ==================================
+
+            function linea(){
+
+                pdf.line(
+                    margen,
+                    y,
+                    margen + ancho,
+                    y
+                );
+
+
+                y += 6;
+
+            }
+
+
+            function textoPDF(
+                valor,
+                x,
+                tamaño=10,
+                negrita=false
+            ){
+
+                pdf.setFont(
+                    "helvetica",
+                    negrita
+                    ? "bold"
+                    : "normal"
+                );
+
+
+                pdf.setFontSize(
+                    tamaño
+                );
+
+
+                pdf.text(
+                    String(valor),
+                    x,
+                    y
+                );
+
+            }
+
+
+            function comprobarPagina(
+                espacio=10
+            ){
+
+                if(
+                    y + espacio > 275
+                ){
+
+                    pdf.addPage();
+
+                    y = 20;
+
+                }
+
+            }
+
+
+            // ==================================
+            // LOGO
+            // ==================================
+
+            if(logoDataURL){
+
+                try{
+
+                    pdf.addImage(
+                        logoDataURL,
+                        "PNG",
+                        80,
+                        y,
+                        50,
+                        28
+                    );
+
+
+                    y += 33;
+
+                }catch(error){
+
+                    console.warn(
+                        "No se pudo agregar el logo:",
+                        error
+                    );
+
+                }
+
+            }
+
+
+            // ==================================
+            // EMPRESA
+            // ==================================
+
+            const nombreEmpresa =
+            datosEmpresa.nombreEmpresa ||
+            datosEmpresa.empresa ||
+            datosUsuario.nombreEmpresa ||
+            datosUsuario.empresa ||
+            "Albe Servicios Generales";
+
+
+            const razonEmpresa =
+            datosEmpresa.razonSocial ||
+            datosUsuario.razonSocial ||
+            "";
+
+
+            const cuitEmpresa =
+            datosEmpresa.cuit ||
+            datosUsuario.cuit ||
+            "";
+
+
+            const telefonoEmpresa =
+            datosEmpresa.telefono ||
+            datosUsuario.telefono ||
+            "";
+
+
+            const emailEmpresa =
+            datosEmpresa.email ||
+            datosUsuario.email ||
+            auth.currentUser?.email ||
+            "";
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.setFontSize(
+                14
+            );
+
+
+            pdf.text(
+                texto(nombreEmpresa),
+                105,
+                y,
+                {
+                    align:"center"
+                }
+            );
+
+
+            y += 6;
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            pdf.setFontSize(
+                9
+            );
+
+
+            pdf.text(
+                "Razón Social: " +
+                texto(razonEmpresa),
+                105,
+                y,
+                {
+                    align:"center"
+                }
+            );
+
+
+            y += 5;
+
+
+            pdf.text(
+                "CUIT Nº: " +
+                texto(cuitEmpresa),
+                105,
+                y,
+                {
+                    align:"center"
+                }
+            );
+
+
+            y += 5;
+
+
+            pdf.text(
+                "Tel./Cel: " +
+                texto(telefonoEmpresa),
+                105,
+                y,
+                {
+                    align:"center"
+                }
+            );
+
+
+            y += 5;
+
+
+            pdf.text(
+                "Mail: " +
+                texto(emailEmpresa),
+                105,
+                y,
+                {
+                    align:"center"
+                }
+            );
+
+
+            y += 8;
+
+
+            linea();
+
+
+            // ==================================
+            // TÍTULO
+            // ==================================
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.setFontSize(
+                16
+            );
+
+
+            pdf.text(
+                "PEDIDO DE PRESUPUESTO",
+                105,
+                y,
+                {
+                    align:"center"
+                }
+            );
+
+
+            y += 9;
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            pdf.setFontSize(
+                10
+            );
+
+
+            pdf.text(
+                "FECHA: " +
+                texto(
+                    datosPresupuesto.fecha
+                ),
+                margen,
+                y
+            );
+
+
+            y += 8;
+
+
+            linea();
+
+
+            // ==================================
+            // CONTRATISTA
+            // ==================================
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.setFontSize(
+                11
+            );
+
+
+            pdf.text(
+                "DATOS DEL CONTRATISTA",
+                margen,
+                y
+            );
+
+
+            y += 7;
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            pdf.setFontSize(
+                10
+            );
+
+
+            const nombrePDF =
+            (
+                datosUsuario.nombre ||
+                datosEmpresa.nombre ||
+                ""
+            )
+            +
+            " "
+            +
+            (
+                datosUsuario.apellido ||
+                datosEmpresa.apellido ||
+                ""
+            );
+
+
+            pdf.text(
+                "Nombre y Apellido: " +
+                texto(
+                    nombrePDF.trim()
+                ),
+                margen,
+                y
+            );
+
+
+            y += 6;
+
+
+            pdf.text(
+                "Razón Social: " +
+                texto(
+                    razonEmpresa
+                ),
+                margen,
+                y
+            );
+
+
+            y += 6;
+
+
+            pdf.text(
+                "CUIT Nº: " +
+                texto(
+                    cuitEmpresa
+                ),
+                margen,
+                y
+            );
+
+
+            y += 6;
+
+
+            pdf.text(
+                "Tel./ Cel: " +
+                texto(
+                    telefonoEmpresa
+                ),
+                margen,
+                y
+            );
+
+
+            y += 6;
+
+
+            pdf.text(
+                "Mail: " +
+                texto(
+                    emailEmpresa
+                ),
+                margen,
+                y
+            );
+
+
+            y += 8;
+
+
+            linea();
+
+
+            // ==================================
+            // DETALLE
+            // ==================================
+
+            comprobarPagina(30);
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.setFontSize(
+                11
+            );
+
+
+            pdf.text(
+                "DETALLE DEL PRESUPUESTO",
+                margen,
+                y
+            );
+
+
+            y += 7;
+
+
+            pdf.setFontSize(
+                10
+            );
+
+
+            pdf.text(
+                "TAREAS A REALIZAR",
+                margen,
+                y
+            );
+
+
+            y += 6;
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            const tareas =
+            pdf.splitTextToSize(
+                texto(
+                    datosPresupuesto.descripcion
+                ),
+                ancho
+            );
+
+
+            comprobarPagina(
+                tareas.length * 5 + 10
+            );
+
+
+            pdf.text(
+                tareas,
+                margen,
+                y
+            );
+
+
+            y +=
+            tareas.length * 5 +
+            5;
+
+
+            // ==================================
+            // MATERIALES
+            // ==================================
+
+            comprobarPagina(20);
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.text(
+                "MATERIALES",
+                margen,
+                y
+            );
+
+
+            y += 6;
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            const lista =
+            Array.isArray(
+                datosPresupuesto.materialesLista
+            )
+            ?
+            datosPresupuesto.materialesLista
+            :
+            [];
+
+
+            if(
+                lista.length === 0
+            ){
+
+                pdf.text(
+                    "Sin materiales cargados.",
+                    margen + 4,
+                    y
+                );
+
+
+                y += 6;
+
+            }else{
+
+                lista.forEach(
+                    function(material){
+
+                        comprobarPagina(
+                            10
+                        );
+
+
+                        pdf.text(
+                            "• " +
+                            texto(
+                                material.tipo
+                            ),
+                            margen + 4,
+                            y
+                        );
+
+
+                        pdf.text(
+                            "Cantidad: " +
+                            texto(
+                                material.cantidad
+                            ),
+                            130,
+                            y
+                        );
+
+
+                        y += 6;
+
+                    }
+                );
+
+            }
+
+
+            y += 4;
+
+
+            // ==================================
+            // MANO DE OBRA
+            // ==================================
+
+            comprobarPagina(15);
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.text(
+                "MANO DE OBRA",
+                margen,
+                y
+            );
+
+
+            y += 6;
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            pdf.text(
+                "Importe: $" +
+                dinero(
+                    datosPresupuesto.manoObra
+                ),
+                margen + 4,
+                y
+            );
+
+
+            y += 7;
+
+
+            // ==================================
+            // LUGAR
+            // ==================================
+
+            comprobarPagina(20);
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.text(
+                "Lugar de Prestación del Servicio:",
+                margen,
+                y
+            );
+
+
+            y += 6;
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            const lugar =
+            pdf.splitTextToSize(
+                texto(
+                    datosPresupuesto.lugarTrabajo
+                ),
+                ancho
+            );
+
+
+            pdf.text(
+                lugar,
+                margen,
+                y
+            );
+
+
+            y +=
+            lugar.length * 5 +
+            7;
+
+
+            pdf.text(
+                "Otros: -",
+                margen,
+                y
+            );
+
+
+            y += 9;
+
+
+            linea();
+
+
+            // ==================================
+            // IMPORTES
+            // ==================================
+
+            comprobarPagina(55);
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.setFontSize(
+                11
+            );
+
+
+            pdf.text(
+                "IMPORTES",
+                margen,
+                y
+            );
+
+
+            y += 6;
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            pdf.setFontSize(
+                9
+            );
+
+
+            pdf.text(
+                "Indicar valores sin IVA",
+                margen,
+                y
+            );
+
+
+            y += 7;
+
+
+            const materiales =
+            Number(
+                datosPresupuesto.materiales
+            ) || 0;
+
+
+            const manoObra =
+            Number(
+                datosPresupuesto.manoObra
+            ) || 0;
+
+
+            const viaticos =
+            Number(
+                datosPresupuesto.viaticos
+            ) || 0;
+
+
+            const flete =
+            Number(
+                datosPresupuesto.flete
+            ) || 0;
+
+
+            const total =
+            materiales +
+            manoObra +
+            viaticos +
+            flete;
+
+
+            function importePDF(
+                etiqueta,
+                valor
+            ){
+
+                pdf.setFont(
+                    "helvetica",
+                    "normal"
+                );
+
+
+                pdf.setFontSize(
+                    10
+                );
+
+
+                pdf.text(
+                    etiqueta,
+                    margen,
+                    y
+                );
+
+
+                pdf.text(
+                    "$" +
+                    dinero(valor),
+                    150,
+                    y
+                );
+
+
+                y += 6;
+
+            }
+
+
+            importePDF(
+                "Importe Material",
+                materiales
+            );
+
+
+            importePDF(
+                "Importe Mano de OBRA",
+                manoObra
+            );
+
+
+            importePDF(
+                "Viáticos",
+                viaticos
+            );
+
+
+            importePDF(
+                "Flete",
+                flete
+            );
+
+
+            y += 2;
+
 
             pdf.line(
                 margen,
@@ -1336,641 +2323,23 @@ btnPDF.addEventListener(
                 y
             );
 
-            y += 6;
 
-        }
+            y += 9;
 
-
-        function agregarTexto(
-            textoValor,
-            x,
-            tamaño = 10,
-            negrita = false
-        ){
 
             pdf.setFont(
                 "helvetica",
-                negrita
-                ? "bold"
-                : "normal"
+                "bold"
             );
+
 
             pdf.setFontSize(
-                tamaño
+                13
             );
-
-            pdf.text(
-                String(textoValor),
-                x,
-                y
-            );
-
-        }
-
-
-        // ==================================
-        // EMPRESA EN PDF
-        // ==================================
-
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-        pdf.setFontSize(13);
-
-
-        pdf.text(
-            texto(
-                datosEmpresa.nombreEmpresa ||
-                datosEmpresa.empresa ||
-                "Albe Servicios Generales"
-            ),
-            105,
-            y,
-            {
-                align:"center"
-            }
-        );
-
-
-        y += 6;
-
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-        pdf.setFontSize(9);
-
-
-        pdf.text(
-            "Razón Social: " +
-            texto(
-                datosEmpresa.razonSocial
-            ),
-            105,
-            y,
-            {
-                align:"center"
-            }
-        );
-
-
-        y += 5;
-
-
-        pdf.text(
-            "CUIT Nº: " +
-            texto(
-                datosEmpresa.cuit
-            ),
-            105,
-            y,
-            {
-                align:"center"
-            }
-        );
-
-
-        y += 5;
-
-
-        pdf.text(
-            "Tel./Cel: " +
-            texto(
-                datosEmpresa.telefono
-            ),
-            105,
-            y,
-            {
-                align:"center"
-            }
-        );
-
-
-        y += 5;
-
-
-        pdf.text(
-            "Mail: " +
-            texto(
-                datosEmpresa.email ||
-                auth.currentUser?.email
-            ),
-            105,
-            y,
-            {
-                align:"center"
-            }
-        );
-
-
-        y += 8;
-
-        linea();
-
-
-        // ==================================
-        // TÍTULO
-        // ==================================
-
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-        pdf.setFontSize(16);
-
-
-        pdf.text(
-            "PEDIDO DE PRESUPUESTO",
-            105,
-            y,
-            {
-                align:"center"
-            }
-        );
-
-
-        y += 9;
-
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-        pdf.setFontSize(10);
-
-
-        pdf.text(
-            "FECHA: " +
-            texto(
-                datosPresupuesto.fecha
-            ),
-            margen,
-            y
-        );
-
-
-        y += 8;
-
-        linea();
-
-
-        // ==================================
-        // CONTRATISTA
-        // ==================================
-
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-        pdf.setFontSize(11);
-
-
-        pdf.text(
-            "DATOS DEL CONTRATISTA",
-            margen,
-            y
-        );
-
-
-        y += 7;
-
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-        pdf.setFontSize(10);
-
-
-        const nombrePDF =
-        (
-            datosUsuario.nombre ||
-            ""
-        ) +
-        " " +
-        (
-            datosUsuario.apellido ||
-            ""
-        );
-
-
-        pdf.text(
-            "Nombre y Apellido: " +
-            texto(
-                nombrePDF.trim()
-            ),
-            margen,
-            y
-        );
-
-
-        y += 6;
-
-
-        pdf.text(
-            "Razón Social: " +
-            texto(
-                datosEmpresa.razonSocial
-            ),
-            margen,
-            y
-        );
-
-
-        y += 6;
-
-
-        pdf.text(
-            "CUIT Nº: " +
-            texto(
-                datosEmpresa.cuit
-            ),
-            margen,
-            y
-        );
-
-
-        y += 6;
-
-
-        pdf.text(
-            "Tel./ Cel: " +
-            texto(
-                datosEmpresa.telefono
-            ),
-            margen,
-            y
-        );
-
-
-        y += 6;
-
-
-        pdf.text(
-            "Mail: " +
-            texto(
-                datosEmpresa.email ||
-                auth.currentUser?.email
-            ),
-            margen,
-            y
-        );
-
-
-        y += 8;
-
-        linea();
-
-
-        // ==================================
-        // DETALLE
-        // ==================================
-
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-        pdf.setFontSize(11);
-
-
-        pdf.text(
-            "DETALLE DEL PRESUPUESTO",
-            margen,
-            y
-        );
-
-
-        y += 7;
-
-
-        pdf.setFontSize(10);
-
-
-        pdf.text(
-            "TAREAS A REALIZAR",
-            margen,
-            y
-        );
-
-
-        y += 6;
-
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-
-        const tareas =
-        pdf.splitTextToSize(
-            texto(
-                datosPresupuesto.descripcion
-            ),
-            ancho
-        );
-
-
-        pdf.text(
-            tareas,
-            margen,
-            y
-        );
-
-
-        y +=
-        tareas.length * 5 +
-        5;
-
-
-        // ==================================
-        // MATERIALES
-        // ==================================
-
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-
-        pdf.text(
-            "MATERIALES",
-            margen,
-            y
-        );
-
-
-        y += 6;
-
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-
-        const lista =
-        Array.isArray(
-            datosPresupuesto.materialesLista
-        )
-        ?
-        datosPresupuesto.materialesLista
-        :
-        [];
-
-
-        if(
-            lista.length === 0
-        ){
-
-            pdf.text(
-                "Sin materiales cargados.",
-                margen + 4,
-                y
-            );
-
-
-            y += 6;
-
-        }else{
-
-            lista.forEach(
-                function(material){
-
-                    pdf.text(
-                        "• " +
-                        texto(
-                            material.tipo
-                        ),
-                        margen + 4,
-                        y
-                    );
-
-
-                    pdf.text(
-                        "Cantidad: " +
-                        texto(
-                            material.cantidad
-                        ),
-                        130,
-                        y
-                    );
-
-
-                    y += 6;
-
-
-                    if(y > 265){
-
-                        pdf.addPage();
-
-                        y = 20;
-
-                    }
-
-                }
-            );
-
-        }
-
-
-        y += 4;
-
-
-        // ==================================
-        // MANO DE OBRA
-        // ==================================
-
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-
-        pdf.text(
-            "MANO DE OBRA",
-            margen,
-            y
-        );
-
-
-        y += 6;
-
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-
-        pdf.text(
-            "Importe: $" +
-            dinero(
-                datosPresupuesto.manoObra
-            ),
-            margen + 4,
-            y
-        );
-
-
-        y += 7;
-
-
-        // ==================================
-        // LUGAR
-        // ==================================
-
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-
-        pdf.text(
-            "Lugar de Prestación del Servicio:",
-            margen,
-            y
-        );
-
-
-        y += 6;
-
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-
-        const lugar =
-        pdf.splitTextToSize(
-            texto(
-                datosPresupuesto.lugarTrabajo
-            ),
-            ancho
-        );
-
-
-        pdf.text(
-            lugar,
-            margen,
-            y
-        );
-
-
-        y +=
-        lugar.length * 5 +
-        7;
-
-
-        pdf.text(
-            "Otros: -",
-            margen,
-            y
-        );
-
-
-        y += 9;
-
-        linea();
-
-
-        // ==================================
-        // IMPORTES
-        // ==================================
-
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-        pdf.setFontSize(11);
-
-
-        pdf.text(
-            "IMPORTES",
-            margen,
-            y
-        );
-
-
-        y += 6;
-
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-        pdf.setFontSize(9);
-
-
-        pdf.text(
-            "Indicar valores sin IVA",
-            margen,
-            y
-        );
-
-
-        y += 7;
-
-
-        const materiales =
-        Number(
-            datosPresupuesto.materiales
-        ) || 0;
-
-
-        const manoObra =
-        Number(
-            datosPresupuesto.manoObra
-        ) || 0;
-
-
-        const viaticos =
-        Number(
-            datosPresupuesto.viaticos
-        ) || 0;
-
-
-        const flete =
-        Number(
-            datosPresupuesto.flete
-        ) || 0;
-
-
-        const total =
-        materiales +
-        manoObra +
-        viaticos +
-        flete;
-
-
-        function importePDF(
-            etiqueta,
-            valor
-        ){
-
-            pdf.setFont(
-                "helvetica",
-                "normal"
-            );
-
-
-            pdf.setFontSize(10);
 
 
             pdf.text(
-                etiqueta,
+                "PRESUPUESTO:",
                 margen,
                 y
             );
@@ -1978,146 +2347,116 @@ btnPDF.addEventListener(
 
             pdf.text(
                 "$" +
-                dinero(valor),
+                dinero(total),
                 150,
                 y
             );
 
 
-            y += 6;
+            y += 10;
+
+
+            linea();
+
+
+            // ==================================
+            // CONSIDERACIONES
+            // ==================================
+
+            comprobarPagina(30);
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.setFontSize(
+                11
+            );
+
+
+            pdf.text(
+                "OTRAS CONSIDERACIONES",
+                margen,
+                y
+            );
+
+
+            y += 7;
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            pdf.setFontSize(
+                9
+            );
+
+
+            const consideraciones =
+            "VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE REVISAR DICHA COTIZACIÓN.";
+
+
+            const textoConsideraciones =
+            pdf.splitTextToSize(
+                consideraciones,
+                ancho
+            );
+
+
+            pdf.text(
+                textoConsideraciones,
+                margen,
+                y
+            );
+
+
+            // ==================================
+            // ARCHIVO
+            // ==================================
+
+            const numero =
+            numeroPresupuesto(
+                presupuestoId
+            );
+
+
+            pdf.save(
+                "Pedido-de-Presupuesto-" +
+                numero +
+                ".pdf"
+            );
+
+
+        }catch(error){
+
+            console.error(
+                "Error generando PDF:",
+                error
+            );
+
+
+            alert(
+                "No se pudo generar el PDF: " +
+                error.message
+            );
+
+
+        }finally{
+
+            btnPDF.disabled =
+            false;
+
+
+            btnPDF.textContent =
+            "📄 GENERAR PDF";
 
         }
-
-
-        importePDF(
-            "Importe Material",
-            materiales
-        );
-
-
-        importePDF(
-            "Importe Mano de OBRA",
-            manoObra
-        );
-
-
-        importePDF(
-            "Viáticos",
-            viaticos
-        );
-
-
-        importePDF(
-            "Flete",
-            flete
-        );
-
-
-        y += 2;
-
-
-        pdf.line(
-            margen,
-            y,
-            margen + ancho,
-            y
-        );
-
-
-        y += 9;
-
-
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-        pdf.setFontSize(13);
-
-
-        pdf.text(
-            "PRESUPUESTO:",
-            margen,
-            y
-        );
-
-
-        pdf.text(
-            "$" +
-            dinero(total),
-            150,
-            y
-        );
-
-
-        y += 10;
-
-        linea();
-
-
-        // ==================================
-        // CONSIDERACIONES
-        // ==================================
-
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-        pdf.setFontSize(11);
-
-
-        pdf.text(
-            "OTRAS CONSIDERACIONES",
-            margen,
-            y
-        );
-
-
-        y += 7;
-
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-        pdf.setFontSize(9);
-
-
-        const consideraciones =
-        "VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE REVISAR DICHA COTIZACIÓN.";
-
-
-        const textoConsideraciones =
-        pdf.splitTextToSize(
-            consideraciones,
-            ancho
-        );
-
-
-        pdf.text(
-            textoConsideraciones,
-            margen,
-            y
-        );
-
-
-        // ==================================
-        // ARCHIVO PDF
-        // ==================================
-
-        const numero =
-        numeroPresupuesto(
-            presupuestoId
-        );
-
-
-        pdf.save(
-            "Pedido-de-Presupuesto-" +
-            numero +
-            ".pdf"
-        );
 
     }
 );
