@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Nuevo presupuesto - GESBASE</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.contenedor {
+    max-width: 600px;
+    margin: auto;
+    min-height: 100vh;
+    background: white;
+}
+
+header {
+    background: #111827;
+    color: white;
+    padding: 25px 20px;
+}
+
+header h1 {
+    font-size: 25px;
+}
+
+header p {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #d1d5db;
+}
+
+main {
+    padding: 20px;
+}
+
+.campo {
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 7px;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    font-size: 16px;
+    background: white;
+}
+
+textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.total {
+    margin-top: 20px;
+    padding: 18px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.botones {
+    margin-top: 20px;
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.guardar {
+    background: #111827;
+    color: white;
+}
+
+.volver {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<header>
+
+<h1>
+Nuevo presupuesto
+</h1>
+
+<p>
+GESBASE
+</p>
+
+</header>
+
+
+<main>
+
+<div class="campo">
+
+<label for="cliente">
+Cliente
+</label>
+
+<input
+    type="text"
+    id="cliente"
+    placeholder="Nombre del cliente"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="fecha">
+Fecha
+</label>
+
+<input
+    type="date"
+    id="fecha"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="descripcion">
+Descripción del trabajo
+</label>
+
+<textarea
+    id="descripcion"
+    placeholder="Describí el trabajo a realizar"
+></textarea>
+
+</div>
+
+
+<div class="campo">
+
+<label for="materiales">
+Materiales
+</label>
+
+<input
+    type="number"
+    id="materiales"
+    min="0"
+    step="0.01"
+    placeholder="0"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="manoObra">
+Mano de obra
+</label>
+
+<input
+    type="number"
+    id="manoObra"
+    min="0"
+    step="0.01"
+    placeholder="0"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="viaticos">
+Viáticos
+</label>
+
+<input
+    type="number"
+    id="viaticos"
+    min="0"
+    step="0.01"
+    placeholder="0"
+>
+
+</div>
+
+
+<div class="total">
+
+Total:
+
+$ <span id="total">0.00</span>
+
+</div>
+
+
+<div class="botones">
+
+<button
+    type="button"
+    class="guardar"
+    id="btnGuardar"
+>
+Guardar presupuesto
+</button>
+
+<button
+    type="button"
+    class="volver"
+    onclick="window.location.href='index.html'"
+>
+Volver a GESBASE
+</button>
+
+</div>
+
+</main>
+
+</div>
+
+
+<script>
+
+const fecha =
+document.getElementById("fecha");
+
+const hoy =
+new Date();
+
+const año =
+hoy.getFullYear();
+
+const mes =
+String(hoy.getMonth() + 1).padStart(2, "0");
+
+const dia =
+String(hoy.getDate()).padStart(2, "0");
+
+fecha.value =
+`${año}-${mes}-${dia}`;
+
+
+const materiales =
+document.getElementById("materiales");
+
+const manoObra =
+document.getElementById("manoObra");
+
+const viaticos =
+document.getElementById("viaticos");
+
+const total =
+document.getElementById("total");
+
+
+function calcularTotal() {
+
+    const m =
+        Number(materiales.value) || 0;
+
+    const mo =
+        Number(manoObra.value) || 0;
+
+    const v =
+        Number(viaticos.value) || 0;
+
+    const resultado =
+        m + mo + v;
+
+    total.textContent =
+        resultado.toLocaleString(
+            "es-AR",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+
+}
+
+
+materiales.addEventListener(
+    "input",
+    calcularTotal
+);
+
+manoObra.addEventListener(
+    "input",
+    calcularTotal
+);
+
+viaticos.addEventListener(
+    "input",
+    calcularTotal
+);
+
+
+document
+.getElementById("btnGuardar")
+.addEventListener(
+    "click",
+    function() {
+
+        alert(
+            "La pantalla funciona. El guardado en Firestore lo agregaremos en el siguiente paso."
+        );
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
