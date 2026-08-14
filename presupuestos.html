@@ -17,6 +17,7 @@
 
 <title>Mis presupuestos - GESBASE</title>
 
+
 <style>
 
 * {
@@ -25,11 +26,13 @@
     padding: 0;
 }
 
+
 body {
     font-family: Arial, sans-serif;
     background: #f3f4f6;
     color: #111827;
 }
+
 
 .contenedor {
     max-width: 600px;
@@ -38,15 +41,18 @@ body {
     background: white;
 }
 
+
 header {
     background: #111827;
     color: white;
     padding: 25px 20px;
 }
 
+
 header h1 {
     font-size: 25px;
 }
+
 
 header p {
     margin-top: 6px;
@@ -54,9 +60,11 @@ header p {
     font-size: 14px;
 }
 
+
 main {
     padding: 20px;
 }
+
 
 .usuario {
     background: #f3f4f6;
@@ -66,17 +74,20 @@ main {
     font-size: 14px;
 }
 
+
 .cargando {
     text-align: center;
     padding: 35px 10px;
     color: #6b7280;
 }
 
+
 .lista {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
+
 
 .presupuesto {
     padding: 18px;
@@ -86,6 +97,7 @@ main {
     box-shadow: 0 3px 10px rgba(0,0,0,.08);
 }
 
+
 .numero {
     font-size: 14px;
     font-weight: bold;
@@ -93,11 +105,13 @@ main {
     margin-bottom: 8px;
 }
 
+
 .cliente {
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 10px;
 }
+
 
 .dato {
     margin-top: 7px;
@@ -105,11 +119,13 @@ main {
     color: #4b5563;
 }
 
+
 .descripcion {
     margin-top: 10px;
     line-height: 1.45;
     color: #374151;
 }
+
 
 .total {
     margin-top: 14px;
@@ -135,14 +151,23 @@ main {
     cursor: pointer;
 }
 
+
 .boton-ver {
     background: #111827;
     color: white;
 }
 
+
 .boton-editar {
     background: #2563eb;
     color: white;
+}
+
+
+.boton-eliminar {
+    background: #dc2626;
+    color: white;
+    border: none;
 }
 
 
@@ -163,21 +188,25 @@ main {
     margin-top: 12px;
 }
 
+
 .boton-nuevo {
     background: #111827;
     color: white;
 }
+
 
 .boton-volver {
     background: #e5e7eb;
     color: #111827;
 }
 
+
 .sin-presupuestos {
     text-align: center;
     padding: 30px;
     color: #6b7280;
 }
+
 
 .error {
     display: none;
@@ -188,12 +217,14 @@ main {
     margin-bottom: 15px;
 }
 
+
 </style>
 
 </head>
 
 
 <body>
+
 
 <div class="contenedor">
 
@@ -295,7 +326,10 @@ import {
     collection,
     query,
     where,
-    getDocs
+    getDocs,
+    doc,
+    getDoc,
+    deleteDoc
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -349,7 +383,7 @@ function dinero(valor) {
 
 
 // ==========================================
-// NÚMERO PRESUPUESTO
+// NÚMERO
 // ==========================================
 
 function numeroPresupuesto(id) {
@@ -380,12 +414,131 @@ function numeroPresupuesto(id) {
 
 
 // ==========================================
+// ELIMINAR
+// ==========================================
+
+async function eliminarPresupuesto(
+    id,
+    usuario
+) {
+
+
+    const confirmar =
+        confirm(
+            "¿Seguro que querés eliminar este presupuesto?\n\nEsta acción no se puede deshacer."
+        );
+
+
+    if (!confirmar) {
+
+        return;
+
+    }
+
+
+    try {
+
+
+        // ==============================
+        // VERIFICAR DOCUMENTO
+        // ==============================
+
+        const referencia =
+            doc(
+                db,
+                "presupuestos",
+                id
+            );
+
+
+        const resultado =
+            await getDoc(
+                referencia
+            );
+
+
+        if (
+            !resultado.exists()
+        ) {
+
+            alert(
+                "El presupuesto ya no existe."
+            );
+
+            return;
+
+        }
+
+
+        const datos =
+            resultado.data();
+
+
+        // ==============================
+        // SEGURIDAD
+        // ==============================
+
+        if (
+            datos.uid !== usuario.uid
+        ) {
+
+            alert(
+                "No tenés permiso para eliminar este presupuesto."
+            );
+
+            return;
+
+        }
+
+
+        // ==============================
+        // ELIMINAR
+        // ==============================
+
+        await deleteDoc(
+            referencia
+        );
+
+
+        alert(
+            "Presupuesto eliminado correctamente."
+        );
+
+
+        // Recargar lista
+
+        cargarPresupuestos(
+            usuario
+        );
+
+
+    } catch (error) {
+
+
+        console.error(
+            "Error eliminando:",
+            error
+        );
+
+
+        alert(
+            "No se pudo eliminar el presupuesto:\n" +
+            error.message
+        );
+
+    }
+
+}
+
+
+// ==========================================
 // CARGAR PRESUPUESTOS
 // ==========================================
 
 async function cargarPresupuestos(
     usuario
 ) {
+
 
     try {
 
@@ -423,6 +576,10 @@ async function cargarPresupuestos(
             "none";
 
 
+        lista.innerHTML =
+            "";
+
+
         if (
             resultado.empty
         ) {
@@ -435,8 +592,8 @@ async function cargarPresupuestos(
         }
 
 
-        lista.innerHTML =
-            "";
+        sinPresupuestos.style.display =
+            "none";
 
 
         resultado.forEach(
@@ -514,8 +671,6 @@ async function cargarPresupuestos(
                     </div>
 
 
-                    <!-- VER -->
-
                     <a
                         href="ver-presupuesto.html?id=${encodeURIComponent(id)}"
                         class="boton boton-ver"
@@ -524,8 +679,6 @@ async function cargarPresupuestos(
                     </a>
 
 
-                    <!-- EDITAR -->
-
                     <a
                         href="editar-presupuesto.html?id=${encodeURIComponent(id)}"
                         class="boton boton-editar"
@@ -533,7 +686,34 @@ async function cargarPresupuestos(
                         ✏️ EDITAR PRESUPUESTO
                     </a>
 
+
+                    <button
+                        class="boton boton-eliminar"
+                        data-id="${id}"
+                    >
+                        🗑️ ELIMINAR PRESUPUESTO
+                    </button>
+
                 `;
+
+
+                const botonEliminar =
+                    tarjeta.querySelector(
+                        ".boton-eliminar"
+                    );
+
+
+                botonEliminar.addEventListener(
+                    "click",
+                    function() {
+
+                        eliminarPresupuesto(
+                            id,
+                            usuario
+                        );
+
+                    }
+                );
 
 
                 lista.appendChild(
@@ -548,7 +728,7 @@ async function cargarPresupuestos(
 
 
         console.error(
-            "Error cargando presupuestos:",
+            "Error cargando:",
             error
         );
 
@@ -599,6 +779,7 @@ onAuthStateChanged(
 
 
 </script>
+
 
 </body>
 
