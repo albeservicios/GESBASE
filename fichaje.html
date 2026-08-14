@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Fichaje - GESBASE</title>
+
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.contenedor{
+    width:100%;
+    max-width:700px;
+    margin:auto;
+    min-height:100vh;
+    background:white;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:22px 20px;
+}
+
+header h1{
+    font-size:25px;
+}
+
+header p{
+    margin-top:6px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+.tarjeta{
+    background:white;
+    border:1px solid #d1d5db;
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:18px;
+}
+
+.titulo{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+.campo{
+    margin-bottom:15px;
+}
+
+.campo label{
+    display:block;
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+.campo select{
+    width:100%;
+    padding:14px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    background:white;
+    font-size:16px;
+}
+
+.estado{
+    text-align:center;
+    padding:18px;
+    border-radius:12px;
+    margin-top:15px;
+    background:#f3f4f6;
+}
+
+.estado-titulo{
+    font-size:14px;
+    color:#6b7280;
+}
+
+.estado-texto{
+    font-size:20px;
+    font-weight:bold;
+    margin-top:6px;
+}
+
+.cronometro{
+    text-align:center;
+    font-size:42px;
+    font-weight:bold;
+    letter-spacing:2px;
+    margin:20px 0;
+    font-variant-numeric:tabular-nums;
+}
+
+.entrada{
+    color:#16a34a;
+}
+
+.salida{
+    color:#dc2626;
+}
+
+.boton{
+    width:100%;
+    border:none;
+    border-radius:12px;
+    padding:17px;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+.boton:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+.boton-entrada{
+    background:#16a34a;
+    color:white;
+}
+
+.boton-salida{
+    background:#dc2626;
+    color:white;
+}
+
+.boton-volver{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.datos{
+    border-top:1px solid #e5e7eb;
+    margin-top:15px;
+    padding-top:15px;
+}
+
+.dato{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    padding:6px 0;
+    font-size:14px;
+}
+
+.etiqueta{
+    font-weight:bold;
+}
+
+.historial{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.registro{
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:14px;
+    background:#fafafa;
+}
+
+.registro-fecha{
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.registro-linea{
+    font-size:14px;
+    padding:3px 0;
+}
+
+.sin-registros{
+    text-align:center;
+    padding:25px;
+    color:#6b7280;
+}
+
+.cargando{
+    text-align:center;
+    padding:30px;
+    color:#6b7280;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:15px;
+    display:none;
+}
+
+.exito{
+    background:#dcfce7;
+    color:#166534;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:15px;
+    display:none;
+}
+
+.oculto{
+    display:none !important;
+}
+
+@media(max-width:500px){
+
+    main{
+        padding:15px;
+    }
+
+    .cronometro{
+        font-size:34px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="contenedor">
+
+
+<header>
+
+<h1>GESBASE</h1>
+
+<p>Control de fichaje</p>
+
+</header>
+
+
+<main>
+
+
+<div
+    id="mensajeError"
+    class="error"
+></div>
+
+
+<div
+    id="mensajeExito"
+    class="exito"
+></div>
+
+
+<!-- ================================= -->
+<!-- SELECCIONAR EMPLEADO -->
+<!-- ================================= -->
+
+<div class="tarjeta">
+
+
+<div class="titulo">
+Empleado
+</div>
+
+
+<div class="campo">
+
+<label for="empleadoSelect">
+Seleccionar empleado
+</label>
+
+
+<select id="empleadoSelect">
+
+<option value="">
+Cargando empleados...
+</option>
+
+</select>
+
+</div>
+
+
+</div>
+
+
+<!-- ================================= -->
+<!-- FICHAJE -->
+<!-- ================================= -->
+
+<div
+    id="tarjetaFichaje"
+    class="tarjeta oculto"
+>
+
+
+<div class="titulo">
+Control de jornada
+</div>
+
+
+<div
+    id="estado"
+    class="estado"
+>
+
+
+<div class="estado-titulo">
+Estado actual
+</div>
+
+
+<div
+    id="estadoTexto"
+    class="estado-texto"
+>
+SIN FICHAR
+</div>
+
+
+</div>
+
+
+<div
+    id="cronometro"
+    class="cronometro"
+>
+00:00:00
+</div>
+
+
+<button
+    id="btnEntrada"
+    class="boton boton-entrada"
+>
+🟢 FICHAR ENTRADA
+</button>
+
+
+<button
+    id="btnSalida"
+    class="boton boton-salida"
+    disabled
+>
+🔴 FICHAR SALIDA
+</button>
+
+
+<div
+    id="datosJornada"
+    class="datos oculto"
+>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Entrada
+</span>
+
+<span id="horaEntrada">
+-
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Salida
+</span>
+
+<span id="horaSalida">
+-
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Tiempo trabajado
+</span>
+
+<span id="tiempoTrabajado">
+-
+</span>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+<!-- ================================= -->
+<!-- HISTORIAL -->
+<!-- ================================= -->
+
+<div
+    id="tarjetaHistorial"
+    class="tarjeta oculto"
+>
+
+
+<div class="titulo">
+Últimos fichajes
+</div>
+
+
+<div
+    id="historial"
+    class="historial"
+>
+</div>
+
+
+</div>
+
+
+<button
+    id="btnVolver"
+    class="boton boton-volver"
+>
+⬅️ VOLVER
+</button>
+
+
+</main>
+
+
+</div>
+
+
+<script type="module">
+
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    addDoc,
+    getDocs,
+    getDoc,
+    doc,
+    query,
+    where,
+    orderBy,
+    limit,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const empleadoSelect =
+document.getElementById(
+    "empleadoSelect"
+);
+
+const tarjetaFichaje =
+document.getElementById(
+    "tarjetaFichaje"
+);
+
+const tarjetaHistorial =
+document.getElementById(
+    "tarjetaHistorial"
+);
+
+const estadoTexto =
+document.getElementById(
+    "estadoTexto"
+);
+
+const cronometro =
+document.getElementById(
+    "cronometro"
+);
+
+const btnEntrada =
+document.getElementById(
+    "btnEntrada"
+);
+
+const btnSalida =
+document.getElementById(
+    "btnSalida"
+);
+
+const horaEntrada =
+document.getElementById(
+    "horaEntrada"
+);
+
+const horaSalida =
+document.getElementById(
+    "horaSalida"
+);
+
+const tiempoTrabajado =
+document.getElementById(
+    "tiempoTrabajado"
+);
+
+const datosJornada =
+document.getElementById(
+    "datosJornada"
+);
+
+const historial =
+document.getElementById(
+    "historial"
+);
+
+const mensajeError =
+document.getElementById(
+    "mensajeError"
+);
+
+const mensajeExito =
+document.getElementById(
+    "mensajeExito"
+);
+
+const btnVolver =
+document.getElementById(
+    "btnVolver"
+);
+
+
+// ==========================================
+// VARIABLES
+// ==========================================
+
+let usuarioActual =
+null;
+
+let datosUsuario =
+{};
+
+let empresaId =
+"";
+
+let empleados =
+[];
+
+let fichajeActivo =
+null;
+
+let intervaloCronometro =
+null;
+
+
+// ==========================================
+// MENSAJES
+// ==========================================
+
+function mostrarError(mensaje){
+
+    mensajeError.textContent =
+    mensaje;
+
+    mensajeError.style.display =
+    "block";
+
+    mensajeExito.style.display =
+    "none";
+
+}
+
+
+function mostrarExito(mensaje){
+
+    mensajeExito.textContent =
+    mensaje;
+
+    mensajeExito.style.display =
+    "block";
+
+    mensajeError.style.display =
+    "none";
+
+}
+
+
+function limpiarMensajes(){
+
+    mensajeError.style.display =
+    "none";
+
+    mensajeExito.style.display =
+    "none";
+
+}
+
+
+// ==========================================
+// TEXTO
+// ==========================================
+
+function texto(valor){
+
+    if(
+        valor === undefined ||
+        valor === null
+    ){
+
+        return "";
+
+    }
+
+    return String(valor);
+
+}
+
+
+// ==========================================
+// FECHA LOCAL
+// ==========================================
+
+function fechaLocal(){
+
+    const ahora =
+    new Date();
+
+    const año =
+    ahora.getFullYear();
+
+    const mes =
+    String(
+        ahora.getMonth()+1
+    ).padStart(
+        2,
+        "0"
+    );
+
+    const dia =
+    String(
+        ahora.getDate()
+    ).padStart(
+        2,
+        "0"
+    );
+
+    return (
+        año +
+        "-" +
+        mes +
+        "-" +
+        dia
+    );
+
+}
+
+
+// ==========================================
+// HORA LOCAL
+// ==========================================
+
+function horaLocal(){
+
+    const ahora =
+    new Date();
+
+    const horas =
+    String(
+        ahora.getHours()
+    ).padStart(
+        2,
+        "0"
+    );
+
+    const minutos =
+    String(
+        ahora.getMinutes()
+    ).padStart(
+        2,
+        "0"
+    );
+
+    const segundos =
+    String(
+        ahora.getSeconds()
+    ).padStart(
+        2,
+        "0"
+    );
+
+    return (
+        horas +
+        ":" +
+        minutos +
+        ":" +
+        segundos
+    );
+
+}
+
+
+// ==========================================
+// DURACIÓN
+// ==========================================
+
+function formatearDuracion(
+    milisegundos
+){
+
+    if(
+        milisegundos < 0
+    ){
+
+        milisegundos =
+        0;
+
+    }
+
+
+    const segundosTotales =
+    Math.floor(
+        milisegundos / 1000
+    );
+
+
+    const horas =
+    Math.floor(
+        segundosTotales / 3600
+    );
+
+
+    const minutos =
+    Math.floor(
+        (
+            segundosTotales % 3600
+        ) / 60
+    );
+
+
+    const segundos =
+    segundosTotales % 60;
+
+
+    return (
+        String(horas).padStart(2,"0") +
+        ":" +
+        String(minutos).padStart(2,"0") +
+        ":" +
+        String(segundos).padStart(2,"0")
+    );
+
+}
+
+
+// ==========================================
+// FECHA/HORA FIREBASE
+// ==========================================
+
+function convertirFecha(
+    valor
+){
+
+    if(!valor){
+
+        return null;
+
+    }
+
+
+    if(
+        typeof valor.toDate ===
+        "function"
+    ){
+
+        return valor.toDate();
+
+    }
+
+
+    if(
+        valor instanceof Date
+    ){
+
+        return valor;
+
+    }
+
+
+    if(
+        typeof valor ===
+        "number"
+    ){
+
+        return new Date(
+            valor
+        );
+
+    }
+
+
+    return null;
+
+}
+
+
+// ==========================================
+// CARGAR USUARIO
+// ==========================================
+
+async function cargarDatosUsuario(){
+
+    const referencia =
+    doc(
+        db,
+        "usuarios",
+        usuarioActual.uid
+    );
+
+
+    const resultado =
+    await getDoc(
+        referencia
+    );
+
+
+    if(
+        resultado.exists()
+    ){
+
+        datosUsuario =
+        resultado.data();
+
+    }
+
+
+    empresaId =
+    datosUsuario.empresaId ||
+    usuarioActual.uid;
+
+}
+
+
+// ==========================================
+// CARGAR EMPLEADOS
+// ==========================================
+
+async function cargarEmpleados(){
+
+    empleadoSelect.innerHTML =
+    `
+    <option value="">
+    Seleccioná un empleado
+    </option>
+    `;
+
+
+    try{
+
+        const referencia =
+        collection(
+            db,
+            "empleados"
+        );
+
+
+        let resultados;
+
+
+        try{
+
+            const consulta =
+            query(
+                referencia,
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                )
+            );
+
+
+            resultados =
+            await getDocs(
+                consulta
+            );
+
+        }
+        catch(error){
+
+            const consultaUID =
+            query(
+                referencia,
+                where(
+                    "uid",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
+
+
+            resultados =
+            await getDocs(
+                consultaUID
+            );
+
+        }
+
+
+        empleados =
+        [];
+
+
+        resultados.forEach(
+            function(documento){
+
+                const empleado =
+                {
+                    id:documento.id,
+                    ...documento.data()
+                };
+
+
+                if(
+                    empleado.estado !==
+                    "Inactivo"
+                ){
+
+                    empleados.push(
+                        empleado
+                    );
+
+                }
+
+            }
+        );
+
+
+        empleados.sort(
+            function(a,b){
+
+                const nombreA =
+                (
+                    texto(a.nombre) +
+                    " " +
+                    texto(a.apellido)
+                ).toLowerCase();
+
+
+                const nombreB =
+                (
+                    texto(b.nombre) +
+                    " " +
+                    texto(b.apellido)
+                ).toLowerCase();
+
+
+                return nombreA.localeCompare(
+                    nombreB
+                );
+
+            }
+        );
+
+
+        empleados.forEach(
+            function(empleado){
+
+                const opcion =
+                document.createElement(
+                    "option"
+                );
+
+
+                opcion.value =
+                empleado.id;
+
+
+                opcion.textContent =
+                (
+                    texto(
+                        empleado.nombre
+                    ) +
+                    " " +
+                    texto(
+                        empleado.apellido
+                    )
+                ).trim();
+
+
+                empleadoSelect.appendChild(
+                    opcion
+                );
+
+            }
+        );
+
+
+        if(
+            empleados.length === 0
+        ){
+
+            mostrarError(
+                "No hay empleados activos cargados."
+            );
+
+        }
+
+    }
+    catch(error){
+
+        console.error(
+            "Error empleados:",
+            error
+        );
+
+
+        mostrarError(
+            "No se pudieron cargar los empleados: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// OBTENER EMPLEADO SELECCIONADO
+// ==========================================
+
+function empleadoSeleccionado(){
+
+    const id =
+    empleadoSelect.value;
+
+
+    if(!id){
+
+        return null;
+
+    }
+
+
+    return empleados.find(
+        function(empleado){
+
+            return empleado.id === id;
+
+        }
+    ) || null;
+
+}
+
+
+// ==========================================
+// BUSCAR FICHAJE ACTIVO
+// ==========================================
+
+async function buscarFichajeActivo(){
+
+    const empleado =
+    empleadoSeleccionado();
+
+
+    if(!empleado){
+
+        return;
+
+    }
+
+
+    try{
+
+        const referencia =
+        collection(
+            db,
+            "fichajes"
+        );
+
+
+        const consulta =
+        query(
+            referencia,
+            where(
+                "empresaId",
+                "==",
+                empresaId
+            ),
+            where(
+                "empleadoId",
+                "==",
+                empleado.id
+            ),
+            where(
+                "estado",
+                "==",
+                "abierto"
+            ),
+            limit(1)
+        );
+
+
+        const resultados =
+        await getDocs(
+            consulta
+        );
+
+
+        if(
+            resultados.empty
+        ){
+
+            fichajeActivo =
+            null;
+
+            detenerCronometro();
+
+            mostrarEstadoSinFichar();
+
+            return;
+
+        }
+
+
+        const documento =
+        resultados.docs[0];
+
+
+        fichajeActivo =
+        {
+            id:documento.id,
+            ...documento.data()
+        };
+
+
+        mostrarFichajeActivo();
+
+    }
+    catch(error){
+
+        console.error(
+            "Error buscando fichaje:",
+            error
+        );
+
+
+        mostrarError(
+            "No se pudo comprobar el fichaje activo: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// MOSTRAR SIN FICHAR
+// ==========================================
+
+function mostrarEstadoSinFichar(){
+
+    estadoTexto.textContent =
+    "SIN FICHAR";
+
+
+    estadoTexto.className =
+    "estado-texto";
+
+
+    cronometro.textContent =
+    "00:00:00";
+
+
+    cronometro.className =
+    "cronometro";
+
+
+    btnEntrada.disabled =
+    false;
+
+
+    btnSalida.disabled =
+    true;
+
+
+    datosJornada.classList.add(
+        "oculto"
+    );
+
+
+    horaEntrada.textContent =
+    "-";
+
+
+    horaSalida.textContent =
+    "-";
+
+
+    tiempoTrabajado.textContent =
+    "-";
+
+}
+
+
+// ==========================================
+// MOSTRAR FICHAJE ACTIVO
+// ==========================================
+
+function mostrarFichajeActivo(){
+
+    if(!fichajeActivo){
+
+        mostrarEstadoSinFichar();
+
+        return;
+
+    }
+
+
+    estadoTexto.textContent =
+    "JORNADA EN CURSO";
+
+
+    estadoTexto.className =
+    "estado-texto entrada";
+
+
+    btnEntrada.disabled =
+    true;
+
+
+    btnSalida.disabled =
+    false;
+
+
+    datosJornada.classList.remove(
+        "oculto"
+    );
+
+
+    horaEntrada.textContent =
+    texto(
+        fichajeActivo.horaEntrada
+    );
+
+
+    horaSalida.textContent =
+    "-";
+
+
+    tiempoTrabajado.textContent =
+    "En curso";
+
+
+    iniciarCronometro();
+
+}
+
+
+// ==========================================
+// CRONÓMETRO
+// ==========================================
+
+function iniciarCronometro(){
+
+    detenerCronometro();
+
+
+    cronometro.className =
+    "cronometro entrada";
+
+
+    actualizarCronometro();
+
+
+    intervaloCronometro =
+    setInterval(
+        actualizarCronometro,
+        1000
+    );
+
+}
+
+
+function actualizarCronometro(){
+
+    if(
+        !fichajeActivo
+    ){
+
+        return;
+
+    }
+
+
+    const inicio =
+    convertirFecha(
+        fichajeActivo.entradaTimestamp
+    );
+
+
+    if(!inicio){
+
+        /*
+         * Si todavía no existe el timestamp
+         * usamos la hora guardada como
+         * respaldo visual.
+         */
+
+        cronometro.textContent =
+        "EN CURSO";
+
+        return;
+
+    }
+
+
+    const ahora =
+    new Date();
+
+
+    const diferencia =
+    ahora.getTime() -
+    inicio.getTime();
+
+
+    cronometro.textContent =
+    formatearDuracion(
+        diferencia
+    );
+
+}
+
+
+function detenerCronometro(){
+
+    if(
+        intervaloCronometro
+    ){
+
+        clearInterval(
+            intervaloCronometro
+        );
+
+        intervaloCronometro =
+        null;
+
+    }
+
+}
+
+
+// ==========================================
+// FICHAR ENTRADA
+// ==========================================
+
+btnEntrada.addEventListener(
+    "click",
+    async function(){
+
+        limpiarMensajes();
+
+
+        const empleado =
+        empleadoSeleccionado();
+
+
+        if(!empleado){
+
+            mostrarError(
+                "Seleccioná un empleado."
+            );
+
+            return;
+
+        }
+
+
+        btnEntrada.disabled =
+        true;
+
+
+        btnEntrada.textContent =
+        "REGISTRANDO...";
+
+
+        try{
+
+            /*
+             * Verificamos nuevamente que
+             * no exista una jornada abierta.
+             */
+
+            await buscarFichajeActivo();
+
+
+            if(fichajeActivo){
+
+                mostrarError(
+                    "Este empleado ya tiene una entrada activa."
+                );
+
+                return;
+
+            }
+
+
+            const ahora =
+            new Date();
+
+
+            const datosFichaje = {
+
+                uid:
+                usuarioActual.uid,
+
+                empresaId:
+                empresaId,
+
+                empleadoId:
+                empleado.id,
+
+                empleadoNombre:
+                (
+                    texto(
+                        empleado.nombre
+                    ) +
+                    " " +
+                    texto(
+                        empleado.apellido
+                    )
+                ).trim(),
+
+                fecha:
+                fechaLocal(),
+
+                horaEntrada:
+                horaLocal(),
+
+                entradaTimestamp:
+                serverTimestamp(),
+
+                estado:
+                "abierto",
+
+                salidaTimestamp:
+                null,
+
+                horaSalida:
+                "",
+
+                duracionSegundos:
+                0,
+
+                horasTrabajadas:
+                0,
+
+                creado:
+                serverTimestamp()
+
+            };
+
+
+            const referencia =
+            await addDoc(
+                collection(
+                    db,
+                    "fichajes"
+                ),
+                datosFichaje
+            );
+
+
+            /*
+             * Para que el cronómetro
+             * comience inmediatamente,
+             * usamos la hora local actual.
+             */
+
+            fichajeActivo =
+            {
+                id:
+                referencia.id,
+
+                ...datosFichaje,
+
+                entradaTimestamp:
+                ahora
+
+            };
+
+
+            mostrarFichajeActivo();
+
+
+            mostrarExito(
+                "Entrada registrada correctamente."
+            );
+
+
+            await cargarHistorial();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error entrada:",
+                error
+            );
+
+
+            mostrarError(
+                "No se pudo registrar la entrada: " +
+                error.message
+            );
+
+        }
+        finally{
+
+            if(
+                !fichajeActivo
+            ){
+
+                btnEntrada.disabled =
+                false;
+
+            }
+
+
+            btnEntrada.textContent =
+            "🟢 FICHAR ENTRADA";
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// FICHAR SALIDA
+// ==========================================
+
+btnSalida.addEventListener(
+    "click",
+    async function(){
+
+        limpiarMensajes();
+
+
+        if(!fichajeActivo){
+
+            mostrarError(
+                "No hay una jornada activa."
+            );
+
+            return;
+
+        }
+
+
+        const confirmar =
+        confirm(
+            "¿Confirmás la salida del empleado?"
+        );
+
+
+        if(!confirmar){
+
+            return;
+
+        }
+
+
+        btnSalida.disabled =
+        true;
+
+
+        btnSalida.textContent =
+        "REGISTRANDO...";
+
+
+        try{
+
+            const ahora =
+            new Date();
+
+
+            const inicio =
+            convertirFecha(
+                fichajeActivo.entradaTimestamp
+            );
+
+
+            let duracionSegundos =
+            0;
+
+
+            if(inicio){
+
+                duracionSegundos =
+                Math.max(
+                    0,
+                    Math.floor(
+                        (
+                            ahora.getTime() -
+                            inicio.getTime()
+                        ) / 1000
+                    )
+                );
+
+            }
+
+
+            const horasTrabajadas =
+            duracionSegundos /
+            3600;
+
+
+            await import(
+                "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"
+            ).then(
+                async function(){
+
+                    /*
+                     * Se mantiene separado para
+                     * evitar modificar la estructura
+                     * inicial de Firebase.
+                     */
+
+                }
+            );
+
+
+            const referencia =
+            doc(
+                db,
+                "fichajes",
+                fichajeActivo.id
+            );
+
+
+            /*
+             * updateDoc ya está disponible
+             * mediante import dinámico.
+             */
+
+            const modulo =
+            await import(
+                "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"
+            );
+
+
+            await modulo.updateDoc(
+                referencia,
+                {
+
+                    horaSalida:
+                    horaLocal(),
+
+                    salidaTimestamp:
+                    serverTimestamp(),
+
+                    estado:
+                    "cerrado",
+
+                    duracionSegundos:
+                    duracionSegundos,
+
+                    horasTrabajadas:
+                    Number(
+                        horasTrabajadas.toFixed(4)
+                    )
+
+                }
+            );
+
+
+            detenerCronometro();
+
+
+            cronometro.textContent =
+            formatearDuracion(
+                duracionSegundos * 1000
+            );
+
+
+            cronometro.className =
+            "cronometro salida";
+
+
+            estadoTexto.textContent =
+            "JORNADA FINALIZADA";
+
+
+            estadoTexto.className =
+            "estado-texto salida";
+
+
+            horaSalida.textContent =
+            horaLocal();
+
+
+            tiempoTrabajado.textContent =
+            formatearDuracion(
+                duracionSegundos * 1000
+            );
+
+
+            btnEntrada.disabled =
+            false;
+
+
+            btnSalida.disabled =
+            true;
+
+
+            fichajeActivo =
+            null;
+
+
+            mostrarExito(
+                "Salida registrada correctamente."
+            );
+
+
+            await cargarHistorial();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error salida:",
+                error
+            );
+
+
+            mostrarError(
+                "No se pudo registrar la salida: " +
+                error.message
+            );
+
+
+            btnSalida.disabled =
+            false;
+
+        }
+        finally{
+
+            btnSalida.textContent =
+            "🔴 FICHAR SALIDA";
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// CAMBIO DE EMPLEADO
+// ==========================================
+
+empleadoSelect.addEventListener(
+    "change",
+    async function(){
+
+        limpiarMensajes();
+
+
+        detenerCronometro();
+
+
+        fichajeActivo =
+        null;
+
+
+        const empleado =
+        empleadoSeleccionado();
+
+
+        if(!empleado){
+
+            tarjetaFichaje.classList.add(
+                "oculto"
+            );
+
+            tarjetaHistorial.classList.add(
+                "oculto"
+            );
+
+            return;
+
+        }
+
+
+        tarjetaFichaje.classList.remove(
+            "oculto"
+        );
+
+
+        tarjetaHistorial.classList.remove(
+            "oculto"
+        );
+
+
+        mostrarEstadoSinFichar();
+
+
+        await buscarFichajeActivo();
+
+
+        await cargarHistorial();
+
+    }
+);
+
+
+// ==========================================
+// HISTORIAL
+// ==========================================
+
+async function cargarHistorial(){
+
+    const empleado =
+    empleadoSeleccionado();
+
+
+    if(!empleado){
+
+        return;
+
+    }
+
+
+    historial.innerHTML =
+    `
+    <div class="cargando">
+        Cargando historial...
+    </div>
+    `;
+
+
+    try{
+
+        const referencia =
+        collection(
+            db,
+            "fichajes"
+        );
+
+
+        let resultados;
+
+
+        try{
+
+            const consulta =
+            query(
+                referencia,
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                ),
+                where(
+                    "empleadoId",
+                    "==",
+                    empleado.id
+                ),
+                orderBy(
+                    "creado",
+                    "desc"
+                ),
+                limit(20)
+            );
+
+
+            resultados =
+            await getDocs(
+                consulta
+            );
+
+        }
+        catch(error){
+
+            console.warn(
+                "Consulta ordenada no disponible:",
+                error
+            );
+
+
+            const consultaSimple =
+            query(
+                referencia,
+                where(
+                    "empleadoId",
+                    "==",
+                    empleado.id
+                ),
+                limit(20)
+            );
+
+
+            resultados =
+            await getDocs(
+                consultaSimple
+            );
+
+        }
+
+
+        historial.innerHTML =
+        "";
+
+
+        if(
+            resultados.empty
+        ){
+
+            historial.innerHTML =
+            `
+            <div class="sin-registros">
+                Todavía no hay fichajes registrados.
+            </div>
+            `;
+
+            return;
+
+        }
+
+
+        const registros =
+        [];
+
+
+        resultados.forEach(
+            function(documento){
+
+                registros.push({
+                    id:documento.id,
+                    ...documento.data()
+                });
+
+            }
+        );
+
+
+        registros.sort(
+            function(a,b){
+
+                return texto(
+                    b.fecha
+                ).localeCompare(
+                    texto(a.fecha)
+                );
+
+            }
+        );
+
+
+        registros.slice(
+            0,
+            20
+        ).forEach(
+            function(registro){
+
+                const elemento =
+                document.createElement(
+                    "div"
+                );
+
+
+                elemento.className =
+                "registro";
+
+
+                const fechaElemento =
+                document.createElement(
+                    "div"
+                );
+
+
+                fechaElemento.className =
+                "registro-fecha";
+
+
+                fechaElemento.textContent =
+                texto(
+                    registro.fecha
+                );
+
+
+                const entradaElemento =
+                document.createElement(
+                    "div"
+                );
+
+
+                entradaElemento.className =
+                "registro-linea";
+
+
+                entradaElemento.textContent =
+                "Entrada: " +
+                (
+                    texto(
+                        registro.horaEntrada
+                    ) ||
+                    "-"
+                );
+
+
+                const salidaElemento =
+                document.createElement(
+                    "div"
+                );
+
+
+                salidaElemento.className =
+                "registro-linea";
+
+
+                salidaElemento.textContent =
+                "Salida: " +
+                (
+                    texto(
+                        registro.horaSalida
+                    ) ||
+                    "En curso"
+                );
+
+
+                const tiempoElemento =
+                document.createElement(
+                    "div"
+                );
+
+
+                tiempoElemento.className =
+                "registro-linea";
+
+
+                let duracion =
+                "-";
+
+
+                if(
+                    registro.duracionSegundos
+                ){
+
+                    duracion =
+                    formatearDuracion(
+                        Number(
+                            registro.duracionSegundos
+                        ) * 1000
+                    );
+
+                }
+
+
+                tiempoElemento.textContent =
+                "Tiempo: " +
+                duracion;
+
+
+                elemento.appendChild(
+                    fechaElemento
+                );
+
+
+                elemento.appendChild(
+                    entradaElemento
+                );
+
+
+                elemento.appendChild(
+                    salidaElemento
+                );
+
+
+                elemento.appendChild(
+                    tiempoElemento
+                );
+
+
+                historial.appendChild(
+                    elemento
+                );
+
+            }
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error historial:",
+            error
+        );
+
+
+        historial.innerHTML =
+        `
+        <div class="sin-registros">
+            No se pudo cargar el historial.
+        </div>
+        `;
+
+    }
+
+}
+
+
+// ==========================================
+// VOLVER
+// ==========================================
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.history.back();
+
+    }
+);
+
+
+// ==========================================
+// INICIO
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.href =
+            "login.html";
+
+            return;
+
+        }
+
+
+        usuarioActual =
+        usuario;
+
+
+        try{
+
+            await cargarDatosUsuario();
+
+            await cargarEmpleados();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error iniciando fichaje:",
+                error
+            );
+
+
+            mostrarError(
+                "No se pudo iniciar el fichaje: " +
+                error.message
+            );
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// SEGURIDAD AL CERRAR LA PÁGINA
+// ==========================================
+
+window.addEventListener(
+    "beforeunload",
+    function(){
+
+        detenerCronometro();
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
