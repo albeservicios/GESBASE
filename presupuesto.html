@@ -15,7 +15,7 @@
     content="#111827"
 >
 
-<title>Nuevo presupuesto - GESBASE</title>
+<title>Mis presupuestos - GESBASE</title>
 
 <style>
 
@@ -58,39 +58,94 @@ main {
     padding: 20px;
 }
 
-.campo {
-    margin-bottom: 18px;
-}
-
-label {
-    display: block;
-    font-weight: bold;
-    font-size: 14px;
-    margin-bottom: 7px;
-}
-
-input,
-textarea {
-    width: 100%;
+.usuario {
+    background: #f3f4f6;
     padding: 13px;
-    border: 1px solid #d1d5db;
-    border-radius: 9px;
-    font-size: 16px;
-    background: white;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    font-size: 14px;
 }
 
-textarea {
-    min-height: 110px;
-    resize: vertical;
+.cargando {
+    text-align: center;
+    padding: 35px 10px;
+    color: #6b7280;
+}
+
+.lista {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.presupuesto {
+    padding: 17px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 2px 7px rgba(0,0,0,.06);
+}
+
+.numero {
+    font-size: 13px;
+    font-weight: bold;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.presupuesto h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.dato {
+    margin-top: 7px;
+    font-size: 14px;
+    color: #4b5563;
+}
+
+.descripcion {
+    margin-top: 10px;
+    line-height: 1.45;
+    color: #374151;
 }
 
 .total {
-    margin-top: 20px;
-    padding: 18px;
-    background: #f3f4f6;
-    border-radius: 12px;
+    margin-top: 13px;
     font-size: 20px;
     font-weight: bold;
+}
+
+.ver {
+    width: 100%;
+    padding: 13px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 10px;
+    background: #111827;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.ver:active {
+    transform: scale(.98);
+}
+
+.sin-presupuestos {
+    text-align: center;
+    padding: 30px 15px;
+    color: #6b7280;
+}
+
+.error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    display: none;
 }
 
 .botones {
@@ -108,39 +163,14 @@ button {
     margin-bottom: 10px;
 }
 
-.guardar {
+.nuevo {
     background: #111827;
     color: white;
-}
-
-.guardar:disabled {
-    opacity: .6;
-    cursor: not-allowed;
 }
 
 .volver {
     background: #e5e7eb;
     color: #111827;
-}
-
-.mensaje {
-    display: none;
-    margin-top: 15px;
-    padding: 13px;
-    border-radius: 10px;
-    font-size: 14px;
-}
-
-.mensaje.exito {
-    display: block;
-    background: #dcfce7;
-    color: #166534;
-}
-
-.mensaje.error {
-    display: block;
-    background: #fee2e2;
-    color: #991b1b;
 }
 
 </style>
@@ -154,7 +184,7 @@ button {
 <header>
 
 <h1>
-Nuevo presupuesto
+Mis presupuestos
 </h1>
 
 <p>
@@ -166,128 +196,54 @@ GESBASE
 
 <main>
 
-<div class="campo">
-
-<label for="cliente">
-Cliente
-</label>
-
-<input
-    type="text"
-    id="cliente"
-    placeholder="Nombre del cliente"
+<div
+    id="usuario"
+    class="usuario"
 >
-
-</div>
-
-
-<div class="campo">
-
-<label for="fecha">
-Fecha
-</label>
-
-<input
-    type="date"
-    id="fecha"
->
-
-</div>
-
-
-<div class="campo">
-
-<label for="descripcion">
-Descripción del trabajo
-</label>
-
-<textarea
-    id="descripcion"
-    placeholder="Describí el trabajo a realizar"
-></textarea>
-
-</div>
-
-
-<div class="campo">
-
-<label for="materiales">
-Materiales
-</label>
-
-<input
-    type="number"
-    id="materiales"
-    min="0"
-    step="0.01"
-    placeholder="0"
->
-
-</div>
-
-
-<div class="campo">
-
-<label for="manoObra">
-Mano de obra
-</label>
-
-<input
-    type="number"
-    id="manoObra"
-    min="0"
-    step="0.01"
-    placeholder="0"
->
-
-</div>
-
-
-<div class="campo">
-
-<label for="viaticos">
-Viáticos
-</label>
-
-<input
-    type="number"
-    id="viaticos"
-    min="0"
-    step="0.01"
-    placeholder="0"
->
-
-</div>
-
-
-<div class="total">
-
-Total:
-
-$ <span id="total">0,00</span>
-
+Verificando usuario...
 </div>
 
 
 <div
-    id="mensaje"
-    class="mensaje"
+    id="error"
+    class="error"
 ></div>
+
+
+<div
+    id="cargando"
+    class="cargando"
+>
+Cargando presupuestos...
+</div>
+
+
+<div
+    id="lista"
+    class="lista"
+></div>
+
+
+<div
+    id="sinPresupuestos"
+    class="sin-presupuestos"
+    style="display:none;"
+>
+Todavía no tenés presupuestos.
+</div>
 
 
 <div class="botones">
 
 <button
-    type="button"
-    class="guardar"
-    id="btnGuardar"
+    class="nuevo"
+    id="btnNuevo"
 >
-Guardar presupuesto
++ Nuevo presupuesto
 </button>
 
 
 <button
-    type="button"
     class="volver"
     id="btnVolver"
 >
@@ -321,8 +277,9 @@ import {
 
 import {
     collection,
-    addDoc,
-    serverTimestamp
+    query,
+    where,
+    getDocs
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -331,112 +288,55 @@ import {
 // ELEMENTOS
 // ==========================================
 
-const cliente =
-document.getElementById("cliente");
+const usuarioElemento =
+document.getElementById(
+    "usuario"
+);
 
-const fecha =
-document.getElementById("fecha");
+const cargando =
+document.getElementById(
+    "cargando"
+);
 
-const descripcion =
-document.getElementById("descripcion");
+const lista =
+document.getElementById(
+    "lista"
+);
 
-const materiales =
-document.getElementById("materiales");
+const sinPresupuestos =
+document.getElementById(
+    "sinPresupuestos"
+);
 
-const manoObra =
-document.getElementById("manoObra");
-
-const viaticos =
-document.getElementById("viaticos");
-
-const total =
-document.getElementById("total");
-
-const mensaje =
-document.getElementById("mensaje");
-
-const btnGuardar =
-document.getElementById("btnGuardar");
+const errorElemento =
+document.getElementById(
+    "error"
+);
 
 
 // ==========================================
-// FECHA ACTUAL
+// ERROR
 // ==========================================
 
-const hoy =
-new Date();
+function mostrarError(texto) {
 
-const año =
-hoy.getFullYear();
+    errorElemento.textContent =
+        texto;
 
-const mes =
-String(
-    hoy.getMonth() + 1
-).padStart(2, "0");
+    errorElemento.style.display =
+        "block";
 
-const dia =
-String(
-    hoy.getDate()
-).padStart(2, "0");
-
-fecha.value =
-`${año}-${mes}-${dia}`;
+}
 
 
 // ==========================================
-// USUARIO ACTUAL
+// DINERO
 // ==========================================
 
-let usuarioActual = null;
+function dinero(valor) {
 
-
-onAuthStateChanged(
-auth,
-function(usuario) {
-
-    if (!usuario) {
-
-        window.location.replace(
-            "login.html"
-        );
-
-        return;
-    }
-
-    usuarioActual = usuario;
-
-});
-
-
-// ==========================================
-// CALCULAR TOTAL
-// ==========================================
-
-function calcularTotal() {
-
-    const valorMateriales =
-        Number(
-            materiales.value
-        ) || 0;
-
-    const valorManoObra =
-        Number(
-            manoObra.value
-        ) || 0;
-
-    const valorViaticos =
-        Number(
-            viaticos.value
-        ) || 0;
-
-    const resultado =
-        valorMateriales +
-        valorManoObra +
-        valorViaticos;
-
-
-    total.textContent =
-        resultado.toLocaleString(
+    return Number(valor || 0)
+        .toLocaleString(
             "es-AR",
             {
                 minimumFractionDigits: 2,
@@ -444,243 +344,262 @@ function calcularTotal() {
             }
         );
 
-
-    return resultado;
-
 }
 
 
-materiales.addEventListener(
-    "input",
-    calcularTotal
-);
-
-manoObra.addEventListener(
-    "input",
-    calcularTotal
-);
-
-viaticos.addEventListener(
-    "input",
-    calcularTotal
-);
-
-
 // ==========================================
-// MENSAJE
+// NÚMERO DE PRESUPUESTO
 // ==========================================
 
-function mostrarMensaje(
-    texto,
-    tipo
+function numeroPresupuesto(
+    documentoId
 ) {
 
-    mensaje.textContent =
-        texto;
+    let codigo = "";
 
-    mensaje.className =
-        "mensaje " + tipo;
+    for (
+        let i = 0;
+        i < documentoId.length;
+        i++
+    ) {
+
+        codigo +=
+            documentoId.charCodeAt(i);
+
+    }
+
+    const numero =
+        parseInt(codigo, 10)
+        % 1000000;
+
+    return String(numero)
+        .padStart(6, "0");
 
 }
 
 
 // ==========================================
-// GUARDAR PRESUPUESTO
+// CARGAR PRESUPUESTOS
 // ==========================================
 
-btnGuardar.addEventListener(
-"click",
-async function() {
-
-    if (!usuarioActual) {
-
-        mostrarMensaje(
-            "No hay una sesión activa. Iniciá sesión nuevamente.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    if (
-        !cliente.value.trim()
-    ) {
-
-        mostrarMensaje(
-            "Ingresá el nombre del cliente.",
-            "error"
-        );
-
-        cliente.focus();
-
-        return;
-
-    }
-
-
-    if (
-        !descripcion.value.trim()
-    ) {
-
-        mostrarMensaje(
-            "Ingresá una descripción del trabajo.",
-            "error"
-        );
-
-        descripcion.focus();
-
-        return;
-
-    }
-
-
-    const valorMateriales =
-        Number(
-            materiales.value
-        ) || 0;
-
-    const valorManoObra =
-        Number(
-            manoObra.value
-        ) || 0;
-
-    const valorViaticos =
-        Number(
-            viaticos.value
-        ) || 0;
-
-
-    const valorTotal =
-        valorMateriales +
-        valorManoObra +
-        valorViaticos;
-
-
-    btnGuardar.disabled =
-        true;
-
-    btnGuardar.textContent =
-        "Guardando...";
-
+async function cargarPresupuestos(
+    usuario
+) {
 
     try {
 
-        // ==================================
-        // CREAR PRESUPUESTO
-        // ==================================
+        usuarioElemento.textContent =
+            "Usuario: " +
+            usuario.email;
+
 
         const referencia =
-            await addDoc(
-                collection(
-                    db,
-                    "presupuestos"
-                ),
-                {
-
-                    uid:
-                        usuarioActual.uid,
-
-                    cliente:
-                        cliente.value.trim(),
-
-                    fecha:
-                        fecha.value,
-
-                    descripcion:
-                        descripcion.value.trim(),
-
-                    materiales:
-                        valorMateriales,
-
-                    manoObra:
-                        valorManoObra,
-
-                    viaticos:
-                        valorViaticos,
-
-                    total:
-                        valorTotal,
-
-                    creado:
-                        serverTimestamp()
-
-                }
+            collection(
+                db,
+                "presupuestos"
             );
 
 
-        console.log(
-            "Presupuesto creado:",
-            referencia.id
-        );
+        const consulta =
+            query(
+                referencia,
+                where(
+                    "uid",
+                    "==",
+                    usuario.uid
+                )
+            );
 
 
-        mostrarMensaje(
-            "Presupuesto guardado correctamente.",
-            "exito"
-        );
+        const resultado =
+            await getDocs(
+                consulta
+            );
 
 
-        btnGuardar.textContent =
-            "Presupuesto guardado";
+        cargando.style.display =
+            "none";
 
 
-        // ==================================
-        // LIMPIAR FORMULARIO
-        // ==================================
+        if (
+            resultado.empty
+        ) {
 
-        cliente.value = "";
+            sinPresupuestos.style.display =
+                "block";
 
-        descripcion.value = "";
+            return;
 
-        materiales.value = "";
-
-        manoObra.value = "";
-
-        viaticos.value = "";
-
-        calcularTotal();
+        }
 
 
-        setTimeout(
-            function() {
+        lista.innerHTML = "";
 
-                btnGuardar.disabled =
-                    false;
 
-                btnGuardar.textContent =
-                    "Guardar presupuesto";
+        resultado.forEach(
+            function(documento) {
 
-            },
-            2000
+                const datos =
+                    documento.data();
+
+
+                const numero =
+                    numeroPresupuesto(
+                        documento.id
+                    );
+
+
+                const tarjeta =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                tarjeta.className =
+                    "presupuesto";
+
+
+                tarjeta.innerHTML = `
+
+                    <div class="numero">
+                        Presupuesto #${numero}
+                    </div>
+
+                    <h2>
+                        ${datos.cliente || "Sin cliente"}
+                    </h2>
+
+                    <div class="dato">
+                        📅 Fecha:
+                        ${datos.fecha || "-"}
+                    </div>
+
+                    <div class="descripcion">
+                        ${datos.descripcion || "Sin descripción"}
+                    </div>
+
+                    <div class="dato">
+                        Materiales:
+                        $${dinero(datos.materiales)}
+                    </div>
+
+                    <div class="dato">
+                        Mano de obra:
+                        $${dinero(datos.manoObra)}
+                    </div>
+
+                    <div class="dato">
+                        Viáticos:
+                        $${dinero(datos.viaticos)}
+                    </div>
+
+                    <div class="total">
+                        Total:
+                        $${dinero(datos.total)}
+                    </div>
+
+                    <button
+                        class="ver"
+                        data-id="${documento.id}"
+                    >
+                        👁️ Ver presupuesto
+                    </button>
+
+                `;
+
+
+                const botonVer =
+                    tarjeta.querySelector(
+                        ".ver"
+                    );
+
+
+                botonVer.addEventListener(
+                    "click",
+                    function() {
+
+                        window.location.href =
+                            "ver-presupuesto.html?id=" +
+                            encodeURIComponent(
+                                documento.id
+                            );
+
+                    }
+                );
+
+
+                lista.appendChild(
+                    tarjeta
+                );
+
+            }
         );
 
 
     } catch (error) {
 
         console.error(
-            "Error guardando presupuesto:",
+            "Error cargando presupuestos:",
             error
         );
 
 
-        mostrarMensaje(
-            "No se pudo guardar el presupuesto: " +
-            error.message,
-            "error"
+        cargando.style.display =
+            "none";
+
+
+        mostrarError(
+            "No se pudieron cargar los presupuestos: " +
+            error.message
         );
-
-
-        btnGuardar.disabled =
-            false;
-
-        btnGuardar.textContent =
-            "Guardar presupuesto";
 
     }
 
-});
+}
+
+
+// ==========================================
+// SESIÓN
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async function(usuario) {
+
+        if (!usuario) {
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        await cargarPresupuestos(
+            usuario
+        );
+
+    }
+);
+
+
+// ==========================================
+// NUEVO
+// ==========================================
+
+document
+.getElementById("btnNuevo")
+.addEventListener(
+    "click",
+    function() {
+
+        window.location.href =
+            "presupuesto.html";
+
+    }
+);
 
 
 // ==========================================
@@ -690,13 +609,14 @@ async function() {
 document
 .getElementById("btnVolver")
 .addEventListener(
-"click",
-function() {
+    "click",
+    function() {
 
-    window.location.href =
-        "index.html";
+        window.location.href =
+            "index.html";
 
-});
+    }
+);
 
 </script>
 
