@@ -4,9 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#111827">
+
 <title>Nuevo presupuesto - GESBASE</title>
 
 <style>
+
 *{
     box-sizing:border-box;
     margin:0;
@@ -170,6 +172,7 @@ button:disabled{
     background:#fee2e2;
     color:#991b1b;
 }
+
 </style>
 </head>
 
@@ -178,24 +181,36 @@ button:disabled{
 <div class="contenedor">
 
 <header>
+
 <h1>Nuevo presupuesto</h1>
+
 <p>GESBASE</p>
+
 </header>
 
 <main>
 
 <!-- CLIENTE -->
+
 <div class="campo">
-<label for="cliente">Cliente</label>
+
+<label for="cliente">
+Cliente
+</label>
+
 <input
     type="text"
     id="cliente"
     placeholder="Nombre del cliente"
 >
+
 </div>
 
+
 <!-- NÚMERO DE AGENDA -->
+
 <div class="campo">
+
 <label for="numeroAgenda">
 N.º de agenda (opcional)
 </label>
@@ -206,26 +221,47 @@ N.º de agenda (opcional)
     placeholder="Si te enviaron un número, ingresalo"
     inputmode="numeric"
 >
+
 </div>
+
 
 <!-- FECHA -->
+
 <div class="campo">
-<label for="fecha">Fecha</label>
-<input type="date" id="fecha">
+
+<label for="fecha">
+Fecha
+</label>
+
+<input
+    type="date"
+    id="fecha"
+>
+
 </div>
 
+
 <!-- LUGAR -->
+
 <div class="campo">
-<label for="lugarTrabajo">Lugar de trabajo</label>
+
+<label for="lugarTrabajo">
+Lugar de trabajo
+</label>
+
 <input
     type="text"
     id="lugarTrabajo"
     placeholder="Dirección, localidad o sucursal"
 >
+
 </div>
 
+
 <!-- DESCRIPCIÓN -->
+
 <div class="campo">
+
 <label for="descripcion">
 Descripción del trabajo
 </label>
@@ -234,12 +270,17 @@ Descripción del trabajo
     id="descripcion"
     placeholder="Describí el trabajo a realizar"
 ></textarea>
+
 </div>
 
+
 <!-- MATERIALES -->
+
 <div class="campo">
 
-<label>Materiales</label>
+<label>
+Materiales
+</label>
 
 <div id="listaMateriales"></div>
 
@@ -253,7 +294,9 @@ Descripción del trabajo
 
 </div>
 
+
 <!-- VALOR TOTAL MATERIALES -->
+
 <div class="campo">
 
 <label for="materiales">
@@ -271,7 +314,9 @@ Valor total de materiales
 
 </div>
 
+
 <!-- MANO DE OBRA -->
+
 <div class="campo">
 
 <label for="manoObra">
@@ -288,7 +333,9 @@ Mano de obra
 
 </div>
 
+
 <!-- VIÁTICOS -->
+
 <div class="campo">
 
 <label for="viaticos">
@@ -305,32 +352,70 @@ Viáticos
 
 </div>
 
+
 <!-- RESUMEN -->
+
 <div class="resumen">
 
 <div class="resumen-linea">
-<span>Materiales</span>
-<strong>$ <span id="resumenMateriales">0,00</span></strong>
+
+<span>
+Materiales
+</span>
+
+<strong>
+$ <span id="resumenMateriales">0,00</span>
+</strong>
+
 </div>
 
-<div class="resumen-linea">
-<span>Mano de obra</span>
-<strong>$ <span id="resumenManoObra">0,00</span></strong>
-</div>
 
 <div class="resumen-linea">
-<span>Viáticos</span>
-<strong>$ <span id="resumenViaticos">0,00</span></strong>
+
+<span>
+Mano de obra
+</span>
+
+<strong>
+$ <span id="resumenManoObra">0,00</span>
+</strong>
+
 </div>
+
+
+<div class="resumen-linea">
+
+<span>
+Viáticos
+</span>
+
+<strong>
+$ <span id="resumenViaticos">0,00</span>
+</strong>
+
+</div>
+
 
 <div class="resumen-linea resumen-total">
-<span>TOTAL GENERAL</span>
-<strong>$ <span id="total">0,00</span></strong>
-</div>
+
+<span>
+TOTAL GENERAL
+</span>
+
+<strong>
+$ <span id="total">0,00</span>
+</strong>
 
 </div>
 
-<div id="mensaje" class="mensaje"></div>
+</div>
+
+
+<div
+    id="mensaje"
+    class="mensaje"
+></div>
+
 
 <button
     type="button"
@@ -339,6 +424,7 @@ Viáticos
 >
 Guardar presupuesto
 </button>
+
 
 <button
     type="button"
@@ -349,24 +435,41 @@ Volver a mis presupuestos
 </button>
 
 </main>
+
 </div>
+
+
+<script type="module">
+
+/*
+====================================================
+FIREBASE
+====================================================
+*/
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
 import {
     collection,
     addDoc,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import {
-    collection,
-    addDoc,
-    serverTimestamp,
-    getDocs,
-    query,
-    where
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+
+/*
+====================================================
+ELEMENTOS
+====================================================
+*/
 
 const cliente =
 document.getElementById("cliente");
@@ -423,19 +526,27 @@ document.getElementById("btnVolver");
 let usuarioActual = null;
 
 
-/* FECHA ACTUAL */
+/*
+====================================================
+FECHA ACTUAL
+====================================================
+*/
 
 const hoy = new Date();
 
 fecha.value =
 hoy.getFullYear() +
 "-" +
-String(hoy.getMonth()+1).padStart(2,"0") +
+String(hoy.getMonth() + 1).padStart(2,"0") +
 "-" +
 String(hoy.getDate()).padStart(2,"0");
 
 
-/* AUTENTICACIÓN */
+/*
+====================================================
+AUTENTICACIÓN
+====================================================
+*/
 
 onAuthStateChanged(
     auth,
@@ -456,7 +567,11 @@ onAuthStateChanged(
 );
 
 
-/* AGREGAR MATERIAL */
+/*
+====================================================
+AGREGAR MATERIAL
+====================================================
+*/
 
 function agregarMaterial(){
 
@@ -491,6 +606,7 @@ function agregarMaterial(){
 
     `;
 
+
     fila
     .querySelector(".btn-quitar")
     .addEventListener(
@@ -502,9 +618,11 @@ function agregarMaterial(){
         }
     );
 
+
     listaMateriales.appendChild(
         fila
     );
+
 }
 
 
@@ -514,7 +632,11 @@ btnAgregar.addEventListener(
 );
 
 
-/* OBTENER MATERIALES */
+/*
+====================================================
+OBTENER MATERIALES
+====================================================
+*/
 
 function obtenerMateriales(){
 
@@ -524,6 +646,7 @@ function obtenerMateriales(){
     );
 
     const lista = [];
+
 
     filas.forEach(
         function(fila){
@@ -536,6 +659,7 @@ function obtenerMateriales(){
             .value
             .trim();
 
+
             const cantidad =
             Number(
                 fila
@@ -545,11 +669,15 @@ function obtenerMateriales(){
                 .value
             ) || 0;
 
+
             if(tipo !== ""){
 
                 lista.push({
+
                     tipo: tipo,
+
                     cantidad: cantidad
+
                 });
 
             }
@@ -557,56 +685,91 @@ function obtenerMateriales(){
         }
     );
 
+
     return lista;
+
 }
 
 
-/* FORMATO DINERO */
+/*
+====================================================
+FORMATO DINERO
+====================================================
+*/
 
 function formatoDinero(valor){
 
-    return Number(valor || 0)
-    .toLocaleString(
+    return Number(
+        valor || 0
+    ).toLocaleString(
         "es-AR",
         {
             minimumFractionDigits:2,
             maximumFractionDigits:2
         }
     );
+
 }
 
 
-/* CALCULAR TOTAL */
+/*
+====================================================
+CALCULAR TOTAL
+====================================================
+*/
 
 function calcularTotal(){
 
     const valorMateriales =
-    Number(materiales.value) || 0;
+    Number(
+        materiales.value
+    ) || 0;
+
 
     const valorManoObra =
-    Number(manoObra.value) || 0;
+    Number(
+        manoObra.value
+    ) || 0;
+
 
     const valorViaticos =
-    Number(viaticos.value) || 0;
+    Number(
+        viaticos.value
+    ) || 0;
+
 
     const totalGeneral =
     valorMateriales +
     valorManoObra +
     valorViaticos;
 
+
     resumenMateriales.textContent =
-    formatoDinero(valorMateriales);
+    formatoDinero(
+        valorMateriales
+    );
+
 
     resumenManoObra.textContent =
-    formatoDinero(valorManoObra);
+    formatoDinero(
+        valorManoObra
+    );
+
 
     resumenViaticos.textContent =
-    formatoDinero(valorViaticos);
+    formatoDinero(
+        valorViaticos
+    );
+
 
     total.textContent =
-    formatoDinero(totalGeneral);
+    formatoDinero(
+        totalGeneral
+    );
+
 
     return totalGeneral;
+
 }
 
 
@@ -624,16 +787,39 @@ viaticos.addEventListener(
     "input",
     calcularTotal
 );
-/* GENERAR NÚMERO DE AGENDA */
+
+
+/*
+====================================================
+NÚMERO DE AGENDA
+====================================================
+
+REGLA:
+
+1. Si la empresa proporciona número:
+   se guarda ese número.
+
+2. Si queda vacío:
+   GESBASE genera uno automáticamente.
+
+IMPORTANTE:
+NO hacemos getDocs(),
+NO hacemos query(),
+NO hacemos where().
+
+Esto evita el error:
+"Missing or insufficient permissions".
+====================================================
+*/
 
 function obtenerNumeroAgenda(){
 
     const numeroIngresado =
     numeroAgenda.value.trim();
 
+
     /*
-       Si la empresa envió un número,
-       se utiliza ese número.
+    Número proporcionado por la empresa
     */
 
     if(numeroIngresado !== ""){
@@ -642,45 +828,58 @@ function obtenerNumeroAgenda(){
 
     }
 
+
     /*
-       Si no enviaron número,
-       GESBASE genera uno automáticamente.
+    Número automático
     */
 
     return String(
+
         Math.floor(
+
             100000 +
             Math.random() * 900000
+
         )
+
     );
-}
-        );
 
-
-        const resultado =
-        await getDocs(
-            consulta
-        );
-
-
-        if(resultado.empty){
-
-            numeroValido = true;
-
-        }
-
-    }
-
-
-    return numeroGenerado;
 }
 
 
-/* GUARDAR */
+/*
+====================================================
+MENSAJE
+====================================================
+*/
+
+function mostrarMensaje(
+    texto,
+    tipo
+){
+
+    mensaje.textContent =
+    texto;
+
+    mensaje.className =
+    "mensaje " + tipo;
+
+}
+
+
+/*
+====================================================
+GUARDAR PRESUPUESTO
+====================================================
+*/
 
 btnGuardar.addEventListener(
     "click",
     async function(){
+
+        /*
+        Verificar sesión
+        */
 
         if(!usuarioActual){
 
@@ -690,8 +889,13 @@ btnGuardar.addEventListener(
             );
 
             return;
+
         }
 
+
+        /*
+        Cliente
+        */
 
         if(
             cliente.value.trim() === ""
@@ -705,8 +909,13 @@ btnGuardar.addEventListener(
             cliente.focus();
 
             return;
+
         }
 
+
+        /*
+        Lugar
+        */
 
         if(
             lugarTrabajo.value.trim() === ""
@@ -720,8 +929,13 @@ btnGuardar.addEventListener(
             lugarTrabajo.focus();
 
             return;
+
         }
 
+
+        /*
+        Descripción
+        */
 
         if(
             descripcion.value.trim() === ""
@@ -735,30 +949,53 @@ btnGuardar.addEventListener(
             descripcion.focus();
 
             return;
+
         }
 
+
+        /*
+        Materiales
+        */
 
         const lista =
         obtenerMateriales();
 
 
+        /*
+        Valores
+        */
+
         const valorMateriales =
-        Number(materiales.value) || 0;
+        Number(
+            materiales.value
+        ) || 0;
 
 
         const valorManoObra =
-        Number(manoObra.value) || 0;
+        Number(
+            manoObra.value
+        ) || 0;
 
 
         const valorViaticos =
-        Number(viaticos.value) || 0;
+        Number(
+            viaticos.value
+        ) || 0;
 
+
+        /*
+        Total
+        */
 
         const totalGeneral =
         valorMateriales +
         valorManoObra +
         valorViaticos;
 
+
+        /*
+        Deshabilitar botón
+        */
 
         btnGuardar.disabled =
         true;
@@ -770,14 +1007,22 @@ btnGuardar.addEventListener(
         try{
 
             /*
-               Obtiene el número de agenda:
-               - manual si fue ingresado
-               - automático si quedó vacío
+            Número de agenda.
+
+            Si se cargó manualmente:
+            utiliza ese número.
+
+            Si está vacío:
+            genera automáticamente.
             */
 
             const numeroAgendaFinal =
-            await obtenerNumeroAgenda();
+            obtenerNumeroAgenda();
 
+
+            /*
+            Guardar en Firebase
+            */
 
             await addDoc(
 
@@ -796,8 +1041,8 @@ btnGuardar.addEventListener(
                     cliente.value.trim(),
 
 
-                    const numeroAgendaFinal =
-                    obtenerNumeroAgenda();,
+                    numeroAgenda:
+                    numeroAgendaFinal,
 
 
                     fecha:
@@ -840,37 +1085,61 @@ btnGuardar.addEventListener(
             );
 
 
+            /*
+            ÉXITO
+            */
+
             mostrarMensaje(
+
                 "Presupuesto guardado correctamente. N.º de agenda: " +
                 numeroAgendaFinal,
+
                 "exito"
+
             );
 
 
+            /*
+            Volver a presupuestos
+            */
+
             setTimeout(
+
                 function(){
 
                     window.location.href =
                     "presupuestos.html";
 
                 },
+
                 800
+
             );
 
 
-        }catch(error){
+        }
 
-            console.error(error);
+        catch(error){
+
+            console.error(
+                "Error al guardar:",
+                error
+            );
+
 
             mostrarMensaje(
+
                 "No se pudo guardar: " +
                 error.message,
+
                 "error"
+
             );
 
 
             btnGuardar.disabled =
             false;
+
 
             btnGuardar.textContent =
             "Guardar presupuesto";
@@ -881,7 +1150,11 @@ btnGuardar.addEventListener(
 );
 
 
-/* VOLVER */
+/*
+====================================================
+VOLVER
+====================================================
+*/
 
 btnVolver.addEventListener(
     "click",
@@ -894,7 +1167,11 @@ btnVolver.addEventListener(
 );
 
 
-/* TOTAL INICIAL */
+/*
+====================================================
+TOTAL INICIAL
+====================================================
+*/
 
 calcularTotal();
 
