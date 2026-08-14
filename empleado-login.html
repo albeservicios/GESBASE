@@ -136,6 +136,7 @@ body{
     font-size:14px;
     margin-bottom:15px;
     display:none;
+    line-height:1.4;
 }
 
 .error{
@@ -277,8 +278,8 @@ ACCESO ADMINISTRADOR
 
 <div class="privacidad">
 
-El acceso del empleado permite registrar únicamente
-su propia jornada laboral.
+El empleado sólo puede acceder a su propia
+información de fichaje.
 
 </div>
 
@@ -311,7 +312,9 @@ import {
     collection,
     query,
     where,
-    getDocs
+    getDocs,
+    updateDoc,
+    doc
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -389,127 +392,250 @@ function limpiarMensajes(){
 
 
 // ==========================================
-// COMPROBAR SI ES EMPLEADO
+// NORMALIZAR EMAIL
 // ==========================================
 
-async function comprobarEmpleado(usuario){
+function normalizarEmail(valor){
 
-    try{
+    return String(
+        valor || ""
+    )
+    .trim()
+    .toLowerCase();
 
-        const referencia =
-        collection(
-            db,
-            "empleados"
+}
+
+
+// ==========================================
+// BUSCAR EMPLEADO
+// ==========================================
+
+async function buscarEmpleadoPorEmail(
+    emailEmpleado
+){
+
+    const emailNormalizado =
+    normalizarEmail(
+        emailEmpleado
+    );
+
+
+    if(!emailNormalizado){
+
+        throw new Error(
+            "El empleado no tiene un email válido."
         );
 
-
-        /*
-         * Buscamos el empleado utilizando
-         * el UID del usuario autenticado.
-         */
-
-        const consulta =
-        query(
-            referencia,
-            where(
-                "uid",
-                "==",
-                usuario.uid
-            )
-        );
+    }
 
 
-        const resultados =
-        await getDocs(
-            consulta
-        );
+    const referencia =
+    collection(
+        db,
+        "empleados"
+    );
 
 
-        if(
-            resultados.empty
-        ){
+    const consulta =
+    query(
+        referencia,
+        where(
+            "email",
+            "==",
+            emailNormalizado
+        )
+    );
 
-            /*
-             * No existe un empleado asociado
-             * a este usuario.
-             */
 
-            await signOut(auth);
+    const resultados =
+    await getDocs(
+        consulta
+    );
 
-            throw new Error(
-                "Este usuario no tiene un perfil de empleado asociado."
-            );
+
+    if(
+        resultados.empty
+    ){
+
+        return null;
+
+    }
+
+
+    let empleadoEncontrado =
+    null;
+
+
+    resultados.forEach(
+        function(documento){
+
+            if(!empleadoEncontrado){
+
+                empleadoEncontrado = {
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                };
+
+            }
 
         }
+    );
 
 
-        let empleadoActivo =
-        false;
+    return empleadoEncontrado;
+
+}
 
 
-        resultados.forEach(
-            function(documento){
+// ==========================================
+// VINCULAR USUARIO
+// ==========================================
 
-                const datos =
-                documento.data();
+async function vincularEmpleado(
+    usuario
+){
+
+    const emailUsuario =
+    normalizarEmail(
+        usuario.email
+    );
 
 
-                if(
-                    datos.estado ===
-                    "Activo"
-                ){
+    if(!emailUsuario){
 
-                    empleadoActivo =
-                    true;
+        throw new Error(
+            "La cuenta no tiene un email válido."
+        );
 
-                }
+    }
+
+
+    const empleado =
+    await buscarEmpleadoPorEmail(
+        emailUsuario
+    );
+
+
+    if(!empleado){
+
+        throw new Error(
+            "No encontramos un empleado activo asociado a este email."
+        );
+
+    }
+
+
+    // ======================================
+    // COMPROBAR ESTADO
+    // ======================================
+
+    if(
+        String(
+            empleado.estado || ""
+        ).toLowerCase()
+        !==
+        "activo"
+    ){
+
+        throw new Error(
+            "El empleado se encuentra inactivo."
+        );
+
+    }
+
+
+    // ======================================
+    // EMPRESA
+    // ======================================
+
+    if(
+        !empleado.empresaId
+    ){
+
+        throw new Error(
+            "El empleado no tiene una empresa asociada."
+        );
+
+    }
+
+
+    // ======================================
+    // VINCULACIÓN
+    // ======================================
+
+    /*
+     * Si ya tiene UID, verificamos que
+     * corresponda al usuario que inició sesión.
+     */
+
+    if(
+        empleado.uid &&
+        empleado.uid !== usuario.uid
+    ){
+
+        throw new Error(
+            "Este empleado ya está vinculado a otra cuenta."
+        );
+
+    }
+
+
+    /*
+     * Si todavía no tiene UID, lo asociamos
+     * a la cuenta autenticada.
+     */
+
+    if(
+        !empleado.uid
+    ){
+
+        await updateDoc(
+            doc(
+                db,
+                "empleados",
+                empleado.id
+            ),
+            {
+
+                uid:
+                usuario.uid,
+
+                usuarioFirebase:
+                true
 
             }
         );
 
-
-        if(!empleadoActivo){
-
-            await signOut(auth);
-
-            throw new Error(
-                "El empleado se encuentra inactivo."
-            );
-
-        }
-
-
-        return true;
-
     }
-    catch(error){
-
-        console.error(
-            "Error comprobando empleado:",
-            error
-        );
 
 
-        if(
-            error.message.includes(
-                "no tiene un perfil"
-            ) ||
-            error.message.includes(
-                "se encuentra inactivo"
-            )
-        ){
+    // ======================================
+    // GUARDAR DATOS DE SESIÓN
+    // ======================================
 
-            throw error;
-
-        }
+    sessionStorage.setItem(
+        "gesbase_tipo_acceso",
+        "empleado"
+    );
 
 
-        throw new Error(
-            "No se pudo verificar el perfil del empleado: " +
-            error.message
-        );
+    sessionStorage.setItem(
+        "gesbase_empleado_id",
+        empleado.id
+    );
 
-    }
+
+    sessionStorage.setItem(
+        "gesbase_empresa_id",
+        empleado.empresaId
+    );
+
+
+    return empleado;
 
 }
 
@@ -529,7 +655,9 @@ formLogin.addEventListener(
 
 
         const emailValor =
-        email.value.trim();
+        normalizarEmail(
+            email.value
+        );
 
 
         const passwordValor =
@@ -539,7 +667,7 @@ formLogin.addEventListener(
         if(!emailValor){
 
             mostrarError(
-                "Ingresá el email."
+                "Ingresá el email del empleado."
             );
 
             email.focus();
@@ -591,31 +719,28 @@ formLogin.addEventListener(
 
 
             // =================================
-            // VERIFICAR EMPLEADO
+            // BUSCAR Y VINCULAR EMPLEADO
             // =================================
 
-            await comprobarEmpleado(
+            const empleado =
+            await vincularEmpleado(
                 usuario
             );
 
 
             mostrarExito(
-                "Acceso correcto. Ingresando..."
+                "Bienvenido/a " +
+                (
+                    empleado.nombre ||
+                    "empleado"
+                ) +
+                ". Ingresando al fichaje..."
             );
 
 
-            /*
-             * Guardamos una marca para que
-             * fichaje.html pueda identificar
-             * que el acceso se realizó desde
-             * el portal de empleados.
-             */
-
-            sessionStorage.setItem(
-                "gesbase_tipo_acceso",
-                "empleado"
-            );
-
+            // =================================
+            // IR A FICHAJE
+            // =================================
 
             setTimeout(
                 function(){
@@ -624,21 +749,47 @@ formLogin.addEventListener(
                     "fichaje.html";
 
                 },
-                500
+                600
             );
 
         }
         catch(error){
 
             console.error(
-                "Error de acceso:",
+                "Error de acceso empleado:",
                 error
             );
+
+
+            /*
+             * Si falló la vinculación,
+             * cerramos la sesión para que
+             * no quede una cuenta autenticada
+             * sin acceso válido al módulo.
+             */
+
+            try{
+
+                await signOut(auth);
+
+            }
+            catch(errorCerrar){
+
+                console.warn(
+                    "No se pudo cerrar sesión:",
+                    errorCerrar
+                );
+
+            }
 
 
             let mensaje =
             "No se pudo iniciar sesión.";
 
+
+            // =================================
+            // ERRORES FIREBASE AUTH
+            // =================================
 
             if(
                 error.code ===
@@ -655,7 +806,7 @@ formLogin.addEventListener(
             ){
 
                 mensaje =
-                "No existe un usuario con ese email.";
+                "No existe una cuenta de empleado con ese email.";
 
             }
             else if(
@@ -685,6 +836,25 @@ formLogin.addEventListener(
                 "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
 
             }
+
+            // =================================
+            // PERMISOS FIRESTORE
+            // =================================
+
+            else if(
+                error.code ===
+                "permission-denied"
+            ){
+
+                mensaje =
+                "Firebase bloqueó el acceso a la ficha del empleado. Hay que ajustar las reglas de Firestore.";
+
+            }
+
+            // =================================
+            // ERROR PERSONALIZADO
+            // =================================
+
             else if(
                 error.message
             ){
@@ -725,11 +895,6 @@ btnAdministrador.addEventListener(
     "click",
     async function(){
 
-        /*
-         * Cerramos cualquier sesión anterior
-         * antes de ir al login general.
-         */
-
         try{
 
             await signOut(auth);
@@ -745,6 +910,21 @@ btnAdministrador.addEventListener(
         }
 
 
+        sessionStorage.removeItem(
+            "gesbase_tipo_acceso"
+        );
+
+
+        sessionStorage.removeItem(
+            "gesbase_empleado_id"
+        );
+
+
+        sessionStorage.removeItem(
+            "gesbase_empresa_id"
+        );
+
+
         window.location.href =
         "login.html";
 
@@ -753,7 +933,7 @@ btnAdministrador.addEventListener(
 
 
 // ==========================================
-// CONTROL DE SESIÓN
+// SESIÓN EXISTENTE
 // ==========================================
 
 onAuthStateChanged(
@@ -761,35 +941,69 @@ onAuthStateChanged(
     async function(usuario){
 
         /*
-         * Si ya existe una sesión y la marca
-         * indica que estamos entrando como
-         * empleado, comprobamos nuevamente
-         * el perfil.
+         * No redirigimos automáticamente sólo
+         * porque exista una sesión.
+         *
+         * Esto evita que una cuenta administrador
+         * quede atrapada en el acceso empleado.
          */
 
+        if(!usuario){
+
+            return;
+
+        }
+
+
+        const tipoAcceso =
+        sessionStorage.getItem(
+            "gesbase_tipo_acceso"
+        );
+
+
         if(
-            usuario &&
-            sessionStorage.getItem(
-                "gesbase_tipo_acceso"
-            ) ===
+            tipoAcceso !==
             "empleado"
         ){
 
-            try{
+            return;
 
-                await comprobarEmpleado(
-                    usuario
-                );
+        }
 
+
+        try{
+
+            const empleado =
+            await vincularEmpleado(
+                usuario
+            );
+
+
+            if(empleado){
 
                 window.location.href =
                 "fichaje.html";
 
             }
-            catch(error){
+
+        }
+        catch(error){
+
+            console.warn(
+                "Sesión empleado no válida:",
+                error
+            );
+
+
+            try{
+
+                await signOut(auth);
+
+            }
+            catch(errorCerrar){
 
                 console.warn(
-                    error
+                    errorCerrar
                 );
 
             }
