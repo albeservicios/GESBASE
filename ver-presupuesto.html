@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Ver presupuesto - GESBASE</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.contenedor {
+    max-width: 600px;
+    margin: auto;
+    min-height: 100vh;
+    background: white;
+}
+
+header {
+    background: #111827;
+    color: white;
+    padding: 25px 20px;
+}
+
+header h1 {
+    font-size: 24px;
+}
+
+header p {
+    margin-top: 6px;
+    color: #d1d5db;
+    font-size: 14px;
+}
+
+main {
+    padding: 20px;
+}
+
+.cargando {
+    text-align: center;
+    padding: 40px 10px;
+    color: #6b7280;
+}
+
+.numero {
+    font-size: 14px;
+    font-weight: bold;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.cliente {
+    font-size: 25px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.bloque {
+    padding: 15px;
+    background: #f9fafb;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.titulo {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 5px;
+}
+
+.valor {
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.descripcion {
+    line-height: 1.5;
+    font-weight: normal;
+}
+
+.total {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    background: #111827;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.error {
+    display: none;
+    padding: 15px;
+    border-radius: 10px;
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.volver {
+    background: #e5e7eb;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<header>
+
+<h1>
+Ver presupuesto
+</h1>
+
+<p>
+GESBASE
+</p>
+
+</header>
+
+<main>
+
+<div
+    id="cargando"
+    class="cargando"
+>
+Cargando presupuesto...
+</div>
+
+
+<div
+    id="contenido"
+    style="display:none;"
+>
+
+<div
+    id="numero"
+    class="numero"
+></div>
+
+
+<div
+    id="cliente"
+    class="cliente"
+></div>
+
+
+<div class="bloque">
+
+<div class="titulo">
+Fecha
+</div>
+
+<div
+    id="fecha"
+    class="valor"
+></div>
+
+</div>
+
+
+<div class="bloque">
+
+<div class="titulo">
+Descripción del trabajo
+</div>
+
+<div
+    id="descripcion"
+    class="valor descripcion"
+></div>
+
+</div>
+
+
+<div class="bloque">
+
+<div class="titulo">
+Materiales
+</div>
+
+<div
+    id="materiales"
+    class="valor"
+></div>
+
+</div>
+
+
+<div class="bloque">
+
+<div class="titulo">
+Mano de obra
+</div>
+
+<div
+    id="manoObra"
+    class="valor"
+></div>
+
+</div>
+
+
+<div class="bloque">
+
+<div class="titulo">
+Viáticos
+</div>
+
+<div
+    id="viaticos"
+    class="valor"
+></div>
+
+</div>
+
+
+<div
+    id="total"
+    class="total"
+></div>
+
+
+<button
+    id="btnVolver"
+    class="volver"
+>
+Volver a presupuestos
+</button>
+
+</div>
+
+
+<div
+    id="error"
+    class="error"
+></div>
+
+</main>
+
+</div>
+
+
+<script type="module">
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    doc,
+    getDoc
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const cargando =
+document.getElementById(
+    "cargando"
+);
+
+const contenido =
+document.getElementById(
+    "contenido"
+);
+
+const errorElemento =
+document.getElementById(
+    "error"
+);
+
+
+// ==========================================
+// DINERO
+// ==========================================
+
+function dinero(valor) {
+
+    return Number(valor || 0)
+        .toLocaleString(
+            "es-AR",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+
+}
+
+
+// ==========================================
+// OBTENER ID
+// ==========================================
+
+const parametros =
+new URLSearchParams(
+    window.location.search
+);
+
+const presupuestoId =
+parametros.get("id");
+
+
+// ==========================================
+// CARGAR
+// ==========================================
+
+async function cargarPresupuesto(
+    usuario
+) {
+
+    if (!presupuestoId) {
+
+        cargando.style.display =
+            "none";
+
+        errorElemento.textContent =
+            "No se indicó qué presupuesto mostrar.";
+
+        errorElemento.style.display =
+            "block";
+
+        return;
+
+    }
+
+
+    try {
+
+        const referencia =
+            doc(
+                db,
+                "presupuestos",
+                presupuestoId
+            );
+
+
+        const resultado =
+            await getDoc(
+                referencia
+            );
+
+
+        if (!resultado.exists()) {
+
+            throw new Error(
+                "El presupuesto no existe."
+            );
+
+        }
+
+
+        const datos =
+            resultado.data();
+
+
+        // ==================================
+        // SEGURIDAD
+        // ==================================
+
+        if (
+            datos.uid !== usuario.uid
+        ) {
+
+            throw new Error(
+                "No tenés permiso para ver este presupuesto."
+            );
+
+        }
+
+
+        document.getElementById(
+            "numero"
+        ).textContent =
+            "ID: " +
+            resultado.id;
+
+
+        document.getElementById(
+            "cliente"
+        ).textContent =
+            datos.cliente ||
+            "Sin cliente";
+
+
+        document.getElementById(
+            "fecha"
+        ).textContent =
+            datos.fecha ||
+            "-";
+
+
+        document.getElementById(
+            "descripcion"
+        ).textContent =
+            datos.descripcion ||
+            "Sin descripción";
+
+
+        document.getElementById(
+            "materiales"
+        ).textContent =
+            "$" +
+            dinero(
+                datos.materiales
+            );
+
+
+        document.getElementById(
+            "manoObra"
+        ).textContent =
+            "$" +
+            dinero(
+                datos.manoObra
+            );
+
+
+        document.getElementById(
+            "viaticos"
+        ).textContent =
+            "$" +
+            dinero(
+                datos.viaticos
+            );
+
+
+        document.getElementById(
+            "total"
+        ).textContent =
+            "TOTAL: $" +
+            dinero(
+                datos.total
+            );
+
+
+        cargando.style.display =
+            "none";
+
+        contenido.style.display =
+            "block";
+
+
+    } catch (error) {
+
+        console.error(
+            "Error:",
+            error
+        );
+
+
+        cargando.style.display =
+            "none";
+
+
+        errorElemento.textContent =
+            error.message;
+
+
+        errorElemento.style.display =
+            "block";
+
+    }
+
+}
+
+
+// ==========================================
+// SESIÓN
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    function(usuario) {
+
+        if (!usuario) {
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        cargarPresupuesto(
+            usuario
+        );
+
+    }
+);
+
+
+// ==========================================
+// VOLVER
+// ==========================================
+
+document
+.getElementById("btnVolver")
+.addEventListener(
+    "click",
+    function() {
+
+        window.location.href =
+            "presupuestos.html";
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
