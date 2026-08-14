@@ -421,33 +421,19 @@ import {
 // ==========================================
 
 const formRegistro =
-document.getElementById(
-    "formRegistro"
-);
-
+document.getElementById("formRegistro");
 
 const btnRegistro =
-document.getElementById(
-    "btnRegistro"
-);
-
+document.getElementById("btnRegistro");
 
 const btnVolver =
-document.getElementById(
-    "btnVolver"
-);
-
+document.getElementById("btnVolver");
 
 const mensaje =
-document.getElementById(
-    "mensaje"
-);
-
+document.getElementById("mensaje");
 
 const cuit =
-document.getElementById(
-    "cuit"
-);
+document.getElementById("cuit");
 
 
 // ==========================================
@@ -459,59 +445,34 @@ cuit.addEventListener(
     function(){
 
         let valor =
-        this.value.replace(
-            /\D/g,
-            ""
-        );
-
+        this.value.replace(/\D/g,"");
 
         if(valor.length > 11){
 
             valor =
-            valor.substring(
-                0,
-                11
-            );
+            valor.substring(0,11);
 
         }
-
 
         if(valor.length > 2){
 
             valor =
-            valor.substring(
-                0,
-                2
-            )
-            +
-            "-"
-            +
-            valor.substring(
-                2
-            );
+            valor.substring(0,2)
+            + "-"
+            + valor.substring(2);
 
         }
-
 
         if(valor.length > 11){
 
             valor =
-            valor.substring(
-                0,
-                11
-            )
-            +
-            "-"
-            +
-            valor.substring(
-                11
-            );
+            valor.substring(0,11)
+            + "-"
+            + valor.substring(11);
 
         }
 
-
-        this.value =
-        valor;
+        this.value = valor;
 
     }
 );
@@ -526,8 +487,7 @@ function mostrarMensaje(
     tipo
 ){
 
-    mensaje.textContent =
-    texto;
+    mensaje.textContent = texto;
 
     mensaje.className =
     "mensaje " + tipo;
@@ -640,8 +600,7 @@ formRegistro.addEventListener(
         }
 
 
-        btnRegistro.disabled =
-        true;
+        btnRegistro.disabled = true;
 
         btnRegistro.textContent =
         "Creando cuenta...";
@@ -650,7 +609,7 @@ formRegistro.addEventListener(
         try{
 
             // ==================================
-            // CREAR USUARIO
+            // 1. CREAR USUARIO
             // ==================================
 
             const resultado =
@@ -665,8 +624,64 @@ formRegistro.addEventListener(
             resultado.user;
 
 
+            const uid =
+            usuario.uid;
+
+
             // ==================================
-            // GUARDAR PERFIL EN FIRESTORE
+            // 2. CREAR ID DE EMPRESA
+            // ==================================
+
+            const referenciaEmpresa =
+            doc(
+                db,
+                "empresas",
+                uid
+            );
+
+
+            const empresaId =
+            referenciaEmpresa.id;
+
+
+            // ==================================
+            // 3. CREAR EMPRESA
+            // ==================================
+
+            await setDoc(
+                referenciaEmpresa,
+                {
+
+                    empresaId:
+                    empresaId,
+
+                    nombre:
+                    razonSocial,
+
+                    razonSocial:
+                    razonSocial,
+
+                    cuit:
+                    cuitValor,
+
+                    telefono:
+                    telefono,
+
+                    email:
+                    email,
+
+                    propietarioUid:
+                    uid,
+
+                    creado:
+                    serverTimestamp()
+
+                }
+            );
+
+
+            // ==================================
+            // 4. CREAR / ACTUALIZAR USUARIO
             // ==================================
 
             await setDoc(
@@ -674,13 +689,13 @@ formRegistro.addEventListener(
                 doc(
                     db,
                     "usuarios",
-                    usuario.uid
+                    uid
                 ),
 
                 {
 
                     uid:
-                    usuario.uid,
+                    uid,
 
                     nombre:
                     nombre,
@@ -700,6 +715,9 @@ formRegistro.addEventListener(
                     email:
                     email,
 
+                    empresaId:
+                    empresaId,
+
                     creado:
                     serverTimestamp()
 
@@ -713,7 +731,7 @@ formRegistro.addEventListener(
             // ==================================
 
             mostrarMensaje(
-                "Cuenta creada correctamente.",
+                "Cuenta y empresa creadas correctamente.",
                 "exito"
             );
 
@@ -762,7 +780,7 @@ formRegistro.addEventListener(
                 case "auth/weak-password":
 
                     texto =
-                    "La contraseña es demasiado débil.";
+                    "La contraseña debe tener al menos 6 caracteres.";
 
                     break;
 
@@ -770,7 +788,7 @@ formRegistro.addEventListener(
                 case "auth/operation-not-allowed":
 
                     texto =
-                    "El registro con email y contraseña no está habilitado en Firebase.";
+                    "El registro con email y contraseña no está habilitado.";
 
                     break;
 
@@ -778,7 +796,7 @@ formRegistro.addEventListener(
                 case "permission-denied":
 
                     texto =
-                    "Firebase rechazó el acceso a los datos.";
+                    "Firebase rechazó el acceso. Revisá las reglas de Firestore.";
 
                     break;
 
@@ -798,8 +816,7 @@ formRegistro.addEventListener(
             );
 
 
-            btnRegistro.disabled =
-            false;
+            btnRegistro.disabled = false;
 
             btnRegistro.textContent =
             "Crear cuenta";
@@ -810,7 +827,6 @@ formRegistro.addEventListener(
 );
 
 </script>
-
 
 </body>
 
