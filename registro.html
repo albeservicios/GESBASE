@@ -215,9 +215,6 @@
 
         <form id="formRegistro">
 
-
-            <!-- NOMBRE Y APELLIDO -->
-
             <div class="fila">
 
                 <div class="campo">
@@ -260,8 +257,6 @@
             </div>
 
 
-            <!-- EMAIL -->
-
             <div class="campo">
 
                 <label for="email">
@@ -280,8 +275,6 @@
 
             </div>
 
-
-            <!-- CONTRASEÑA -->
 
             <div class="campo">
 
@@ -303,8 +296,6 @@
             </div>
 
 
-            <!-- CONFIRMAR CONTRASEÑA -->
-
             <div class="campo">
 
                 <label for="confirmarPassword">
@@ -325,8 +316,6 @@
             </div>
 
 
-            <!-- TELEFONO -->
-
             <div class="campo">
 
                 <label for="telefono">
@@ -345,8 +334,6 @@
 
             </div>
 
-
-            <!-- EMPRESA -->
 
             <div class="campo">
 
@@ -367,15 +354,11 @@
             </div>
 
 
-            <!-- MENSAJE -->
-
             <div
                 id="mensaje"
                 class="mensaje"
             ></div>
 
-
-            <!-- BOTON -->
 
             <button
                 type="submit"
@@ -393,7 +376,6 @@
             >
                 Volver
             </button>
-
 
         </form>
 
@@ -413,75 +395,29 @@
 </div>
 
 
-<!-- ==========================================
-     FIREBASE
-     ========================================== -->
-
 <script type="module">
 
+    // ==========================================
+    // FIREBASE
+    // ==========================================
+
     import {
-        initializeApp
-    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        auth,
+        db
+    } from "./Js/firebase.js";
 
 
     import {
-        getAuth,
         createUserWithEmailAndPassword,
         updateProfile
     } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
     import {
-        getFirestore,
         doc,
-        setDoc
+        setDoc,
+        serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-
-    // ==========================================
-    // CONFIGURACIÓN FIREBASE GESBASE
-    // ==========================================
-
-    const firebaseConfig = {
-
-        apiKey:
-            "AIzaSyDDCQ7WhS9Gy8DwQGZ01VaFTmSgV2rjs9o",
-
-        authDomain:
-            "gesbase-4bf94.firebaseapp.com",
-
-        projectId:
-            "gesbase-4bf94",
-
-        storageBucket:
-            "gesbase-4bf94.firebasestorage.app",
-
-        messagingSenderId:
-            "64959778874",
-
-        appId:
-            "1:64959778874:web:c3bc129c3cee8cb77d6503",
-
-        measurementId:
-            "G-CCKGSRVGEX"
-
-    };
-
-
-    // ==========================================
-    // INICIALIZAR FIREBASE
-    // ==========================================
-
-    const app =
-        initializeApp(firebaseConfig);
-
-
-    const auth =
-        getAuth(app);
-
-
-    const db =
-        getFirestore(app);
 
 
     // ==========================================
@@ -506,8 +442,14 @@
         );
 
 
+    const botonVolver =
+        document.getElementById(
+            "btnVolver"
+        );
+
+
     // ==========================================
-    // MENSAJES
+    // MENSAJE
     // ==========================================
 
     function mostrarMensaje(
@@ -522,6 +464,21 @@
             "mensaje " + tipo;
 
     }
+
+
+    // ==========================================
+    // VOLVER
+    // ==========================================
+
+    botonVolver.addEventListener(
+        "click",
+        function() {
+
+            window.location.href =
+                "index.html";
+
+        }
+    );
 
 
     // ==========================================
@@ -581,27 +538,7 @@
             // VALIDACIONES
             // ==================================
 
-            if (
-                !nombre ||
-                !apellido ||
-                !email ||
-                !telefono ||
-                !empresa
-            ) {
-
-                mostrarMensaje(
-                    "Completá todos los campos obligatorios.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if (
-                password.length < 6
-            ) {
+            if (password.length < 6) {
 
                 mostrarMensaje(
                     "La contraseña debe tener al menos 6 caracteres.",
@@ -628,11 +565,8 @@
             }
 
 
-            // ==================================
-            // DESACTIVAR BOTÓN
-            // ==================================
-
-            boton.disabled = true;
+            boton.disabled =
+                true;
 
             boton.textContent =
                 "Creando cuenta...";
@@ -640,12 +574,11 @@
 
             try {
 
-
                 // ==================================
-                // CREAR USUARIO EN FIREBASE
+                // CREAR USUARIO
                 // ==================================
 
-                const credencial =
+                const resultado =
                     await createUserWithEmailAndPassword(
                         auth,
                         email,
@@ -654,18 +587,20 @@
 
 
                 const usuario =
-                    credencial.user;
+                    resultado.user;
 
 
                 // ==================================
-                // GUARDAR NOMBRE EN AUTH
+                // NOMBRE DEL USUARIO
                 // ==================================
 
                 await updateProfile(
                     usuario,
                     {
                         displayName:
-                            nombre + " " + apellido
+                            nombre +
+                            " " +
+                            apellido
                     }
                 );
 
@@ -681,7 +616,6 @@
                         usuario.uid
                     ),
                     {
-
                         uid:
                             usuario.uid,
 
@@ -700,15 +634,8 @@
                         empresa:
                             empresa,
 
-                        rol:
-                            "usuario",
-
-                        estado:
-                            "activo",
-
-                        fechaRegistro:
-                            new Date().toISOString()
-
+                        creado:
+                            serverTimestamp()
                     }
                 );
 
@@ -718,43 +645,36 @@
                 // ==================================
 
                 mostrarMensaje(
-                    "Cuenta creada correctamente. Ya podés iniciar sesión.",
+                    "Cuenta creada correctamente. Ingresando a GESBASE...",
                     "exito"
                 );
 
 
-                formulario.reset();
-
-
-                boton.textContent =
-                    "Cuenta creada";
-
-
                 // ==================================
-                // IR AL LOGIN
+                // IR AL SISTEMA
                 // ==================================
 
                 setTimeout(
                     function() {
 
-                        window.location.href =
-                            "login.html";
+                        window.location.replace(
+                            "index.html"
+                        );
 
                     },
-                    1500
+                    800
                 );
 
 
             } catch (error) {
 
-
                 console.error(
-                    "Error de Firebase:",
+                    "Error Firebase:",
                     error
                 );
 
 
-                let textoError =
+                let texto =
                     "No se pudo crear la cuenta.";
 
 
@@ -763,8 +683,8 @@
                     "auth/email-already-in-use"
                 ) {
 
-                    textoError =
-                        "Ese correo electrónico ya está registrado.";
+                    texto =
+                        "Ese email ya está registrado.";
 
                 }
 
@@ -774,8 +694,8 @@
                     "auth/invalid-email"
                 ) {
 
-                    textoError =
-                        "El correo electrónico no es válido.";
+                    texto =
+                        "El email no es válido.";
 
                 }
 
@@ -785,19 +705,8 @@
                     "auth/weak-password"
                 ) {
 
-                    textoError =
+                    texto =
                         "La contraseña es demasiado débil.";
-
-                }
-
-
-                else if (
-                    error.code ===
-                    "auth/network-request-failed"
-                ) {
-
-                    textoError =
-                        "No hay conexión con Firebase. Revisá tu conexión a Internet.";
 
                 }
 
@@ -807,19 +716,29 @@
                     "permission-denied"
                 ) {
 
-                    textoError =
-                        "Firebase rechazó el acceso a la base de datos. Hay que revisar las reglas de Firestore.";
+                    texto =
+                        "La cuenta fue creada, pero Firebase rechazó guardar los datos.";
+
+                }
+
+
+                else {
+
+                    texto =
+                        "Error: " +
+                        error.message;
 
                 }
 
 
                 mostrarMensaje(
-                    textoError,
+                    texto,
                     "error"
                 );
 
 
-                boton.disabled = false;
+                boton.disabled =
+                    false;
 
                 boton.textContent =
                     "Crear cuenta";
@@ -828,25 +747,6 @@
 
         }
     );
-
-
-    // ==========================================
-    // VOLVER
-    // ==========================================
-
-    document
-        .getElementById(
-            "btnVolver"
-        )
-        .addEventListener(
-            "click",
-            function() {
-
-                window.location.href =
-                    "index.html";
-
-            }
-        );
 
 </script>
 
