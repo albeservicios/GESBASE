@@ -35,8 +35,8 @@
         .contenedor {
             width: 100%;
             max-width: 500px;
-            margin: auto;
             min-height: 100vh;
+            margin: auto;
             background: white;
         }
 
@@ -117,6 +117,7 @@
 
         .boton-principal:disabled {
             opacity: .6;
+            cursor: not-allowed;
         }
 
         .boton-secundario {
@@ -247,7 +248,7 @@
             <button
                 type="button"
                 class="boton boton-secundario"
-                onclick="window.location.href='registro.html'"
+                id="btnRegistro"
             >
                 Crear una cuenta
             </button>
@@ -290,9 +291,25 @@
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
+    // ==========================================
+    // ELEMENTOS
+    // ==========================================
+
     const formulario =
         document.getElementById(
             "formLogin"
+        );
+
+
+    const emailInput =
+        document.getElementById(
+            "email"
+        );
+
+
+    const passwordInput =
+        document.getElementById(
+            "password"
         );
 
 
@@ -302,11 +319,21 @@
         );
 
 
-    const boton =
+    const botonLogin =
         document.getElementById(
             "btnLogin"
         );
 
+
+    const botonRegistro =
+        document.getElementById(
+            "btnRegistro"
+        );
+
+
+    // ==========================================
+    // MENSAJES
+    // ==========================================
 
     function mostrarMensaje(
         texto,
@@ -323,7 +350,22 @@
 
 
     // ==========================================
-    // SI YA ESTÁ LOGUEADO
+    // IR A REGISTRO
+    // ==========================================
+
+    botonRegistro.addEventListener(
+        "click",
+        function() {
+
+            window.location.href =
+                "registro.html";
+
+        }
+    );
+
+
+    // ==========================================
+    // COMPROBAR SI YA HAY SESIÓN
     // ==========================================
 
     onAuthStateChanged(
@@ -354,20 +396,29 @@
 
 
             const email =
-                document.getElementById(
-                    "email"
-                ).value.trim();
+                emailInput.value.trim();
 
 
             const password =
-                document.getElementById(
-                    "password"
-                ).value;
+                passwordInput.value;
 
 
-            boton.disabled = true;
+            if (!email || !password) {
 
-            boton.textContent =
+                mostrarMensaje(
+                    "Completá el email y la contraseña.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            botonLogin.disabled =
+                true;
+
+            botonLogin.textContent =
                 "Ingresando...";
 
 
@@ -394,6 +445,7 @@
             } catch (error) {
 
                 console.error(
+                    "Error Firebase:",
                     error
                 );
 
@@ -402,46 +454,53 @@
                     "No se pudo iniciar sesión.";
 
 
-                if (
-                    error.code ===
-                    "auth/invalid-credential"
-                ) {
+                switch (error.code) {
 
-                    texto =
-                        "Email o contraseña incorrectos.";
+                    case "auth/invalid-credential":
 
-                }
+                        texto =
+                            "Email o contraseña incorrectos.";
 
-
-                if (
-                    error.code ===
-                    "auth/user-not-found"
-                ) {
-
-                    texto =
-                        "No existe una cuenta con ese email.";
-
-                }
+                        break;
 
 
-                if (
-                    error.code ===
-                    "auth/wrong-password"
-                ) {
+                    case "auth/user-not-found":
 
-                    texto =
-                        "La contraseña es incorrecta.";
+                        texto =
+                            "No existe una cuenta con ese email.";
 
-                }
+                        break;
 
 
-                if (
-                    error.code ===
-                    "auth/invalid-email"
-                ) {
+                    case "auth/wrong-password":
 
-                    texto =
-                        "El email no es válido.";
+                        texto =
+                            "La contraseña es incorrecta.";
+
+                        break;
+
+
+                    case "auth/invalid-email":
+
+                        texto =
+                            "El email no es válido.";
+
+                        break;
+
+
+                    case "auth/too-many-requests":
+
+                        texto =
+                            "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
+
+                        break;
+
+
+                    default:
+
+                        texto =
+                            "Error de acceso: " +
+                            error.message;
 
                 }
 
@@ -452,10 +511,10 @@
                 );
 
 
-                boton.disabled =
+                botonLogin.disabled =
                     false;
 
-                boton.textContent =
+                botonLogin.textContent =
                     "Iniciar sesión";
 
             }
