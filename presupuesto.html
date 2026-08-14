@@ -50,8 +50,8 @@ header h1 {
 
 header p {
     margin-top: 6px;
-    font-size: 14px;
     color: #d1d5db;
+    font-size: 14px;
 }
 
 main {
@@ -75,27 +75,28 @@ main {
 .lista {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 15px;
 }
 
 .presupuesto {
-    padding: 17px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid #d1d5db;
+    border-radius: 14px;
     background: white;
-    box-shadow: 0 2px 7px rgba(0,0,0,.06);
+    box-shadow: 0 3px 10px rgba(0,0,0,.08);
 }
 
 .numero {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: bold;
     color: #6b7280;
     margin-bottom: 8px;
 }
 
-.presupuesto h2 {
-    font-size: 18px;
-    margin-bottom: 8px;
+.cliente {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
 .dato {
@@ -106,30 +107,33 @@ main {
 
 .descripcion {
     margin-top: 10px;
-    line-height: 1.45;
     color: #374151;
+    line-height: 1.45;
 }
 
 .total {
-    margin-top: 13px;
+    margin-top: 14px;
     font-size: 20px;
     font-weight: bold;
 }
 
-.ver {
+.boton-ver {
+    display: block;
     width: 100%;
-    padding: 13px;
-    margin-top: 15px;
+    margin-top: 16px;
+    padding: 14px;
     border: none;
     border-radius: 10px;
     background: #111827;
     color: white;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: bold;
+    text-align: center;
+    text-decoration: none;
     cursor: pointer;
 }
 
-.ver:active {
+.boton-ver:active {
     transform: scale(.98);
 }
 
@@ -140,35 +144,39 @@ main {
 }
 
 .error {
+    display: none;
     background: #fee2e2;
     color: #991b1b;
     padding: 14px;
     border-radius: 10px;
     margin-bottom: 15px;
-    display: none;
 }
 
 .botones {
     margin-top: 20px;
 }
 
-button {
+.boton-nuevo,
+.boton-volver {
+    display: block;
     width: 100%;
     padding: 15px;
     border: none;
     border-radius: 10px;
     font-size: 16px;
     font-weight: bold;
+    text-align: center;
+    text-decoration: none;
     cursor: pointer;
     margin-bottom: 10px;
 }
 
-.nuevo {
+.boton-nuevo {
     background: #111827;
     color: white;
 }
 
-.volver {
+.boton-volver {
     background: #e5e7eb;
     color: #111827;
 }
@@ -235,20 +243,20 @@ Todavía no tenés presupuestos.
 
 <div class="botones">
 
-<button
-    class="nuevo"
-    id="btnNuevo"
+<a
+    href="presupuesto.html"
+    class="boton-nuevo"
 >
 + Nuevo presupuesto
-</button>
+</a>
 
 
-<button
-    class="volver"
-    id="btnVolver"
+<a
+    href="index.html"
+    class="boton-volver"
 >
 Volver a GESBASE
-</button>
+</a>
 
 </div>
 
@@ -289,44 +297,19 @@ import {
 // ==========================================
 
 const usuarioElemento =
-document.getElementById(
-    "usuario"
-);
+document.getElementById("usuario");
 
 const cargando =
-document.getElementById(
-    "cargando"
-);
+document.getElementById("cargando");
 
 const lista =
-document.getElementById(
-    "lista"
-);
+document.getElementById("lista");
 
 const sinPresupuestos =
-document.getElementById(
-    "sinPresupuestos"
-);
+document.getElementById("sinPresupuestos");
 
 const errorElemento =
-document.getElementById(
-    "error"
-);
-
-
-// ==========================================
-// ERROR
-// ==========================================
-
-function mostrarError(texto) {
-
-    errorElemento.textContent =
-        texto;
-
-    errorElemento.style.display =
-        "block";
-
-}
+document.getElementById("error");
 
 
 // ==========================================
@@ -351,26 +334,23 @@ function dinero(valor) {
 // NÚMERO DE PRESUPUESTO
 // ==========================================
 
-function numeroPresupuesto(
-    documentoId
-) {
+function numeroPresupuesto(id) {
 
-    let codigo = "";
+    let suma = 0;
 
     for (
         let i = 0;
-        i < documentoId.length;
+        i < id.length;
         i++
     ) {
 
-        codigo +=
-            documentoId.charCodeAt(i);
+        suma +=
+            id.charCodeAt(i);
 
     }
 
     const numero =
-        parseInt(codigo, 10)
-        % 1000000;
+        suma % 1000000;
 
     return String(numero)
         .padStart(6, "0");
@@ -382,9 +362,7 @@ function numeroPresupuesto(
 // CARGAR PRESUPUESTOS
 // ==========================================
 
-async function cargarPresupuestos(
-    usuario
-) {
+async function cargarPresupuestos(usuario) {
 
     try {
 
@@ -421,9 +399,7 @@ async function cargarPresupuestos(
             "none";
 
 
-        if (
-            resultado.empty
-        ) {
+        if (resultado.empty) {
 
             sinPresupuestos.style.display =
                 "block";
@@ -462,12 +438,12 @@ async function cargarPresupuestos(
                 tarjeta.innerHTML = `
 
                     <div class="numero">
-                        Presupuesto #${numero}
+                        PRESUPUESTO #${numero}
                     </div>
 
-                    <h2>
+                    <div class="cliente">
                         ${datos.cliente || "Sin cliente"}
-                    </h2>
+                    </div>
 
                     <div class="dato">
                         📅 Fecha:
@@ -494,38 +470,18 @@ async function cargarPresupuestos(
                     </div>
 
                     <div class="total">
-                        Total:
+                        TOTAL:
                         $${dinero(datos.total)}
                     </div>
 
-                    <button
-                        class="ver"
-                        data-id="${documento.id}"
+                    <a
+                        class="boton-ver"
+                        href="ver-presupuesto.html?id=${encodeURIComponent(documento.id)}"
                     >
-                        👁️ Ver presupuesto
-                    </button>
+                        👁️ VER PRESUPUESTO
+                    </a>
 
                 `;
-
-
-                const botonVer =
-                    tarjeta.querySelector(
-                        ".ver"
-                    );
-
-
-                botonVer.addEventListener(
-                    "click",
-                    function() {
-
-                        window.location.href =
-                            "ver-presupuesto.html?id=" +
-                            encodeURIComponent(
-                                documento.id
-                            );
-
-                    }
-                );
 
 
                 lista.appendChild(
@@ -548,10 +504,13 @@ async function cargarPresupuestos(
             "none";
 
 
-        mostrarError(
+        errorElemento.textContent =
             "No se pudieron cargar los presupuestos: " +
-            error.message
-        );
+            error.message;
+
+
+        errorElemento.style.display =
+            "block";
 
     }
 
@@ -559,12 +518,12 @@ async function cargarPresupuestos(
 
 
 // ==========================================
-// SESIÓN
+// AUTENTICACIÓN
 // ==========================================
 
 onAuthStateChanged(
     auth,
-    async function(usuario) {
+    function(usuario) {
 
         if (!usuario) {
 
@@ -577,43 +536,9 @@ onAuthStateChanged(
         }
 
 
-        await cargarPresupuestos(
+        cargarPresupuestos(
             usuario
         );
-
-    }
-);
-
-
-// ==========================================
-// NUEVO
-// ==========================================
-
-document
-.getElementById("btnNuevo")
-.addEventListener(
-    "click",
-    function() {
-
-        window.location.href =
-            "presupuesto.html";
-
-    }
-);
-
-
-// ==========================================
-// VOLVER
-// ==========================================
-
-document
-.getElementById("btnVolver")
-.addEventListener(
-    "click",
-    function() {
-
-        window.location.href =
-            "index.html";
 
     }
 );
