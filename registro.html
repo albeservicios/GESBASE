@@ -202,8 +202,6 @@ Registrá los datos de tu empresa para comenzar a utilizar GESBASE.
 <form id="formRegistro">
 
 
-<!-- NOMBRE -->
-
 <div class="campo">
 
 <label for="nombre">
@@ -220,8 +218,6 @@ Nombre
 
 </div>
 
-
-<!-- APELLIDO -->
 
 <div class="campo">
 
@@ -240,8 +236,6 @@ Apellido
 </div>
 
 
-<!-- RAZÓN SOCIAL -->
-
 <div class="campo">
 
 <label for="razonSocial">
@@ -258,8 +252,6 @@ Razón social
 
 </div>
 
-
-<!-- CUIT -->
 
 <div class="campo">
 
@@ -284,8 +276,6 @@ Ingresá el CUIT de la empresa o titular.
 </div>
 
 
-<!-- TELÉFONO -->
-
 <div class="campo">
 
 <label for="telefono">
@@ -304,8 +294,6 @@ Teléfono
 </div>
 
 
-<!-- EMAIL -->
-
 <div class="campo">
 
 <label for="email">
@@ -322,8 +310,6 @@ Email
 
 </div>
 
-
-<!-- CONTRASEÑA -->
 
 <div class="campo">
 
@@ -343,8 +329,6 @@ Contraseña
 </div>
 
 
-<!-- CONFIRMAR CONTRASEÑA -->
-
 <div class="campo">
 
 <label for="passwordConfirmar">
@@ -363,15 +347,11 @@ Confirmar contraseña
 </div>
 
 
-<!-- MENSAJE -->
-
 <div
     id="mensaje"
     class="mensaje"
 ></div>
 
-
-<!-- CREAR CUENTA -->
 
 <button
     type="submit"
@@ -381,8 +361,6 @@ Confirmar contraseña
 Crear cuenta
 </button>
 
-
-<!-- VOLVER -->
 
 <button
     type="button"
@@ -412,11 +390,36 @@ Iniciar sesión
 </div>
 
 
-<script>
+<script type="module">
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth
+} from "./Js/firebase.js";
+
+
+import {
+    createUserWithEmailAndPassword
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
 
 const formRegistro =
 document.getElementById(
     "formRegistro"
+);
+
+
+const btnRegistro =
+document.getElementById(
+    "btnRegistro"
 );
 
 
@@ -426,135 +429,339 @@ document.getElementById(
 );
 
 
+const mensaje =
+document.getElementById(
+    "mensaje"
+);
+
+
 const cuit =
 document.getElementById(
     "cuit"
 );
 
 
-/*
-==================================================
-FORMATO CUIT
-==================================================
-Permite ingresar solamente números y agrega
-automáticamente los guiones.
-==================================================
-*/
+// ==========================================
+// FORMATO CUIT
+// ==========================================
 
 cuit.addEventListener(
     "input",
     function(){
 
         let valor =
-            this.value.replace(
-                /\D/g,
-                ""
-            );
+        this.value.replace(
+            /\D/g,
+            ""
+        );
+
 
         if(valor.length > 11){
 
             valor =
-                valor.substring(
-                    0,
-                    11
-                );
+            valor.substring(
+                0,
+                11
+            );
 
         }
+
 
         if(valor.length > 2){
 
             valor =
-                valor.substring(0,2)
-                + "-"
-                + valor.substring(2);
+            valor.substring(
+                0,
+                2
+            )
+            +
+            "-"
+            +
+            valor.substring(
+                2
+            );
 
         }
+
 
         if(valor.length > 11){
 
             valor =
-                valor.substring(0,11)
-                + "-"
-                + valor.substring(11);
+            valor.substring(
+                0,
+                11
+            )
+            +
+            "-"
+            +
+            valor.substring(
+                11
+            );
 
         }
 
+
         this.value =
-            valor;
+        valor;
 
     }
 );
 
 
-/*
-==================================================
-VOLVER AL LOGIN
-==================================================
-*/
+// ==========================================
+// MENSAJE
+// ==========================================
+
+function mostrarMensaje(
+    texto,
+    tipo
+){
+
+    mensaje.textContent =
+    texto;
+
+    mensaje.className =
+    "mensaje " + tipo;
+
+}
+
+
+// ==========================================
+// VOLVER AL LOGIN
+// ==========================================
 
 btnVolver.addEventListener(
     "click",
     function(){
 
         window.location.href =
-            "login.html";
+        "login.html";
 
     }
 );
 
 
-/*
-==================================================
-REGISTRO
-==================================================
-Por ahora solamente comprobamos el formulario.
-Firebase se conectará en el siguiente paso.
-==================================================
-*/
+// ==========================================
+// REGISTRO FIREBASE
+// ==========================================
 
 formRegistro.addEventListener(
     "submit",
-    function(evento){
+    async function(evento){
 
         evento.preventDefault();
 
 
+        const nombre =
+        document
+        .getElementById("nombre")
+        .value
+        .trim();
+
+
+        const apellido =
+        document
+        .getElementById("apellido")
+        .value
+        .trim();
+
+
+        const razonSocial =
+        document
+        .getElementById("razonSocial")
+        .value
+        .trim();
+
+
+        const cuitValor =
+        cuit.value.trim();
+
+
+        const telefono =
+        document
+        .getElementById("telefono")
+        .value
+        .trim();
+
+
+        const email =
+        document
+        .getElementById("email")
+        .value
+        .trim();
+
+
         const password =
-            document.getElementById(
-                "password"
-            ).value;
+        document
+        .getElementById("password")
+        .value;
 
 
         const passwordConfirmar =
-            document.getElementById(
-                "passwordConfirmar"
-            ).value;
+        document
+        .getElementById("passwordConfirmar")
+        .value;
 
 
-        const mensaje =
-            document.getElementById(
-                "mensaje"
-            );
-
+        // ======================================
+        // VALIDACIONES
+        // ======================================
 
         if(password !== passwordConfirmar){
 
-            mensaje.textContent =
-                "Las contraseñas no coinciden.";
-
-            mensaje.className =
-                "mensaje error";
+            mostrarMensaje(
+                "Las contraseñas no coinciden.",
+                "error"
+            );
 
             return;
 
         }
 
 
-        mensaje.textContent =
-            "Los datos están completos. La conexión con Firebase se realizará en el siguiente paso.";
+        if(password.length < 6){
 
-        mensaje.className =
-            "mensaje exito";
+            mostrarMensaje(
+                "La contraseña debe tener al menos 6 caracteres.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        btnRegistro.disabled =
+        true;
+
+        btnRegistro.textContent =
+        "Creando cuenta...";
+
+
+        try{
+
+            // ==================================
+            // CREAR USUARIO FIREBASE
+            // ==================================
+
+            const resultado =
+            await createUserWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+
+
+            console.log(
+                "Usuario creado:",
+                resultado.user.uid
+            );
+
+
+            mostrarMensaje(
+                "Cuenta creada correctamente.",
+                "exito"
+            );
+
+
+            /*
+            ======================================
+            IMPORTANTE
+
+            En este paso todavía NO guardamos:
+
+            nombre
+            apellido
+            razón social
+            CUIT
+            teléfono
+
+            Eso lo haremos en el siguiente paso
+            utilizando Firestore.
+
+            ======================================
+            */
+
+
+            setTimeout(
+                function(){
+
+                    window.location.href =
+                    "index.html";
+
+                },
+                1200
+            );
+
+
+        }catch(error){
+
+            console.error(
+                "Error Firebase:",
+                error
+            );
+
+
+            let texto =
+            "No se pudo crear la cuenta.";
+
+
+            switch(error.code){
+
+                case "auth/email-already-in-use":
+
+                    texto =
+                    "Ya existe una cuenta con ese email.";
+
+                    break;
+
+
+                case "auth/invalid-email":
+
+                    texto =
+                    "El email no es válido.";
+
+                    break;
+
+
+                case "auth/weak-password":
+
+                    texto =
+                    "La contraseña es demasiado débil.";
+
+                    break;
+
+
+                case "auth/operation-not-allowed":
+
+                    texto =
+                    "El registro con email y contraseña no está habilitado en Firebase.";
+
+                    break;
+
+
+                default:
+
+                    texto =
+                    "Error al crear la cuenta: " +
+                    error.message;
+
+            }
+
+
+            mostrarMensaje(
+                texto,
+                "error"
+            );
+
+
+            btnRegistro.disabled =
+            false;
+
+            btnRegistro.textContent =
+            "Crear cuenta";
+
+        }
 
     }
 );
