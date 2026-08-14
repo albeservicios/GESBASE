@@ -194,6 +194,20 @@ button:disabled{
 >
 </div>
 
+<!-- NÚMERO DE AGENDA -->
+<div class="campo">
+<label for="numeroAgenda">
+N.º de agenda (opcional)
+</label>
+
+<input
+    type="text"
+    id="numeroAgenda"
+    placeholder="Si te enviaron un número, ingresalo"
+    inputmode="numeric"
+>
+</div>
+
 <!-- FECHA -->
 <div class="campo">
 <label for="fecha">Fecha</label>
@@ -212,7 +226,10 @@ button:disabled{
 
 <!-- DESCRIPCIÓN -->
 <div class="campo">
-<label for="descripcion">Descripción del trabajo</label>
+<label for="descripcion">
+Descripción del trabajo
+</label>
+
 <textarea
     id="descripcion"
     placeholder="Describí el trabajo a realizar"
@@ -348,12 +365,18 @@ import {
 import {
     collection,
     addDoc,
-    serverTimestamp
+    serverTimestamp,
+    getDocs,
+    query,
+    where
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
 const cliente =
 document.getElementById("cliente");
+
+const numeroAgenda =
+document.getElementById("numeroAgenda");
 
 const fecha =
 document.getElementById("fecha");
@@ -622,6 +645,85 @@ function mostrarMensaje(
 }
 
 
+/* GENERAR NÚMERO DE AGENDA */
+
+async function obtenerNumeroAgenda(){
+
+    /*
+       Si el usuario ingresó un número,
+       usamos exactamente ese número.
+    */
+
+    const numeroIngresado =
+    numeroAgenda.value.trim();
+
+    if(numeroIngresado !== ""){
+
+        return numeroIngresado;
+
+    }
+
+
+    /*
+       Si no ingresó número,
+       generamos uno automáticamente.
+    */
+
+    let numeroValido = false;
+
+    let numeroGenerado = "";
+
+
+    while(!numeroValido){
+
+        numeroGenerado =
+        String(
+            Math.floor(
+                100000 +
+                Math.random() * 900000
+            )
+        );
+
+
+        /*
+           Verificamos que no exista
+           otro presupuesto con ese
+           número de agenda.
+        */
+
+        const consulta =
+        query(
+            collection(
+                db,
+                "presupuestos"
+            ),
+            where(
+                "numeroAgenda",
+                "==",
+                numeroGenerado
+            )
+        );
+
+
+        const resultado =
+        await getDocs(
+            consulta
+        );
+
+
+        if(resultado.empty){
+
+            numeroValido = true;
+
+        }
+
+    }
+
+
+    return numeroGenerado;
+}
+
+
 /* GUARDAR */
 
 btnGuardar.addEventListener(
@@ -691,11 +793,14 @@ btnGuardar.addEventListener(
         const valorMateriales =
         Number(materiales.value) || 0;
 
+
         const valorManoObra =
         Number(manoObra.value) || 0;
 
+
         const valorViaticos =
         Number(viaticos.value) || 0;
+
 
         const totalGeneral =
         valorMateriales +
@@ -712,52 +817,80 @@ btnGuardar.addEventListener(
 
         try{
 
+            /*
+               Obtiene el número de agenda:
+               - manual si fue ingresado
+               - automático si quedó vacío
+            */
+
+            const numeroAgendaFinal =
+            await obtenerNumeroAgenda();
+
+
             await addDoc(
+
                 collection(
                     db,
                     "presupuestos"
                 ),
+
                 {
 
                     uid:
                     usuarioActual.uid,
 
+
                     cliente:
                     cliente.value.trim(),
+
+
+                    numeroAgenda:
+                    numeroAgendaFinal,
+
 
                     fecha:
                     fecha.value,
 
+
                     lugarTrabajo:
                     lugarTrabajo.value.trim(),
+
 
                     descripcion:
                     descripcion.value.trim(),
 
+
                     materialesLista:
                     lista,
+
 
                     materiales:
                     valorMateriales,
 
+
                     manoObra:
                     valorManoObra,
+
 
                     viaticos:
                     valorViaticos,
 
+
                     total:
                     totalGeneral,
+
 
                     creado:
                     serverTimestamp()
 
                 }
+
             );
 
 
             mostrarMensaje(
-                "Presupuesto guardado correctamente.",
+                "Presupuesto guardado correctamente. N.º de agenda: " +
+                numeroAgendaFinal,
                 "exito"
             );
 
@@ -782,6 +915,7 @@ btnGuardar.addEventListener(
                 error.message,
                 "error"
             );
+
 
             btnGuardar.disabled =
             false;
