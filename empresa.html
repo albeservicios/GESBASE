@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Mi empresa - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+    min-height:100vh;
+}
+
+.contenedor{
+    width:100%;
+    max-width:600px;
+    min-height:100vh;
+    margin:auto;
+    background:white;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:25px 20px;
+}
+
+header h1{
+    font-size:25px;
+}
+
+header p{
+    margin-top:6px;
+    font-size:14px;
+    color:#d1d5db;
+}
+
+main{
+    padding:20px;
+}
+
+.tarjeta{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:18px;
+}
+
+.titulo{
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:18px;
+}
+
+.dato{
+    padding:14px 0;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.dato:last-child{
+    border-bottom:none;
+}
+
+.etiqueta{
+    display:block;
+    font-size:13px;
+    color:#6b7280;
+    margin-bottom:5px;
+}
+
+.valor{
+    font-size:16px;
+    font-weight:bold;
+    word-break:break-word;
+}
+
+.mensaje{
+    display:none;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:18px;
+    font-size:14px;
+    line-height:1.4;
+}
+
+.error{
+    display:block;
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.cargando{
+    display:block;
+    background:#f3f4f6;
+    color:#374151;
+}
+
+button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+.volver{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="contenedor">
+
+<header>
+
+<h1>
+Mi empresa
+</h1>
+
+<p>
+GESBASE
+</p>
+
+</header>
+
+
+<main>
+
+
+<div
+    id="mensaje"
+    class="mensaje cargando"
+>
+Cargando información de la empresa...
+</div>
+
+
+<div
+    id="empresa"
+    class="tarjeta"
+    style="display:none;"
+>
+
+<div class="titulo">
+Datos de la empresa
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Nombre de empresa
+</span>
+
+<span
+    id="nombreEmpresa"
+    class="valor"
+>
+-
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Razón social
+</span>
+
+<span
+    id="razonSocial"
+    class="valor"
+>
+-
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+CUIT
+</span>
+
+<span
+    id="cuit"
+    class="valor"
+>
+-
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Teléfono
+</span>
+
+<span
+    id="telefono"
+    class="valor"
+>
+-
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Email
+</span>
+
+<span
+    id="email"
+    class="valor"
+>
+-
+</span>
+
+</div>
+
+
+</div>
+
+
+<button
+    type="button"
+    class="volver"
+    id="btnVolver"
+>
+Volver
+</button>
+
+
+</main>
+
+</div>
+
+
+<script type="module">
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    doc,
+    getDoc
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const mensaje =
+document.getElementById("mensaje");
+
+const empresa =
+document.getElementById("empresa");
+
+const nombreEmpresa =
+document.getElementById("nombreEmpresa");
+
+const razonSocial =
+document.getElementById("razonSocial");
+
+const cuit =
+document.getElementById("cuit");
+
+const telefono =
+document.getElementById("telefono");
+
+const email =
+document.getElementById("email");
+
+const btnVolver =
+document.getElementById("btnVolver");
+
+
+// ==========================================
+// VOLVER
+// ==========================================
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "index.html";
+
+    }
+);
+
+
+// ==========================================
+// AUTENTICACIÓN
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        try{
+
+            // ==================================
+            // BUSCAR EMPRESA
+            // ==================================
+
+            const referenciaEmpresa =
+            doc(
+                db,
+                "empresas",
+                usuario.uid
+            );
+
+
+            const documentoEmpresa =
+            await getDoc(
+                referenciaEmpresa
+            );
+
+
+            if(!documentoEmpresa.exists()){
+
+                mensaje.className =
+                "mensaje error";
+
+                mensaje.textContent =
+                "No se encontró la empresa asociada a esta cuenta.";
+
+                return;
+
+            }
+
+
+            const datos =
+            documentoEmpresa.data();
+
+
+            // ==================================
+            // MOSTRAR DATOS
+            // ==================================
+
+            nombreEmpresa.textContent =
+            datos.nombreEmpresa ||
+            "Sin informar";
+
+
+            razonSocial.textContent =
+            datos.razonSocial ||
+            "Sin informar";
+
+
+            cuit.textContent =
+            datos.cuit ||
+            "Sin informar";
+
+
+            telefono.textContent =
+            datos.telefono ||
+            "Sin informar";
+
+
+            email.textContent =
+            datos.email ||
+            usuario.email ||
+            "Sin informar";
+
+
+            // ==================================
+            // MOSTRAR EMPRESA
+            // ==================================
+
+            mensaje.style.display =
+            "none";
+
+            empresa.style.display =
+            "block";
+
+
+        }catch(error){
+
+            console.error(
+                "Error cargando empresa:",
+                error
+            );
+
+
+            mensaje.className =
+            "mensaje error";
+
+            mensaje.textContent =
+            "Error cargando los datos de la empresa: " +
+            error.message;
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
