@@ -1,0 +1,2109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Empleados - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.contenedor{
+    width:100%;
+    max-width:900px;
+    margin:auto;
+    min-height:100vh;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:22px 20px;
+}
+
+header h1{
+    font-size:25px;
+}
+
+header p{
+    margin-top:6px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+h2{
+    font-size:21px;
+    margin-bottom:15px;
+}
+
+h3{
+    font-size:17px;
+    margin-bottom:15px;
+}
+
+.boton{
+    width:100%;
+    border:none;
+    border-radius:10px;
+    padding:14px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+.boton-principal{
+    background:#2563eb;
+    color:white;
+}
+
+.boton-secundario{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.boton-editar{
+    background:#2563eb;
+    color:white;
+    padding:10px;
+    font-size:14px;
+    margin-top:8px;
+}
+
+.boton-eliminar{
+    background:#dc2626;
+    color:white;
+    padding:10px;
+    font-size:14px;
+    margin-top:8px;
+}
+
+.formulario{
+    background:#f9fafb;
+    border:1px solid #d1d5db;
+    border-radius:12px;
+    padding:18px;
+    margin-bottom:25px;
+}
+
+.campo{
+    margin-bottom:14px;
+}
+
+.campo label{
+    display:block;
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+.campo input,
+.campo select{
+    width:100%;
+    padding:13px;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    background:white;
+    font-size:15px;
+}
+
+.campo input:focus,
+.campo select:focus{
+    outline:none;
+    border-color:#2563eb;
+}
+
+.preview-foto{
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    object-fit:cover;
+    border:2px solid #d1d5db;
+    display:none;
+    margin-top:10px;
+}
+
+.lista{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.empleado{
+    border:1px solid #d1d5db;
+    border-radius:12px;
+    padding:16px;
+    background:white;
+}
+
+.empleado-cabecera{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.foto-empleado{
+    width:65px;
+    height:65px;
+    border-radius:50%;
+    object-fit:cover;
+    background:#e5e7eb;
+    flex-shrink:0;
+}
+
+.foto-placeholder{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+}
+
+.empleado-nombre{
+    font-size:17px;
+    font-weight:bold;
+}
+
+.empleado-puesto{
+    margin-top:4px;
+    font-size:13px;
+    color:#6b7280;
+}
+
+.datos-empleado{
+    margin-top:14px;
+    border-top:1px solid #e5e7eb;
+    padding-top:12px;
+}
+
+.dato{
+    font-size:14px;
+    padding:4px 0;
+}
+
+.etiqueta{
+    font-weight:bold;
+}
+
+.estado{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+    margin-top:8px;
+}
+
+.estado-activo{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado-inactivo{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.acciones{
+    margin-top:12px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.acciones button{
+    margin-top:0;
+}
+
+.cargando{
+    text-align:center;
+    padding:30px;
+    color:#6b7280;
+}
+
+.vacio{
+    text-align:center;
+    padding:30px 15px;
+    color:#6b7280;
+    border:1px dashed #d1d5db;
+    border-radius:12px;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:15px;
+    display:none;
+}
+
+.exito{
+    background:#dcfce7;
+    color:#166534;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:15px;
+    display:none;
+}
+
+.oculto{
+    display:none !important;
+}
+
+.separador{
+    margin:25px 0;
+    border:none;
+    border-top:1px solid #e5e7eb;
+}
+
+@media(max-width:500px){
+
+    main{
+        padding:15px;
+    }
+
+    .acciones{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="contenedor">
+
+
+<header>
+
+<h1>GESBASE</h1>
+
+<p>Gestión de empleados</p>
+
+</header>
+
+
+<main>
+
+
+<div
+    id="mensajeError"
+    class="error"
+></div>
+
+
+<div
+    id="mensajeExito"
+    class="exito"
+></div>
+
+
+<!-- ================================= -->
+<!-- FORMULARIO -->
+<!-- ================================= -->
+
+<div class="formulario">
+
+
+<h2 id="tituloFormulario">
+Nuevo empleado
+</h2>
+
+
+<div class="campo">
+
+<label for="nombre">
+Nombre
+</label>
+
+<input
+    type="text"
+    id="nombre"
+    placeholder="Nombre"
+    autocomplete="given-name"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="apellido">
+Apellido
+</label>
+
+<input
+    type="text"
+    id="apellido"
+    placeholder="Apellido"
+    autocomplete="family-name"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="dni">
+DNI
+</label>
+
+<input
+    type="text"
+    id="dni"
+    placeholder="DNI"
+    inputmode="numeric"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="telefono">
+Teléfono
+</label>
+
+<input
+    type="tel"
+    id="telefono"
+    placeholder="Teléfono"
+    autocomplete="tel"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="email">
+Email
+</label>
+
+<input
+    type="email"
+    id="email"
+    placeholder="Email"
+    autocomplete="email"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="puesto">
+Puesto / función
+</label>
+
+<input
+    type="text"
+    id="puesto"
+    placeholder="Ej.: Oficial de mantenimiento"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="fechaIngreso">
+Fecha de ingreso
+</label>
+
+<input
+    type="date"
+    id="fechaIngreso"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="estado">
+Estado
+</label>
+
+<select id="estado">
+
+<option value="Activo">
+Activo
+</option>
+
+<option value="Inactivo">
+Inactivo
+</option>
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label for="foto">
+Foto del empleado
+</label>
+
+<input
+    type="file"
+    id="foto"
+    accept="image/*"
+>
+
+<img
+    id="previewFoto"
+    class="preview-foto"
+    alt="Vista previa"
+>
+
+</div>
+
+
+<button
+    id="btnGuardar"
+    class="boton boton-principal"
+>
+GUARDAR EMPLEADO
+</button>
+
+
+<button
+    id="btnCancelar"
+    class="boton boton-secundario oculto"
+>
+CANCELAR EDICIÓN
+</button>
+
+
+</div>
+
+
+<hr class="separador">
+
+
+<!-- ================================= -->
+<!-- LISTADO -->
+<!-- ================================= -->
+
+<h2>
+Empleados
+</h2>
+
+
+<div
+    id="cargando"
+    class="cargando"
+>
+Cargando empleados...
+</div>
+
+
+<div
+    id="listaEmpleados"
+    class="lista"
+>
+</div>
+
+
+</main>
+
+
+</div>
+
+
+<script type="module">
+
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    addDoc,
+    getDocs,
+    getDoc,
+    doc,
+    updateDoc,
+    deleteDoc,
+    query,
+    where,
+    orderBy,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const nombre =
+document.getElementById("nombre");
+
+const apellido =
+document.getElementById("apellido");
+
+const dni =
+document.getElementById("dni");
+
+const telefono =
+document.getElementById("telefono");
+
+const email =
+document.getElementById("email");
+
+const puesto =
+document.getElementById("puesto");
+
+const fechaIngreso =
+document.getElementById("fechaIngreso");
+
+const estado =
+document.getElementById("estado");
+
+const foto =
+document.getElementById("foto");
+
+const previewFoto =
+document.getElementById("previewFoto");
+
+const btnGuardar =
+document.getElementById("btnGuardar");
+
+const btnCancelar =
+document.getElementById("btnCancelar");
+
+const tituloFormulario =
+document.getElementById("tituloFormulario");
+
+const listaEmpleados =
+document.getElementById("listaEmpleados");
+
+const cargando =
+document.getElementById("cargando");
+
+const mensajeError =
+document.getElementById("mensajeError");
+
+const mensajeExito =
+document.getElementById("mensajeExito");
+
+
+// ==========================================
+// VARIABLES
+// ==========================================
+
+let usuarioActual =
+null;
+
+let datosUsuario =
+{};
+
+let empresaId =
+"";
+
+let empleadoEditandoId =
+null;
+
+let fotoActual =
+"";
+
+
+// ==========================================
+// MENSAJES
+// ==========================================
+
+function mostrarError(mensaje){
+
+    mensajeError.textContent =
+    mensaje;
+
+    mensajeError.style.display =
+    "block";
+
+    mensajeExito.style.display =
+    "none";
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+
+function mostrarExito(mensaje){
+
+    mensajeExito.textContent =
+    mensaje;
+
+    mensajeExito.style.display =
+    "block";
+
+    mensajeError.style.display =
+    "none";
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+
+function limpiarMensajes(){
+
+    mensajeError.style.display =
+    "none";
+
+    mensajeExito.style.display =
+    "none";
+
+}
+
+
+// ==========================================
+// TEXTO
+// ==========================================
+
+function texto(valor){
+
+    if(
+        valor === undefined ||
+        valor === null
+    ){
+
+        return "";
+
+    }
+
+    return String(valor);
+
+}
+
+
+// ==========================================
+// FECHA ACTUAL
+// ==========================================
+
+function fechaHoy(){
+
+    const hoy =
+    new Date();
+
+    const año =
+    hoy.getFullYear();
+
+    const mes =
+    String(
+        hoy.getMonth()+1
+    ).padStart(2,"0");
+
+    const dia =
+    String(
+        hoy.getDate()
+    ).padStart(2,"0");
+
+    return (
+        año +
+        "-" +
+        mes +
+        "-" +
+        dia
+    );
+
+}
+
+
+// ==========================================
+// CARGAR USUARIO
+// ==========================================
+
+async function cargarDatosUsuario(){
+
+    try{
+
+        const referencia =
+        doc(
+            db,
+            "usuarios",
+            usuarioActual.uid
+        );
+
+
+        const resultado =
+        await getDoc(
+            referencia
+        );
+
+
+        if(
+            resultado.exists()
+        ){
+
+            datosUsuario =
+            resultado.data();
+
+        }
+
+
+        empresaId =
+        datosUsuario.empresaId ||
+        "";
+
+
+        /*
+         * Compatibilidad:
+         * Si todavía no existe empresaId,
+         * usamos el UID como referencia
+         * de empresa.
+         */
+
+        if(!empresaId){
+
+            empresaId =
+            usuarioActual.uid;
+
+        }
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando usuario:",
+            error
+        );
+
+        throw error;
+
+    }
+
+}
+
+
+// ==========================================
+// CONVERTIR FOTO A BASE64
+// ==========================================
+
+function convertirImagen(file){
+
+    return new Promise(
+        function(resolve,reject){
+
+            if(!file){
+
+                resolve("");
+
+                return;
+
+            }
+
+
+            const lector =
+            new FileReader();
+
+
+            lector.onload =
+            function(){
+
+                resolve(
+                    lector.result
+                );
+
+            };
+
+
+            lector.onerror =
+            function(){
+
+                reject(
+                    new Error(
+                        "No se pudo leer la imagen."
+                    )
+                );
+
+            };
+
+
+            lector.readAsDataURL(
+                file
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// PREVISUALIZAR FOTO
+// ==========================================
+
+foto.addEventListener(
+    "change",
+    async function(){
+
+        limpiarMensajes();
+
+
+        const archivo =
+        foto.files[0];
+
+
+        if(!archivo){
+
+            if(fotoActual){
+
+                previewFoto.src =
+                fotoActual;
+
+                previewFoto.style.display =
+                "block";
+
+            }
+            else{
+
+                previewFoto.style.display =
+                "none";
+
+            }
+
+            return;
+
+        }
+
+
+        if(
+            !archivo.type.startsWith(
+                "image/"
+            )
+        ){
+
+            mostrarError(
+                "El archivo seleccionado no es una imagen."
+            );
+
+            foto.value =
+            "";
+
+            return;
+
+        }
+
+
+        try{
+
+            const dataURL =
+            await convertirImagen(
+                archivo
+            );
+
+
+            previewFoto.src =
+            dataURL;
+
+            previewFoto.style.display =
+            "block";
+
+        }
+        catch(error){
+
+            mostrarError(
+                error.message
+            );
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// LIMPIAR FORMULARIO
+// ==========================================
+
+function limpiarFormulario(){
+
+    empleadoEditandoId =
+    null;
+
+    fotoActual =
+    "";
+
+    nombre.value =
+    "";
+
+    apellido.value =
+    "";
+
+    dni.value =
+    "";
+
+    telefono.value =
+    "";
+
+    email.value =
+    "";
+
+    puesto.value =
+    "";
+
+    fechaIngreso.value =
+    fechaHoy();
+
+    estado.value =
+    "Activo";
+
+    foto.value =
+    "";
+
+    previewFoto.src =
+    "";
+
+    previewFoto.style.display =
+    "none";
+
+    tituloFormulario.textContent =
+    "Nuevo empleado";
+
+    btnGuardar.textContent =
+    "GUARDAR EMPLEADO";
+
+    btnCancelar.classList.add(
+        "oculto"
+    );
+
+}
+
+
+// ==========================================
+// CARGAR LISTADO
+// ==========================================
+
+async function cargarEmpleados(){
+
+    cargando.style.display =
+    "block";
+
+    listaEmpleados.innerHTML =
+    "";
+
+
+    try{
+
+        const referencia =
+        collection(
+            db,
+            "empleados"
+        );
+
+
+        /*
+         * Primero intentamos buscar
+         * por empresaId.
+         */
+
+        let resultados;
+
+
+        try{
+
+            const consulta =
+            query(
+                referencia,
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                )
+            );
+
+
+            resultados =
+            await getDocs(
+                consulta
+            );
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudo consultar por empresaId:",
+                error
+            );
+
+
+            /*
+             * Compatibilidad con empleados
+             * antiguos guardados por uid.
+             */
+
+            const consultaUID =
+            query(
+                referencia,
+                where(
+                    "uid",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
+
+
+            resultados =
+            await getDocs(
+                consultaUID
+            );
+
+        }
+
+
+        cargando.style.display =
+        "none";
+
+
+        if(
+            resultados.empty
+        ){
+
+            listaEmpleados.innerHTML =
+            `
+            <div class="vacio">
+                <strong>No hay empleados cargados.</strong>
+                <br><br>
+                Agregá el primer empleado usando el formulario.
+            </div>
+            `;
+
+            return;
+
+        }
+
+
+        const empleados =
+        [];
+
+
+        resultados.forEach(
+            function(documento){
+
+                empleados.push({
+                    id:documento.id,
+                    ...documento.data()
+                });
+
+            }
+        );
+
+
+        empleados.sort(
+            function(a,b){
+
+                const nombreA =
+                (
+                    texto(a.nombre) +
+                    " " +
+                    texto(a.apellido)
+                ).toLowerCase();
+
+
+                const nombreB =
+                (
+                    texto(b.nombre) +
+                    " " +
+                    texto(b.apellido)
+                ).toLowerCase();
+
+
+                return nombreA.localeCompare(
+                    nombreB
+                );
+
+            }
+        );
+
+
+        empleados.forEach(
+            function(empleado){
+
+                mostrarEmpleado(
+                    empleado
+                );
+
+            }
+        );
+
+    }
+    catch(error){
+
+        cargando.style.display =
+        "none";
+
+
+        console.error(
+            "Error cargando empleados:",
+            error
+        );
+
+
+        mostrarError(
+            "No se pudieron cargar los empleados: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// MOSTRAR EMPLEADO
+// ==========================================
+
+function mostrarEmpleado(empleado){
+
+    const tarjeta =
+    document.createElement("div");
+
+    tarjeta.className =
+    "empleado";
+
+
+    // ======================================
+    // CABECERA
+    // ======================================
+
+    const cabecera =
+    document.createElement("div");
+
+    cabecera.className =
+    "empleado-cabecera";
+
+
+    // ======================================
+    // FOTO
+    // ======================================
+
+    const imagen =
+    document.createElement("div");
+
+    imagen.className =
+    "foto-empleado";
+
+
+    if(
+        empleado.foto
+    ){
+
+        const img =
+        document.createElement("img");
+
+        img.src =
+        empleado.foto;
+
+        img.alt =
+        "Foto de " +
+        texto(empleado.nombre);
+
+
+        img.style.width =
+        "100%";
+
+        img.style.height =
+        "100%";
+
+        img.style.objectFit =
+        "cover";
+
+        img.style.borderRadius =
+        "50%";
+
+
+        imagen.appendChild(
+            img
+        );
+
+    }
+    else{
+
+        imagen.classList.add(
+            "foto-placeholder"
+        );
+
+        imagen.textContent =
+        "👤";
+
+    }
+
+
+    // ======================================
+    // DATOS PRINCIPALES
+    // ======================================
+
+    const informacion =
+    document.createElement("div");
+
+
+    const nombreEmpleado =
+    document.createElement("div");
+
+    nombreEmpleado.className =
+    "empleado-nombre";
+
+
+    const nombreCompleto =
+    (
+        texto(empleado.nombre) +
+        " " +
+        texto(empleado.apellido)
+    ).trim();
+
+
+    nombreEmpleado.textContent =
+    nombreCompleto ||
+    "Sin nombre";
+
+
+    const puestoEmpleado =
+    document.createElement("div");
+
+    puestoEmpleado.className =
+    "empleado-puesto";
+
+
+    puestoEmpleado.textContent =
+    texto(
+        empleado.puesto
+    ) ||
+    "Sin puesto";
+
+
+    informacion.appendChild(
+        nombreEmpleado
+    );
+
+    informacion.appendChild(
+        puestoEmpleado
+    );
+
+
+    cabecera.appendChild(
+        imagen
+    );
+
+    cabecera.appendChild(
+        informacion
+    );
+
+
+    tarjeta.appendChild(
+        cabecera
+    );
+
+
+    // ======================================
+    // DATOS
+    // ======================================
+
+    const datos =
+    document.createElement("div");
+
+    datos.className =
+    "datos-empleado";
+
+
+    agregarDato(
+        datos,
+        "DNI",
+        empleado.dni
+    );
+
+
+    agregarDato(
+        datos,
+        "Teléfono",
+        empleado.telefono
+    );
+
+
+    agregarDato(
+        datos,
+        "Email",
+        empleado.email
+    );
+
+
+    agregarDato(
+        datos,
+        "Fecha de ingreso",
+        empleado.fechaIngreso
+    );
+
+
+    // ======================================
+    // ESTADO
+    // ======================================
+
+    const estadoElemento =
+    document.createElement("span");
+
+    estadoElemento.className =
+    "estado";
+
+
+    if(
+        empleado.estado ===
+        "Activo"
+    ){
+
+        estadoElemento.classList.add(
+            "estado-activo"
+        );
+
+        estadoElemento.textContent =
+        "ACTIVO";
+
+    }
+    else{
+
+        estadoElemento.classList.add(
+            "estado-inactivo"
+        );
+
+        estadoElemento.textContent =
+        "INACTIVO";
+
+    }
+
+
+    datos.appendChild(
+        estadoElemento
+    );
+
+
+    tarjeta.appendChild(
+        datos
+    );
+
+
+    // ======================================
+    // ACCIONES
+    // ======================================
+
+    const acciones =
+    document.createElement("div");
+
+    acciones.className =
+    "acciones";
+
+
+    const botonEditar =
+    document.createElement("button");
+
+    botonEditar.type =
+    "button";
+
+    botonEditar.className =
+    "boton boton-editar";
+
+    botonEditar.textContent =
+    "✏️ EDITAR";
+
+
+    botonEditar.addEventListener(
+        "click",
+        function(){
+
+            editarEmpleado(
+                empleado
+            );
+
+        }
+    );
+
+
+    const botonEliminar =
+    document.createElement("button");
+
+    botonEliminar.type =
+    "button";
+
+    botonEliminar.className =
+    "boton boton-eliminar";
+
+    botonEliminar.textContent =
+    "🗑️ ELIMINAR";
+
+
+    botonEliminar.addEventListener(
+        "click",
+        function(){
+
+            eliminarEmpleado(
+                empleado.id
+            );
+
+        }
+    );
+
+
+    acciones.appendChild(
+        botonEditar
+    );
+
+    acciones.appendChild(
+        botonEliminar
+    );
+
+
+    tarjeta.appendChild(
+        acciones
+    );
+
+
+    listaEmpleados.appendChild(
+        tarjeta
+    );
+
+}
+
+
+// ==========================================
+// AGREGAR DATO
+// ==========================================
+
+function agregarDato(
+    contenedor,
+    etiqueta,
+    valor
+){
+
+    if(
+        !valor
+    ){
+
+        return;
+
+    }
+
+
+    const elemento =
+    document.createElement("div");
+
+    elemento.className =
+    "dato";
+
+
+    const textoEtiqueta =
+    document.createElement("span");
+
+    textoEtiqueta.className =
+    "etiqueta";
+
+    textoEtiqueta.textContent =
+    etiqueta +
+    ": ";
+
+
+    const textoValor =
+    document.createElement("span");
+
+    textoValor.textContent =
+    texto(valor);
+
+
+    elemento.appendChild(
+        textoEtiqueta
+    );
+
+    elemento.appendChild(
+        textoValor
+    );
+
+
+    contenedor.appendChild(
+        elemento
+    );
+
+}
+
+
+// ==========================================
+// EDITAR EMPLEADO
+// ==========================================
+
+function editarEmpleado(
+    empleado
+){
+
+    limpiarMensajes();
+
+
+    empleadoEditandoId =
+    empleado.id;
+
+
+    nombre.value =
+    texto(empleado.nombre);
+
+
+    apellido.value =
+    texto(empleado.apellido);
+
+
+    dni.value =
+    texto(empleado.dni);
+
+
+    telefono.value =
+    texto(empleado.telefono);
+
+
+    email.value =
+    texto(empleado.email);
+
+
+    puesto.value =
+    texto(empleado.puesto);
+
+
+    fechaIngreso.value =
+    texto(empleado.fechaIngreso);
+
+
+    estado.value =
+    texto(empleado.estado) ||
+    "Activo";
+
+
+    fotoActual =
+    texto(empleado.foto);
+
+
+    foto.value =
+    "";
+
+
+    if(fotoActual){
+
+        previewFoto.src =
+        fotoActual;
+
+        previewFoto.style.display =
+        "block";
+
+    }
+    else{
+
+        previewFoto.src =
+        "";
+
+        previewFoto.style.display =
+        "none";
+
+    }
+
+
+    tituloFormulario.textContent =
+    "Editar empleado";
+
+
+    btnGuardar.textContent =
+    "GUARDAR CAMBIOS";
+
+
+    btnCancelar.classList.remove(
+        "oculto"
+    );
+
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+
+// ==========================================
+// CANCELAR EDICIÓN
+// ==========================================
+
+btnCancelar.addEventListener(
+    "click",
+    function(){
+
+        limpiarFormulario();
+
+        limpiarMensajes();
+
+    }
+);
+
+
+// ==========================================
+// GUARDAR EMPLEADO
+// ==========================================
+
+btnGuardar.addEventListener(
+    "click",
+    async function(){
+
+        limpiarMensajes();
+
+
+        const nombreValor =
+        nombre.value.trim();
+
+
+        const apellidoValor =
+        apellido.value.trim();
+
+
+        const dniValor =
+        dni.value.trim();
+
+
+        const telefonoValor =
+        telefono.value.trim();
+
+
+        const emailValor =
+        email.value.trim();
+
+
+        const puestoValor =
+        puesto.value.trim();
+
+
+        const fechaIngresoValor =
+        fechaIngreso.value;
+
+
+        const estadoValor =
+        estado.value;
+
+
+        // ==================================
+        // VALIDACIONES
+        // ==================================
+
+        if(!nombreValor){
+
+            mostrarError(
+                "Ingresá el nombre del empleado."
+            );
+
+            nombre.focus();
+
+            return;
+
+        }
+
+
+        if(!apellidoValor){
+
+            mostrarError(
+                "Ingresá el apellido del empleado."
+            );
+
+            apellido.focus();
+
+            return;
+
+        }
+
+
+        if(!dniValor){
+
+            mostrarError(
+                "Ingresá el DNI del empleado."
+            );
+
+            dni.focus();
+
+            return;
+
+        }
+
+
+        if(!puestoValor){
+
+            mostrarError(
+                "Ingresá el puesto o función."
+            );
+
+            puesto.focus();
+
+            return;
+
+        }
+
+
+        btnGuardar.disabled =
+        true;
+
+
+        btnGuardar.textContent =
+        "GUARDANDO...";
+
+
+        try{
+
+            // =================================
+            // FOTO
+            // =================================
+
+            let fotoFinal =
+            fotoActual ||
+            "";
+
+
+            if(
+                foto.files &&
+                foto.files[0]
+            ){
+
+                const archivo =
+                foto.files[0];
+
+
+                /*
+                 * Limitamos el tamaño porque
+                 * en esta primera versión
+                 * guardamos la imagen directamente
+                 * en Firestore.
+                 */
+
+                if(
+                    archivo.size >
+                    700000
+                ){
+
+                    throw new Error(
+                        "La foto es demasiado grande. Elegí una imagen menor a 700 KB."
+                    );
+
+                }
+
+
+                fotoFinal =
+                await convertirImagen(
+                    archivo
+                );
+
+            }
+
+
+            // =================================
+            // DATOS
+            // =================================
+
+            const datosEmpleado = {
+
+                uid:
+                usuarioActual.uid,
+
+                empresaId:
+                empresaId,
+
+                nombre:
+                nombreValor,
+
+                apellido:
+                apellidoValor,
+
+                dni:
+                dniValor,
+
+                telefono:
+                telefonoValor,
+
+                email:
+                emailValor,
+
+                puesto:
+                puestoValor,
+
+                fechaIngreso:
+                fechaIngresoValor,
+
+                estado:
+                estadoValor,
+
+                foto:
+                fotoFinal,
+
+                actualizado:
+                serverTimestamp()
+
+            };
+
+
+            // =================================
+            // NUEVO
+            // =================================
+
+            if(
+                !empleadoEditandoId
+            ){
+
+                datosEmpleado.creado =
+                serverTimestamp();
+
+
+                await addDoc(
+                    collection(
+                        db,
+                        "empleados"
+                    ),
+                    datosEmpleado
+                );
+
+
+                mostrarExito(
+                    "Empleado guardado correctamente."
+                );
+
+            }
+
+
+            // =================================
+            // EDITAR
+            // =================================
+
+            else{
+
+                await updateDoc(
+                    doc(
+                        db,
+                        "empleados",
+                        empleadoEditandoId
+                    ),
+                    datosEmpleado
+                );
+
+
+                mostrarExito(
+                    "Empleado actualizado correctamente."
+                );
+
+            }
+
+
+            limpiarFormulario();
+
+
+            await cargarEmpleados();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error guardando empleado:",
+                error
+            );
+
+
+            mostrarError(
+                "No se pudo guardar el empleado: " +
+                error.message
+            );
+
+        }
+        finally{
+
+            btnGuardar.disabled =
+            false;
+
+
+            if(
+                empleadoEditandoId
+            ){
+
+                btnGuardar.textContent =
+                "GUARDAR CAMBIOS";
+
+            }
+            else{
+
+                btnGuardar.textContent =
+                "GUARDAR EMPLEADO";
+
+            }
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// ELIMINAR EMPLEADO
+// ==========================================
+
+async function eliminarEmpleado(
+    empleadoId
+){
+
+    limpiarMensajes();
+
+
+    const confirmar =
+    confirm(
+        "¿Querés eliminar este empleado?\n\nEsta acción no se puede deshacer."
+    );
+
+
+    if(!confirmar){
+
+        return;
+
+    }
+
+
+    try{
+
+        await deleteDoc(
+            doc(
+                db,
+                "empleados",
+                empleadoId
+            )
+        );
+
+
+        mostrarExito(
+            "Empleado eliminado correctamente."
+        );
+
+
+        await cargarEmpleados();
+
+    }
+    catch(error){
+
+        console.error(
+            "Error eliminando empleado:",
+            error
+        );
+
+
+        mostrarError(
+            "No se pudo eliminar el empleado: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// INICIO
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.href =
+            "login.html";
+
+            return;
+
+        }
+
+
+        usuarioActual =
+        usuario;
+
+
+        try{
+
+            await cargarDatosUsuario();
+
+
+            fechaIngreso.value =
+            fechaHoy();
+
+
+            await cargarEmpleados();
+
+        }
+        catch(error){
+
+            console.error(
+                error
+            );
+
+
+            cargando.style.display =
+            "none";
+
+
+            mostrarError(
+                "No se pudo iniciar el módulo de empleados: " +
+                error.message
+            );
+
+        }
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
