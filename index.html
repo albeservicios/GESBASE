@@ -99,6 +99,7 @@ main{
 .valor{
     font-weight:bold;
     margin-top:3px;
+    word-break:break-word;
 }
 
 .menu{
@@ -578,8 +579,9 @@ onAuthStateChanged(
 
         try{
 
+
             // ==================================
-            // BUSCAR PERFIL
+            // 1. BUSCAR PERFIL DEL USUARIO
             // ==================================
 
             const referenciaUsuario =
@@ -596,63 +598,114 @@ onAuthStateChanged(
             );
 
 
+            let datosUsuario = {};
+
+
             if(
-                !documentoUsuario.exists()
+                documentoUsuario.exists()
             ){
 
-                cargando.className =
-                "error";
-
-                cargando.textContent =
-                "No se encontró el perfil del usuario.";
-
-                return;
+                datosUsuario =
+                documentoUsuario.data();
 
             }
 
 
-            const datos =
-            documentoUsuario.data();
+            // ==================================
+            // 2. BUSCAR EMPRESA
+            // ==================================
+
+            const referenciaEmpresa =
+            doc(
+                db,
+                "empresas",
+                usuario.uid
+            );
+
+
+            const documentoEmpresa =
+            await getDoc(
+                referenciaEmpresa
+            );
+
+
+            let datosEmpresa = {};
+
+
+            if(
+                documentoEmpresa.exists()
+            ){
+
+                datosEmpresa =
+                documentoEmpresa.data();
+
+            }
 
 
             // ==================================
-            // MOSTRAR DATOS
+            // 3. MOSTRAR USUARIO
             // ==================================
 
             nombreUsuario.textContent =
-            datos.nombre ||
+            datosUsuario.nombre ||
+            datosUsuario.nombreCompleto ||
+            usuario.displayName ||
             "Usuario";
 
 
+            // ==================================
+            // 4. MOSTRAR EMPRESA
+            // ==================================
+
             empresaUsuario.textContent =
-            datos.nombreEmpresa ||
+            datosEmpresa.nombreEmpresa ||
+            datosUsuario.nombreEmpresa ||
+            datosUsuario.empresa ||
             "Sin empresa";
 
 
+            // ==================================
+            // 5. MOSTRAR RAZÓN SOCIAL
+            // ==================================
+
             razonSocialUsuario.textContent =
-            datos.razonSocial ||
+            datosEmpresa.razonSocial ||
+            datosUsuario.razonSocial ||
             "Sin informar";
 
 
+            // ==================================
+            // 6. EMAIL
+            // ==================================
+
             emailUsuario.textContent =
-            datos.email ||
+            datosUsuario.email ||
+            datosEmpresa.email ||
             usuario.email ||
             "Sin email";
 
 
+            // ==================================
+            // 7. ROL
+            // ==================================
+
             rolUsuario.textContent =
-            datos.rol ||
+            datosUsuario.rol ||
             "administrador";
 
 
+            // ==================================
+            // 8. ESTADO DE SUSCRIPCIÓN
+            // ==================================
+
             estadoCuenta.textContent =
-            datos.estadoSuscripcion ||
-            datos.estado ||
+            datosUsuario.estadoSuscripcion ||
+            datosUsuario.estado ||
             "ACTIVO";
 
 
             // ==================================
-            // MOSTRAR PANEL
+            // 9. MOSTRAR PANEL
             // ==================================
 
             cargando.style.display =
@@ -665,7 +718,7 @@ onAuthStateChanged(
         }catch(error){
 
             console.error(
-                "Error leyendo usuario:",
+                "Error leyendo datos:",
                 error
             );
 
@@ -673,8 +726,10 @@ onAuthStateChanged(
             cargando.className =
             "error";
 
+
             cargando.textContent =
-            "No se pudieron cargar los datos del usuario.";
+            "No se pudieron cargar los datos. " +
+            error.message;
 
         }
 
