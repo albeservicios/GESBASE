@@ -51,6 +51,7 @@ header h1 {
 header p {
     margin-top: 6px;
     color: #d1d5db;
+    font-size: 14px;
 }
 
 main {
@@ -107,6 +108,7 @@ main {
 .descripcion {
     margin-top: 10px;
     line-height: 1.45;
+    color: #374151;
 }
 
 .total {
@@ -115,27 +117,34 @@ main {
     font-weight: bold;
 }
 
+
 /* =====================================
-   BOTÓN VER
+   BOTONES DEL PRESUPUESTO
 ===================================== */
 
-.boton-ver {
+.boton {
     display: block;
     width: 100%;
-    margin-top: 18px;
-    padding: 15px;
+    margin-top: 12px;
+    padding: 14px;
     border-radius: 10px;
-    background: #111827;
-    color: white;
     text-align: center;
     text-decoration: none;
     font-size: 16px;
     font-weight: bold;
+    cursor: pointer;
 }
 
-.boton-ver:active {
-    transform: scale(.98);
+.boton-ver {
+    background: #111827;
+    color: white;
 }
+
+.boton-editar {
+    background: #2563eb;
+    color: white;
+}
+
 
 /* =====================================
    BOTONES INFERIORES
@@ -151,7 +160,7 @@ main {
     text-decoration: none;
     font-size: 16px;
     font-weight: bold;
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
 .boton-nuevo {
@@ -183,9 +192,11 @@ main {
 
 </head>
 
+
 <body>
 
 <div class="contenedor">
+
 
 <header>
 
@@ -201,6 +212,7 @@ GESBASE
 
 
 <main>
+
 
 <div
     id="usuario"
@@ -254,12 +266,14 @@ Todavía no tenés presupuestos.
 VOLVER A GESBASE
 </a>
 
+
 </main>
 
 </div>
 
 
 <script type="module">
+
 
 // ==========================================
 // FIREBASE
@@ -291,19 +305,29 @@ import {
 // ==========================================
 
 const usuarioElemento =
-document.getElementById("usuario");
+document.getElementById(
+    "usuario"
+);
 
 const cargando =
-document.getElementById("cargando");
+document.getElementById(
+    "cargando"
+);
 
 const lista =
-document.getElementById("lista");
+document.getElementById(
+    "lista"
+);
 
 const sinPresupuestos =
-document.getElementById("sinPresupuestos");
+document.getElementById(
+    "sinPresupuestos"
+);
 
 const errorElemento =
-document.getElementById("error");
+document.getElementById(
+    "error"
+);
 
 
 // ==========================================
@@ -325,12 +349,13 @@ function dinero(valor) {
 
 
 // ==========================================
-// NÚMERO
+// NÚMERO PRESUPUESTO
 // ==========================================
 
 function numeroPresupuesto(id) {
 
     let suma = 0;
+
 
     for (
         let i = 0;
@@ -343,6 +368,7 @@ function numeroPresupuesto(id) {
 
     }
 
+
     return String(
         suma % 1000000
     ).padStart(
@@ -354,12 +380,15 @@ function numeroPresupuesto(id) {
 
 
 // ==========================================
-// CARGAR
+// CARGAR PRESUPUESTOS
 // ==========================================
 
-async function cargarPresupuestos(usuario) {
+async function cargarPresupuestos(
+    usuario
+) {
 
     try {
+
 
         usuarioElemento.textContent =
             "Usuario: " +
@@ -406,19 +435,25 @@ async function cargarPresupuestos(usuario) {
         }
 
 
-        lista.innerHTML = "";
+        lista.innerHTML =
+            "";
 
 
         resultado.forEach(
             function(documento) {
 
+
                 const datos =
                     documento.data();
 
 
+                const id =
+                    documento.id;
+
+
                 const numero =
                     numeroPresupuesto(
-                        documento.id
+                        id
                     );
 
 
@@ -438,44 +473,64 @@ async function cargarPresupuestos(usuario) {
                         PRESUPUESTO #${numero}
                     </div>
 
+
                     <div class="cliente">
                         ${datos.cliente || "Sin cliente"}
                     </div>
+
 
                     <div class="dato">
                         📅 Fecha:
                         ${datos.fecha || "-"}
                     </div>
 
+
                     <div class="descripcion">
                         ${datos.descripcion || "Sin descripción"}
                     </div>
+
 
                     <div class="dato">
                         Materiales:
                         $${dinero(datos.materiales)}
                     </div>
 
+
                     <div class="dato">
                         Mano de obra:
                         $${dinero(datos.manoObra)}
                     </div>
+
 
                     <div class="dato">
                         Viáticos:
                         $${dinero(datos.viaticos)}
                     </div>
 
+
                     <div class="total">
                         TOTAL:
                         $${dinero(datos.total)}
                     </div>
 
+
+                    <!-- VER -->
+
                     <a
-                        href="ver-presupuesto.html?id=${documento.id}"
-                        class="boton-ver"
+                        href="ver-presupuesto.html?id=${encodeURIComponent(id)}"
+                        class="boton boton-ver"
                     >
                         👁️ VER PRESUPUESTO
+                    </a>
+
+
+                    <!-- EDITAR -->
+
+                    <a
+                        href="editar-presupuesto.html?id=${encodeURIComponent(id)}"
+                        class="boton boton-editar"
+                    >
+                        ✏️ EDITAR PRESUPUESTO
                     </a>
 
                 `;
@@ -491,8 +546,9 @@ async function cargarPresupuestos(usuario) {
 
     } catch (error) {
 
+
         console.error(
-            "Error:",
+            "Error cargando presupuestos:",
             error
         );
 
@@ -502,7 +558,7 @@ async function cargarPresupuestos(usuario) {
 
 
         errorElemento.textContent =
-            "Error al cargar: " +
+            "Error al cargar los presupuestos: " +
             error.message;
 
 
@@ -515,12 +571,13 @@ async function cargarPresupuestos(usuario) {
 
 
 // ==========================================
-// SESIÓN
+// AUTENTICACIÓN
 // ==========================================
 
 onAuthStateChanged(
     auth,
     function(usuario) {
+
 
         if (!usuario) {
 
@@ -539,6 +596,7 @@ onAuthStateChanged(
 
     }
 );
+
 
 </script>
 
