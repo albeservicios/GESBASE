@@ -1,3 +1,4 @@
+
 // ==========================================
 // GESBASE - CONEXIÓN FIREBASE
 // ==========================================
@@ -26,7 +27,7 @@ const app = initializeApp(firebaseConfig);
 
 
 // ==========================================
-// SERVICIOS
+// SERVICIOS FIREBASE
 // ==========================================
 
 const auth = getAuth(app);
