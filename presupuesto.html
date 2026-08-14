@@ -70,8 +70,7 @@ label {
 }
 
 input,
-textarea,
-select {
+textarea {
     width: 100%;
     padding: 13px;
     border: 1px solid #d1d5db;
@@ -114,9 +113,34 @@ button {
     color: white;
 }
 
+.guardar:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
 .volver {
     background: #e5e7eb;
     color: #111827;
+}
+
+.mensaje {
+    display: none;
+    margin-top: 15px;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.mensaje.exito {
+    display: block;
+    background: #dcfce7;
+    color: #166534;
+}
+
+.mensaje.error {
+    display: block;
+    background: #fee2e2;
+    color: #991b1b;
 }
 
 </style>
@@ -240,9 +264,15 @@ Viáticos
 
 Total:
 
-$ <span id="total">0.00</span>
+$ <span id="total">0,00</span>
 
 </div>
+
+
+<div
+    id="mensaje"
+    class="mensaje"
+></div>
 
 
 <div class="botones">
@@ -255,10 +285,11 @@ $ <span id="total">0.00</span>
 Guardar presupuesto
 </button>
 
+
 <button
     type="button"
     class="volver"
-    onclick="window.location.href='index.html'"
+    id="btnVolver"
 >
 Volver a GESBASE
 </button>
@@ -270,26 +301,44 @@ Volver a GESBASE
 </div>
 
 
-<script>
+<script type="module">
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    addDoc,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const cliente =
+document.getElementById("cliente");
 
 const fecha =
 document.getElementById("fecha");
 
-const hoy =
-new Date();
-
-const año =
-hoy.getFullYear();
-
-const mes =
-String(hoy.getMonth() + 1).padStart(2, "0");
-
-const dia =
-String(hoy.getDate()).padStart(2, "0");
-
-fecha.value =
-`${año}-${mes}-${dia}`;
-
+const descripcion =
+document.getElementById("descripcion");
 
 const materiales =
 document.getElementById("materiales");
@@ -303,20 +352,88 @@ document.getElementById("viaticos");
 const total =
 document.getElementById("total");
 
+const mensaje =
+document.getElementById("mensaje");
+
+const btnGuardar =
+document.getElementById("btnGuardar");
+
+
+// ==========================================
+// FECHA ACTUAL
+// ==========================================
+
+const hoy =
+new Date();
+
+const año =
+hoy.getFullYear();
+
+const mes =
+String(
+    hoy.getMonth() + 1
+).padStart(2, "0");
+
+const dia =
+String(
+    hoy.getDate()
+).padStart(2, "0");
+
+fecha.value =
+`${año}-${mes}-${dia}`;
+
+
+// ==========================================
+// USUARIO ACTUAL
+// ==========================================
+
+let usuarioActual = null;
+
+
+onAuthStateChanged(
+auth,
+function(usuario) {
+
+    if (!usuario) {
+
+        window.location.replace(
+            "login.html"
+        );
+
+        return;
+    }
+
+    usuarioActual = usuario;
+
+});
+
+
+// ==========================================
+// CALCULAR TOTAL
+// ==========================================
 
 function calcularTotal() {
 
-    const m =
-        Number(materiales.value) || 0;
+    const valorMateriales =
+        Number(
+            materiales.value
+        ) || 0;
 
-    const mo =
-        Number(manoObra.value) || 0;
+    const valorManoObra =
+        Number(
+            manoObra.value
+        ) || 0;
 
-    const v =
-        Number(viaticos.value) || 0;
+    const valorViaticos =
+        Number(
+            viaticos.value
+        ) || 0;
 
     const resultado =
-        m + mo + v;
+        valorMateriales +
+        valorManoObra +
+        valorViaticos;
+
 
     total.textContent =
         resultado.toLocaleString(
@@ -326,6 +443,9 @@ function calcularTotal() {
                 maximumFractionDigits: 2
             }
         );
+
+
+    return resultado;
 
 }
 
@@ -346,18 +466,237 @@ viaticos.addEventListener(
 );
 
 
-document
-.getElementById("btnGuardar")
-.addEventListener(
-    "click",
-    function() {
+// ==========================================
+// MENSAJE
+// ==========================================
 
-        alert(
-            "La pantalla funciona. El guardado en Firestore lo agregaremos en el siguiente paso."
+function mostrarMensaje(
+    texto,
+    tipo
+) {
+
+    mensaje.textContent =
+        texto;
+
+    mensaje.className =
+        "mensaje " + tipo;
+
+}
+
+
+// ==========================================
+// GUARDAR PRESUPUESTO
+// ==========================================
+
+btnGuardar.addEventListener(
+"click",
+async function() {
+
+    if (!usuarioActual) {
+
+        mostrarMensaje(
+            "No hay una sesión activa. Iniciá sesión nuevamente.",
+            "error"
         );
 
+        return;
+
     }
-);
+
+
+    if (
+        !cliente.value.trim()
+    ) {
+
+        mostrarMensaje(
+            "Ingresá el nombre del cliente.",
+            "error"
+        );
+
+        cliente.focus();
+
+        return;
+
+    }
+
+
+    if (
+        !descripcion.value.trim()
+    ) {
+
+        mostrarMensaje(
+            "Ingresá una descripción del trabajo.",
+            "error"
+        );
+
+        descripcion.focus();
+
+        return;
+
+    }
+
+
+    const valorMateriales =
+        Number(
+            materiales.value
+        ) || 0;
+
+    const valorManoObra =
+        Number(
+            manoObra.value
+        ) || 0;
+
+    const valorViaticos =
+        Number(
+            viaticos.value
+        ) || 0;
+
+
+    const valorTotal =
+        valorMateriales +
+        valorManoObra +
+        valorViaticos;
+
+
+    btnGuardar.disabled =
+        true;
+
+    btnGuardar.textContent =
+        "Guardando...";
+
+
+    try {
+
+        // ==================================
+        // CREAR PRESUPUESTO
+        // ==================================
+
+        const referencia =
+            await addDoc(
+                collection(
+                    db,
+                    "presupuestos"
+                ),
+                {
+
+                    uid:
+                        usuarioActual.uid,
+
+                    cliente:
+                        cliente.value.trim(),
+
+                    fecha:
+                        fecha.value,
+
+                    descripcion:
+                        descripcion.value.trim(),
+
+                    materiales:
+                        valorMateriales,
+
+                    manoObra:
+                        valorManoObra,
+
+                    viaticos:
+                        valorViaticos,
+
+                    total:
+                        valorTotal,
+
+                    creado:
+                        serverTimestamp()
+
+                }
+            );
+
+
+        console.log(
+            "Presupuesto creado:",
+            referencia.id
+        );
+
+
+        mostrarMensaje(
+            "Presupuesto guardado correctamente.",
+            "exito"
+        );
+
+
+        btnGuardar.textContent =
+            "Presupuesto guardado";
+
+
+        // ==================================
+        // LIMPIAR FORMULARIO
+        // ==================================
+
+        cliente.value = "";
+
+        descripcion.value = "";
+
+        materiales.value = "";
+
+        manoObra.value = "";
+
+        viaticos.value = "";
+
+        calcularTotal();
+
+
+        setTimeout(
+            function() {
+
+                btnGuardar.disabled =
+                    false;
+
+                btnGuardar.textContent =
+                    "Guardar presupuesto";
+
+            },
+            2000
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Error guardando presupuesto:",
+            error
+        );
+
+
+        mostrarMensaje(
+            "No se pudo guardar el presupuesto: " +
+            error.message,
+            "error"
+        );
+
+
+        btnGuardar.disabled =
+            false;
+
+        btnGuardar.textContent =
+            "Guardar presupuesto";
+
+    }
+
+});
+
+
+// ==========================================
+// VOLVER
+// ==========================================
+
+document
+.getElementById("btnVolver")
+.addEventListener(
+"click",
+function() {
+
+    window.location.href =
+        "index.html";
+
+});
 
 </script>
 
