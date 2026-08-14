@@ -195,12 +195,14 @@ Crear cuenta
 </h1>
 
 <p class="descripcion">
-Registrá los datos de tu empresa para comenzar a utilizar GESBASE.
+Registrá tus datos y los datos de tu empresa para comenzar a utilizar GESBASE.
 </p>
 
 
 <form id="formRegistro">
 
+
+<!-- NOMBRE -->
 
 <div class="campo">
 
@@ -219,6 +221,8 @@ Nombre
 </div>
 
 
+<!-- APELLIDO -->
+
 <div class="campo">
 
 <label for="apellido">
@@ -236,6 +240,31 @@ Apellido
 </div>
 
 
+<!-- NOMBRE DE EMPRESA -->
+
+<div class="campo">
+
+<label for="nombreEmpresa">
+Nombre de empresa
+</label>
+
+<input
+    type="text"
+    id="nombreEmpresa"
+    placeholder="Nombre comercial de tu empresa"
+    autocomplete="organization"
+    required
+>
+
+<div class="ayuda">
+Nombre con el que se conoce comercialmente tu empresa.
+</div>
+
+</div>
+
+
+<!-- RAZÓN SOCIAL -->
+
 <div class="campo">
 
 <label for="razonSocial">
@@ -245,13 +274,19 @@ Razón social
 <input
     type="text"
     id="razonSocial"
-    placeholder="Nombre o razón social de la empresa"
+    placeholder="Razón social legal"
     autocomplete="organization"
     required
 >
 
+<div class="ayuda">
+Denominación legal o fiscal de la empresa.
 </div>
 
+</div>
+
+
+<!-- CUIT -->
 
 <div class="campo">
 
@@ -269,12 +304,10 @@ CUIT
     required
 >
 
-<div class="ayuda">
-Ingresá el CUIT de la empresa o titular.
 </div>
 
-</div>
 
+<!-- TELÉFONO -->
 
 <div class="campo">
 
@@ -294,6 +327,8 @@ Teléfono
 </div>
 
 
+<!-- EMAIL -->
+
 <div class="campo">
 
 <label for="email">
@@ -310,6 +345,8 @@ Email
 
 </div>
 
+
+<!-- CONTRASEÑA -->
 
 <div class="campo">
 
@@ -329,6 +366,8 @@ Contraseña
 </div>
 
 
+<!-- CONFIRMAR CONTRASEÑA -->
+
 <div class="campo">
 
 <label for="passwordConfirmar">
@@ -347,11 +386,15 @@ Confirmar contraseña
 </div>
 
 
+<!-- MENSAJE -->
+
 <div
     id="mensaje"
     class="mensaje"
 ></div>
 
+
+<!-- CREAR CUENTA -->
 
 <button
     type="submit"
@@ -361,6 +404,8 @@ Confirmar contraseña
 Crear cuenta
 </button>
 
+
+<!-- VOLVER -->
 
 <button
     type="button"
@@ -447,12 +492,14 @@ cuit.addEventListener(
         let valor =
         this.value.replace(/\D/g,"");
 
+
         if(valor.length > 11){
 
             valor =
             valor.substring(0,11);
 
         }
+
 
         if(valor.length > 2){
 
@@ -463,6 +510,7 @@ cuit.addEventListener(
 
         }
 
+
         if(valor.length > 11){
 
             valor =
@@ -472,7 +520,9 @@ cuit.addEventListener(
 
         }
 
-        this.value = valor;
+
+        this.value =
+        valor;
 
     }
 );
@@ -487,7 +537,8 @@ function mostrarMensaje(
     tipo
 ){
 
-    mensaje.textContent = texto;
+    mensaje.textContent =
+    texto;
 
     mensaje.className =
     "mensaje " + tipo;
@@ -521,6 +572,10 @@ formRegistro.addEventListener(
         evento.preventDefault();
 
 
+        // ======================================
+        // DATOS DEL USUARIO
+        // ======================================
+
         const nombre =
         document
         .getElementById("nombre")
@@ -531,6 +586,17 @@ formRegistro.addEventListener(
         const apellido =
         document
         .getElementById("apellido")
+        .value
+        .trim();
+
+
+        // ======================================
+        // DATOS DE EMPRESA
+        // ======================================
+
+        const nombreEmpresa =
+        document
+        .getElementById("nombreEmpresa")
         .value
         .trim();
 
@@ -553,6 +619,10 @@ formRegistro.addEventListener(
         .trim();
 
 
+        // ======================================
+        // ACCESO
+        // ======================================
+
         const email =
         document
         .getElementById("email")
@@ -573,10 +643,13 @@ formRegistro.addEventListener(
 
 
         // ======================================
-        // VALIDACIONES
+        // VALIDAR CONTRASEÑAS
         // ======================================
 
-        if(password !== passwordConfirmar){
+        if(
+            password !==
+            passwordConfirmar
+        ){
 
             mostrarMensaje(
                 "Las contraseñas no coinciden.",
@@ -588,7 +661,9 @@ formRegistro.addEventListener(
         }
 
 
-        if(password.length < 6){
+        if(
+            password.length < 6
+        ){
 
             mostrarMensaje(
                 "La contraseña debe tener al menos 6 caracteres.",
@@ -600,7 +675,12 @@ formRegistro.addEventListener(
         }
 
 
-        btnRegistro.disabled = true;
+        // ======================================
+        // DESACTIVAR BOTÓN
+        // ======================================
+
+        btnRegistro.disabled =
+        true;
 
         btnRegistro.textContent =
         "Creando cuenta...";
@@ -629,8 +709,16 @@ formRegistro.addEventListener(
 
 
             // ==================================
-            // 2. CREAR ID DE EMPRESA
+            // 2. CREAR REFERENCIA EMPRESA
             // ==================================
+
+            /*
+               Usamos el UID como ID de empresa
+               para esta primera versión.
+
+               Más adelante podremos separar
+               completamente usuario y empresa.
+            */
 
             const referenciaEmpresa =
             doc(
@@ -645,7 +733,7 @@ formRegistro.addEventListener(
 
 
             // ==================================
-            // 3. CREAR EMPRESA
+            // 3. GUARDAR EMPRESA
             // ==================================
 
             await setDoc(
@@ -655,8 +743,8 @@ formRegistro.addEventListener(
                     empresaId:
                     empresaId,
 
-                    nombre:
-                    razonSocial,
+                    nombreEmpresa:
+                    nombreEmpresa,
 
                     razonSocial:
                     razonSocial,
@@ -681,7 +769,7 @@ formRegistro.addEventListener(
 
 
             // ==================================
-            // 4. CREAR / ACTUALIZAR USUARIO
+            // 4. GUARDAR USUARIO
             // ==================================
 
             await setDoc(
@@ -702,6 +790,9 @@ formRegistro.addEventListener(
 
                     apellido:
                     apellido,
+
+                    nombreEmpresa:
+                    nombreEmpresa,
 
                     razonSocial:
                     razonSocial,
@@ -780,7 +871,7 @@ formRegistro.addEventListener(
                 case "auth/weak-password":
 
                     texto =
-                    "La contraseña debe tener al menos 6 caracteres.";
+                    "La contraseña es demasiado débil.";
 
                     break;
 
@@ -804,7 +895,8 @@ formRegistro.addEventListener(
                 default:
 
                     texto =
-                    "Error al crear la cuenta: " +
+                    "Error al crear la cuenta: "
+                    +
                     error.message;
 
             }
@@ -816,7 +908,8 @@ formRegistro.addEventListener(
             );
 
 
-            btnRegistro.disabled = false;
+            btnRegistro.disabled =
+            false;
 
             btnRegistro.textContent =
             "Crear cuenta";
