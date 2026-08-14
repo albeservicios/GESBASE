@@ -125,6 +125,18 @@
             color: #111827;
         }
 
+        .boton-recuperar {
+            background: transparent;
+            color: #2563eb;
+            padding: 10px;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .boton-recuperar:hover {
+            text-decoration: underline;
+        }
+
         .mensaje {
             display: none;
             margin-top: 18px;
@@ -247,6 +259,15 @@
 
             <button
                 type="button"
+                id="btnRecuperar"
+                class="boton boton-recuperar"
+            >
+                ¿Olvidaste tu contraseña?
+            </button>
+
+
+            <button
+                type="button"
                 class="boton boton-secundario"
                 id="btnRegistro"
             >
@@ -286,6 +307,7 @@
 
     import {
         signInWithEmailAndPassword,
+        sendPasswordResetEmail,
         onAuthStateChanged
     } from
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -331,6 +353,12 @@
         );
 
 
+    const botonRecuperar =
+        document.getElementById(
+            "btnRecuperar"
+        );
+
+
     // ==========================================
     // MENSAJES
     // ==========================================
@@ -359,6 +387,118 @@
 
             window.location.href =
                 "registro.html";
+
+        }
+    );
+
+
+    // ==========================================
+    // RECUPERAR CONTRASEÑA
+    // ==========================================
+
+    botonRecuperar.addEventListener(
+        "click",
+        async function() {
+
+            const email =
+                emailInput.value.trim();
+
+
+            if (!email) {
+
+                mostrarMensaje(
+                    "Ingresá tu email para recibir el enlace de recuperación.",
+                    "error"
+                );
+
+                emailInput.focus();
+
+                return;
+
+            }
+
+
+            botonRecuperar.disabled =
+                true;
+
+            botonRecuperar.textContent =
+                "Enviando...";
+
+
+            try {
+
+                await sendPasswordResetEmail(
+                    auth,
+                    email
+                );
+
+
+                mostrarMensaje(
+                    "Te enviamos un correo para restablecer tu contraseña. Revisá también la carpeta de spam.",
+                    "exito"
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Error recuperación:",
+                    error
+                );
+
+
+                let texto =
+                    "No se pudo enviar el correo de recuperación.";
+
+
+                switch (error.code) {
+
+                    case "auth/invalid-email":
+
+                        texto =
+                            "El email no es válido.";
+
+                        break;
+
+
+                    case "auth/user-not-found":
+
+                        texto =
+                            "No existe una cuenta con ese email.";
+
+                        break;
+
+
+                    case "auth/too-many-requests":
+
+                        texto =
+                            "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
+
+                        break;
+
+
+                    default:
+
+                        texto =
+                            "Error al recuperar la contraseña: " +
+                            error.message;
+
+                }
+
+
+                mostrarMensaje(
+                    texto,
+                    "error"
+                );
+
+            }
+
+
+            botonRecuperar.disabled =
+                false;
+
+            botonRecuperar.textContent =
+                "¿Olvidaste tu contraseña?";
 
         }
     );
