@@ -5,15 +5,9 @@
 
 <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta
-    name="theme-color"
-    content="#111827"
->
+<meta name="theme-color" content="#111827">
 
 <title>Nuevo presupuesto - GESBASE</title>
 
@@ -83,6 +77,59 @@ textarea {
     min-height: 110px;
     resize: vertical;
 }
+
+/* ================================
+   MATERIALES
+================================ */
+
+.materiales-box {
+    margin-bottom: 20px;
+}
+
+.material-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.material-tipo {
+    flex: 1;
+}
+
+.material-cantidad {
+    width: 110px;
+}
+
+.btn-quitar-material {
+    width: 45px;
+    padding: 13px 5px;
+    margin: 0;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 9px;
+    font-size: 18px;
+}
+
+.btn-agregar-material {
+    background: #2563eb;
+    color: white;
+    margin-top: 5px;
+}
+
+.lista-vacia {
+    padding: 12px;
+    background: #f3f4f6;
+    border-radius: 9px;
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* ================================
+   TOTAL
+================================ */
 
 .total {
     margin-top: 20px;
@@ -162,6 +209,11 @@ GESBASE
 
 <main>
 
+
+<!-- ================================
+     CLIENTE
+================================ -->
+
 <div class="campo">
 
 <label for="cliente">
@@ -177,6 +229,10 @@ Cliente
 </div>
 
 
+<!-- ================================
+     FECHA
+================================ -->
+
 <div class="campo">
 
 <label for="fecha">
@@ -190,6 +246,29 @@ Fecha
 
 </div>
 
+
+<!-- ================================
+     LUGAR DE TRABAJO
+================================ -->
+
+<div class="campo">
+
+<label for="lugarTrabajo">
+Lugar de trabajo
+</label>
+
+<input
+    type="text"
+    id="lugarTrabajo"
+    placeholder="Dirección, localidad o sucursal"
+>
+
+</div>
+
+
+<!-- ================================
+     DESCRIPCIÓN
+================================ -->
 
 <div class="campo">
 
@@ -205,22 +284,39 @@ Descripción del trabajo
 </div>
 
 
-<div class="campo">
+<!-- ================================
+     MATERIALES
+================================ -->
 
-<label for="materiales">
+<div class="campo materiales-box">
+
+<label>
 Materiales
 </label>
 
-<input
-    type="number"
-    id="materiales"
-    min="0"
-    step="0.01"
-    value="0"
->
+<div id="listaMateriales">
+
+<div class="lista-vacia" id="sinMateriales">
+Todavía no agregaste materiales.
+</div>
 
 </div>
 
+
+<button
+    type="button"
+    class="btn-agregar-material"
+    id="btnAgregarMaterial"
+>
++ Agregar material
+</button>
+
+</div>
+
+
+<!-- ================================
+     MANO DE OBRA
+================================ -->
 
 <div class="campo">
 
@@ -239,6 +335,10 @@ Mano de obra
 </div>
 
 
+<!-- ================================
+     VIÁTICOS
+================================ -->
+
 <div class="campo">
 
 <label for="viaticos">
@@ -255,6 +355,10 @@ Viáticos
 
 </div>
 
+
+<!-- ================================
+     TOTAL
+================================ -->
 
 <div class="total">
 
@@ -286,6 +390,7 @@ Guardar presupuesto
 >
 Volver a mis presupuestos
 </button>
+
 
 </main>
 
@@ -328,11 +433,20 @@ document.getElementById("cliente");
 const fecha =
 document.getElementById("fecha");
 
+const lugarTrabajo =
+document.getElementById("lugarTrabajo");
+
 const descripcion =
 document.getElementById("descripcion");
 
-const materiales =
-document.getElementById("materiales");
+const listaMateriales =
+document.getElementById("listaMateriales");
+
+const sinMateriales =
+document.getElementById("sinMateriales");
+
+const btnAgregarMaterial =
+document.getElementById("btnAgregarMaterial");
 
 const manoObra =
 document.getElementById("manoObra");
@@ -351,25 +465,6 @@ document.getElementById("btnGuardar");
 
 const btnVolver =
 document.getElementById("btnVolver");
-
-
-// ==========================================
-// FECHA ACTUAL
-// ==========================================
-
-const ahora =
-new Date();
-
-fecha.value =
-ahora.getFullYear() +
-"-" +
-String(
-    ahora.getMonth() + 1
-).padStart(2, "0") +
-"-" +
-String(
-    ahora.getDate()
-).padStart(2, "0");
 
 
 // ==========================================
@@ -393,11 +488,232 @@ onAuthStateChanged(
 
         }
 
-        usuarioActual =
-            usuario;
+        usuarioActual = usuario;
 
     }
 );
+
+
+// ==========================================
+// FECHA ACTUAL
+// ==========================================
+
+const ahora =
+new Date();
+
+
+fecha.value =
+    ahora.getFullYear() +
+    "-" +
+    String(
+        ahora.getMonth() + 1
+    ).padStart(2, "0") +
+    "-" +
+    String(
+        ahora.getDate()
+    ).padStart(2, "0");
+
+
+// ==========================================
+// AGREGAR MATERIAL
+// ==========================================
+
+function agregarMaterial(
+    tipo = "",
+    cantidad = ""
+) {
+
+    if (
+        sinMateriales
+    ) {
+
+        sinMateriales.remove();
+
+    }
+
+
+    const fila =
+        document.createElement(
+            "div"
+        );
+
+
+    fila.className =
+        "material-item";
+
+
+    fila.innerHTML = `
+
+        <input
+            type="text"
+            class="material-tipo"
+            placeholder="Tipo de material"
+            value="${escapeHTML(tipo)}"
+        >
+
+        <input
+            type="number"
+            class="material-cantidad"
+            placeholder="Cantidad"
+            min="0"
+            step="1"
+            value="${escapeHTML(cantidad)}"
+        >
+
+        <button
+            type="button"
+            class="btn-quitar-material"
+            title="Quitar material"
+        >
+            ×
+        </button>
+
+    `;
+
+
+    const botonQuitar =
+        fila.querySelector(
+            ".btn-quitar-material"
+        );
+
+
+    botonQuitar.addEventListener(
+        "click",
+        function() {
+
+            fila.remove();
+
+            comprobarListaMateriales();
+
+        }
+    );
+
+
+    listaMateriales.appendChild(
+        fila
+    );
+
+}
+
+
+// ==========================================
+// ESCAPAR TEXTO
+// ==========================================
+
+function escapeHTML(valor) {
+
+    return String(valor || "")
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+// ==========================================
+// COMPROBAR LISTA
+// ==========================================
+
+function comprobarListaMateriales() {
+
+    const filas =
+        listaMateriales.querySelectorAll(
+            ".material-item"
+        );
+
+
+    if (
+        filas.length === 0
+    ) {
+
+        listaMateriales.innerHTML = `
+
+            <div
+                class="lista-vacia"
+                id="sinMateriales"
+            >
+                Todavía no agregaste materiales.
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+// ==========================================
+// OBTENER MATERIALES
+// ==========================================
+
+function obtenerMateriales() {
+
+    const filas =
+        listaMateriales.querySelectorAll(
+            ".material-item"
+        );
+
+
+    const materialesLista = [];
+
+
+    filas.forEach(
+        function(fila) {
+
+            const tipo =
+                fila.querySelector(
+                    ".material-tipo"
+                ).value.trim();
+
+
+            const cantidad =
+                Number(
+                    fila.querySelector(
+                        ".material-cantidad"
+                    ).value
+                ) || 0;
+
+
+            if (
+                tipo !== ""
+            ) {
+
+                materialesLista.push({
+
+                    tipo:
+                        tipo,
+
+                    cantidad:
+                        cantidad
+
+                });
+
+            }
+
+        }
+    );
+
+
+    return materialesLista;
+
+}
 
 
 // ==========================================
@@ -406,17 +722,28 @@ onAuthStateChanged(
 
 function calcularTotal() {
 
-    const m =
-        Number(materiales.value) || 0;
-
     const mo =
-        Number(manoObra.value) || 0;
+        Number(
+            manoObra.value
+        ) || 0;
+
 
     const v =
-        Number(viaticos.value) || 0;
+        Number(
+            viaticos.value
+        ) || 0;
+
+
+    /*
+       El campo materiales monetario
+       deja de utilizarse.
+
+       El total económico queda:
+       Mano de obra + Viáticos
+    */
 
     const resultado =
-        m + mo + v;
+        mo + v;
 
 
     total.textContent =
@@ -434,15 +761,11 @@ function calcularTotal() {
 }
 
 
-materiales.addEventListener(
-    "input",
-    calcularTotal
-);
-
 manoObra.addEventListener(
     "input",
     calcularTotal
 );
+
 
 viaticos.addEventListener(
     "input",
@@ -469,12 +792,27 @@ function mostrarMensaje(
 
 
 // ==========================================
+// AGREGAR MATERIAL
+// ==========================================
+
+btnAgregarMaterial.addEventListener(
+    "click",
+    function() {
+
+        agregarMaterial();
+
+    }
+);
+
+
+// ==========================================
 // GUARDAR
 // ==========================================
 
 btnGuardar.addEventListener(
     "click",
     async function() {
+
 
         if (!usuarioActual) {
 
@@ -505,6 +843,22 @@ btnGuardar.addEventListener(
 
 
         if (
+            lugarTrabajo.value.trim() === ""
+        ) {
+
+            mostrarMensaje(
+                "Ingresá el lugar de trabajo.",
+                "error"
+            );
+
+            lugarTrabajo.focus();
+
+            return;
+
+        }
+
+
+        if (
             descripcion.value.trim() === ""
         ) {
 
@@ -520,15 +874,15 @@ btnGuardar.addEventListener(
         }
 
 
-        const valorMateriales =
-            Number(
-                materiales.value
-            ) || 0;
+        const materialesLista =
+            obtenerMateriales();
+
 
         const valorManoObra =
             Number(
                 manoObra.value
             ) || 0;
+
 
         const valorViaticos =
             Number(
@@ -537,7 +891,6 @@ btnGuardar.addEventListener(
 
 
         const valorTotal =
-            valorMateriales +
             valorManoObra +
             valorViaticos;
 
@@ -545,11 +898,13 @@ btnGuardar.addEventListener(
         btnGuardar.disabled =
             true;
 
+
         btnGuardar.textContent =
             "Guardando...";
 
 
         try {
+
 
             await addDoc(
                 collection(
@@ -567,11 +922,23 @@ btnGuardar.addEventListener(
                     fecha:
                         fecha.value,
 
+                    lugarTrabajo:
+                        lugarTrabajo.value.trim(),
+
                     descripcion:
                         descripcion.value.trim(),
 
+                    materialesLista:
+                        materialesLista,
+
+                    /*
+                       Se conserva el campo
+                       materiales para compatibilidad
+                       con presupuestos anteriores.
+                    */
+
                     materiales:
-                        valorMateriales,
+                        0,
 
                     manoObra:
                         valorManoObra,
@@ -608,6 +975,7 @@ btnGuardar.addEventListener(
 
         } catch (error) {
 
+
             console.error(
                 "Error guardando presupuesto:",
                 error
@@ -623,6 +991,7 @@ btnGuardar.addEventListener(
 
             btnGuardar.disabled =
                 false;
+
 
             btnGuardar.textContent =
                 "Guardar presupuesto";
@@ -646,6 +1015,7 @@ btnVolver.addEventListener(
 
     }
 );
+
 
 </script>
 
