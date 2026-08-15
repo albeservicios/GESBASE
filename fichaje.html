@@ -29,11 +29,12 @@ body{
     font-family:Arial,sans-serif;
     background:#f3f4f6;
     color:#111827;
+    min-height:100vh;
 }
 
 .contenedor{
     width:100%;
-    max-width:700px;
+    max-width:650px;
     margin:auto;
     min-height:100vh;
     background:white;
@@ -73,13 +74,20 @@ main{
     margin-bottom:15px;
 }
 
-.nombre-empleado{
-    font-size:22px;
-    font-weight:bold;
-    margin-bottom:6px;
+.empleado{
+    background:#f3f4f6;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:15px;
 }
 
-.empresa{
+.empleado-nombre{
+    font-size:20px;
+    font-weight:bold;
+}
+
+.empleado-dato{
+    margin-top:5px;
     color:#6b7280;
     font-size:14px;
 }
@@ -103,6 +111,14 @@ main{
     margin-top:6px;
 }
 
+.entrada{
+    color:#16a34a;
+}
+
+.salida{
+    color:#dc2626;
+}
+
 .cronometro{
     text-align:center;
     font-size:42px;
@@ -110,14 +126,6 @@ main{
     letter-spacing:2px;
     margin:20px 0;
     font-variant-numeric:tabular-nums;
-}
-
-.entrada{
-    color:#16a34a;
-}
-
-.salida{
-    color:#dc2626;
 }
 
 .boton{
@@ -161,7 +169,7 @@ main{
     display:flex;
     justify-content:space-between;
     gap:15px;
-    padding:6px 0;
+    padding:7px 0;
     font-size:14px;
 }
 
@@ -198,12 +206,6 @@ main{
     color:#6b7280;
 }
 
-.cargando{
-    text-align:center;
-    padding:30px;
-    color:#6b7280;
-}
-
 .error{
     background:#fee2e2;
     color:#991b1b;
@@ -224,14 +226,14 @@ main{
     line-height:1.4;
 }
 
-.oculto{
-    display:none !important;
+.cargando{
+    text-align:center;
+    padding:25px;
+    color:#6b7280;
 }
 
-.separador{
-    margin-top:15px;
-    padding-top:15px;
-    border-top:1px solid #e5e7eb;
+.oculto{
+    display:none !important;
 }
 
 @media(max-width:500px){
@@ -282,7 +284,7 @@ main{
 
 
 <!-- ================================= -->
-<!-- EMPLEADO AUTENTICADO -->
+<!-- EMPLEADO LOGUEADO -->
 <!-- ================================= -->
 
 <div class="tarjeta">
@@ -291,18 +293,21 @@ main{
 Empleado
 </div>
 
+<div class="empleado">
+
 <div
-    id="nombreEmpleado"
-    class="nombre-empleado"
+    id="empleadoNombre"
+    class="empleado-nombre"
 >
 Cargando...
 </div>
 
 <div
-    id="empresaEmpleado"
-    class="empresa"
+    id="empleadoEmail"
+    class="empleado-dato"
 >
-Verificando cuenta...
+</div>
+
 </div>
 
 </div>
@@ -312,10 +317,8 @@ Verificando cuenta...
 <!-- FICHAJE -->
 <!-- ================================= -->
 
-<div
-    id="tarjetaFichaje"
-    class="tarjeta oculto"
->
+<div class="tarjeta">
+
 
 <div class="titulo">
 Control de jornada
@@ -327,9 +330,11 @@ Control de jornada
     class="estado"
 >
 
+
 <div class="estado-titulo">
 Estado actual
 </div>
+
 
 <div
     id="estadoTexto"
@@ -337,6 +342,7 @@ Estado actual
 >
 SIN FICHAR
 </div>
+
 
 </div>
 
@@ -370,6 +376,7 @@ SIN FICHAR
     id="datosJornada"
     class="datos oculto"
 >
+
 
 <div class="dato">
 
@@ -409,7 +416,9 @@ Tiempo trabajado
 
 </div>
 
+
 </div>
+
 
 </div>
 
@@ -418,13 +427,10 @@ Tiempo trabajado
 <!-- HISTORIAL -->
 <!-- ================================= -->
 
-<div
-    id="tarjetaHistorial"
-    class="tarjeta oculto"
->
+<div class="tarjeta">
 
 <div class="titulo">
-Últimos fichajes
+Mis últimos fichajes
 </div>
 
 
@@ -432,19 +438,21 @@ Tiempo trabajado
     id="historial"
     class="historial"
 >
+
 <div class="cargando">
 Cargando historial...
 </div>
+
 </div>
 
 </div>
 
 
 <button
-    id="btnVolver"
+    id="btnCerrarSesion"
     class="boton boton-volver"
 >
-⬅️ VOLVER
+CERRAR SESIÓN
 </button>
 
 
@@ -478,11 +486,10 @@ import {
     collection,
     addDoc,
     getDocs,
-    getDoc,
     doc,
+    getDoc,
     query,
     where,
-    orderBy,
     limit,
     updateDoc,
     serverTimestamp
@@ -494,24 +501,14 @@ import {
 // ELEMENTOS
 // ==========================================
 
-const nombreEmpleado =
+const empleadoNombre =
 document.getElementById(
-    "nombreEmpleado"
+    "empleadoNombre"
 );
 
-const empresaEmpleado =
+const empleadoEmail =
 document.getElementById(
-    "empresaEmpleado"
-);
-
-const tarjetaFichaje =
-document.getElementById(
-    "tarjetaFichaje"
-);
-
-const tarjetaHistorial =
-document.getElementById(
-    "tarjetaHistorial"
+    "empleadoEmail"
 );
 
 const estadoTexto =
@@ -569,9 +566,9 @@ document.getElementById(
     "mensajeExito"
 );
 
-const btnVolver =
+const btnCerrarSesion =
 document.getElementById(
-    "btnVolver"
+    "btnCerrarSesion"
 );
 
 
@@ -579,20 +576,17 @@ document.getElementById(
 // VARIABLES
 // ==========================================
 
-let usuarioActual =
-null;
+let usuarioActual = null;
 
-let empleadoActual =
-null;
+let empleadoActual = null;
 
-let empresaId =
-"";
+let empleadoId = "";
 
-let fichajeActivo =
-null;
+let empresaId = "";
 
-let intervaloCronometro =
-null;
+let fichajeActivo = null;
+
+let intervaloCronometro = null;
 
 
 // ==========================================
@@ -717,6 +711,7 @@ function formatearDuracion(
 ){
 
     if(
+        !milisegundos ||
         milisegundos < 0
     ){
 
@@ -761,7 +756,7 @@ function formatearDuracion(
 
 
 // ==========================================
-// CONVERTIR FECHA FIREBASE
+// FIREBASE TIMESTAMP
 // ==========================================
 
 function convertirFecha(valor){
@@ -792,145 +787,98 @@ function convertirFecha(valor){
     }
 
 
-    if(
-        typeof valor ===
-        "number"
-    ){
-
-        return new Date(valor);
-
-    }
-
-
     return null;
 
 }
 
 
 // ==========================================
-// BUSCAR EMPLEADO POR UID
+// CARGAR EMPLEADO
 // ==========================================
 
-async function buscarEmpleado(){
+async function cargarEmpleado(){
 
-    if(!usuarioActual){
+    empleadoId =
+    sessionStorage.getItem(
+        "gesbase_empleado_id"
+    ) || "";
+
+
+    empresaId =
+    sessionStorage.getItem(
+        "gesbase_empresa_id"
+    ) || "";
+
+
+    /*
+     * El empleado-login ya vinculó
+     * la cuenta Firebase con el documento
+     * del empleado.
+     */
+
+
+    if(!empleadoId){
 
         throw new Error(
-            "No hay un usuario autenticado."
+            "No encontramos el empleado de esta sesión."
         );
 
     }
 
 
     const referencia =
-    collection(
+    doc(
         db,
-        "empleados"
+        "empleados",
+        empleadoId
     );
 
 
-    /*
-     * Primero buscamos por uid.
-     */
-
-    let resultados =
-    await getDocs(
-        query(
-            referencia,
-            where(
-                "uid",
-                "==",
-                usuarioActual.uid
-            ),
-            limit(1)
-        )
+    const resultado =
+    await getDoc(
+        referencia
     );
 
 
-    /*
-     * Algunos sistemas pueden utilizar
-     * authUid en lugar de uid.
-     */
-
     if(
-        resultados.empty
-    ){
-
-        resultados =
-        await getDocs(
-            query(
-                referencia,
-                where(
-                    "authUid",
-                    "==",
-                    usuarioActual.uid
-                ),
-                limit(1)
-            )
-        );
-
-    }
-
-
-    if(
-        resultados.empty
+        !resultado.exists()
     ){
 
         throw new Error(
-            "No encontramos un empleado vinculado a esta cuenta de Firebase."
+            "No encontramos la ficha del empleado."
         );
 
     }
-
-
-    const documento =
-    resultados.docs[0];
 
 
     empleadoActual =
     {
-        id:
-        documento.id,
-
-        ...documento.data()
-
+        id:resultado.id,
+        ...resultado.data()
     };
 
 
     /*
-     * Comprobamos que esté activo.
+     * Si existe empresaId en el empleado,
+     * lo usamos como referencia.
      */
 
     if(
-        String(
-            empleadoActual.estado || ""
-        ).toLowerCase()
-        ===
-        "inactivo"
+        empleadoActual.empresaId
     ){
 
-        throw new Error(
-            "Tu usuario de empleado se encuentra inactivo."
+        empresaId =
+        empleadoActual.empresaId;
+
+        sessionStorage.setItem(
+            "gesbase_empresa_id",
+            empresaId
         );
 
     }
 
 
-    empresaId =
-    empleadoActual.empresaId ||
-    "";
-
-
-    if(!empresaId){
-
-        throw new Error(
-            "El empleado no tiene una empresa asociada."
-        );
-
-    }
-
-
-    nombreEmpleado.textContent =
+    empleadoNombre.textContent =
     (
         texto(
             empleadoActual.nombre
@@ -939,23 +887,15 @@ async function buscarEmpleado(){
         texto(
             empleadoActual.apellido
         )
-    ).trim() ||
+    ).trim()
+    ||
     "Empleado";
 
 
-    empresaEmpleado.textContent =
-    empleadoActual.empresaNombre ||
-    "GESBASE";
-
-
-    tarjetaFichaje.classList.remove(
-        "oculto"
-    );
-
-
-    tarjetaHistorial.classList.remove(
-        "oculto"
-    );
+    empleadoEmail.textContent =
+    usuarioActual.email ||
+    empleadoActual.email ||
+    "";
 
 }
 
@@ -966,13 +906,17 @@ async function buscarEmpleado(){
 
 async function buscarFichajeActivo(){
 
-    if(
-        !empleadoActual
-    ){
-
-        return;
-
-    }
+    /*
+     * IMPORTANTE:
+     *
+     * La consulta se realiza utilizando
+     * exclusivamente el UID del usuario
+     * autenticado.
+     *
+     * Esto evita consultar empleados de
+     * toda la empresa y evita el error
+     * Missing or insufficient permissions.
+     */
 
 
     const referencia =
@@ -986,9 +930,9 @@ async function buscarFichajeActivo(){
     query(
         referencia,
         where(
-            "empleadoId",
+            "uid",
             "==",
-            empleadoActual.id
+            usuarioActual.uid
         ),
         where(
             "estado",
@@ -1012,9 +956,7 @@ async function buscarFichajeActivo(){
         fichajeActivo =
         null;
 
-        detenerCronometro();
-
-        mostrarEstadoSinFichar();
+        mostrarSinFichar();
 
         return;
 
@@ -1027,11 +969,8 @@ async function buscarFichajeActivo(){
 
     fichajeActivo =
     {
-        id:
-        documento.id,
-
+        id:documento.id,
         ...documento.data()
-
     };
 
 
@@ -1041,47 +980,38 @@ async function buscarFichajeActivo(){
 
 
 // ==========================================
-// SIN FICHAR
+// MOSTRAR SIN FICHAR
 // ==========================================
 
-function mostrarEstadoSinFichar(){
+function mostrarSinFichar(){
 
     estadoTexto.textContent =
     "SIN FICHAR";
 
-
     estadoTexto.className =
     "estado-texto";
-
 
     cronometro.textContent =
     "00:00:00";
 
-
     cronometro.className =
     "cronometro";
-
 
     btnEntrada.disabled =
     false;
 
-
     btnSalida.disabled =
     true;
-
 
     datosJornada.classList.add(
         "oculto"
     );
 
-
     horaEntrada.textContent =
     "-";
 
-
     horaSalida.textContent =
     "-";
-
 
     tiempoTrabajado.textContent =
     "-";
@@ -1090,14 +1020,14 @@ function mostrarEstadoSinFichar(){
 
 
 // ==========================================
-// FICHAJE ACTIVO
+// MOSTRAR FICHAJE ACTIVO
 // ==========================================
 
 function mostrarFichajeActivo(){
 
     if(!fichajeActivo){
 
-        mostrarEstadoSinFichar();
+        mostrarSinFichar();
 
         return;
 
@@ -1107,41 +1037,29 @@ function mostrarFichajeActivo(){
     estadoTexto.textContent =
     "JORNADA EN CURSO";
 
-
     estadoTexto.className =
     "estado-texto entrada";
-
-
-    cronometro.className =
-    "cronometro entrada";
-
 
     btnEntrada.disabled =
     true;
 
-
     btnSalida.disabled =
     false;
-
 
     datosJornada.classList.remove(
         "oculto"
     );
-
 
     horaEntrada.textContent =
     texto(
         fichajeActivo.horaEntrada
     );
 
-
     horaSalida.textContent =
     "-";
 
-
     tiempoTrabajado.textContent =
     "En curso";
-
 
     iniciarCronometro();
 
@@ -1156,9 +1074,7 @@ function iniciarCronometro(){
 
     detenerCronometro();
 
-
     actualizarCronometro();
-
 
     intervaloCronometro =
     setInterval(
@@ -1171,9 +1087,7 @@ function iniciarCronometro(){
 
 function actualizarCronometro(){
 
-    if(
-        !fichajeActivo
-    ){
+    if(!fichajeActivo){
 
         return;
 
@@ -1196,8 +1110,12 @@ function actualizarCronometro(){
     }
 
 
+    const ahora =
+    new Date();
+
+
     const diferencia =
-    new Date().getTime() -
+    ahora.getTime() -
     inicio.getTime();
 
 
@@ -1205,6 +1123,10 @@ function actualizarCronometro(){
     formatearDuracion(
         diferencia
     );
+
+
+    cronometro.className =
+    "cronometro entrada";
 
 }
 
@@ -1238,12 +1160,10 @@ btnEntrada.addEventListener(
         limpiarMensajes();
 
 
-        if(
-            !empleadoActual
-        ){
+        if(!empleadoActual){
 
             mostrarError(
-                "No se encontró el empleado autenticado."
+                "No se encontró la ficha del empleado."
             );
 
             return;
@@ -1261,19 +1181,17 @@ btnEntrada.addEventListener(
         try{
 
             /*
-             * Comprobamos nuevamente que
-             * no exista una jornada abierta.
+             * Verificamos si ya existe
+             * una jornada abierta.
              */
 
             await buscarFichajeActivo();
 
 
-            if(
-                fichajeActivo
-            ){
+            if(fichajeActivo){
 
                 mostrarError(
-                    "Ya tenés una jornada activa."
+                    "Ya tenés una jornada abierta."
                 );
 
                 return;
@@ -1285,55 +1203,75 @@ btnEntrada.addEventListener(
             new Date();
 
 
-            const nombre =
-            (
-                texto(
-                    empleadoActual.nombre
-                ) +
-                " " +
-                texto(
-                    empleadoActual.apellido
-                )
-            ).trim();
-
-
             const datosFichaje = {
+
+                /*
+                 * UID del empleado autenticado.
+                 */
 
                 uid:
                 usuarioActual.uid,
 
+
+                /*
+                 * Empresa del empleado.
+                 */
+
                 empresaId:
                 empresaId,
+
+
+                /*
+                 * Documento del empleado.
+                 */
 
                 empleadoId:
                 empleadoActual.id,
 
+
                 empleadoNombre:
-                nombre,
+                (
+                    texto(
+                        empleadoActual.nombre
+                    ) +
+                    " " +
+                    texto(
+                        empleadoActual.apellido
+                    )
+                ).trim(),
+
 
                 fecha:
                 fechaLocal(),
 
+
                 horaEntrada:
                 horaLocal(),
+
 
                 entradaTimestamp:
                 serverTimestamp(),
 
+
                 estado:
                 "abierto",
 
-                salidaTimestamp:
-                null,
 
                 horaSalida:
                 "",
 
+
+                salidaTimestamp:
+                null,
+
+
                 duracionSegundos:
                 0,
 
+
                 horasTrabajadas:
                 0,
+
 
                 creado:
                 serverTimestamp()
@@ -1378,7 +1316,7 @@ btnEntrada.addEventListener(
         catch(error){
 
             console.error(
-                "Error entrada:",
+                "Error registrando entrada:",
                 error
             );
 
@@ -1387,7 +1325,7 @@ btnEntrada.addEventListener(
                 "No se pudo registrar la entrada: " +
                 (
                     error.message ||
-                    "Error desconocido."
+                    "Error de permisos."
                 )
             );
 
@@ -1397,15 +1335,8 @@ btnEntrada.addEventListener(
             btnEntrada.textContent =
             "🟢 FICHAR ENTRADA";
 
-            if(
-                fichajeActivo
-            ){
 
-                btnEntrada.disabled =
-                true;
-
-            }
-            else{
+            if(!fichajeActivo){
 
                 btnEntrada.disabled =
                 false;
@@ -1429,9 +1360,7 @@ btnSalida.addEventListener(
         limpiarMensajes();
 
 
-        if(
-            !fichajeActivo
-        ){
+        if(!fichajeActivo){
 
             mostrarError(
                 "No hay una jornada activa."
@@ -1566,7 +1495,6 @@ btnSalida.addEventListener(
             btnEntrada.disabled =
             true;
 
-
             btnSalida.disabled =
             true;
 
@@ -1582,11 +1510,12 @@ btnSalida.addEventListener(
 
             await cargarHistorial();
 
+
         }
         catch(error){
 
             console.error(
-                "Error salida:",
+                "Error registrando salida:",
                 error
             );
 
@@ -1595,7 +1524,7 @@ btnSalida.addEventListener(
                 "No se pudo registrar la salida: " +
                 (
                     error.message ||
-                    "Error desconocido."
+                    "Error de permisos."
                 )
             );
 
@@ -1616,19 +1545,10 @@ btnSalida.addEventListener(
 
 
 // ==========================================
-// HISTORIAL
+// HISTORIAL DEL EMPLEADO
 // ==========================================
 
 async function cargarHistorial(){
-
-    if(
-        !empleadoActual
-    ){
-
-        return;
-
-    }
-
 
     historial.innerHTML =
     `
@@ -1640,6 +1560,12 @@ async function cargarHistorial(){
 
     try{
 
+        /*
+         * Nuevamente utilizamos UID.
+         * El empleado sólo puede consultar
+         * sus propios fichajes.
+         */
+
         const referencia =
         collection(
             db,
@@ -1647,59 +1573,22 @@ async function cargarHistorial(){
         );
 
 
-        let resultados;
+        const consulta =
+        query(
+            referencia,
+            where(
+                "uid",
+                "==",
+                usuarioActual.uid
+            ),
+            limit(20)
+        );
 
 
-        try{
-
-            const consulta =
-            query(
-                referencia,
-                where(
-                    "empleadoId",
-                    "==",
-                    empleadoActual.id
-                ),
-                orderBy(
-                    "creado",
-                    "desc"
-                ),
-                limit(20)
-            );
-
-
-            resultados =
-            await getDocs(
-                consulta
-            );
-
-        }
-        catch(error){
-
-            console.warn(
-                "Consulta ordenada no disponible:",
-                error
-            );
-
-
-            const consultaSimple =
-            query(
-                referencia,
-                where(
-                    "empleadoId",
-                    "==",
-                    empleadoActual.id
-                ),
-                limit(20)
-            );
-
-
-            resultados =
-            await getDocs(
-                consultaSimple
-            );
-
-        }
+        const resultados =
+        await getDocs(
+            consulta
+        );
 
 
         historial.innerHTML =
@@ -1713,7 +1602,7 @@ async function cargarHistorial(){
             historial.innerHTML =
             `
             <div class="sin-registros">
-                Todavía no hay fichajes registrados.
+                Todavía no tenés fichajes registrados.
             </div>
             `;
 
@@ -1745,19 +1634,32 @@ async function cargarHistorial(){
         registros.sort(
             function(a,b){
 
-                return texto(
-                    b.fecha
-                ).localeCompare(
-                    texto(a.fecha)
+                const fechaA =
+                (
+                    texto(a.fecha) +
+                    " " +
+                    texto(a.horaEntrada)
+                );
+
+                const fechaB =
+                (
+                    texto(b.fecha) +
+                    " " +
+                    texto(b.horaEntrada)
+                );
+
+                return fechaB.localeCompare(
+                    fechaA
                 );
 
             }
         );
 
 
-        registros
-        .slice(0,20)
-        .forEach(
+        registros.slice(
+            0,
+            20
+        ).forEach(
             function(registro){
 
                 const elemento =
@@ -1908,35 +1810,48 @@ async function cargarHistorial(){
 
 
 // ==========================================
-// VOLVER
+// CERRAR SESIÓN
 // ==========================================
 
-btnVolver.addEventListener(
+btnCerrarSesion.addEventListener(
     "click",
     async function(){
 
         try{
 
-            await signOut(
-                auth
+            detenerCronometro();
+
+            await signOut(auth);
+
+
+            sessionStorage.removeItem(
+                "gesbase_tipo_acceso"
             );
+
+            sessionStorage.removeItem(
+                "gesbase_empleado_id"
+            );
+
+            sessionStorage.removeItem(
+                "gesbase_empresa_id"
+            );
+
+
+            window.location.href =
+            "empleado-login.html";
 
         }
         catch(error){
 
-            console.warn(
-                "No se pudo cerrar sesión:",
+            console.error(
                 error
             );
 
+            mostrarError(
+                "No se pudo cerrar la sesión."
+            );
+
         }
-
-
-        sessionStorage.clear();
-
-
-        window.location.href =
-        "empleado-login.html";
 
     }
 );
@@ -1966,18 +1881,9 @@ onAuthStateChanged(
 
         try{
 
-            /*
-             * El empleado ya está autenticado.
-             * No consultamos usuarios/{uid}.
-             * No cargamos toda la colección.
-             * Buscamos únicamente su UID.
-             */
-
-            await buscarEmpleado();
-
+            await cargarEmpleado();
 
             await buscarFichajeActivo();
-
 
             await cargarHistorial();
 
@@ -1990,20 +1896,17 @@ onAuthStateChanged(
             );
 
 
-            tarjetaFichaje.classList.add(
-                "oculto"
-            );
-
-
-            tarjetaHistorial.classList.add(
-                "oculto"
-            );
-
-
             mostrarError(
                 error.message ||
                 "No se pudo iniciar el fichaje."
             );
+
+
+            btnEntrada.disabled =
+            true;
+
+            btnSalida.disabled =
+            true;
 
         }
 
@@ -2012,7 +1915,7 @@ onAuthStateChanged(
 
 
 // ==========================================
-// SEGURIDAD
+// LIMPIEZA
 // ==========================================
 
 window.addEventListener(
