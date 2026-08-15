@@ -5,9 +5,15 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-<meta name="theme-color" content="#111827">
+<meta
+    name="theme-color"
+    content="#111827"
+>
 
 <title>GESBASE - Acceso empleado</title>
 
@@ -166,11 +172,14 @@ body{
 
 </head>
 
+
 <body>
+
 
 <div class="contenedor">
 
 <div class="tarjeta">
+
 
 <div class="logo">
 
@@ -182,26 +191,27 @@ body{
 
 
 <div
-id="mensajeError"
-class="mensaje error"
+    id="mensajeError"
+    class="mensaje error"
 ></div>
 
 
 <div
-id="mensajeExito"
-class="mensaje exito"
+    id="mensajeExito"
+    class="mensaje exito"
 ></div>
 
 
 <div
-id="cargando"
-class="cargando"
+    id="cargando"
+    class="cargando"
 >
 Verificando acceso...
 </div>
 
 
 <div id="formularioLogin">
+
 
 <div class="titulo">
 Iniciar sesión
@@ -215,10 +225,10 @@ Email
 </label>
 
 <input
-type="email"
-id="email"
-placeholder="Ingresá tu email"
-autocomplete="username"
+    type="email"
+    id="email"
+    placeholder="Ingresá tu email"
+    autocomplete="username"
 >
 
 </div>
@@ -231,26 +241,26 @@ Contraseña
 </label>
 
 <input
-type="password"
-id="password"
-placeholder="Ingresá tu contraseña"
-autocomplete="current-password"
+    type="password"
+    id="password"
+    placeholder="Ingresá tu contraseña"
+    autocomplete="current-password"
 >
 
 </div>
 
 
 <button
-id="btnIngresar"
-class="boton boton-principal"
+    id="btnIngresar"
+    class="boton boton-principal"
 >
 INGRESAR
 </button>
 
 
 <button
-id="btnVolver"
-class="boton boton-volver"
+    id="btnVolver"
+    class="boton boton-volver"
 >
 ⬅️ VOLVER
 </button>
@@ -271,6 +281,7 @@ que te proporcionó el administrador.
 GESBASE · Acceso empleado
 
 </div>
+
 
 </div>
 
@@ -297,8 +308,11 @@ import {
 
 
 import {
-    doc,
-    getDoc
+    collection,
+    query,
+    where,
+    getDocs,
+    limit
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -308,25 +322,39 @@ import {
 // ==========================================
 
 const email =
-document.getElementById("email");
+document.getElementById(
+    "email"
+);
 
 const password =
-document.getElementById("password");
+document.getElementById(
+    "password"
+);
 
 const btnIngresar =
-document.getElementById("btnIngresar");
+document.getElementById(
+    "btnIngresar"
+);
 
 const btnVolver =
-document.getElementById("btnVolver");
+document.getElementById(
+    "btnVolver"
+);
 
 const mensajeError =
-document.getElementById("mensajeError");
+document.getElementById(
+    "mensajeError"
+);
 
 const mensajeExito =
-document.getElementById("mensajeExito");
+document.getElementById(
+    "mensajeExito"
+);
 
 const cargando =
-document.getElementById("cargando");
+document.getElementById(
+    "cargando"
+);
 
 
 // ==========================================
@@ -376,7 +404,7 @@ function limpiarMensajes(){
 // CARGANDO
 // ==========================================
 
-function cargandoInicio(){
+function iniciarCarga(){
 
     cargando.style.display =
     "block";
@@ -385,12 +413,12 @@ function cargandoInicio(){
     true;
 
     btnIngresar.textContent =
-    "VERIFICANDO...";
+    "INGRESANDO...";
 
 }
 
 
-function cargandoFin(){
+function terminarCarga(){
 
     cargando.style.display =
     "none";
@@ -425,70 +453,92 @@ function texto(valor){
 
 
 // ==========================================
-// OBTENER PERFIL EMPLEADO
+// BUSCAR EMPLEADO
 // ==========================================
 
-async function verificarEmpleado(usuario){
+async function buscarEmpleado(
+    usuario
+){
 
-    const referenciaUsuario =
-    doc(
+    /*
+     * IMPORTANTE:
+     *
+     * Ya NO buscamos:
+     *
+     * usuarios/{uid}
+     *
+     * Buscamos directamente:
+     *
+     * empleados
+     *
+     * donde:
+     *
+     * authUid == UID de Firebase
+     */
+
+
+    const referencia =
+    collection(
         db,
-        "usuarios",
-        usuario.uid
+        "empleados"
     );
 
 
-    const resultadoUsuario =
-    await getDoc(
-        referenciaUsuario
+    const consulta =
+    query(
+        referencia,
+        where(
+            "authUid",
+            "==",
+            usuario.uid
+        ),
+        limit(1)
+    );
+
+
+    const resultados =
+    await getDocs(
+        consulta
     );
 
 
     if(
-        !resultadoUsuario.exists()
+        resultados.empty
     ){
 
         throw new Error(
-            "No encontramos el perfil del usuario."
+            "No encontramos una ficha de empleado vinculada a este usuario."
         );
 
     }
 
 
-    const datosUsuario =
-    resultadoUsuario.data();
+    const documento =
+    resultados.docs[0];
+
+
+    const empleado =
+    {
+        id:
+        documento.id,
+
+        ...documento.data()
+
+    };
 
 
     // ======================================
-    // VERIFICAR PERFIL
+    // VERIFICAR ESTADO
     // ======================================
 
     if(
-        datosUsuario.perfil !==
-        "empleado"
+        empleado.estado &&
+        empleado.estado !==
+        "Activo"
     ){
 
         throw new Error(
-            "Este acceso es solamente para empleados."
-        );
-
-    }
-
-
-    // ======================================
-    // EMPLEADO ID
-    // ======================================
-
-    const empleadoId =
-    texto(
-        datosUsuario.empleadoId
-    ).trim();
-
-
-    if(!empleadoId){
-
-        throw new Error(
-            "El usuario empleado todavía no tiene una ficha vinculada. El administrador debe completar el vínculo del empleado."
+            "El acceso de este empleado está inactivo."
         );
 
     }
@@ -500,158 +550,98 @@ async function verificarEmpleado(usuario){
 
     const empresaId =
     texto(
-        datosUsuario.empresaId
+        empleado.empresaId
     ).trim();
 
 
     if(!empresaId){
 
         throw new Error(
-            "El usuario empleado no tiene una empresa vinculada."
+            "La ficha del empleado no tiene empresa asignada."
         );
 
     }
 
 
     // ======================================
-    // BUSCAR FICHA
-    // ======================================
-
-    const referenciaEmpleado =
-    doc(
-        db,
-        "empleados",
-        empleadoId
-    );
-
-
-    const resultadoEmpleado =
-    await getDoc(
-        referenciaEmpleado
-    );
-
-
-    if(
-        !resultadoEmpleado.exists()
-    ){
-
-        throw new Error(
-            "No encontramos la ficha del empleado vinculada."
-        );
-
-    }
-
-
-    const datosEmpleado =
-    resultadoEmpleado.data();
-
-
-    // ======================================
-    // SEGURIDAD EMPRESA
+    // VERIFICAR UID
     // ======================================
 
     if(
-        texto(
-            datosEmpleado.empresaId
-        ) !== empresaId
+        empleado.authUid !==
+        usuario.uid
     ){
 
         throw new Error(
-            "La ficha del empleado no pertenece a esta empresa."
+            "La ficha del empleado no está vinculada correctamente."
         );
 
     }
 
 
     // ======================================
-    // SEGURIDAD AUTH UID
+    // DATOS DE SESIÓN
     // ======================================
 
-    if(
-        datosEmpleado.authUid &&
-        datosEmpleado.authUid !== usuario.uid
-    ){
-
-        throw new Error(
-            "La ficha del empleado está vinculada a otro usuario."
-        );
-
-    }
-
-
-    // ======================================
-    // ESTADO
-    // ======================================
-
-    if(
-        datosEmpleado.estado &&
-        datosEmpleado.estado !== "Activo"
-    ){
-
-        throw new Error(
-            "El acceso de este empleado está inactivo."
-        );
-
-    }
-
-
-    // ======================================
-    // GUARDAR SESIÓN
-    // ======================================
-
-    const sesionEmpleado = {
+    const datosSesion = {
 
         uid:
         usuario.uid,
 
+        empleadoId:
+        empleado.id,
+
         empresaId:
         empresaId,
-
-        empleadoId:
-        empleadoId,
 
         perfil:
         "empleado",
 
         nombre:
         texto(
-            datosEmpleado.nombre
+            empleado.nombre
         ),
 
         apellido:
         texto(
-            datosEmpleado.apellido
+            empleado.apellido
         ),
 
         email:
         texto(
-            datosEmpleado.email ||
+            empleado.email ||
             usuario.email
         ),
 
         puesto:
         texto(
-            datosEmpleado.puesto
+            empleado.puesto
         )
 
     };
 
 
+    /*
+     * Guardamos los datos para que
+     * fichaje.html sepa exactamente
+     * qué empleado está conectado.
+     */
+
     sessionStorage.setItem(
         "gesbaseEmpleado",
         JSON.stringify(
-            sesionEmpleado
+            datosSesion
         )
     );
 
 
-    return sesionEmpleado;
+    return datosSesion;
 
 }
 
 
 // ==========================================
-// INGRESAR
+// LOGIN
 // ==========================================
 
 btnIngresar.addEventListener(
@@ -693,10 +683,14 @@ btnIngresar.addEventListener(
         }
 
 
-        cargandoInicio();
+        iniciarCarga();
 
 
         try{
+
+            /*
+             * 1. Autenticación Firebase
+             */
 
             const resultado =
             await signInWithEmailAndPassword(
@@ -710,15 +704,27 @@ btnIngresar.addEventListener(
             resultado.user;
 
 
-            const datos =
-            await verificarEmpleado(
+            /*
+             * 2. Buscar ficha directamente
+             * mediante authUid.
+             */
+
+            const empleado =
+            await buscarEmpleado(
                 usuario
             );
 
 
+            /*
+             * 3. Acceso correcto
+             */
+
             mostrarExito(
                 "Bienvenido " +
-                datos.nombre +
+                (
+                    empleado.nombre ||
+                    "empleado"
+                ) +
                 ". Ingresando..."
             );
 
@@ -730,14 +736,14 @@ btnIngresar.addEventListener(
                     "fichaje.html";
 
                 },
-                600
+                500
             );
 
         }
         catch(error){
 
             console.error(
-                "Error acceso empleado:",
+                "Error login empleado:",
                 error
             );
 
@@ -746,7 +752,9 @@ btnIngresar.addEventListener(
             "No se pudo iniciar sesión.";
 
 
-            switch(error.code){
+            switch(
+                error.code
+            ){
 
                 case "auth/invalid-credential":
 
@@ -791,7 +799,7 @@ btnIngresar.addEventListener(
                 case "auth/too-many-requests":
 
                     mensaje =
-                    "Demasiados intentos. Esperá unos minutos.";
+                    "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
 
                     break;
 
@@ -807,6 +815,8 @@ btnIngresar.addEventListener(
 
                     }
 
+                    break;
+
             }
 
 
@@ -817,7 +827,7 @@ btnIngresar.addEventListener(
         }
         finally{
 
-            cargandoFin();
+            terminarCarga();
 
         }
 
@@ -834,7 +844,8 @@ password.addEventListener(
     function(event){
 
         if(
-            event.key === "Enter"
+            event.key ===
+            "Enter"
         ){
 
             btnIngresar.click();
