@@ -2,6 +2,7 @@
 <html lang="es">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#111827">
@@ -102,6 +103,7 @@ h2{
 }
 
 .boton:disabled{
+    opacity:.6;
     cursor:not-allowed;
 }
 
@@ -140,8 +142,8 @@ h2{
     color:white;
 }
 
-.boton-trabajos{
-    background:#7c3aed;
+.boton-pago{
+    background:#16a34a;
     color:white;
 }
 
@@ -208,6 +210,10 @@ h2{
     font-weight:bold;
 }
 
+/* ============================= */
+/* PAGOS */
+/* ============================= */
+
 .pago-principal{
     margin-top:12px;
     padding:14px;
@@ -235,6 +241,98 @@ h2{
     font-size:13px;
     color:#374151;
     line-height:1.7;
+}
+
+.pagos-resumen{
+    margin-top:12px;
+    padding:14px;
+    background:#f9fafb;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+}
+
+.pagos-resumen div{
+    padding:5px 0;
+    font-size:14px;
+}
+
+.total-generado{
+    color:#1d4ed8;
+    font-weight:bold;
+}
+
+.total-entregado{
+    color:#15803d;
+    font-weight:bold;
+}
+
+.saldo-pendiente{
+    margin-top:8px;
+    padding-top:10px;
+    border-top:1px solid #d1d5db;
+    font-size:18px !important;
+    font-weight:bold;
+}
+
+.saldo-ok{
+    color:#15803d;
+}
+
+.saldo-deuda{
+    color:#dc2626;
+}
+
+/* ============================= */
+/* ENTREGA */
+/* ============================= */
+
+.entrega-pago{
+    margin-top:12px;
+    padding:14px;
+    background:#f0fdf4;
+    border:1px solid #bbf7d0;
+    border-radius:10px;
+}
+
+.entrega-pago label{
+    display:block;
+    font-size:13px;
+    font-weight:bold;
+    color:#166534;
+    margin-bottom:7px;
+}
+
+.entrega-pago input{
+    width:100%;
+    padding:12px;
+    border:1px solid #86efac;
+    border-radius:8px;
+    background:white;
+    font-size:16px;
+}
+
+.historial-pagos{
+    margin-top:12px;
+    padding:12px;
+    background:#f9fafb;
+    border-radius:9px;
+    border:1px solid #e5e7eb;
+}
+
+.historial-titulo{
+    font-weight:bold;
+    font-size:13px;
+    margin-bottom:7px;
+}
+
+.pago-historial-item{
+    padding:7px 0;
+    border-bottom:1px solid #e5e7eb;
+    font-size:13px;
+}
+
+.pago-historial-item:last-child{
+    border-bottom:none;
 }
 
 .estado{
@@ -283,36 +381,6 @@ h2{
 
 .acciones button{
     margin-top:0;
-}
-
-.trabajos-empleado{
-    margin-top:14px;
-    padding:13px;
-    border-radius:10px;
-    background:#f5f3ff;
-    border:1px solid #ddd6fe;
-}
-
-.trabajos-titulo{
-    font-size:14px;
-    font-weight:bold;
-    color:#5b21b6;
-    margin-bottom:8px;
-}
-
-.trabajo-item{
-    background:white;
-    border:1px solid #e5e7eb;
-    border-radius:8px;
-    padding:9px;
-    margin-top:7px;
-    font-size:13px;
-}
-
-.trabajo-estado{
-    font-size:11px;
-    font-weight:bold;
-    margin-top:4px;
 }
 
 .cargando{
@@ -402,9 +470,9 @@ h2{
 <div id="mensajeExito" class="exito"></div>
 
 
-<!-- ================================= -->
+<!-- ================================ -->
 <!-- FORMULARIO -->
-<!-- ================================= -->
+<!-- ================================ -->
 
 <div class="formulario">
 
@@ -510,7 +578,7 @@ Nuevo empleado
 <input
     type="number"
     id="pagoDiario"
-    placeholder="Ej.: 40000"
+    placeholder="Ej.: 45000"
     min="0"
     step="0.01"
     inputmode="decimal"
@@ -570,17 +638,9 @@ Empleados
 
 <div class="nota">
 
-<b>Pago:</b>
-solamente se carga el monto diario.
-El sistema calcula automáticamente el valor por hora,
-quincenal y mensual.
-
-<br><br>
-
-<b>Trabajos:</b>
-desde cada empleado podés consultar y asignar trabajos.
-El fichado y la ubicación continúan funcionando desde
-<b>Fichado</b>.
+<b>Pagos:</b>
+GESBASE calcula el valor diario, horario, quincenal y mensual.
+Los montos entregados se acumulan y se descuentan automáticamente del total generado.
 
 </div>
 
@@ -1001,15 +1061,9 @@ async function cargarEmpleados(){
             }
         );
 
-        for(
-            const empleado of empleados
-        ){
-
-            await mostrarEmpleado(
-                empleado
-            );
-
-        }
+        empleados.forEach(
+            mostrarEmpleado
+        );
 
     }
     catch(error){
@@ -1032,9 +1086,7 @@ async function cargarEmpleados(){
 MOSTRAR EMPLEADO
 ===================================== */
 
-async function mostrarEmpleado(
-    empleado
-){
+function mostrarEmpleado(empleado){
 
     const tarjeta =
     document.createElement("div");
@@ -1109,7 +1161,9 @@ async function mostrarEmpleado(
         puestoEmpleado
     );
 
-    cabecera.appendChild(foto);
+    cabecera.appendChild(
+        foto
+    );
 
     cabecera.appendChild(
         informacion
@@ -1154,7 +1208,9 @@ async function mostrarEmpleado(
     );
 
 
-    /* PAGO */
+    /* =====================================
+       PAGOS
+    ===================================== */
 
     const pago =
     numero(
@@ -1162,14 +1218,39 @@ async function mostrarEmpleado(
     );
 
 
-    const pagoHoraCalculado =
+    const pagoHora =
     pago / 8;
 
-    const pagoQuincenalCalculado =
+    const pagoQuincenal =
     pago * 15;
 
-    const pagoMensualCalculado =
+    const pagoMensual =
     pago * 30;
+
+
+    /*
+       Para el resumen usamos el pago mensual
+       como total generado de referencia.
+    */
+
+    const totalGenerado =
+    numero(
+        empleado.totalGenerado
+    ) || pagoMensual;
+
+
+    const totalEntregado =
+    numero(
+        empleado.totalEntregado
+    );
+
+
+    const saldoPendiente =
+    Math.max(
+        0,
+        totalGenerado -
+        totalEntregado
+    );
 
 
     const bloquePago =
@@ -1192,15 +1273,15 @@ async function mostrarEmpleado(
         <div class="pago-calculos">
 
             Pago por hora:
-            <b>${moneda(pagoHoraCalculado)}</b>
+            <b>${moneda(pagoHora)}</b>
             <br>
 
             Pago quincenal:
-            <b>${moneda(pagoQuincenalCalculado)}</b>
+            <b>${moneda(pagoQuincenal)}</b>
             <br>
 
             Pago mensual:
-            <b>${moneda(pagoMensualCalculado)}</b>
+            <b>${moneda(pagoMensual)}</b>
 
         </div>
 
@@ -1212,7 +1293,244 @@ async function mostrarEmpleado(
     );
 
 
-    /* ESTADO */
+    /* =====================================
+       RESUMEN DE PAGOS
+    ===================================== */
+
+    const resumen =
+    document.createElement("div");
+
+    resumen.className =
+    "pagos-resumen";
+
+
+    const generado =
+    document.createElement("div");
+
+    generado.className =
+    "total-generado";
+
+    generado.innerHTML =
+    "💰 Total generado: " +
+    "<b>" +
+    moneda(totalGenerado) +
+    "</b>";
+
+
+    const entregado =
+    document.createElement("div");
+
+    entregado.className =
+    "total-entregado";
+
+    entregado.innerHTML =
+    "💵 Total entregado: " +
+    "<b>" +
+    moneda(totalEntregado) +
+    "</b>";
+
+
+    const saldo =
+    document.createElement("div");
+
+    saldo.className =
+    "saldo-pendiente " +
+    (
+        saldoPendiente > 0
+            ? "saldo-deuda"
+            : "saldo-ok"
+    );
+
+
+    saldo.innerHTML =
+    (
+        saldoPendiente > 0
+            ? "🔴 Saldo pendiente: "
+            : "🟢 Saldo pendiente: "
+    ) +
+    "<b>" +
+    moneda(saldoPendiente) +
+    "</b>";
+
+
+    resumen.appendChild(
+        generado
+    );
+
+    resumen.appendChild(
+        entregado
+    );
+
+    resumen.appendChild(
+        saldo
+    );
+
+
+    datos.appendChild(
+        resumen
+    );
+
+
+    /* =====================================
+       ENTREGAR DINERO
+    ===================================== */
+
+    const entrega =
+    document.createElement("div");
+
+    entrega.className =
+    "entrega-pago";
+
+
+    const label =
+    document.createElement("label");
+
+    label.textContent =
+    "💵 Monto entregado";
+
+
+    const input =
+    document.createElement("input");
+
+    input.type =
+    "number";
+
+    input.min =
+    "0";
+
+    input.step =
+    "0.01";
+
+    input.placeholder =
+    "Ej.: 100000";
+
+    input.inputMode =
+    "decimal";
+
+
+    const botonPago =
+    document.createElement("button");
+
+    botonPago.className =
+    "boton boton-pago";
+
+    botonPago.textContent =
+    "💵 REGISTRAR ENTREGA";
+
+
+    botonPago.onclick =
+    () => {
+
+        registrarPago(
+            empleado,
+            input
+        );
+
+    };
+
+
+    entrega.appendChild(
+        label
+    );
+
+    entrega.appendChild(
+        input
+    );
+
+    entrega.appendChild(
+        botonPago
+    );
+
+
+    datos.appendChild(
+        entrega
+    );
+
+
+    /* =====================================
+       HISTORIAL
+    ===================================== */
+
+    const historial =
+    empleado.historialPagos || [];
+
+
+    if(
+        Array.isArray(historial) &&
+        historial.length > 0
+    ){
+
+        const historialBox =
+        document.createElement("div");
+
+        historialBox.className =
+        "historial-pagos";
+
+
+        const titulo =
+        document.createElement("div");
+
+        titulo.className =
+        "historial-titulo";
+
+        titulo.textContent =
+        "📋 Historial de entregas";
+
+
+        historialBox.appendChild(
+            titulo
+        );
+
+
+        historial
+        .slice()
+        .reverse()
+        .forEach(
+            pagoRegistro => {
+
+                const item =
+                document.createElement("div");
+
+                item.className =
+                "pago-historial-item";
+
+
+                const fecha =
+                texto(
+                    pagoRegistro.fecha
+                ) ||
+                "Sin fecha";
+
+
+                item.innerHTML =
+                "💵 " +
+                "<b>" +
+                moneda(
+                    pagoRegistro.monto
+                ) +
+                "</b>" +
+                " — " +
+                fecha;
+
+
+                historialBox.appendChild(
+                    item
+                );
+
+            }
+        );
+
+
+        datos.appendChild(
+            historialBox
+        );
+
+    }
+
+
+    /* =====================================
+       ESTADO
+    ===================================== */
 
     const estadoElemento =
     document.createElement("span");
@@ -1254,23 +1572,9 @@ async function mostrarEmpleado(
     );
 
 
-    /* =================================
-       TRABAJOS ASIGNADOS
-       ================================= */
-
-    const bloqueTrabajos =
-    await crearBloqueTrabajos(
-        empleado
-    );
-
-    tarjeta.appendChild(
-        bloqueTrabajos
-    );
-
-
-    /* =================================
+    /* =====================================
        ACCESO
-       ================================= */
+    ===================================== */
 
     const acceso =
     document.createElement("div");
@@ -1306,9 +1610,9 @@ async function mostrarEmpleado(
     );
 
 
-    /* =================================
+    /* =====================================
        ACCIONES
-       ================================= */
+    ===================================== */
 
     const acciones =
     document.createElement("div");
@@ -1356,31 +1660,6 @@ async function mostrarEmpleado(
 
     acciones.appendChild(
         btnAcceso
-    );
-
-
-    /* TRABAJOS */
-
-    const btnTrabajos =
-    document.createElement("button");
-
-    btnTrabajos.className =
-    "boton boton-trabajos";
-
-    btnTrabajos.textContent =
-    "🔧 ASIGNAR TRABAJO";
-
-    btnTrabajos.onclick =
-    () => {
-
-        asignarTrabajo(
-            empleado
-        );
-
-    };
-
-    acciones.appendChild(
-        btnTrabajos
     );
 
 
@@ -1551,205 +1830,75 @@ function agregarDato(
 
 
 /* =====================================
-TRABAJOS DEL EMPLEADO
+REGISTRAR PAGO
 ===================================== */
 
-async function crearBloqueTrabajos(
-    empleado
-){
-
-    const bloque =
-    document.createElement("div");
-
-    bloque.className =
-    "trabajos-empleado";
-
-
-    const titulo =
-    document.createElement("div");
-
-    titulo.className =
-    "trabajos-titulo";
-
-    titulo.textContent =
-    "🔧 Trabajos asignados";
-
-    bloque.appendChild(
-        titulo
-    );
-
-
-    try{
-
-        const consulta =
-        query(
-            collection(
-                db,
-                "trabajos"
-            ),
-            where(
-                "empresaId",
-                "==",
-                empresaId
-            ),
-            where(
-                "empleadoId",
-                "==",
-                empleado.id
-            )
-        );
-
-
-        const resultados =
-        await getDocs(
-            consulta
-        );
-
-
-        if(resultados.empty){
-
-            const vacio =
-            document.createElement("div");
-
-            vacio.style.fontSize =
-            "13px";
-
-            vacio.style.color =
-            "#6b7280";
-
-            vacio.textContent =
-            "No tiene trabajos asignados.";
-
-            bloque.appendChild(
-                vacio
-            );
-
-            return bloque;
-
-        }
-
-
-        resultados.forEach(
-            documento => {
-
-                const trabajo =
-                documento.data();
-
-
-                const item =
-                document.createElement("div");
-
-                item.className =
-                "trabajo-item";
-
-
-                const tituloTrabajo =
-                texto(
-                    trabajo.titulo
-                ) ||
-                texto(
-                    trabajo.descripcion
-                ) ||
-                "Trabajo sin título";
-
-
-                const estadoTrabajo =
-                texto(
-                    trabajo.estado
-                ) ||
-                "Pendiente";
-
-
-                item.innerHTML = `
-
-                    <b>${escapeHTML(
-                        tituloTrabajo
-                    )}</b>
-
-                    <div class="trabajo-estado">
-                        Estado:
-                        ${escapeHTML(
-                            estadoTrabajo
-                        )}
-                    </div>
-
-                `;
-
-
-                bloque.appendChild(
-                    item
-                );
-
-            }
-        );
-
-    }
-    catch(error){
-
-        console.error(
-            "Error cargando trabajos:",
-            error
-        );
-
-
-        const errorTexto =
-        document.createElement("div");
-
-        errorTexto.style.fontSize =
-        "12px";
-
-        errorTexto.style.color =
-        "#991b1b";
-
-        errorTexto.textContent =
-        "No se pudieron cargar los trabajos.";
-
-        bloque.appendChild(
-            errorTexto
-        );
-
-    }
-
-
-    return bloque;
-
-}
-
-
-/* =====================================
-ESCAPAR HTML
-===================================== */
-
-function escapeHTML(valor){
-
-    return texto(valor)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-
-}
-
-
-/* =====================================
-ASIGNAR TRABAJO
-===================================== */
-
-async function asignarTrabajo(
-    empleado
+async function registrarPago(
+    empleado,
+    input
 ){
 
     limpiarMensajes();
 
 
-    if(
-        empleado.estado !== "Activo"
-    ){
+    const monto =
+    numero(
+        input.value
+    );
+
+
+    if(monto <= 0){
 
         mostrarError(
-            "No se puede asignar un trabajo a un empleado inactivo."
+            "Ingresá un monto válido."
         );
+
+        return;
+
+    }
+
+
+    const totalGenerado =
+    numero(
+        empleado.totalGenerado
+    ) ||
+    (
+        numero(
+            empleado.pagoDiario
+        ) * 30
+    );
+
+
+    const totalEntregadoAnterior =
+    numero(
+        empleado.totalEntregado
+    );
+
+
+    const nuevoTotalEntregado =
+    totalEntregadoAnterior +
+    monto;
+
+
+    const nuevoSaldo =
+    Math.max(
+        0,
+        totalGenerado -
+        nuevoTotalEntregado
+    );
+
+
+    if(
+        !confirm(
+            "Registrar entrega de " +
+            moneda(monto) +
+            " a " +
+            empleado.nombre +
+            " " +
+            empleado.apellido +
+            "?"
+        )
+    ){
 
         return;
 
@@ -1758,213 +1907,71 @@ async function asignarTrabajo(
 
     try{
 
-        const consulta =
-        query(
-            collection(
-                db,
-                "trabajos"
+        const historialAnterior =
+        Array.isArray(
+            empleado.historialPagos
+        )
+            ? empleado.historialPagos
+            : [];
+
+
+        const nuevoRegistro = {
+
+            monto:
+            monto,
+
+            fecha:
+            new Date().toLocaleDateString(
+                "es-AR"
             ),
-            where(
-                "empresaId",
-                "==",
-                empresaId
-            )
-        );
+
+            timestamp:
+            Date.now()
+
+        };
 
 
-        const resultados =
-        await getDocs(
-            consulta
-        );
-
-
-        if(resultados.empty){
-
-            mostrarError(
-                "No hay trabajos cargados para asignar."
-            );
-
-            return;
-
-        }
-
-
-        const trabajos = [];
-
-
-        resultados.forEach(
-            documento => {
-
-                const trabajo =
-                documento.data();
-
-
-                trabajos.push({
-                    id:documento.id,
-                    ...trabajo
-                });
-
-            }
-        );
-
-
-        const disponibles =
-        trabajos.filter(
-            trabajo =>
-                !trabajo.empleadoId ||
-                trabajo.empleadoId === empleado.id
-        );
-
-
-        if(disponibles.length === 0){
-
-            mostrarError(
-                "No hay trabajos disponibles para asignar."
-            );
-
-            return;
-
-        }
-
-
-        let mensaje =
-        "TRABAJOS DISPONIBLES\n\n";
-
-
-        disponibles.forEach(
-            (trabajo,index) => {
-
-                const titulo =
-                texto(
-                    trabajo.titulo
-                ) ||
-                texto(
-                    trabajo.descripcion
-                ) ||
-                "Sin título";
-
-
-                mensaje +=
-                (index + 1) +
-                ". " +
-                titulo +
-                "\n";
-
-            }
-        );
-
-
-        const seleccion =
-        prompt(
-            mensaje +
-            "\nIngresá el número del trabajo:"
-        );
-
-
-        if(
-            seleccion === null
-        ){
-
-            return;
-
-        }
-
-
-        const numeroSeleccionado =
-        Number(seleccion);
-
-
-        if(
-            !Number.isInteger(
-                numeroSeleccionado
-            ) ||
-            numeroSeleccionado < 1 ||
-            numeroSeleccionado > disponibles.length
-        ){
-
-            mostrarError(
-                "Selección inválida."
-            );
-
-            return;
-
-        }
-
-
-        const trabajo =
-        disponibles[
-            numeroSeleccionado - 1
+        const nuevoHistorial =
+        [
+            ...historialAnterior,
+            nuevoRegistro
         ];
-
-
-        const tituloTrabajo =
-        texto(
-            trabajo.titulo
-        ) ||
-        texto(
-            trabajo.descripcion
-        ) ||
-        "Sin título";
-
-
-        if(
-            !confirm(
-                "¿Asignar este trabajo a:\n\n" +
-                empleado.nombre +
-                " " +
-                empleado.apellido +
-                "\n\n" +
-                tituloTrabajo +
-                "?"
-            )
-        ){
-
-            return;
-
-        }
 
 
         await updateDoc(
             doc(
                 db,
-                "trabajos",
-                trabajo.id
+                "empleados",
+                empleado.id
             ),
             {
 
-                empleadoId:
-                empleado.id,
+                totalGenerado:
+                totalGenerado,
 
-                empleadoUid:
-                empleado.authUid ||
-                null,
+                totalEntregado:
+                nuevoTotalEntregado,
 
-                empleadoNombre:
-                (
-                    texto(
-                        empleado.nombre
-                    ) +
-                    " " +
-                    texto(
-                        empleado.apellido
-                    )
-                ).trim(),
+                saldoPendiente:
+                nuevoSaldo,
 
-                asignadoPor:
-                usuarioActual.uid,
+                historialPagos:
+                nuevoHistorial,
 
-                asignadoEn:
-                serverTimestamp(),
-
-                empresaId:
-                empresaId
+                actualizado:
+                serverTimestamp()
 
             }
         );
 
 
+        input.value = "";
+
+
         mostrarExito(
-            "Trabajo asignado correctamente."
+            "Entrega registrada correctamente. " +
+            "Saldo pendiente: " +
+            moneda(nuevoSaldo)
         );
 
 
@@ -1976,7 +1983,7 @@ async function asignarTrabajo(
         console.error(error);
 
         mostrarError(
-            "No se pudo asignar el trabajo: " +
+            "No se pudo registrar la entrega: " +
             error.message
         );
 
@@ -1994,7 +2001,6 @@ async function crearAccesoEmpleado(
 ){
 
     limpiarMensajes();
-
 
     if(empleado.authUid){
 
@@ -2036,18 +2042,12 @@ async function crearAccesoEmpleado(
     );
 
 
-    if(
-        contraseña === null
-    ){
-
+    if(contraseña === null){
         return;
-
     }
 
 
-    if(
-        contraseña.length < 6
-    ){
+    if(contraseña.length < 6){
 
         mostrarError(
             "La contraseña debe tener al menos 6 caracteres."
@@ -2428,6 +2428,18 @@ async function(){
 
             datosEmpleado.creado =
             serverTimestamp();
+
+            datosEmpleado.totalGenerado =
+            pagoValor * 30;
+
+            datosEmpleado.totalEntregado =
+            0;
+
+            datosEmpleado.saldoPendiente =
+            pagoValor * 30;
+
+            datosEmpleado.historialPagos =
+            [];
 
             await addDoc(
                 collection(
