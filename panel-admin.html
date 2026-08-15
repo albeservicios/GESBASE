@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+
+<title>Panel de administración - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.contenedor{
+    width:100%;
+    max-width:1200px;
+    margin:auto;
+    min-height:100vh;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:#fff;
+    padding:24px 20px;
+}
+
+header h1{
+    font-size:26px;
+}
+
+header p{
+    margin-top:6px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+.tarjeta{
+    background:#fff;
+    border:1px solid #d1d5db;
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:18px;
+}
+
+.titulo{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+.controles{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr auto;
+    gap:10px;
+}
+
+input,
+select{
+    width:100%;
+    padding:13px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    font-size:15px;
+    background:#fff;
+}
+
+button{
+    border:none;
+    border-radius:10px;
+    padding:13px 16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.btn-principal{
+    background:#111827;
+    color:#fff;
+}
+
+.btn-mapa{
+    background:#2563eb;
+    color:#fff;
+    text-decoration:none;
+    display:inline-block;
+    padding:9px 12px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.btn-salir{
+    width:100%;
+    margin-top:10px;
+    background:#dc2626;
+    color:#fff;
+}
+
+.estado{
+    padding:13px;
+    border-radius:10px;
+    margin-bottom:15px;
+    display:none;
+}
+
+.estado.error{
+    display:block;
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.estado.exito{
+    display:block;
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado.info{
+    display:block;
+    background:#eff6ff;
+    color:#1e40af;
+}
+
+.resumen{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.resumen-box{
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:15px;
+    background:#fafafa;
+}
+
+.resumen-label{
+    font-size:13px;
+    color:#6b7280;
+}
+
+.resumen-valor{
+    font-size:25px;
+    font-weight:bold;
+    margin-top:5px;
+}
+
+.tabla-contenedor{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:1050px;
+}
+
+th{
+    background:#111827;
+    color:#fff;
+    padding:12px;
+    text-align:left;
+    font-size:13px;
+    white-space:nowrap;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #e5e7eb;
+    font-size:14px;
+    vertical-align:top;
+}
+
+tr:hover td{
+    background:#f9fafb;
+}
+
+.empleado{
+    font-weight:bold;
+}
+
+.subtexto{
+    color:#6b7280;
+    font-size:12px;
+    margin-top:3px;
+}
+
+.entrada{
+    color:#16a34a;
+    font-weight:bold;
+}
+
+.salida{
+    color:#dc2626;
+    font-weight:bold;
+}
+
+.sin-ubicacion{
+    color:#9ca3af;
+    font-size:13px;
+}
+
+.ubicacion{
+    min-width:150px;
+}
+
+.coordenadas{
+    font-size:11px;
+    color:#6b7280;
+    margin-top:5px;
+    word-break:break-all;
+}
+
+.cargando,
+.vacio{
+    text-align:center;
+    padding:35px;
+    color:#6b7280;
+}
+
+.oculto{
+    display:none !important;
+}
+
+@media(max-width:800px){
+
+    main{
+        padding:15px;
+    }
+
+    .controles{
+        grid-template-columns:1fr;
+    }
+
+    .resumen{
+        grid-template-columns:1fr 1fr;
+    }
+
+}
+
+@media(max-width:500px){
+
+    .resumen{
+        grid-template-columns:1fr;
+    }
+
+    header{
+        padding:20px 15px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="contenedor">
+
+<header>
+
+<h1>GESBASE</h1>
+
+<p>Panel de administración · Control de fichajes</p>
+
+</header>
+
+
+<main>
+
+
+<div id="mensaje" class="estado"></div>
+
+
+<!-- =========================
+     FILTROS
+========================= -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+Consultar fichajes
+</div>
+
+<div class="controles">
+
+<input
+type="date"
+id="filtroFecha"
+>
+
+<input
+type="text"
+id="filtroEmpleado"
+placeholder="Buscar empleado..."
+>
+
+<select id="filtroEstado">
+
+<option value="">
+Todos los estados
+</option>
+
+<option value="abierto">
+En curso
+</option>
+
+<option value="cerrado">
+Finalizados
+</option>
+
+</select>
+
+<button
+id="btnActualizar"
+class="btn-principal"
+>
+ACTUALIZAR
+</button>
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     RESUMEN
+========================= -->
+
+<div class="resumen">
+
+<div class="resumen-box">
+
+<div class="resumen-label">
+Fichajes
+</div>
+
+<div
+id="totalFichajes"
+class="resumen-valor"
+>
+0
+</div>
+
+</div>
+
+
+<div class="resumen-box">
+
+<div class="resumen-label">
+En curso
+</div>
+
+<div
+id="totalAbiertos"
+class="resumen-valor"
+>
+0
+</div>
+
+</div>
+
+
+<div class="resumen-box">
+
+<div class="resumen-label">
+Horas trabajadas
+</div>
+
+<div
+id="totalHoras"
+class="resumen-valor"
+>
+0.00 h
+</div>
+
+</div>
+
+
+<div class="resumen-box">
+
+<div class="resumen-label">
+Importe
+</div>
+
+<div
+id="totalImporte"
+class="resumen-valor"
+>
+$0
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     TABLA
+========================= -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+Registro de fichajes
+</div>
+
+<div
+id="cargando"
+class="cargando"
+>
+Cargando fichajes...
+</div>
+
+
+<div
+id="tablaContenedor"
+class="tabla-contenedor oculto"
+>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Empleado</th>
+
+<th>Fecha</th>
+
+<th>Entrada</th>
+
+<th>Ubicación entrada</th>
+
+<th>Salida</th>
+
+<th>Ubicación salida</th>
+
+<th>Tiempo</th>
+
+<th>Importe</th>
+
+<th>Estado</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tablaFichajes">
+</tbody>
+
+</table>
+
+</div>
+
+
+<div
+id="sinResultados"
+class="vacio oculto"
+>
+No hay fichajes para mostrar.
+</div>
+
+</div>
+
+
+<button
+id="btnCerrarSesion"
+class="btn-salir"
+>
+CERRAR SESIÓN
+</button>
+
+
+</main>
+
+</div>
+
+
+<script type="module">
+
+
+/* =========================================
+   FIREBASE
+========================================= */
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged,
+    signOut
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    getDocs,
+    query,
+    orderBy
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+/* =========================================
+   ELEMENTOS
+========================================= */
+
+const mensaje =
+document.getElementById("mensaje");
+
+const filtroFecha =
+document.getElementById("filtroFecha");
+
+const filtroEmpleado =
+document.getElementById("filtroEmpleado");
+
+const filtroEstado =
+document.getElementById("filtroEstado");
+
+const btnActualizar =
+document.getElementById("btnActualizar");
+
+const tablaFichajes =
+document.getElementById("tablaFichajes");
+
+const tablaContenedor =
+document.getElementById("tablaContenedor");
+
+const cargando =
+document.getElementById("cargando");
+
+const sinResultados =
+document.getElementById("sinResultados");
+
+const totalFichajes =
+document.getElementById("totalFichajes");
+
+const totalAbiertos =
+document.getElementById("totalAbiertos");
+
+const totalHoras =
+document.getElementById("totalHoras");
+
+const totalImporte =
+document.getElementById("totalImporte");
+
+const btnCerrarSesion =
+document.getElementById("btnCerrarSesion");
+
+
+/* =========================================
+   VARIABLES
+========================================= */
+
+let usuarioActual = null;
+
+let todosLosFichajes = [];
+
+
+/* =========================================
+   UTILIDADES
+========================================= */
+
+function texto(valor){
+
+    if(
+        valor === undefined ||
+        valor === null
+    ){
+        return "";
+    }
+
+    return String(valor);
+
+}
+
+
+function numero(valor){
+
+    const n = Number(valor);
+
+    return Number.isFinite(n)
+        ? n
+        : 0;
+
+}
+
+
+function moneda(valor){
+
+    return new Intl.NumberFormat(
+        "es-AR",
+        {
+            style:"currency",
+            currency:"ARS",
+            maximumFractionDigits:0
+        }
+    ).format(
+        numero(valor)
+    );
+
+}
+
+
+function mostrarMensaje(
+    textoMensaje,
+    tipo="info"
+){
+
+    mensaje.textContent =
+    textoMensaje;
+
+    mensaje.className =
+    "estado " + tipo;
+
+}
+
+
+function ocultarMensaje(){
+
+    mensaje.className =
+    "estado";
+
+    mensaje.textContent =
+    "";
+
+}
+
+
+/* =========================================
+   FECHA
+========================================= */
+
+function fechaHoy(){
+
+    const ahora =
+    new Date();
+
+    return (
+        ahora.getFullYear() +
+        "-" +
+        String(
+            ahora.getMonth()+1
+        ).padStart(2,"0") +
+        "-" +
+        String(
+            ahora.getDate()
+        ).padStart(2,"0")
+    );
+
+}
+
+
+/* =========================================
+   DURACIÓN
+========================================= */
+
+function formatearDuracion(
+    segundos
+){
+
+    segundos =
+    Math.max(
+        0,
+        Math.floor(
+            numero(segundos)
+        )
+    );
+
+
+    const horas =
+    Math.floor(
+        segundos / 3600
+    );
+
+
+    const minutos =
+    Math.floor(
+        (segundos % 3600) / 60
+    );
+
+
+    const segundosFinal =
+    segundos % 60;
+
+
+    return (
+        String(horas).padStart(2,"0") +
+        ":" +
+        String(minutos).padStart(2,"0") +
+        ":" +
+        String(segundosFinal).padStart(2,"0")
+    );
+
+}
+
+
+/* =========================================
+   NORMALIZAR UBICACIÓN
+========================================= */
+
+/*
+ * Esta función acepta varios nombres posibles
+ * para que el panel pueda leer los datos GPS
+ * aunque el fichaje utilice nombres diferentes.
+ */
+
+function obtenerUbicacion(
+    registro,
+    tipo
+){
+
+    let datos = null;
+
+
+    if(tipo === "entrada"){
+
+        datos =
+            registro.ubicacionEntrada ||
+            registro.locationEntrada ||
+            registro.gpsEntrada ||
+            registro.ubicacionIngreso ||
+            registro.entradaUbicacion ||
+            null;
+
+    }
+
+
+    if(tipo === "salida"){
+
+        datos =
+            registro.ubicacionSalida ||
+            registro.locationSalida ||
+            registro.gpsSalida ||
+            registro.ubicacionEgreso ||
+            registro.salidaUbicacion ||
+            null;
+
+    }
+
+
+    if(
+        !datos &&
+        tipo === "entrada"
+    ){
+
+        if(
+            registro.latitudEntrada !== undefined ||
+            registro.longitudEntrada !== undefined
+        ){
+
+            datos = {
+
+                lat:
+                registro.latitudEntrada,
+
+                lng:
+                registro.longitudEntrada
+
+            };
+
+        }
+
+    }
+
+
+    if(
+        !datos &&
+        tipo === "salida"
+    ){
+
+        if(
+            registro.latitudSalida !== undefined ||
+            registro.longitudSalida !== undefined
+        ){
+
+            datos = {
+
+                lat:
+                registro.latitudSalida,
+
+                lng:
+                registro.longitudSalida
+
+            };
+
+        }
+
+    }
+
+
+    if(!datos){
+
+        return null;
+
+    }
+
+
+    if(
+        typeof datos === "string"
+    ){
+
+        try{
+
+            datos =
+            JSON.parse(
+                datos
+            );
+
+        }
+        catch{
+
+            return null;
+
+        }
+
+    }
+
+
+    const lat =
+    numero(
+        datos.lat ??
+        datos.latitude ??
+        datos.latitud
+    );
+
+
+    const lng =
+    numero(
+        datos.lng ??
+        datos.lon ??
+        datos.longitude ??
+        datos.longitud
+    );
+
+
+    if(
+        !lat &&
+        !lng
+    ){
+
+        return null;
+
+    }
+
+
+    return {
+
+        lat:lat,
+
+        lng:lng
+
+    };
+
+}
+
+
+/* =========================================
+   LINK GOOGLE MAPS
+========================================= */
+
+function crearLinkMapa(
+    ubicacion
+){
+
+    if(!ubicacion){
+
+        const span =
+        document.createElement(
+            "span"
+        );
+
+        span.className =
+        "sin-ubicacion";
+
+        span.textContent =
+        "Sin ubicación";
+
+        return span;
+
+    }
+
+
+    const contenedor =
+    document.createElement(
+        "div"
+    );
+
+
+    contenedor.className =
+    "ubicacion";
+
+
+    const link =
+    document.createElement(
+        "a"
+    );
+
+
+    link.className =
+    "btn-mapa";
+
+
+    link.target =
+    "_blank";
+
+
+    link.rel =
+    "noopener noreferrer";
+
+
+    link.href =
+    "https://www.google.com/maps?q=" +
+    encodeURIComponent(
+        ubicacion.lat +
+        "," +
+        ubicacion.lng
+    );
+
+
+    link.textContent =
+    "📍 VER MAPA";
+
+
+    const coordenadas =
+    document.createElement(
+        "div"
+    );
+
+
+    coordenadas.className =
+    "coordenadas";
+
+
+    coordenadas.textContent =
+    ubicacion.lat.toFixed(6) +
+    ", " +
+    ubicacion.lng.toFixed(6);
+
+
+    contenedor.appendChild(
+        link
+    );
+
+
+    contenedor.appendChild(
+        coordenadas
+    );
+
+
+    return contenedor;
+
+}
+
+
+/* =========================================
+   CREAR CELDA
+========================================= */
+
+function crearCelda(
+    contenido
+){
+
+    const td =
+    document.createElement(
+        "td"
+    );
+
+
+    if(
+        contenido instanceof
+        Node
+    ){
+
+        td.appendChild(
+            contenido
+        );
+
+    }
+    else{
+
+        td.textContent =
+        texto(contenido);
+
+    }
+
+
+    return td;
+
+}
+
+
+/* =========================================
+   CARGAR FICHAJES
+========================================= */
+
+async function cargarFichajes(){
+
+    cargando.classList.remove(
+        "oculto"
+    );
+
+    tablaContenedor.classList.add(
+        "oculto"
+    );
+
+    sinResultados.classList.add(
+        "oculto"
+    );
+
+
+    try{
+
+        /*
+         * Se leen todos los fichajes.
+         *
+         * El filtrado se realiza en el navegador
+         * para poder buscar por empleado, fecha
+         * y estado sin modificar el sistema de fichaje.
+         */
+
+        const consulta =
+        query(
+            collection(
+                db,
+                "fichajes"
+            )
+        );
+
+
+        const resultados =
+        await getDocs(
+            consulta
+        );
+
+
+        todosLosFichajes = [];
+
+
+        resultados.forEach(
+            documento => {
+
+                todosLosFichajes.push({
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+
+        todosLosFichajes.sort(
+            (a,b) => {
+
+                const fechaA =
+                texto(a.fecha) +
+                " " +
+                texto(a.horaEntrada);
+
+
+                const fechaB =
+                texto(b.fecha) +
+                " " +
+                texto(b.horaEntrada);
+
+
+                return fechaB.localeCompare(
+                    fechaA
+                );
+
+            }
+        );
+
+
+        aplicarFiltros();
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando fichajes:",
+            error
+        );
+
+
+        cargando.classList.add(
+            "oculto"
+        );
+
+
+        mostrarMensaje(
+            "No se pudieron cargar los fichajes: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   FILTROS
+========================================= */
+
+function aplicarFiltros(){
+
+    const fecha =
+    filtroFecha.value;
+
+
+    const empleadoBuscado =
+    filtroEmpleado.value
+    .trim()
+    .toLowerCase();
+
+
+    const estadoBuscado =
+    filtroEstado.value;
+
+
+    const registros =
+    todosLosFichajes.filter(
+        registro => {
+
+            const nombre =
+            (
+                texto(
+                    registro.empleadoNombre
+                ) ||
+                (
+                    texto(
+                        registro.nombre
+                    ) +
+                    " " +
+                    texto(
+                        registro.apellido
+                    )
+                )
+            )
+            .trim()
+            .toLowerCase();
+
+
+            if(
+                fecha &&
+                texto(
+                    registro.fecha
+                ) !== fecha
+            ){
+
+                return false;
+
+            }
+
+
+            if(
+                empleadoBuscado &&
+                !nombre.includes(
+                    empleadoBuscado
+                )
+            ){
+
+                return false;
+
+            }
+
+
+            if(
+                estadoBuscado &&
+                texto(
+                    registro.estado
+                ) !== estadoBuscado
+            ){
+
+                return false;
+
+            }
+
+
+            return true;
+
+        }
+    );
+
+
+    renderizarTabla(
+        registros
+    );
+
+}
+
+
+/* =========================================
+   RENDERIZAR TABLA
+========================================= */
+
+function renderizarTabla(
+    registros
+){
+
+    tablaFichajes.innerHTML =
+    "";
+
+
+    let horasTotales =
+    0;
+
+
+    let importeTotal =
+    0;
+
+
+    let abiertos =
+    0;
+
+
+    registros.forEach(
+        registro => {
+
+            const fila =
+            document.createElement(
+                "tr"
+            );
+
+
+            const nombre =
+            texto(
+                registro.empleadoNombre
+            ) ||
+            (
+                texto(
+                    registro.nombre
+                ) +
+                " " +
+                texto(
+                    registro.apellido
+                )
+            ).trim() ||
+            "Empleado";
+
+
+            const ubicacionEntrada =
+            obtenerUbicacion(
+                registro,
+                "entrada"
+            );
+
+
+            const ubicacionSalida =
+            obtenerUbicacion(
+                registro,
+                "salida"
+            );
+
+
+            const segundos =
+            numero(
+                registro.duracionSegundos
+            );
+
+
+            const horas =
+            numero(
+                registro.horasTrabajadas
+            ) ||
+            segundos / 3600;
+
+
+            const importe =
+            numero(
+                registro.importe
+            );
+
+
+            horasTotales +=
+            horas;
+
+
+            importeTotal +=
+            importe;
+
+
+            if(
+                texto(
+                    registro.estado
+                ) === "abierto"
+            ){
+
+                abiertos++;
+
+            }
+
+
+            /* EMPLEADO */
+
+            const celdaEmpleado =
+            document.createElement(
+                "td"
+            );
+
+
+            const nombreElemento =
+            document.createElement(
+                "div"
+            );
+
+
+            nombreElemento.className =
+            "empleado";
+
+
+            nombreElemento.textContent =
+            nombre;
+
+
+            celdaEmpleado.appendChild(
+                nombreElemento
+            );
+
+
+            if(
+                registro.puesto
+            ){
+
+                const puesto =
+                document.createElement(
+                    "div"
+                );
+
+
+                puesto.className =
+                "subtexto";
+
+
+                puesto.textContent =
+                registro.puesto;
+
+
+                celdaEmpleado.appendChild(
+                    puesto
+                );
+
+            }
+
+
+            fila.appendChild(
+                celdaEmpleado
+            );
+
+
+            /* FECHA */
+
+            fila.appendChild(
+                crearCelda(
+                    texto(
+                        registro.fecha
+                    ) || "-"
+                )
+            );
+
+
+            /* ENTRADA */
+
+            const celdaEntrada =
+            crearCelda(
+                texto(
+                    registro.horaEntrada
+                ) || "-"
+            );
+
+
+            celdaEntrada.classList.add(
+                "entrada"
+            );
+
+
+            fila.appendChild(
+                celdaEntrada
+            );
+
+
+            /* UBICACIÓN ENTRADA */
+
+            fila.appendChild(
+                crearCelda(
+                    crearLinkMapa(
+                        ubicacionEntrada
+                    )
+                )
+            );
+
+
+            /* SALIDA */
+
+            const celdaSalida =
+            crearCelda(
+                texto(
+                    registro.horaSalida
+                ) ||
+                "En curso"
+            );
+
+
+            celdaSalida.classList.add(
+                "salida"
+            );
+
+
+            fila.appendChild(
+                celdaSalida
+            );
+
+
+            /* UBICACIÓN SALIDA */
+
+            fila.appendChild(
+                crearCelda(
+                    crearLinkMapa(
+                        ubicacionSalida
+                    )
+                )
+            );
+
+
+            /* TIEMPO */
+
+            fila.appendChild(
+                crearCelda(
+                    formatearDuracion(
+                        segundos
+                    )
+                )
+            );
+
+
+            /* IMPORTE */
+
+            fila.appendChild(
+                crearCelda(
+                    moneda(
+                        importe
+                    )
+                )
+            );
+
+
+            /* ESTADO */
+
+            const estadoCelda =
+            document.createElement(
+                "td"
+            );
+
+
+            estadoCelda.textContent =
+            texto(
+                registro.estado
+            ) === "abierto"
+                ? "🟢 EN CURSO"
+                : "🔴 FINALIZADO";
+
+
+            fila.appendChild(
+                estadoCelda
+            );
+
+
+            tablaFichajes.appendChild(
+                fila
+            );
+
+        }
+    );
+
+
+    totalFichajes.textContent =
+    registros.length;
+
+
+    totalAbiertos.textContent =
+    abiertos;
+
+
+    totalHoras.textContent =
+    horasTotales.toFixed(2) +
+    " h";
+
+
+    totalImporte.textContent =
+    moneda(
+        importeTotal
+    );
+
+
+    cargando.classList.add(
+        "oculto"
+    );
+
+
+    if(
+        registros.length === 0
+    ){
+
+        tablaContenedor.classList.add(
+            "oculto"
+        );
+
+        sinResultados.classList.remove(
+            "oculto"
+        );
+
+        return;
+
+    }
+
+
+    sinResultados.classList.add(
+        "oculto"
+    );
+
+
+    tablaContenedor.classList.remove(
+        "oculto"
+    );
+
+}
+
+
+/* =========================================
+   ACTUALIZAR
+========================================= */
+
+btnActualizar.addEventListener(
+    "click",
+    async function(){
+
+        ocultarMensaje();
+
+        await cargarFichajes();
+
+    }
+);
+
+
+/* =========================================
+   FILTROS AUTOMÁTICOS
+========================================= */
+
+filtroFecha.addEventListener(
+    "change",
+    aplicarFiltros
+);
+
+
+filtroEmpleado.addEventListener(
+    "input",
+    aplicarFiltros
+);
+
+
+filtroEstado.addEventListener(
+    "change",
+    aplicarFiltros
+);
+
+
+/* =========================================
+   CERRAR SESIÓN
+========================================= */
+
+btnCerrarSesion.addEventListener(
+    "click",
+    async function(){
+
+        if(
+            !confirm(
+                "¿Querés cerrar la sesión?"
+            )
+        ){
+
+            return;
+
+        }
+
+
+        try{
+
+            await signOut(
+                auth
+            );
+
+
+            window.location.href =
+            "empleado-login.html";
+
+        }
+        catch(error){
+
+            mostrarMensaje(
+                "No se pudo cerrar la sesión: " +
+                error.message,
+                "error"
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   AUTENTICACIÓN
+========================================= */
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.href =
+            "empleado-login.html";
+
+            return;
+
+        }
+
+
+        usuarioActual =
+        usuario;
+
+
+        try{
+
+            /*
+             * En esta primera versión el panel
+             * funciona con la sesión autenticada.
+             *
+             * La protección definitiva por rol
+             * debe quedar también en las reglas
+             * de Firestore.
+             */
+
+            mostrarMensaje(
+                "Cargando fichajes...",
+                "info"
+            );
+
+
+            await cargarFichajes();
+
+
+            ocultarMensaje();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error panel:",
+                error
+            );
+
+
+            mostrarMensaje(
+                error.message,
+                "error"
+            );
+
+        }
+
+    }
+);
+</script>
+
+</body>
+
+</html>
