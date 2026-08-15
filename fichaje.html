@@ -194,6 +194,28 @@ main{
     color:#374151;
 }
 
+.acumulado{
+    margin-top:15px;
+    background:#f0fdf4;
+    border:1px solid #bbf7d0;
+    border-radius:12px;
+    padding:16px;
+}
+
+.acumulado-titulo{
+    font-weight:bold;
+    color:#166534;
+    margin-bottom:8px;
+}
+
+.acumulado .dato{
+    border-bottom:1px solid #dcfce7;
+}
+
+.acumulado .dato:last-child{
+    border-bottom:none;
+}
+
 .historial{
     display:flex;
     flex-direction:column;
@@ -481,6 +503,76 @@ Pago mensual:
 
 </div>
 
+
+<!-- ==============================
+     PAGO GENERADO
+============================== -->
+
+<div class="acumulado">
+
+<div class="acumulado-titulo">
+💰 Pago generado por horas trabajadas
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+⏱️ Horas acumuladas
+</span>
+
+<span id="horasAcumuladas">
+0.00 h
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+💰 Importe acumulado
+</span>
+
+<span id="importeAcumulado">
+$0
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+📅 Horas este mes
+</span>
+
+<span id="horasMes">
+0.00 h
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+💵 Importe este mes
+</span>
+
+<span id="importeMes">
+$0
+</span>
+
+</div>
+
+</div>
+
+
+<!-- ==============================
+     HOY
+============================== -->
+
 <div class="datos">
 
 <div class="dato">
@@ -495,6 +587,7 @@ Tiempo trabajado hoy
 
 </div>
 
+
 <div class="dato">
 
 <span class="etiqueta">
@@ -506,6 +599,7 @@ Horas trabajadas
 </span>
 
 </div>
+
 
 <div class="dato">
 
@@ -659,6 +753,18 @@ document.getElementById("horasHoy");
 
 const importeHoy =
 document.getElementById("importeHoy");
+
+const horasAcumuladas =
+document.getElementById("horasAcumuladas");
+
+const importeAcumulado =
+document.getElementById("importeAcumulado");
+
+const horasMes =
+document.getElementById("horasMes");
+
+const importeMes =
+document.getElementById("importeMes");
 
 const historial =
 document.getElementById("historial");
@@ -1061,12 +1167,6 @@ async function cargarEmpleado(){
     usuarioActual.uid;
 
 
-    console.log(
-        "Buscando empleado con authUid:",
-        uid
-    );
-
-
     const consulta =
     query(
         collection(
@@ -1085,12 +1185,6 @@ async function cargarEmpleado(){
     const resultados =
     await getDocs(
         consulta
-    );
-
-
-    console.log(
-        "Empleados encontrados:",
-        resultados.size
     );
 
 
@@ -1127,12 +1221,6 @@ async function cargarEmpleado(){
     texto(
         empleado.empresaId
     ).trim();
-
-
-    console.log(
-        "Empleado cargado:",
-        empleado
-    );
 
 
     if(
@@ -1612,6 +1700,227 @@ function actualizarCronometro(){
 
 
 /* =========================================
+   ACUMULADO DE HORAS Y PAGO
+========================================= */
+
+async function cargarAcumuladoPago(){
+
+    if(!empleadoId){
+
+        return;
+
+    }
+
+
+    try{
+
+        const consulta =
+        query(
+            collection(
+                db,
+                "fichajes"
+            ),
+            where(
+                "empleadoId",
+                "==",
+                empleadoId
+            ),
+            limit(500)
+        );
+
+
+        const resultados =
+        await getDocs(
+            consulta
+        );
+
+
+        let totalSegundos = 0;
+
+        let totalImporte = 0;
+
+        let mesSegundos = 0;
+
+        let mesImporte = 0;
+
+
+        const ahora =
+        new Date();
+
+
+        const anioActual =
+        ahora.getFullYear();
+
+
+        const mesActual =
+        ahora.getMonth() + 1;
+
+
+        resultados.forEach(
+            documento => {
+
+                const registro =
+                documento.data();
+
+
+                /*
+                 * SOLAMENTE JORNADAS CERRADAS
+                 */
+
+                if(
+                    registro.estado !==
+                    "cerrado"
+                ){
+
+                    return;
+
+                }
+
+
+                const segundos =
+                numero(
+                    registro.duracionSegundos
+                );
+
+
+                const importe =
+                numero(
+                    registro.importe
+                );
+
+
+                totalSegundos +=
+                segundos;
+
+
+                totalImporte +=
+                importe;
+
+
+                /*
+                 * ACUMULADO DEL MES
+                 */
+
+                const fecha =
+                texto(
+                    registro.fecha
+                );
+
+
+                if(!fecha){
+
+                    return;
+
+                }
+
+
+                const partes =
+                fecha.split("-");
+
+
+                if(
+                    partes.length !== 3
+                ){
+
+                    return;
+
+                }
+
+
+                const anio =
+                Number(
+                    partes[0]
+                );
+
+
+                const mes =
+                Number(
+                    partes[1]
+                );
+
+
+                if(
+                    anio ===
+                    anioActual &&
+                    mes ===
+                    mesActual
+                ){
+
+                    mesSegundos +=
+                    segundos;
+
+
+                    mesImporte +=
+                    importe;
+
+                }
+
+            }
+        );
+
+
+        const totalHoras =
+        totalSegundos /
+        3600;
+
+
+        const horasDelMes =
+        mesSegundos /
+        3600;
+
+
+        horasAcumuladas.textContent =
+        totalHoras.toFixed(2) +
+        " h";
+
+
+        importeAcumulado.textContent =
+        moneda(
+            totalImporte
+        );
+
+
+        horasMes.textContent =
+        horasDelMes.toFixed(2) +
+        " h";
+
+
+        importeMes.textContent =
+        moneda(
+            mesImporte
+        );
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Error calculando acumulado:",
+            error
+        );
+
+
+        horasAcumuladas.textContent =
+        "0.00 h";
+
+
+        importeAcumulado.textContent =
+        "$0";
+
+
+        horasMes.textContent =
+        "0.00 h";
+
+
+        importeMes.textContent =
+        "$0";
+
+    }
+
+}
+
+
+/* =========================================
    FICHAR ENTRADA
 ========================================= */
 
@@ -1660,10 +1969,6 @@ btnEntrada.addEventListener(
             }
 
 
-            /*
-             * OBTENER GPS ANTES DE GUARDAR
-             */
-
             const ubicacion =
             await obtenerUbicacion();
 
@@ -1709,10 +2014,6 @@ btnEntrada.addEventListener(
 
                 entradaTimestamp:
                 serverTimestamp(),
-
-                /*
-                 * UBICACIÓN ENTRADA
-                 */
 
                 entradaUbicacion: {
 
@@ -1786,6 +2087,9 @@ btnEntrada.addEventListener(
 
 
             await cargarHistorial();
+
+
+            await cargarAcumuladoPago();
 
         }
         catch(error){
@@ -1863,10 +2167,6 @@ btnSalida.addEventListener(
 
         try{
 
-            /*
-             * OBTENER UBICACIÓN DE SALIDA
-             */
-
             const ubicacion =
             await obtenerUbicacion();
 
@@ -1931,10 +2231,6 @@ btnSalida.addEventListener(
 
                     salidaTimestamp:
                     serverTimestamp(),
-
-                    /*
-                     * UBICACIÓN SALIDA
-                     */
 
                     salidaUbicacion: {
 
@@ -2039,6 +2335,9 @@ btnSalida.addEventListener(
 
 
             await cargarHistorial();
+
+
+            await cargarAcumuladoPago();
 
         }
         catch(error){
@@ -2428,12 +2727,6 @@ onAuthStateChanged(
     auth,
     async function(usuario){
 
-        console.log(
-            "Estado autenticación:",
-            usuario
-        );
-
-
         if(!usuario){
 
             window.location.href =
@@ -2484,9 +2777,8 @@ onAuthStateChanged(
             await cargarHistorial();
 
 
-            console.log(
-                "FICHAJE INICIALIZADO CORRECTAMENTE"
-            );
+            await cargarAcumuladoPago();
+
 
         }
         catch(error){
