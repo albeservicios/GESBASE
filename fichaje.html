@@ -251,6 +251,22 @@ main{
     color:#1e40af;
 }
 
+.ubicacion-info{
+    background:#f0fdf4;
+    border:1px solid #bbf7d0;
+    border-radius:12px;
+    padding:14px;
+    margin-top:15px;
+    font-size:14px;
+    color:#166534;
+    line-height:1.5;
+}
+
+.ubicacion-icono{
+    font-size:22px;
+    margin-right:5px;
+}
+
 @media(max-width:500px){
 
     main{
@@ -329,9 +345,24 @@ VERIFICANDO...
 
 </div>
 
+
 <div id="cronometro" class="cronometro">
 00:00:00
 </div>
+
+
+<div class="ubicacion-info">
+
+<span class="ubicacion-icono">📍</span>
+
+<strong>Control de ubicación activo</strong>
+
+<br>
+
+Al fichar se registrará la ubicación GPS del dispositivo.
+
+</div>
+
 
 <button
 id="btnEntrada"
@@ -341,6 +372,7 @@ disabled
 🟢 FICHAR ENTRADA
 </button>
 
+
 <button
 id="btnSalida"
 class="boton boton-salida"
@@ -348,6 +380,7 @@ disabled
 >
 🔴 FICHAR SALIDA
 </button>
+
 
 <div id="datosJornada" class="datos oculto">
 
@@ -363,6 +396,7 @@ Entrada
 
 </div>
 
+
 <div class="dato">
 
 <span class="etiqueta">
@@ -375,6 +409,7 @@ Salida
 
 </div>
 
+
 <div class="dato">
 
 <span class="etiqueta">
@@ -382,6 +417,19 @@ Tiempo trabajado
 </span>
 
 <span id="tiempoTrabajado">
+-
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Ubicación
+</span>
+
+<span id="estadoUbicacion">
 -
 </span>
 
@@ -504,6 +552,7 @@ class="boton boton-cerrar"
 CERRAR SESIÓN
 </button>
 
+
 <button
 id="btnVolver"
 class="boton boton-volver"
@@ -586,6 +635,9 @@ document.getElementById("horaSalida");
 
 const tiempoTrabajado =
 document.getElementById("tiempoTrabajado");
+
+const estadoUbicacion =
+document.getElementById("estadoUbicacion");
 
 const pagoDiario =
 document.getElementById("pagoDiario");
@@ -873,6 +925,124 @@ function convertirFecha(valor){
 
 
 /* =========================================
+   OBTENER UBICACIÓN GPS
+========================================= */
+
+function obtenerUbicacion(){
+
+    return new Promise(
+        function(resolve,reject){
+
+            if(
+                !navigator.geolocation
+            ){
+
+                reject(
+                    new Error(
+                        "Este dispositivo o navegador no permite obtener la ubicación."
+                    )
+                );
+
+                return;
+
+            }
+
+
+            navigator.geolocation.getCurrentPosition(
+
+                function(posicion){
+
+                    const coordenadas =
+                    posicion.coords;
+
+
+                    resolve({
+
+                        lat:
+                        Number(
+                            coordenadas.latitude
+                        ),
+
+                        lng:
+                        Number(
+                            coordenadas.longitude
+                        ),
+
+                        precision:
+                        Number(
+                            coordenadas.accuracy
+                        )
+
+                    });
+
+                },
+
+                function(error){
+
+                    let mensaje =
+                    "No se pudo obtener la ubicación.";
+
+
+                    switch(
+                        error.code
+                    ){
+
+                        case 1:
+
+                            mensaje =
+                            "Debés permitir el acceso a la ubicación para poder fichar.";
+
+                            break;
+
+
+                        case 2:
+
+                            mensaje =
+                            "No se pudo determinar tu ubicación. Verificá que el GPS esté activado.";
+
+                            break;
+
+
+                        case 3:
+
+                            mensaje =
+                            "La ubicación tardó demasiado en responder. Intentá nuevamente.";
+
+                            break;
+
+                    }
+
+
+                    reject(
+                        new Error(
+                            mensaje
+                        )
+                    );
+
+                },
+
+                {
+
+                    enableHighAccuracy:
+                    true,
+
+                    timeout:
+                    15000,
+
+                    maximumAge:
+                    0
+
+                }
+
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================
    CARGAR EMPLEADO
 ========================================= */
 
@@ -896,20 +1066,6 @@ async function cargarEmpleado(){
         uid
     );
 
-
-    /*
-     * IMPORTANTE:
-     *
-     * Buscamos directamente:
-     *
-     * empleados
-     *
-     * authUid == UID
-     *
-     * Esto evita depender de:
-     *
-     * usuarios/{uid}
-     */
 
     const consulta =
     query(
@@ -1047,12 +1203,6 @@ function cargarPago(){
         empleado.pagoDiario
     );
 
-
-    /*
-     * Jornada estándar:
-     *
-     * 8 horas
-     */
 
     pagoHoraValor =
     pagoDia / 8;
@@ -1200,6 +1350,10 @@ function mostrarSinFichar(){
     "-";
 
 
+    estadoUbicacion.textContent =
+    "-";
+
+
     tiempoHoy.textContent =
     "00:00:00";
 
@@ -1261,6 +1415,22 @@ function mostrarFichajeActivo(){
 
     tiempoTrabajado.textContent =
     "En curso";
+
+
+    if(
+        fichajeActivo.entradaUbicacion
+    ){
+
+        estadoUbicacion.textContent =
+        "📍 Registrada";
+
+    }
+    else{
+
+        estadoUbicacion.textContent =
+        "No disponible";
+
+    }
 
 
     iniciarCronometro();
@@ -1471,7 +1641,7 @@ btnEntrada.addEventListener(
 
 
         btnEntrada.textContent =
-        "REGISTRANDO...";
+        "📍 OBTENIENDO UBICACIÓN...";
 
 
         try{
@@ -1488,6 +1658,18 @@ btnEntrada.addEventListener(
                 return;
 
             }
+
+
+            /*
+             * OBTENER GPS ANTES DE GUARDAR
+             */
+
+            const ubicacion =
+            await obtenerUbicacion();
+
+
+            btnEntrada.textContent =
+            "REGISTRANDO...";
 
 
             const ahora =
@@ -1528,10 +1710,30 @@ btnEntrada.addEventListener(
                 entradaTimestamp:
                 serverTimestamp(),
 
+                /*
+                 * UBICACIÓN ENTRADA
+                 */
+
+                entradaUbicacion: {
+
+                    lat:
+                    ubicacion.lat,
+
+                    lng:
+                    ubicacion.lng,
+
+                    precision:
+                    ubicacion.precision
+
+                },
+
                 horaSalida:
                 "",
 
                 salidaTimestamp:
+                null,
+
+                salidaUbicacion:
                 null,
 
                 estado:
@@ -1579,7 +1781,7 @@ btnEntrada.addEventListener(
 
 
             mostrarExito(
-                "Entrada registrada correctamente."
+                "Entrada registrada correctamente con ubicación GPS."
             );
 
 
@@ -1595,7 +1797,6 @@ btnEntrada.addEventListener(
 
 
             mostrarError(
-                "No se pudo registrar la entrada: " +
                 error.message
             );
 
@@ -1657,10 +1858,22 @@ btnSalida.addEventListener(
 
 
         btnSalida.textContent =
-        "REGISTRANDO...";
+        "📍 OBTENIENDO UBICACIÓN...";
 
 
         try{
+
+            /*
+             * OBTENER UBICACIÓN DE SALIDA
+             */
+
+            const ubicacion =
+            await obtenerUbicacion();
+
+
+            btnSalida.textContent =
+            "REGISTRANDO...";
+
 
             const ahora =
             new Date();
@@ -1718,6 +1931,23 @@ btnSalida.addEventListener(
 
                     salidaTimestamp:
                     serverTimestamp(),
+
+                    /*
+                     * UBICACIÓN SALIDA
+                     */
+
+                    salidaUbicacion: {
+
+                        lat:
+                        ubicacion.lat,
+
+                        lng:
+                        ubicacion.lng,
+
+                        precision:
+                        ubicacion.precision
+
+                    },
 
                     estado:
                     "cerrado",
@@ -1787,6 +2017,10 @@ btnSalida.addEventListener(
             );
 
 
+            estadoUbicacion.textContent =
+            "📍 Entrada y salida registradas";
+
+
             fichajeActivo =
             null;
 
@@ -1800,7 +2034,7 @@ btnSalida.addEventListener(
 
 
             mostrarExito(
-                "Salida registrada correctamente."
+                "Salida registrada correctamente con ubicación GPS."
             );
 
 
@@ -1816,7 +2050,6 @@ btnSalida.addEventListener(
 
 
             mostrarError(
-                "No se pudo registrar la salida: " +
                 error.message
             );
 
@@ -2045,6 +2278,35 @@ async function cargarHistorial(){
                 );
 
 
+                const ubicacion =
+                document.createElement(
+                    "div"
+                );
+
+                ubicacion.className =
+                "registro-linea";
+
+
+                const tieneEntrada =
+                !!registro.entradaUbicacion;
+
+
+                const tieneSalida =
+                !!registro.salidaUbicacion;
+
+
+                ubicacion.textContent =
+                "Ubicación: " +
+                (
+                    tieneEntrada &&
+                    tieneSalida
+                    ? "Entrada y salida registradas"
+                    : tieneEntrada
+                    ? "Entrada registrada"
+                    : "No disponible"
+                );
+
+
                 elemento.appendChild(
                     fecha
                 );
@@ -2063,6 +2325,10 @@ async function cargarHistorial(){
 
                 elemento.appendChild(
                     importe
+                );
+
+                elemento.appendChild(
+                    ubicacion
                 );
 
 
