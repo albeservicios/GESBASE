@@ -278,8 +278,7 @@ ACCESO ADMINISTRADOR
 
 <div class="privacidad">
 
-El empleado solamente puede acceder
-a su propia información y fichajes.
+Acceso exclusivo para empleados registrados en GESBASE.
 
 </div>
 
@@ -302,7 +301,6 @@ import {
 
 import {
     signInWithEmailAndPassword,
-    onAuthStateChanged,
     signOut
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -405,20 +403,14 @@ function normalizarEmail(valor){
 
 
 // ==================================================
-// BUSCAR EMPLEADO
+// BUSCAR EMPLEADO POR AUTH UID
 // ==================================================
 
-async function buscarEmpleadoPorEmail(
-    emailEmpleado
+async function buscarEmpleadoPorUID(
+    uid
 ){
 
-    const emailNormalizado =
-    normalizarEmail(
-        emailEmpleado
-    );
-
-
-    if(!emailNormalizado){
+    if(!uid){
 
         return null;
 
@@ -432,13 +424,25 @@ async function buscarEmpleadoPorEmail(
     );
 
 
+    /*
+     * IMPORTANTE:
+     *
+     * Buscamos directamente por authUid.
+     *
+     * No buscamos por email.
+     *
+     * Esto permite que las Rules de Firestore
+     * comprueben que el empleado solamente
+     * puede consultar su propio registro.
+     */
+
     const consulta =
     query(
         referencia,
         where(
-            "email",
+            "authUid",
             "==",
-            emailNormalizado
+            uid
         )
     );
 
@@ -458,7 +462,7 @@ async function buscarEmpleadoPorEmail(
     }
 
 
-    let empleadoEncontrado =
+    let empleado =
     null;
 
 
@@ -466,7 +470,7 @@ async function buscarEmpleadoPorEmail(
         function(documento){
 
             if(
-                empleadoEncontrado
+                empleado
             ){
 
                 return;
@@ -474,7 +478,7 @@ async function buscarEmpleadoPorEmail(
             }
 
 
-            empleadoEncontrado = {
+            empleado = {
 
                 id:
                 documento.id,
@@ -487,54 +491,45 @@ async function buscarEmpleadoPorEmail(
     );
 
 
-    return empleadoEncontrado;
+    return empleado;
 
 }
 
 
 // ==================================================
-// VERIFICAR EMPLEADO
+// VALIDAR EMPLEADO
 // ==================================================
 
-async function verificarEmpleado(
+async function validarEmpleado(
     usuario
 ){
 
     if(!usuario){
 
         throw new Error(
-            "No hay una sesión activa."
-        );
-
-    }
-
-
-    if(!usuario.email){
-
-        throw new Error(
-            "La cuenta no tiene un email asociado."
+            "No se pudo identificar la cuenta."
         );
 
     }
 
 
     const empleado =
-    await buscarEmpleadoPorEmail(
-        usuario.email
+    await buscarEmpleadoPorUID(
+        usuario.uid
     );
 
 
     if(!empleado){
 
         throw new Error(
-            "No existe un empleado registrado con este email."
+            "Esta cuenta de Firebase no está vinculada a ningún empleado."
         );
 
     }
 
 
     // ==================================================
-    // ESTADO
+    // COMPROBAR ESTADO
     // ==================================================
 
     if(
@@ -546,14 +541,14 @@ async function verificarEmpleado(
     ){
 
         throw new Error(
-            "Este empleado se encuentra inactivo. Comunicate con el administrador."
+            "Tu acceso está inactivo. Comunicate con el administrador."
         );
 
     }
 
 
     // ==================================================
-    // EMPRESA
+    // COMPROBAR EMPRESA
     // ==================================================
 
     if(
@@ -571,39 +566,20 @@ async function verificarEmpleado(
     // COMPROBAR AUTH UID
     // ==================================================
 
-    /*
-     * El administrador crea el acceso y guarda
-     * authUid dentro del empleado.
-     *
-     * El empleado solamente puede ingresar si
-     * ese authUid coincide con su cuenta.
-     */
-
-    if(
-        !empleado.authUid
-    ){
-
-        throw new Error(
-            "Este empleado todavía no tiene un acceso creado. Comunicate con el administrador."
-        );
-
-    }
-
-
     if(
         empleado.authUid !==
         usuario.uid
     ){
 
         throw new Error(
-            "Esta cuenta no está vinculada al empleado registrado."
+            "La cuenta no coincide con el empleado registrado."
         );
 
     }
 
 
     // ==================================================
-    // GUARDAR SESIÓN
+    // GUARDAR DATOS DE SESIÓN
     // ==================================================
 
     sessionStorage.setItem(
@@ -627,6 +603,20 @@ async function verificarEmpleado(
     sessionStorage.setItem(
         "gesbase_auth_uid",
         usuario.uid
+    );
+
+
+    sessionStorage.setItem(
+        "gesbase_nombre_empleado",
+        (
+            String(
+                empleado.nombre || ""
+            ) +
+            " " +
+            String(
+                empleado.apellido || ""
+            )
+        ).trim()
     );
 
 
@@ -698,7 +688,7 @@ formLogin.addEventListener(
         try{
 
             // ==================================================
-            // AUTENTICAR
+            // 1. FIREBASE AUTHENTICATION
             // ==================================================
 
             const resultado =
@@ -714,14 +704,18 @@ formLogin.addEventListener(
 
 
             // ==================================================
-            // VERIFICAR EMPLEADO
+            // 2. VERIFICAR EMPLEADO
             // ==================================================
 
             const empleado =
-            await verificarEmpleado(
+            await validarEmpleado(
                 usuario
             );
 
+
+            // ==================================================
+            // 3. ACCESO CORRECTO
+            // ==================================================
 
             mostrarExito(
                 "Bienvenido/a " +
@@ -729,12 +723,12 @@ formLogin.addEventListener(
                     empleado.nombre ||
                     "empleado"
                 ) +
-                ". Ingresando al fichaje..."
+                "."
             );
 
 
             // ==================================================
-            // IR A FICHAJE
+            // 4. IR AL FICHAJE
             // ==================================================
 
             setTimeout(
@@ -744,21 +738,22 @@ formLogin.addEventListener(
                     "fichaje.html";
 
                 },
-                600
+                700
             );
 
         }
         catch(error){
 
             console.error(
-                "Error de acceso empleado:",
+                "Error en acceso empleado:",
                 error
             );
 
 
-            // ==================================================
-            // CERRAR SESIÓN SI FALLA LA VERIFICACIÓN
-            // ==================================================
+            /*
+             * Si falla la validación del empleado,
+             * cerramos la sesión.
+             */
 
             try{
 
@@ -782,7 +777,7 @@ formLogin.addEventListener(
 
 
             // ==================================================
-            // FIREBASE AUTH
+            // ERRORES AUTH
             // ==================================================
 
             if(
@@ -794,6 +789,7 @@ formLogin.addEventListener(
                 "Email o contraseña incorrectos.";
 
             }
+
             else if(
                 error.code ===
                 "auth/user-not-found"
@@ -803,6 +799,7 @@ formLogin.addEventListener(
                 "No existe una cuenta con ese email.";
 
             }
+
             else if(
                 error.code ===
                 "auth/wrong-password"
@@ -812,6 +809,7 @@ formLogin.addEventListener(
                 "La contraseña es incorrecta.";
 
             }
+
             else if(
                 error.code ===
                 "auth/invalid-email"
@@ -821,6 +819,7 @@ formLogin.addEventListener(
                 "El email ingresado no es válido.";
 
             }
+
             else if(
                 error.code ===
                 "auth/too-many-requests"
@@ -830,13 +829,14 @@ formLogin.addEventListener(
                 "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
 
             }
+
             else if(
                 error.code ===
                 "auth/network-request-failed"
             ){
 
                 mensaje =
-                "No hay conexión con Firebase. Revisá tu conexión a Internet.";
+                "No hay conexión con Firebase.";
 
             }
 
@@ -851,13 +851,13 @@ formLogin.addEventListener(
             ){
 
                 mensaje =
-                "Firebase no permite consultar los empleados con las reglas actuales.";
+                "Firebase rechazó la consulta del empleado. Verificá que las Rules permitan leer el registro cuyo authUid coincide con la cuenta.";
 
             }
 
 
             // ==================================================
-            // ERROR PERSONALIZADO
+            // ERROR DEL SISTEMA
             // ==================================================
 
             else if(
@@ -933,6 +933,10 @@ btnAdministrador.addEventListener(
             "gesbase_auth_uid"
         );
 
+        sessionStorage.removeItem(
+            "gesbase_nombre_empleado"
+        );
+
 
         window.location.href =
         "login.html";
@@ -941,108 +945,8 @@ btnAdministrador.addEventListener(
 );
 
 
-// ==================================================
-// SESIÓN EXISTENTE
-// ==================================================
-
-onAuthStateChanged(
-    auth,
-    async function(usuario){
-
-        if(!usuario){
-
-            return;
-
-        }
-
-
-        const tipoAcceso =
-        sessionStorage.getItem(
-            "gesbase_tipo_acceso"
-        );
-
-
-        /*
-         * Si no es una sesión de empleado,
-         * no hacemos nada.
-         *
-         * Esto evita que el administrador
-         * quede atrapado en esta pantalla.
-         */
-
-        if(
-            tipoAcceso !==
-            "empleado"
-        ){
-
-            return;
-
-        }
-
-
-        try{
-
-            const empleado =
-            await verificarEmpleado(
-                usuario
-            );
-
-
-            if(empleado){
-
-                window.location.href =
-                "fichaje.html";
-
-            }
-
-        }
-        catch(error){
-
-            console.warn(
-                "Sesión de empleado no válida:",
-                error
-            );
-
-
-            try{
-
-                await signOut(
-                    auth
-                );
-
-            }
-            catch(errorCerrar){
-
-                console.warn(
-                    errorCerrar
-                );
-
-            }
-
-
-            sessionStorage.removeItem(
-                "gesbase_tipo_acceso"
-            );
-
-            sessionStorage.removeItem(
-                "gesbase_empleado_id"
-            );
-
-            sessionStorage.removeItem(
-                "gesbase_empresa_id"
-            );
-
-            sessionStorage.removeItem(
-                "gesbase_auth_uid"
-            );
-
-        }
-
-    }
-);
-
-
 </script>
+
 
 </body>
 
