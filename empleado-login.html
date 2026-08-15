@@ -4,8 +4,16 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111827">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
 
 <title>GESBASE - Acceso empleado</title>
 
@@ -277,6 +285,11 @@ GESBASE · Acceso empleado
 
 <script type="module">
 
+
+// =====================================================
+// FIREBASE
+// =====================================================
+
 import {
     auth,
     db
@@ -284,48 +297,54 @@ import {
 
 
 import {
-    signInWithEmailAndPassword,
-    onAuthStateChanged
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
 import {
-    doc,
-    getDoc
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    collection,
+    query,
+    where,
+    getDocs,
+    limit
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
-// ==========================================
+// =====================================================
 // ELEMENTOS
-// ==========================================
+// =====================================================
 
 const email =
 document.getElementById("email");
 
+
 const password =
 document.getElementById("password");
+
 
 const btnIngresar =
 document.getElementById("btnIngresar");
 
+
 const btnVolver =
 document.getElementById("btnVolver");
+
 
 const mensajeError =
 document.getElementById("mensajeError");
 
+
 const mensajeExito =
 document.getElementById("mensajeExito");
+
 
 const cargando =
 document.getElementById("cargando");
 
 
-// ==========================================
+// =====================================================
 // MENSAJES
-// ==========================================
+// =====================================================
 
 function mostrarError(mensaje){
 
@@ -366,9 +385,9 @@ function limpiarMensajes(){
 }
 
 
-// ==========================================
+// =====================================================
 // CARGANDO
-// ==========================================
+// =====================================================
 
 function iniciarCarga(){
 
@@ -398,9 +417,9 @@ function terminarCarga(){
 }
 
 
-// ==========================================
+// =====================================================
 // TEXTO
-// ==========================================
+// =====================================================
 
 function texto(valor){
 
@@ -418,126 +437,136 @@ function texto(valor){
 }
 
 
-// ==========================================
-// OBTENER PERFIL DEL USUARIO
-// ==========================================
+// =====================================================
+// BUSCAR EMPLEADO
+// =====================================================
 
-async function obtenerPerfilEmpleado(usuario){
+async function buscarEmpleado(usuario){
 
     /*
-     * IMPORTANTE:
+     * BUSCAMOS DIRECTAMENTE EN:
      *
-     * Solo leemos:
+     * empleados
+     *
+     * usando:
+     *
+     * authUid == UID DEL USUARIO
+     *
+     * No dependemos de:
      *
      * usuarios/{uid}
-     *
-     * No hacemos ninguna consulta
-     * sobre toda la colección empleados.
      */
 
+
     const referencia =
-    doc(
+    collection(
         db,
-        "usuarios",
-        usuario.uid
+        "empleados"
     );
 
 
-    const resultado =
-    await getDoc(
-        referencia
+    const consulta =
+    query(
+        referencia,
+
+        where(
+            "authUid",
+            "==",
+            usuario.uid
+        ),
+
+        limit(1)
+    );
+
+
+    const resultados =
+    await getDocs(
+        consulta
     );
 
 
     if(
-        !resultado.exists()
+        resultados.empty
     ){
 
         throw new Error(
-            "No encontramos el perfil del usuario."
+            "No encontramos el perfil del empleado. Verificá que el acceso haya sido creado desde GESBASE."
         );
 
     }
 
 
-    const datos =
-    resultado.data();
+    const documento =
+    resultados.docs[0];
 
 
-    // ======================================
-    // VERIFICAR PERFIL
-    // ======================================
+    const empleado = {
+
+        id:
+        documento.id,
+
+        ...documento.data()
+
+    };
+
+
+    // =================================================
+    // VERIFICAR ESTADO
+    // =================================================
 
     if(
-        datos.perfil !==
-        "empleado"
+        empleado.estado &&
+        empleado.estado !==
+        "Activo"
     ){
 
         throw new Error(
-            "Esta cuenta no está configurada como empleado."
+            "El empleado está inactivo. Contactá al administrador."
         );
 
     }
 
 
-    // ======================================
-    // EMPLEADO ID
-    // ======================================
-
-    const empleadoId =
-    texto(
-        datos.empleadoId
-    ).trim();
-
-
-    if(!empleadoId){
-
-        throw new Error(
-            "El usuario no tiene asignado un empleado."
-        );
-
-    }
-
-
-    // ======================================
+    // =================================================
     // EMPRESA
-    // ======================================
+    // =================================================
 
     const empresaId =
     texto(
-        datos.empresaId
+        empleado.empresaId
     ).trim();
 
 
     if(!empresaId){
 
         throw new Error(
-            "El usuario no tiene empresa asignada."
+            "El empleado no tiene empresa asignada."
         );
 
     }
 
 
-    // ======================================
-    // ESTADO
-    // ======================================
+    // =================================================
+    // VERIFICAR AUTH UID
+    // =================================================
 
     if(
-        datos.estado &&
-        datos.estado !==
-        "Activo"
+        texto(
+            empleado.authUid
+        ).trim() !==
+        usuario.uid
     ){
 
         throw new Error(
-            "El acceso de este empleado está inactivo."
+            "La cuenta no está vinculada correctamente con el empleado."
         );
 
     }
 
 
-    // ======================================
-    // GUARDAR SESIÓN
-    // ======================================
+    // =================================================
+    // DATOS DE SESIÓN
+    // =================================================
 
     const sesion = {
 
@@ -545,7 +574,7 @@ async function obtenerPerfilEmpleado(usuario){
         usuario.uid,
 
         empleadoId:
-        empleadoId,
+        empleado.id,
 
         empresaId:
         empresaId,
@@ -555,22 +584,36 @@ async function obtenerPerfilEmpleado(usuario){
 
         nombre:
         texto(
-            datos.nombre
+            empleado.nombre
         ),
 
         apellido:
         texto(
-            datos.apellido
+            empleado.apellido
         ),
 
         email:
         texto(
-            datos.email ||
+            empleado.email ||
             usuario.email
+        ),
+
+        puesto:
+        texto(
+            empleado.puesto
+        ),
+
+        pagoDiario:
+        Number(
+            empleado.pagoDiario || 0
         )
 
     };
 
+
+    // =================================================
+    // GUARDAR SESIÓN
+    // =================================================
 
     sessionStorage.setItem(
         "gesbaseEmpleado",
@@ -585,9 +628,9 @@ async function obtenerPerfilEmpleado(usuario){
 }
 
 
-// ==========================================
+// =====================================================
 // LOGIN
-// ==========================================
+// =====================================================
 
 btnIngresar.addEventListener(
     "click",
@@ -605,6 +648,10 @@ btnIngresar.addEventListener(
         const passwordValor =
         password.value;
 
+
+        // ==============================================
+        // VALIDACIONES
+        // ==============================================
 
         if(!emailValor){
 
@@ -633,9 +680,9 @@ btnIngresar.addEventListener(
 
         try{
 
-            // ==================================
-            // 1. AUTENTICAR
-            // ==================================
+            // ==========================================
+            // 1. AUTENTICAR EN FIREBASE AUTH
+            // ==========================================
 
             const resultado =
             await signInWithEmailAndPassword(
@@ -649,19 +696,19 @@ btnIngresar.addEventListener(
             resultado.user;
 
 
-            // ==================================
-            // 2. OBTENER PERFIL
-            // ==================================
+            // ==========================================
+            // 2. BUSCAR EMPLEADO
+            // ==========================================
 
             const empleado =
-            await obtenerPerfilEmpleado(
+            await buscarEmpleado(
                 usuario
             );
 
 
-            // ==================================
-            // 3. MOSTRAR ÉXITO
-            // ==================================
+            // ==========================================
+            // 3. ACCESO CORRECTO
+            // ==========================================
 
             mostrarExito(
                 "Bienvenido " +
@@ -673,9 +720,9 @@ btnIngresar.addEventListener(
             );
 
 
-            // ==================================
-            // 4. IR AL FICHAJE
-            // ==================================
+            // ==========================================
+            // 4. IR A FICHAJE
+            // ==========================================
 
             setTimeout(
                 function(){
@@ -691,7 +738,7 @@ btnIngresar.addEventListener(
         catch(error){
 
             console.error(
-                "Error login empleado:",
+                "ERROR LOGIN EMPLEADO:",
                 error
             );
 
@@ -700,78 +747,94 @@ btnIngresar.addEventListener(
             "No se pudo iniciar sesión.";
 
 
-            switch(
-                error.code
+            // ==========================================
+            // ERRORES FIREBASE AUTH
+            // ==========================================
+
+            if(
+                error.code ===
+                "auth/invalid-credential"
             ){
 
-                case "auth/invalid-credential":
+                mensaje =
+                "Email o contraseña incorrectos.";
 
-                    mensaje =
-                    "Email o contraseña incorrectos.";
+            }
 
-                    break;
+            else if(
+                error.code ===
+                "auth/user-not-found"
+            ){
 
+                mensaje =
+                "No existe un usuario con ese email.";
 
-                case "auth/user-not-found":
+            }
 
-                    mensaje =
-                    "No existe un usuario con ese email.";
+            else if(
+                error.code ===
+                "auth/wrong-password"
+            ){
 
-                    break;
+                mensaje =
+                "La contraseña es incorrecta.";
 
+            }
 
-                case "auth/wrong-password":
+            else if(
+                error.code ===
+                "auth/invalid-email"
+            ){
 
-                    mensaje =
-                    "La contraseña es incorrecta.";
+                mensaje =
+                "El email no es válido.";
 
-                    break;
+            }
 
+            else if(
+                error.code ===
+                "auth/user-disabled"
+            ){
 
-                case "auth/invalid-email":
+                mensaje =
+                "Este usuario está deshabilitado.";
 
-                    mensaje =
-                    "El email no es válido.";
+            }
 
-                    break;
+            else if(
+                error.code ===
+                "auth/too-many-requests"
+            ){
 
+                mensaje =
+                "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
 
-                case "auth/user-disabled":
+            }
 
-                    mensaje =
-                    "Este usuario está deshabilitado.";
+            // ==========================================
+            // FIRESTORE
+            // ==========================================
 
-                    break;
+            else if(
+                error.code ===
+                "permission-denied"
+            ){
 
+                mensaje =
+                "Firebase rechazó el acceso a los datos del empleado. Hay que revisar las reglas de Firestore.";
 
-                case "auth/too-many-requests":
+            }
 
-                    mensaje =
-                    "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
+            // ==========================================
+            // ERROR PERSONALIZADO
+            // ==========================================
 
-                    break;
+            else if(
+                error.message
+            ){
 
-
-                case "permission-denied":
-
-                    mensaje =
-                    "GESBASE no tiene permiso para verificar el perfil del empleado.";
-
-                    break;
-
-
-                default:
-
-                    if(
-                        error.message
-                    ){
-
-                        mensaje =
-                        error.message;
-
-                    }
-
-                    break;
+                mensaje =
+                error.message;
 
             }
 
@@ -791,9 +854,9 @@ btnIngresar.addEventListener(
 );
 
 
-// ==========================================
+// =====================================================
 // ENTER
-// ==========================================
+// =====================================================
 
 password.addEventListener(
     "keydown",
@@ -812,9 +875,9 @@ password.addEventListener(
 );
 
 
-// ==========================================
+// =====================================================
 // VOLVER
-// ==========================================
+// =====================================================
 
 btnVolver.addEventListener(
     "click",
@@ -825,29 +888,6 @@ btnVolver.addEventListener(
     }
 );
 
-
-// ==========================================
-// SI YA ESTÁ LOGUEADO
-// ==========================================
-
-onAuthStateChanged(
-    auth,
-    async function(usuario){
-
-        if(!usuario){
-
-            return;
-
-        }
-
-        /*
-         * No redirigimos automáticamente.
-         * El usuario entra mediante el botón
-         * INGRESAR.
-         */
-
-    }
-);
 
 </script>
 
