@@ -4,16 +4,8 @@
 <head>
 
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<meta
-    name="theme-color"
-    content="#111827"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
 
 <title>GESBASE - Acceso empleado</title>
 
@@ -172,14 +164,11 @@ body{
 
 </head>
 
-
 <body>
-
 
 <div class="contenedor">
 
 <div class="tarjeta">
-
 
 <div class="logo">
 
@@ -191,27 +180,26 @@ body{
 
 
 <div
-    id="mensajeError"
-    class="mensaje error"
+id="mensajeError"
+class="mensaje error"
 ></div>
 
 
 <div
-    id="mensajeExito"
-    class="mensaje exito"
+id="mensajeExito"
+class="mensaje exito"
 ></div>
 
 
 <div
-    id="cargando"
-    class="cargando"
+id="cargando"
+class="cargando"
 >
 Verificando acceso...
 </div>
 
 
 <div id="formularioLogin">
-
 
 <div class="titulo">
 Iniciar sesión
@@ -225,10 +213,10 @@ Email
 </label>
 
 <input
-    type="email"
-    id="email"
-    placeholder="Ingresá tu email"
-    autocomplete="username"
+type="email"
+id="email"
+placeholder="Ingresá tu email"
+autocomplete="username"
 >
 
 </div>
@@ -241,26 +229,26 @@ Contraseña
 </label>
 
 <input
-    type="password"
-    id="password"
-    placeholder="Ingresá tu contraseña"
-    autocomplete="current-password"
+type="password"
+id="password"
+placeholder="Ingresá tu contraseña"
+autocomplete="current-password"
 >
 
 </div>
 
 
 <button
-    id="btnIngresar"
-    class="boton boton-principal"
+id="btnIngresar"
+class="boton boton-principal"
 >
 INGRESAR
 </button>
 
 
 <button
-    id="btnVolver"
-    class="boton boton-volver"
+id="btnVolver"
+class="boton boton-volver"
 >
 ⬅️ VOLVER
 </button>
@@ -282,18 +270,12 @@ GESBASE · Acceso empleado
 
 </div>
 
-
 </div>
 
 </div>
 
 
 <script type="module">
-
-
-// ==========================================
-// FIREBASE
-// ==========================================
 
 import {
     auth,
@@ -302,17 +284,15 @@ import {
 
 
 import {
-    signInWithEmailAndPassword
+    signInWithEmailAndPassword,
+    onAuthStateChanged
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
 import {
-    collection,
-    query,
-    where,
-    getDocs,
-    limit
+    doc,
+    getDoc
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -322,39 +302,25 @@ import {
 // ==========================================
 
 const email =
-document.getElementById(
-    "email"
-);
+document.getElementById("email");
 
 const password =
-document.getElementById(
-    "password"
-);
+document.getElementById("password");
 
 const btnIngresar =
-document.getElementById(
-    "btnIngresar"
-);
+document.getElementById("btnIngresar");
 
 const btnVolver =
-document.getElementById(
-    "btnVolver"
-);
+document.getElementById("btnVolver");
 
 const mensajeError =
-document.getElementById(
-    "mensajeError"
-);
+document.getElementById("mensajeError");
 
 const mensajeExito =
-document.getElementById(
-    "mensajeExito"
-);
+document.getElementById("mensajeExito");
 
 const cargando =
-document.getElementById(
-    "cargando"
-);
+document.getElementById("cargando");
 
 
 // ==========================================
@@ -453,92 +419,81 @@ function texto(valor){
 
 
 // ==========================================
-// BUSCAR EMPLEADO
+// OBTENER PERFIL DEL USUARIO
 // ==========================================
 
-async function buscarEmpleado(
-    usuario
-){
+async function obtenerPerfilEmpleado(usuario){
 
     /*
      * IMPORTANTE:
      *
-     * Ya NO buscamos:
+     * Solo leemos:
      *
      * usuarios/{uid}
      *
-     * Buscamos directamente:
-     *
-     * empleados
-     *
-     * donde:
-     *
-     * authUid == UID de Firebase
+     * No hacemos ninguna consulta
+     * sobre toda la colección empleados.
      */
 
-
     const referencia =
-    collection(
+    doc(
         db,
-        "empleados"
+        "usuarios",
+        usuario.uid
     );
 
 
-    const consulta =
-    query(
-        referencia,
-        where(
-            "authUid",
-            "==",
-            usuario.uid
-        ),
-        limit(1)
-    );
-
-
-    const resultados =
-    await getDocs(
-        consulta
+    const resultado =
+    await getDoc(
+        referencia
     );
 
 
     if(
-        resultados.empty
+        !resultado.exists()
     ){
 
         throw new Error(
-            "No encontramos una ficha de empleado vinculada a este usuario."
+            "No encontramos el perfil del usuario."
         );
 
     }
 
 
-    const documento =
-    resultados.docs[0];
-
-
-    const empleado =
-    {
-        id:
-        documento.id,
-
-        ...documento.data()
-
-    };
+    const datos =
+    resultado.data();
 
 
     // ======================================
-    // VERIFICAR ESTADO
+    // VERIFICAR PERFIL
     // ======================================
 
     if(
-        empleado.estado &&
-        empleado.estado !==
-        "Activo"
+        datos.perfil !==
+        "empleado"
     ){
 
         throw new Error(
-            "El acceso de este empleado está inactivo."
+            "Esta cuenta no está configurada como empleado."
+        );
+
+    }
+
+
+    // ======================================
+    // EMPLEADO ID
+    // ======================================
+
+    const empleadoId =
+    texto(
+        datos.empleadoId
+    ).trim();
+
+
+    if(!empleadoId){
+
+        throw new Error(
+            "El usuario no tiene asignado un empleado."
         );
 
     }
@@ -550,46 +505,47 @@ async function buscarEmpleado(
 
     const empresaId =
     texto(
-        empleado.empresaId
+        datos.empresaId
     ).trim();
 
 
     if(!empresaId){
 
         throw new Error(
-            "La ficha del empleado no tiene empresa asignada."
+            "El usuario no tiene empresa asignada."
         );
 
     }
 
 
     // ======================================
-    // VERIFICAR UID
+    // ESTADO
     // ======================================
 
     if(
-        empleado.authUid !==
-        usuario.uid
+        datos.estado &&
+        datos.estado !==
+        "Activo"
     ){
 
         throw new Error(
-            "La ficha del empleado no está vinculada correctamente."
+            "El acceso de este empleado está inactivo."
         );
 
     }
 
 
     // ======================================
-    // DATOS DE SESIÓN
+    // GUARDAR SESIÓN
     // ======================================
 
-    const datosSesion = {
+    const sesion = {
 
         uid:
         usuario.uid,
 
         empleadoId:
-        empleado.id,
+        empleadoId,
 
         empresaId:
         empresaId,
@@ -599,43 +555,32 @@ async function buscarEmpleado(
 
         nombre:
         texto(
-            empleado.nombre
+            datos.nombre
         ),
 
         apellido:
         texto(
-            empleado.apellido
+            datos.apellido
         ),
 
         email:
         texto(
-            empleado.email ||
+            datos.email ||
             usuario.email
-        ),
-
-        puesto:
-        texto(
-            empleado.puesto
         )
 
     };
 
 
-    /*
-     * Guardamos los datos para que
-     * fichaje.html sepa exactamente
-     * qué empleado está conectado.
-     */
-
     sessionStorage.setItem(
         "gesbaseEmpleado",
         JSON.stringify(
-            datosSesion
+            sesion
         )
     );
 
 
-    return datosSesion;
+    return sesion;
 
 }
 
@@ -688,9 +633,9 @@ btnIngresar.addEventListener(
 
         try{
 
-            /*
-             * 1. Autenticación Firebase
-             */
+            // ==================================
+            // 1. AUTENTICAR
+            // ==================================
 
             const resultado =
             await signInWithEmailAndPassword(
@@ -704,20 +649,19 @@ btnIngresar.addEventListener(
             resultado.user;
 
 
-            /*
-             * 2. Buscar ficha directamente
-             * mediante authUid.
-             */
+            // ==================================
+            // 2. OBTENER PERFIL
+            // ==================================
 
             const empleado =
-            await buscarEmpleado(
+            await obtenerPerfilEmpleado(
                 usuario
             );
 
 
-            /*
-             * 3. Acceso correcto
-             */
+            // ==================================
+            // 3. MOSTRAR ÉXITO
+            // ==================================
 
             mostrarExito(
                 "Bienvenido " +
@@ -728,6 +672,10 @@ btnIngresar.addEventListener(
                 ". Ingresando..."
             );
 
+
+            // ==================================
+            // 4. IR AL FICHAJE
+            // ==================================
 
             setTimeout(
                 function(){
@@ -804,6 +752,14 @@ btnIngresar.addEventListener(
                     break;
 
 
+                case "permission-denied":
+
+                    mensaje =
+                    "GESBASE no tiene permiso para verificar el perfil del empleado.";
+
+                    break;
+
+
                 default:
 
                     if(
@@ -869,6 +825,29 @@ btnVolver.addEventListener(
     }
 );
 
+
+// ==========================================
+// SI YA ESTÁ LOGUEADO
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            return;
+
+        }
+
+        /*
+         * No redirigimos automáticamente.
+         * El usuario entra mediante el botón
+         * INGRESAR.
+         */
+
+    }
+);
 
 </script>
 
