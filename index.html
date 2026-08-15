@@ -132,6 +132,21 @@ main{
     margin-bottom:8px;
 }
 
+/* ==========================================
+   PANEL ADMINISTRADOR
+========================================== */
+
+.panel-admin{
+    grid-column:span 2;
+    background:#7c3aed;
+    color:white;
+    box-shadow:0 3px 10px rgba(124,58,237,.25);
+}
+
+.panel-admin:hover{
+    background:#6d28d9;
+}
+
 .estado{
     margin-top:20px;
     padding:14px;
@@ -224,7 +239,9 @@ Gestioná tu empresa desde un solo lugar.
 </section>
 
 
-<!-- DATOS DE LA CUENTA -->
+<!-- ==========================================
+     DATOS DE LA CUENTA
+========================================== -->
 
 <section class="datos-usuario">
 
@@ -296,9 +313,29 @@ Cargando...
 </section>
 
 
-<!-- MENU PRINCIPAL -->
+<!-- ==========================================
+     MENU PRINCIPAL
+========================================== -->
 
 <section class="menu">
+
+
+<!-- PANEL ADMINISTRADOR
+     OCULTO POR DEFECTO -->
+
+<button
+    id="btnPanelAdministrador"
+    class="boton panel-admin"
+    style="display:none;"
+>
+
+<span class="icono">
+👑
+</span>
+
+Panel de Administrador
+
+</button>
 
 
 <button
@@ -472,7 +509,9 @@ Asistencia
 </section>
 
 
-<!-- ESTADO -->
+<!-- ==========================================
+     ESTADO
+========================================== -->
 
 <div class="estado">
 
@@ -485,7 +524,9 @@ ACTIVO
 </div>
 
 
-<!-- CERRAR SESIÓN -->
+<!-- ==========================================
+     CERRAR SESIÓN
+========================================== -->
 
 <button
     id="btnCerrarSesion"
@@ -556,6 +597,26 @@ document.getElementById("estadoCuenta");
 
 const botonCerrarSesion =
 document.getElementById("btnCerrarSesion");
+
+const btnPanelAdministrador =
+document.getElementById(
+    "btnPanelAdministrador"
+);
+
+
+// ==========================================
+// PANEL ADMINISTRADOR
+// ==========================================
+
+btnPanelAdministrador.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "panel-admin.html";
+
+    }
+);
 
 
 // ==========================================
@@ -689,13 +750,43 @@ onAuthStateChanged(
             // 7. ROL
             // ==================================
 
+            const rol =
+            String(
+                datosUsuario.rol ||
+                "administrador"
+            )
+            .trim()
+            .toLowerCase();
+
+
             rolUsuario.textContent =
             datosUsuario.rol ||
             "administrador";
 
 
             // ==================================
-            // 8. ESTADO DE SUSCRIPCIÓN
+            // 8. MOSTRAR PANEL ADMIN
+            // ==================================
+
+            if(
+                rol === "administrador" ||
+                rol === "admin"
+            ){
+
+                btnPanelAdministrador.style.display =
+                "block";
+
+            }
+            else{
+
+                btnPanelAdministrador.style.display =
+                "none";
+
+            }
+
+
+            // ==================================
+            // 9. ESTADO DE SUSCRIPCIÓN
             // ==================================
 
             estadoCuenta.textContent =
@@ -705,7 +796,7 @@ onAuthStateChanged(
 
 
             // ==================================
-            // 9. MOSTRAR PANEL
+            // 10. MOSTRAR PANEL
             // ==================================
 
             cargando.style.display =
@@ -715,7 +806,8 @@ onAuthStateChanged(
             "block";
 
 
-        }catch(error){
+        }
+        catch(error){
 
             console.error(
                 "Error leyendo datos:",
@@ -762,7 +854,8 @@ botonCerrarSesion.addEventListener(
             );
 
 
-        }catch(error){
+        }
+        catch(error){
 
             console.error(
                 "Error cerrando sesión:",
