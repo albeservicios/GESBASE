@@ -93,30 +93,52 @@ h2{
     font-size:15px;
 }
 
-.seccion-pago{
+.grupo-pagos{
     margin-top:20px;
-    padding:16px;
+    margin-bottom:18px;
+    padding:15px;
     background:#eff6ff;
     border:1px solid #bfdbfe;
     border-radius:12px;
 }
 
-.seccion-pago h3{
+.grupo-pagos h3{
+    font-size:17px;
     margin-bottom:6px;
-    font-size:18px;
 }
 
-.seccion-pago p{
+.grupo-pagos p{
     font-size:13px;
     color:#1e40af;
     margin-bottom:15px;
-    line-height:1.4;
 }
 
 .grid-pagos{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:12px;
+}
+
+.pago{
+    background:white;
+    padding:12px;
+    border-radius:9px;
+    border:1px solid #dbeafe;
+}
+
+.pago label{
+    display:block;
+    font-size:13px;
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+.pago input{
+    width:100%;
+    padding:12px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    font-size:15px;
 }
 
 .boton{
@@ -258,15 +280,15 @@ h2{
 .pagos-empleado{
     margin-top:14px;
     padding:14px;
+    background:#f0fdf4;
+    border:1px solid #bbf7d0;
     border-radius:10px;
-    background:#eff6ff;
-    border:1px solid #dbeafe;
 }
 
 .pagos-titulo{
     font-weight:bold;
-    margin-bottom:8px;
-    color:#1e3a8a;
+    font-size:14px;
+    margin-bottom:9px;
 }
 
 .pago-linea{
@@ -548,22 +570,24 @@ Inactivo
 <!-- PAGOS -->
 <!-- ================================= -->
 
-<div class="seccion-pago">
+<div class="grupo-pagos">
 
-<h3>💰 Datos de pago</h3>
+<h3>
+💰 Valores de pago
+</h3>
 
 <p>
-Cargá el valor correspondiente para este empleado.
-Los importes podrán modificarse posteriormente.
+Estos valores pertenecen al administrador y se utilizarán posteriormente para calcular cuánto corresponde pagar según los fichajes.
 </p>
 
 
 <div class="grid-pagos">
 
-<div class="campo">
+
+<div class="pago">
 
 <label for="pagoHora">
-Pago por hora ($)
+Pago por hora
 </label>
 
 <input
@@ -571,61 +595,62 @@ Pago por hora ($)
     id="pagoHora"
     min="0"
     step="0.01"
-    placeholder="0"
+    placeholder="Ej.: 5000"
 >
 
 </div>
 
 
-<div class="campo">
+<div class="pago">
 
-<label for="pagoDiario">
-Pago diario ($)
+<label for="pagoDia">
+Pago diario
 </label>
 
 <input
     type="number"
-    id="pagoDiario"
+    id="pagoDia"
     min="0"
     step="0.01"
-    placeholder="0"
+    placeholder="Ej.: 40000"
 >
 
 </div>
 
 
-<div class="campo">
+<div class="pago">
 
-<label for="pagoQuincenal">
-Pago quincenal ($)
+<label for="pagoQuincena">
+Pago quincenal
 </label>
 
 <input
     type="number"
-    id="pagoQuincenal"
+    id="pagoQuincena"
     min="0"
     step="0.01"
-    placeholder="0"
+    placeholder="Ej.: 600000"
 >
 
 </div>
 
 
-<div class="campo">
+<div class="pago">
 
-<label for="pagoMensual">
-Pago mensual ($)
+<label for="pagoMes">
+Pago mensual
 </label>
 
 <input
     type="number"
-    id="pagoMensual"
+    id="pagoMes"
     min="0"
     step="0.01"
-    placeholder="0"
+    placeholder="Ej.: 1200000"
 >
 
 </div>
+
 
 </div>
 
@@ -666,6 +691,11 @@ Empleados
 <b>Acceso del empleado:</b>
 cada empleado puede tener su propio usuario para ingresar a GESBASE y realizar su fichaje.
 
+<br><br>
+
+<b>Valores de pago:</b>
+se utilizan para calcular posteriormente el importe correspondiente a las horas y jornadas trabajadas.
+
 </div>
 
 
@@ -703,7 +733,8 @@ import {
 
 import {
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
 import {
@@ -767,14 +798,14 @@ document.getElementById("estado");
 const pagoHora =
 document.getElementById("pagoHora");
 
-const pagoDiario =
-document.getElementById("pagoDiario");
+const pagoDia =
+document.getElementById("pagoDia");
 
-const pagoQuincenal =
-document.getElementById("pagoQuincenal");
+const pagoQuincena =
+document.getElementById("pagoQuincena");
 
-const pagoMensual =
-document.getElementById("pagoMensual");
+const pagoMes =
+document.getElementById("pagoMes");
 
 const btnGuardar =
 document.getElementById("btnGuardar");
@@ -802,17 +833,13 @@ document.getElementById("mensajeExito");
 // VARIABLES
 // ==========================================
 
-let usuarioActual =
-null;
+let usuarioActual = null;
 
-let datosUsuario =
-{};
+let datosUsuario = {};
 
-let empresaId =
-"";
+let empresaId = "";
 
-let empleadoEditandoId =
-null;
+let empleadoEditandoId = null;
 
 
 // ==========================================
@@ -884,20 +911,40 @@ function texto(valor){
 
 
 // ==========================================
+// NUMERO
+// ==========================================
+
+function numero(valor){
+
+    const n =
+    Number(valor);
+
+    if(
+        !Number.isFinite(n)
+    ){
+
+        return 0;
+
+    }
+
+    return n;
+
+}
+
+
+// ==========================================
 // DINERO
 // ==========================================
 
 function dinero(valor){
 
-    const numero =
-    Number(valor || 0);
-
-    return numero.toLocaleString(
+    return numero(valor).toLocaleString(
         "es-AR",
         {
             style:"currency",
             currency:"ARS",
-            minimumFractionDigits:2
+            minimumFractionDigits:0,
+            maximumFractionDigits:2
         }
     );
 
@@ -905,7 +952,7 @@ function dinero(valor){
 
 
 // ==========================================
-// FECHA
+// FECHA HOY
 // ==========================================
 
 function fechaHoy(){
@@ -974,6 +1021,7 @@ function obtenerAuthSecundario(){
     const appPrincipal =
     getApps()[0];
 
+
     if(!appPrincipal){
 
         throw new Error(
@@ -986,12 +1034,8 @@ function obtenerAuthSecundario(){
     let appSecundaria;
 
 
-    const aplicaciones =
-    getApps();
-
-
     appSecundaria =
-    aplicaciones.find(
+    getApps().find(
         function(app){
 
             return (
@@ -1030,6 +1074,7 @@ function limpiarFormulario(){
     empleadoEditandoId =
     null;
 
+
     nombre.value =
     "";
 
@@ -1054,16 +1099,17 @@ function limpiarFormulario(){
     estado.value =
     "Activo";
 
+
     pagoHora.value =
     "";
 
-    pagoDiario.value =
+    pagoDia.value =
     "";
 
-    pagoQuincenal.value =
+    pagoQuincena.value =
     "";
 
-    pagoMensual.value =
+    pagoMes.value =
     "";
 
 
@@ -1090,6 +1136,7 @@ async function cargarEmpleados(){
 
     cargando.style.display =
     "block";
+
 
     listaEmpleados.innerHTML =
     "";
@@ -1143,8 +1190,7 @@ async function cargarEmpleados(){
         }
 
 
-        const empleados =
-        [];
+        const empleados = [];
 
 
         resultados.forEach(
@@ -1167,15 +1213,13 @@ async function cargarEmpleados(){
                         texto(a.nombre) +
                         " " +
                         texto(a.apellido)
-                    )
-                    .toLowerCase()
+                    ).toLowerCase()
                 ).localeCompare(
                     (
                         texto(b.nombre) +
                         " " +
                         texto(b.apellido)
-                    )
-                    .toLowerCase()
+                    ).toLowerCase()
                 );
 
             }
@@ -1192,7 +1236,9 @@ async function cargarEmpleados(){
         cargando.style.display =
         "none";
 
+
         console.error(error);
+
 
         mostrarError(
             "No se pudieron cargar los empleados: " +
@@ -1230,10 +1276,13 @@ function mostrarEmpleado(empleado){
     }
 
 
+    // ======================================
     // CABECERA
+    // ======================================
 
     const cabecera =
     document.createElement("div");
+
 
     cabecera.className =
     "empleado-cabecera";
@@ -1242,12 +1291,15 @@ function mostrarEmpleado(empleado){
     const foto =
     document.createElement("div");
 
+
     foto.className =
     "foto-empleado";
+
 
     foto.classList.add(
         "foto-placeholder"
     );
+
 
     foto.textContent =
     "👤";
@@ -1265,8 +1317,10 @@ function mostrarEmpleado(empleado){
     const nombreEmpleado =
     document.createElement("div");
 
+
     nombreEmpleado.className =
     "empleado-nombre";
+
 
     nombreEmpleado.textContent =
     (
@@ -1279,8 +1333,10 @@ function mostrarEmpleado(empleado){
     const puestoEmpleado =
     document.createElement("div");
 
+
     puestoEmpleado.className =
     "empleado-puesto";
+
 
     puestoEmpleado.textContent =
     texto(
@@ -1293,6 +1349,7 @@ function mostrarEmpleado(empleado){
         nombreEmpleado
     );
 
+
     informacion.appendChild(
         puestoEmpleado
     );
@@ -1302,15 +1359,19 @@ function mostrarEmpleado(empleado){
         informacion
     );
 
+
     tarjeta.appendChild(
         cabecera
     );
 
 
+    // ======================================
     // DATOS
+    // ======================================
 
     const datos =
     document.createElement("div");
+
 
     datos.className =
     "datos-empleado";
@@ -1322,17 +1383,20 @@ function mostrarEmpleado(empleado){
         empleado.dni
     );
 
+
     agregarDato(
         datos,
         "Teléfono",
         empleado.telefono
     );
 
+
     agregarDato(
         datos,
         "Email",
         empleado.email
     );
+
 
     agregarDato(
         datos,
@@ -1343,6 +1407,7 @@ function mostrarEmpleado(empleado){
 
     const estadoElemento =
     document.createElement("span");
+
 
     estadoElemento.className =
     "estado";
@@ -1377,15 +1442,19 @@ function mostrarEmpleado(empleado){
         estadoElemento
     );
 
+
     tarjeta.appendChild(
         datos
     );
 
 
+    // ======================================
     // PAGOS
+    // ======================================
 
     const pagos =
     document.createElement("div");
+
 
     pagos.className =
     "pagos-empleado";
@@ -1394,8 +1463,10 @@ function mostrarEmpleado(empleado){
     const tituloPagos =
     document.createElement("div");
 
+
     tituloPagos.className =
     "pagos-titulo";
+
 
     tituloPagos.textContent =
     "💰 Valores de pago";
@@ -1412,22 +1483,25 @@ function mostrarEmpleado(empleado){
         empleado.pagoHora
     );
 
-    agregarPago(
-        pagos,
-        "Diario",
-        empleado.pagoDiario
-    );
 
     agregarPago(
         pagos,
-        "Quincenal",
-        empleado.pagoQuincenal
+        "Por día",
+        empleado.pagoDia
     );
+
 
     agregarPago(
         pagos,
-        "Mensual",
-        empleado.pagoMensual
+        "Por quincena",
+        empleado.pagoQuincena
+    );
+
+
+    agregarPago(
+        pagos,
+        "Por mes",
+        empleado.pagoMes
     );
 
 
@@ -1436,10 +1510,13 @@ function mostrarEmpleado(empleado){
     );
 
 
+    // ======================================
     // ACCESO
+    // ======================================
 
     const acceso =
     document.createElement("div");
+
 
     acceso.className =
     "acceso";
@@ -1452,6 +1529,7 @@ function mostrarEmpleado(empleado){
         acceso.classList.add(
             "acceso-ok"
         );
+
 
         acceso.innerHTML =
         "🔐 <b>Acceso creado</b><br>" +
@@ -1466,6 +1544,7 @@ function mostrarEmpleado(empleado){
             "acceso-sin"
         );
 
+
         acceso.innerHTML =
         "🔓 <b>Sin acceso de empleado</b>";
 
@@ -1477,23 +1556,33 @@ function mostrarEmpleado(empleado){
     );
 
 
+    // ======================================
     // ACCIONES
+    // ======================================
 
     const acciones =
     document.createElement("div");
+
 
     acciones.className =
     "acciones";
 
 
+    // --------------------------------------
+    // FICHAJE
+    // --------------------------------------
+
     const btnFichaje =
     document.createElement("button");
+
 
     btnFichaje.className =
     "boton boton-fichaje";
 
+
     btnFichaje.textContent =
     "⏱️ FICHAJE";
+
 
     btnFichaje.onclick =
     function(){
@@ -1506,13 +1595,19 @@ function mostrarEmpleado(empleado){
 
     };
 
+
     acciones.appendChild(
         btnFichaje
     );
 
 
+    // --------------------------------------
+    // ACCESO
+    // --------------------------------------
+
     const btnAcceso =
     document.createElement("button");
+
 
     btnAcceso.className =
     "boton boton-acceso";
@@ -1525,8 +1620,10 @@ function mostrarEmpleado(empleado){
         btnAcceso.textContent =
         "🔐 ACCESO CREADO";
 
+
         btnAcceso.disabled =
         true;
+
 
         btnAcceso.style.opacity =
         ".6";
@@ -1536,6 +1633,7 @@ function mostrarEmpleado(empleado){
 
         btnAcceso.textContent =
         "👤 CREAR ACCESO";
+
 
         btnAcceso.onclick =
         function(){
@@ -1554,11 +1652,17 @@ function mostrarEmpleado(empleado){
     );
 
 
+    // --------------------------------------
+    // EDITAR
+    // --------------------------------------
+
     const btnEditar =
     document.createElement("button");
 
+
     btnEditar.className =
     "boton boton-editar";
+
 
     btnEditar.textContent =
     "✏️ EDITAR";
@@ -1579,6 +1683,10 @@ function mostrarEmpleado(empleado){
     );
 
 
+    // --------------------------------------
+    // BAJA / REACTIVAR
+    // --------------------------------------
+
     const btnEstado =
     document.createElement("button");
 
@@ -1591,8 +1699,10 @@ function mostrarEmpleado(empleado){
         btnEstado.className =
         "boton boton-baja";
 
+
         btnEstado.textContent =
         "🚫 DAR DE BAJA";
+
 
         btnEstado.onclick =
         function(){
@@ -1610,8 +1720,10 @@ function mostrarEmpleado(empleado){
         btnEstado.className =
         "boton boton-reactivar";
 
+
         btnEstado.textContent =
         "✅ REACTIVAR";
+
 
         btnEstado.onclick =
         function(){
@@ -1631,11 +1743,17 @@ function mostrarEmpleado(empleado){
     );
 
 
+    // --------------------------------------
+    // ELIMINAR
+    // --------------------------------------
+
     const btnEliminar =
     document.createElement("button");
 
+
     btnEliminar.className =
     "boton boton-eliminar";
+
 
     btnEliminar.textContent =
     "🗑️ ELIMINAR";
@@ -1690,6 +1808,7 @@ function agregarDato(
     const elemento =
     document.createElement("div");
 
+
     elemento.className =
     "dato";
 
@@ -1697,8 +1816,10 @@ function agregarDato(
     const etiquetaElemento =
     document.createElement("span");
 
+
     etiquetaElemento.className =
     "etiqueta";
+
 
     etiquetaElemento.textContent =
     etiqueta +
@@ -1708,6 +1829,7 @@ function agregarDato(
     const valorElemento =
     document.createElement("span");
 
+
     valorElemento.textContent =
     texto(valor);
 
@@ -1716,9 +1838,11 @@ function agregarDato(
         etiquetaElemento
     );
 
+
     elemento.appendChild(
         valorElemento
     );
+
 
     contenedor.appendChild(
         elemento
@@ -1737,15 +1861,17 @@ function agregarPago(
     valor
 ){
 
-    const linea =
+    const elemento =
     document.createElement("div");
 
-    linea.className =
+
+    elemento.className =
     "pago-linea";
 
 
     const nombre =
     document.createElement("span");
+
 
     nombre.textContent =
     etiqueta;
@@ -1754,24 +1880,27 @@ function agregarPago(
     const importe =
     document.createElement("span");
 
+
     importe.className =
     "pago-valor";
+
 
     importe.textContent =
     dinero(valor);
 
 
-    linea.appendChild(
+    elemento.appendChild(
         nombre
     );
 
-    linea.appendChild(
+
+    elemento.appendChild(
         importe
     );
 
 
     contenedor.appendChild(
-        linea
+        elemento
     );
 
 }
@@ -1804,7 +1933,8 @@ async function crearAccesoEmpleado(
     const emailEmpleado =
     texto(
         empleado.email
-    ).trim()
+    )
+    .trim()
     .toLowerCase();
 
 
@@ -2137,6 +2267,7 @@ async function cambiarEstadoEmpleado(
 
         console.error(error);
 
+
         mostrarError(
             "No se pudo cambiar el estado: " +
             error.message
@@ -2148,7 +2279,7 @@ async function cambiarEstadoEmpleado(
 
 
 // ==========================================
-// EDITAR
+// EDITAR EMPLEADO
 // ==========================================
 
 function editarEmpleado(
@@ -2165,23 +2296,30 @@ function editarEmpleado(
     nombre.value =
     texto(empleado.nombre);
 
+
     apellido.value =
     texto(empleado.apellido);
+
 
     dni.value =
     texto(empleado.dni);
 
+
     telefono.value =
     texto(empleado.telefono);
+
 
     email.value =
     texto(empleado.email);
 
+
     puesto.value =
     texto(empleado.puesto);
 
+
     fechaIngreso.value =
     texto(empleado.fechaIngreso);
+
 
     estado.value =
     texto(empleado.estado) ||
@@ -2189,16 +2327,27 @@ function editarEmpleado(
 
 
     pagoHora.value =
-    empleado.pagoHora ?? "";
+    numero(
+        empleado.pagoHora
+    );
 
-    pagoDiario.value =
-    empleado.pagoDiario ?? "";
 
-    pagoQuincenal.value =
-    empleado.pagoQuincenal ?? "";
+    pagoDia.value =
+    numero(
+        empleado.pagoDia
+    );
 
-    pagoMensual.value =
-    empleado.pagoMensual ?? "";
+
+    pagoQuincena.value =
+    numero(
+        empleado.pagoQuincena
+    );
+
+
+    pagoMes.value =
+    numero(
+        empleado.pagoMes
+    );
 
 
     tituloFormulario.textContent =
@@ -2237,7 +2386,7 @@ function(){
 
 
 // ==========================================
-// GUARDAR
+// GUARDAR EMPLEADO
 // ==========================================
 
 btnGuardar.onclick =
@@ -2249,46 +2398,56 @@ async function(){
     const nombreValor =
     nombre.value.trim();
 
+
     const apellidoValor =
     apellido.value.trim();
+
 
     const dniValor =
     dni.value.trim();
 
+
     const telefonoValor =
     telefono.value.trim();
+
 
     const emailValor =
     email.value.trim();
 
+
     const puestoValor =
     puesto.value.trim();
 
+
     const fechaIngresoValor =
     fechaIngreso.value;
+
 
     const estadoValor =
     estado.value;
 
 
     const pagoHoraValor =
-    Number(
-        pagoHora.value || 0
+    numero(
+        pagoHora.value
     );
 
-    const pagoDiarioValor =
-    Number(
-        pagoDiario.value || 0
+
+    const pagoDiaValor =
+    numero(
+        pagoDia.value
     );
 
-    const pagoQuincenalValor =
-    Number(
-        pagoQuincenal.value || 0
+
+    const pagoQuincenaValor =
+    numero(
+        pagoQuincena.value
     );
 
-    const pagoMensualValor =
-    Number(
-        pagoMensual.value || 0
+
+    const pagoMesValor =
+    numero(
+        pagoMes.value
     );
 
 
@@ -2336,24 +2495,9 @@ async function(){
     }
 
 
-    if(
-        pagoHoraValor < 0 ||
-        pagoDiarioValor < 0 ||
-        pagoQuincenalValor < 0 ||
-        pagoMensualValor < 0
-    ){
-
-        mostrarError(
-            "Los valores de pago no pueden ser negativos."
-        );
-
-        return;
-
-    }
-
-
     btnGuardar.disabled =
     true;
+
 
     btnGuardar.textContent =
     "GUARDANDO...";
@@ -2393,23 +2537,21 @@ async function(){
             estado:
             estadoValor,
 
-
-            // =================================
+            // ==========================
             // PAGOS
-            // =================================
+            // ==========================
 
             pagoHora:
             pagoHoraValor,
 
-            pagoDiario:
-            pagoDiarioValor,
+            pagoDia:
+            pagoDiaValor,
 
-            pagoQuincenal:
-            pagoQuincenalValor,
+            pagoQuincena:
+            pagoQuincenaValor,
 
-            pagoMensual:
-            pagoMensualValor,
-
+            pagoMes:
+            pagoMesValor,
 
             actualizado:
             serverTimestamp()
@@ -2460,12 +2602,14 @@ async function(){
 
         limpiarFormulario();
 
+
         await cargarEmpleados();
 
     }
     catch(error){
 
         console.error(error);
+
 
         mostrarError(
             "No se pudo guardar el empleado: " +
@@ -2480,10 +2624,6 @@ async function(){
 
 
         btnGuardar.textContent =
-        empleadoEditandoId
-        ?
-        "GUARDAR CAMBIOS"
-        :
         "GUARDAR EMPLEADO";
 
     }
@@ -2541,6 +2681,7 @@ async function eliminarEmpleado(
 
         console.error(error);
 
+
         mostrarError(
             "No se pudo eliminar el empleado: " +
             error.message
@@ -2588,6 +2729,7 @@ onAuthStateChanged(
         catch(error){
 
             console.error(error);
+
 
             cargando.style.display =
             "none";
