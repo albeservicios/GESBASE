@@ -93,6 +93,32 @@ h2{
     font-size:15px;
 }
 
+.seccion-pago{
+    margin-top:20px;
+    padding:16px;
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    border-radius:12px;
+}
+
+.seccion-pago h3{
+    margin-bottom:6px;
+    font-size:18px;
+}
+
+.seccion-pago p{
+    font-size:13px;
+    color:#1e40af;
+    margin-bottom:15px;
+    line-height:1.4;
+}
+
+.grid-pagos{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
 .boton{
     width:100%;
     border:none;
@@ -229,6 +255,32 @@ h2{
     color:#991b1b;
 }
 
+.pagos-empleado{
+    margin-top:14px;
+    padding:14px;
+    border-radius:10px;
+    background:#eff6ff;
+    border:1px solid #dbeafe;
+}
+
+.pagos-titulo{
+    font-weight:bold;
+    margin-bottom:8px;
+    color:#1e3a8a;
+}
+
+.pago-linea{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:4px 0;
+    font-size:14px;
+}
+
+.pago-valor{
+    font-weight:bold;
+}
+
 .acceso{
     margin-top:12px;
     padding:10px;
@@ -320,6 +372,10 @@ h2{
         grid-template-columns:1fr;
     }
 
+    .grid-pagos{
+        grid-template-columns:1fr;
+    }
+
 }
 
 </style>
@@ -360,6 +416,7 @@ h2{
 <h2 id="tituloFormulario">
 Nuevo empleado
 </h2>
+
 
 <div class="campo">
 
@@ -487,6 +544,94 @@ Inactivo
 </div>
 
 
+<!-- ================================= -->
+<!-- PAGOS -->
+<!-- ================================= -->
+
+<div class="seccion-pago">
+
+<h3>💰 Datos de pago</h3>
+
+<p>
+Cargá el valor correspondiente para este empleado.
+Los importes podrán modificarse posteriormente.
+</p>
+
+
+<div class="grid-pagos">
+
+<div class="campo">
+
+<label for="pagoHora">
+Pago por hora ($)
+</label>
+
+<input
+    type="number"
+    id="pagoHora"
+    min="0"
+    step="0.01"
+    placeholder="0"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="pagoDiario">
+Pago diario ($)
+</label>
+
+<input
+    type="number"
+    id="pagoDiario"
+    min="0"
+    step="0.01"
+    placeholder="0"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="pagoQuincenal">
+Pago quincenal ($)
+</label>
+
+<input
+    type="number"
+    id="pagoQuincenal"
+    min="0"
+    step="0.01"
+    placeholder="0"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="pagoMensual">
+Pago mensual ($)
+</label>
+
+<input
+    type="number"
+    id="pagoMensual"
+    min="0"
+    step="0.01"
+    placeholder="0"
+>
+
+</div>
+
+</div>
+
+</div>
+
+
 <button
     id="btnGuardar"
     class="boton boton-principal"
@@ -547,7 +692,7 @@ Cargando empleados...
 
 
 // ==========================================
-// FIREBASE ADMIN
+// FIREBASE
 // ==========================================
 
 import {
@@ -571,20 +716,18 @@ import {
     deleteDoc,
     query,
     where,
-    serverTimestamp
+    serverTimestamp,
+    setDoc
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
-// ==========================================
-// FIREBASE SECUNDARIO
-// ==========================================
 
 import {
     initializeApp,
     getApps
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
 
 import {
     getAuth,
@@ -620,6 +763,18 @@ document.getElementById("fechaIngreso");
 
 const estado =
 document.getElementById("estado");
+
+const pagoHora =
+document.getElementById("pagoHora");
+
+const pagoDiario =
+document.getElementById("pagoDiario");
+
+const pagoQuincenal =
+document.getElementById("pagoQuincenal");
+
+const pagoMensual =
+document.getElementById("pagoMensual");
 
 const btnGuardar =
 document.getElementById("btnGuardar");
@@ -729,6 +884,27 @@ function texto(valor){
 
 
 // ==========================================
+// DINERO
+// ==========================================
+
+function dinero(valor){
+
+    const numero =
+    Number(valor || 0);
+
+    return numero.toLocaleString(
+        "es-AR",
+        {
+            style:"currency",
+            currency:"ARS",
+            minimumFractionDigits:2
+        }
+    );
+
+}
+
+
+// ==========================================
 // FECHA
 // ==========================================
 
@@ -790,7 +966,7 @@ async function cargarDatosUsuario(){
 
 
 // ==========================================
-// OBTENER FIREBASE SECUNDARIO
+// FIREBASE SECUNDARIO
 // ==========================================
 
 function obtenerAuthSecundario(){
@@ -877,6 +1053,18 @@ function limpiarFormulario(){
 
     estado.value =
     "Activo";
+
+    pagoHora.value =
+    "";
+
+    pagoDiario.value =
+    "";
+
+    pagoQuincenal.value =
+    "";
+
+    pagoMensual.value =
+    "";
 
 
     tituloFormulario.textContent =
@@ -1042,9 +1230,7 @@ function mostrarEmpleado(empleado){
     }
 
 
-    // ======================================
     // CABECERA
-    // ======================================
 
     const cabecera =
     document.createElement("div");
@@ -1058,7 +1244,6 @@ function mostrarEmpleado(empleado){
 
     foto.className =
     "foto-empleado";
-
 
     foto.classList.add(
         "foto-placeholder"
@@ -1083,7 +1268,6 @@ function mostrarEmpleado(empleado){
     nombreEmpleado.className =
     "empleado-nombre";
 
-
     nombreEmpleado.textContent =
     (
         texto(empleado.nombre) +
@@ -1097,7 +1281,6 @@ function mostrarEmpleado(empleado){
 
     puestoEmpleado.className =
     "empleado-puesto";
-
 
     puestoEmpleado.textContent =
     texto(
@@ -1119,15 +1302,12 @@ function mostrarEmpleado(empleado){
         informacion
     );
 
-
     tarjeta.appendChild(
         cabecera
     );
 
 
-    // ======================================
     // DATOS
-    // ======================================
 
     const datos =
     document.createElement("div");
@@ -1142,20 +1322,17 @@ function mostrarEmpleado(empleado){
         empleado.dni
     );
 
-
     agregarDato(
         datos,
         "Teléfono",
         empleado.telefono
     );
 
-
     agregarDato(
         datos,
         "Email",
         empleado.email
     );
-
 
     agregarDato(
         datos,
@@ -1200,15 +1377,66 @@ function mostrarEmpleado(empleado){
         estadoElemento
     );
 
-
     tarjeta.appendChild(
         datos
     );
 
 
-    // ======================================
+    // PAGOS
+
+    const pagos =
+    document.createElement("div");
+
+    pagos.className =
+    "pagos-empleado";
+
+
+    const tituloPagos =
+    document.createElement("div");
+
+    tituloPagos.className =
+    "pagos-titulo";
+
+    tituloPagos.textContent =
+    "💰 Valores de pago";
+
+
+    pagos.appendChild(
+        tituloPagos
+    );
+
+
+    agregarPago(
+        pagos,
+        "Por hora",
+        empleado.pagoHora
+    );
+
+    agregarPago(
+        pagos,
+        "Diario",
+        empleado.pagoDiario
+    );
+
+    agregarPago(
+        pagos,
+        "Quincenal",
+        empleado.pagoQuincenal
+    );
+
+    agregarPago(
+        pagos,
+        "Mensual",
+        empleado.pagoMensual
+    );
+
+
+    tarjeta.appendChild(
+        pagos
+    );
+
+
     // ACCESO
-    // ======================================
 
     const acceso =
     document.createElement("div");
@@ -1249,9 +1477,7 @@ function mostrarEmpleado(empleado){
     );
 
 
-    // ======================================
     // ACCIONES
-    // ======================================
 
     const acciones =
     document.createElement("div");
@@ -1259,10 +1485,6 @@ function mostrarEmpleado(empleado){
     acciones.className =
     "acciones";
 
-
-    // --------------------------------------
-    // FICHAJE
-    // --------------------------------------
 
     const btnFichaje =
     document.createElement("button");
@@ -1272,7 +1494,6 @@ function mostrarEmpleado(empleado){
 
     btnFichaje.textContent =
     "⏱️ FICHAJE";
-
 
     btnFichaje.onclick =
     function(){
@@ -1285,15 +1506,10 @@ function mostrarEmpleado(empleado){
 
     };
 
-
     acciones.appendChild(
         btnFichaje
     );
 
-
-    // --------------------------------------
-    // ACCESO
-    // --------------------------------------
 
     const btnAcceso =
     document.createElement("button");
@@ -1338,10 +1554,6 @@ function mostrarEmpleado(empleado){
     );
 
 
-    // --------------------------------------
-    // EDITAR
-    // --------------------------------------
-
     const btnEditar =
     document.createElement("button");
 
@@ -1367,10 +1579,6 @@ function mostrarEmpleado(empleado){
     );
 
 
-    // --------------------------------------
-    // BAJA / REACTIVAR
-    // --------------------------------------
-
     const btnEstado =
     document.createElement("button");
 
@@ -1385,7 +1593,6 @@ function mostrarEmpleado(empleado){
 
         btnEstado.textContent =
         "🚫 DAR DE BAJA";
-
 
         btnEstado.onclick =
         function(){
@@ -1406,7 +1613,6 @@ function mostrarEmpleado(empleado){
         btnEstado.textContent =
         "✅ REACTIVAR";
 
-
         btnEstado.onclick =
         function(){
 
@@ -1424,10 +1630,6 @@ function mostrarEmpleado(empleado){
         btnEstado
     );
 
-
-    // --------------------------------------
-    // ELIMINAR
-    // --------------------------------------
 
     const btnEliminar =
     document.createElement("button");
@@ -1518,9 +1720,58 @@ function agregarDato(
         valorElemento
     );
 
-
     contenedor.appendChild(
         elemento
+    );
+
+}
+
+
+// ==========================================
+// AGREGAR PAGO
+// ==========================================
+
+function agregarPago(
+    contenedor,
+    etiqueta,
+    valor
+){
+
+    const linea =
+    document.createElement("div");
+
+    linea.className =
+    "pago-linea";
+
+
+    const nombre =
+    document.createElement("span");
+
+    nombre.textContent =
+    etiqueta;
+
+
+    const importe =
+    document.createElement("span");
+
+    importe.className =
+    "pago-valor";
+
+    importe.textContent =
+    dinero(valor);
+
+
+    linea.appendChild(
+        nombre
+    );
+
+    linea.appendChild(
+        importe
+    );
+
+
+    contenedor.appendChild(
+        linea
     );
 
 }
@@ -1637,10 +1888,6 @@ async function crearAccesoEmpleado(
         resultado.user.uid;
 
 
-        // ==================================
-        // GUARDAR USUARIO EMPLEADO
-        // ==================================
-
         await updateDoc(
             doc(
                 db,
@@ -1667,10 +1914,6 @@ async function crearAccesoEmpleado(
             }
         );
 
-
-        // ==================================
-        // DOCUMENTO DEL USUARIO
-        // ==================================
 
         await setearUsuarioEmpleado(
             nuevoAuthUid,
@@ -1746,18 +1989,13 @@ async function crearAccesoEmpleado(
 
 
 // ==========================================
-// CREAR DOCUMENTO DE USUARIO EMPLEADO
+// USUARIO EMPLEADO
 // ==========================================
 
 async function setearUsuarioEmpleado(
     authUid,
     empleado
 ){
-
-    await import(
-        "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"
-    );
-
 
     const referencia =
     doc(
@@ -1776,19 +2014,6 @@ async function setearUsuarioEmpleado(
     if(
         !existente.exists()
     ){
-
-        await import(
-            "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"
-        );
-
-
-        const {
-            setDoc
-        } =
-        await import(
-            "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"
-        );
-
 
         await setDoc(
             referencia,
@@ -1963,6 +2188,19 @@ function editarEmpleado(
     "Activo";
 
 
+    pagoHora.value =
+    empleado.pagoHora ?? "";
+
+    pagoDiario.value =
+    empleado.pagoDiario ?? "";
+
+    pagoQuincenal.value =
+    empleado.pagoQuincenal ?? "";
+
+    pagoMensual.value =
+    empleado.pagoMensual ?? "";
+
+
     tituloFormulario.textContent =
     "Editar empleado";
 
@@ -2033,6 +2271,27 @@ async function(){
     estado.value;
 
 
+    const pagoHoraValor =
+    Number(
+        pagoHora.value || 0
+    );
+
+    const pagoDiarioValor =
+    Number(
+        pagoDiario.value || 0
+    );
+
+    const pagoQuincenalValor =
+    Number(
+        pagoQuincenal.value || 0
+    );
+
+    const pagoMensualValor =
+    Number(
+        pagoMensual.value || 0
+    );
+
+
     if(!nombreValor){
 
         mostrarError(
@@ -2070,6 +2329,22 @@ async function(){
 
         mostrarError(
             "Ingresá el puesto o función."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        pagoHoraValor < 0 ||
+        pagoDiarioValor < 0 ||
+        pagoQuincenalValor < 0 ||
+        pagoMensualValor < 0
+    ){
+
+        mostrarError(
+            "Los valores de pago no pueden ser negativos."
         );
 
         return;
@@ -2117,6 +2392,24 @@ async function(){
 
             estado:
             estadoValor,
+
+
+            // =================================
+            // PAGOS
+            // =================================
+
+            pagoHora:
+            pagoHoraValor,
+
+            pagoDiario:
+            pagoDiarioValor,
+
+            pagoQuincenal:
+            pagoQuincenalValor,
+
+            pagoMensual:
+            pagoMensualValor,
+
 
             actualizado:
             serverTimestamp()
