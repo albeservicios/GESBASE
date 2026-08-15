@@ -278,8 +278,8 @@ ACCESO ADMINISTRADOR
 
 <div class="privacidad">
 
-El empleado sólo puede acceder a su propia
-información de fichaje.
+El empleado solamente puede acceder
+a su propia información y fichajes.
 
 </div>
 
@@ -290,9 +290,9 @@ información de fichaje.
 <script type="module">
 
 
-// ==========================================
+// ==================================================
 // FIREBASE
-// ==========================================
+// ==================================================
 
 import {
     auth,
@@ -312,16 +312,14 @@ import {
     collection,
     query,
     where,
-    getDocs,
-    updateDoc,
-    doc
+    getDocs
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
-// ==========================================
+// ==================================================
 // ELEMENTOS
-// ==========================================
+// ==================================================
 
 const formLogin =
 document.getElementById("formLogin");
@@ -348,9 +346,9 @@ const cargando =
 document.getElementById("cargando");
 
 
-// ==========================================
+// ==================================================
 // MENSAJES
-// ==========================================
+// ==================================================
 
 function mostrarError(mensaje){
 
@@ -391,9 +389,9 @@ function limpiarMensajes(){
 }
 
 
-// ==========================================
+// ==================================================
 // NORMALIZAR EMAIL
-// ==========================================
+// ==================================================
 
 function normalizarEmail(valor){
 
@@ -406,9 +404,9 @@ function normalizarEmail(valor){
 }
 
 
-// ==========================================
+// ==================================================
 // BUSCAR EMPLEADO
-// ==========================================
+// ==================================================
 
 async function buscarEmpleadoPorEmail(
     emailEmpleado
@@ -422,9 +420,7 @@ async function buscarEmpleadoPorEmail(
 
     if(!emailNormalizado){
 
-        throw new Error(
-            "El empleado no tiene un email válido."
-        );
+        return null;
 
     }
 
@@ -469,18 +465,23 @@ async function buscarEmpleadoPorEmail(
     resultados.forEach(
         function(documento){
 
-            if(!empleadoEncontrado){
+            if(
+                empleadoEncontrado
+            ){
 
-                empleadoEncontrado = {
-
-                    id:
-                    documento.id,
-
-                    ...documento.data()
-
-                };
+                return;
 
             }
+
+
+            empleadoEncontrado = {
+
+                id:
+                documento.id,
+
+                ...documento.data()
+
+            };
 
         }
     );
@@ -491,24 +492,27 @@ async function buscarEmpleadoPorEmail(
 }
 
 
-// ==========================================
-// VINCULAR USUARIO
-// ==========================================
+// ==================================================
+// VERIFICAR EMPLEADO
+// ==================================================
 
-async function vincularEmpleado(
+async function verificarEmpleado(
     usuario
 ){
 
-    const emailUsuario =
-    normalizarEmail(
-        usuario.email
-    );
-
-
-    if(!emailUsuario){
+    if(!usuario){
 
         throw new Error(
-            "La cuenta no tiene un email válido."
+            "No hay una sesión activa."
+        );
+
+    }
+
+
+    if(!usuario.email){
+
+        throw new Error(
+            "La cuenta no tiene un email asociado."
         );
 
     }
@@ -516,22 +520,22 @@ async function vincularEmpleado(
 
     const empleado =
     await buscarEmpleadoPorEmail(
-        emailUsuario
+        usuario.email
     );
 
 
     if(!empleado){
 
         throw new Error(
-            "No encontramos un empleado activo asociado a este email."
+            "No existe un empleado registrado con este email."
         );
 
     }
 
 
-    // ======================================
-    // COMPROBAR ESTADO
-    // ======================================
+    // ==================================================
+    // ESTADO
+    // ==================================================
 
     if(
         String(
@@ -542,15 +546,15 @@ async function vincularEmpleado(
     ){
 
         throw new Error(
-            "El empleado se encuentra inactivo."
+            "Este empleado se encuentra inactivo. Comunicate con el administrador."
         );
 
     }
 
 
-    // ======================================
+    // ==================================================
     // EMPRESA
-    // ======================================
+    // ==================================================
 
     if(
         !empleado.empresaId
@@ -563,59 +567,44 @@ async function vincularEmpleado(
     }
 
 
-    // ======================================
-    // VINCULACIÓN
-    // ======================================
+    // ==================================================
+    // COMPROBAR AUTH UID
+    // ==================================================
 
     /*
-     * Si ya tiene UID, verificamos que
-     * corresponda al usuario que inició sesión.
+     * El administrador crea el acceso y guarda
+     * authUid dentro del empleado.
+     *
+     * El empleado solamente puede ingresar si
+     * ese authUid coincide con su cuenta.
      */
 
     if(
-        empleado.uid &&
-        empleado.uid !== usuario.uid
+        !empleado.authUid
     ){
 
         throw new Error(
-            "Este empleado ya está vinculado a otra cuenta."
+            "Este empleado todavía no tiene un acceso creado. Comunicate con el administrador."
         );
 
     }
 
-
-    /*
-     * Si todavía no tiene UID, lo asociamos
-     * a la cuenta autenticada.
-     */
 
     if(
-        !empleado.uid
+        empleado.authUid !==
+        usuario.uid
     ){
 
-        await updateDoc(
-            doc(
-                db,
-                "empleados",
-                empleado.id
-            ),
-            {
-
-                uid:
-                usuario.uid,
-
-                usuarioFirebase:
-                true
-
-            }
+        throw new Error(
+            "Esta cuenta no está vinculada al empleado registrado."
         );
 
     }
 
 
-    // ======================================
-    // GUARDAR DATOS DE SESIÓN
-    // ======================================
+    // ==================================================
+    // GUARDAR SESIÓN
+    // ==================================================
 
     sessionStorage.setItem(
         "gesbase_tipo_acceso",
@@ -635,14 +624,20 @@ async function vincularEmpleado(
     );
 
 
+    sessionStorage.setItem(
+        "gesbase_auth_uid",
+        usuario.uid
+    );
+
+
     return empleado;
 
 }
 
 
-// ==========================================
+// ==================================================
 // LOGIN
-// ==========================================
+// ==================================================
 
 formLogin.addEventListener(
     "submit",
@@ -702,9 +697,9 @@ formLogin.addEventListener(
 
         try{
 
-            // =================================
+            // ==================================================
             // AUTENTICAR
-            // =================================
+            // ==================================================
 
             const resultado =
             await signInWithEmailAndPassword(
@@ -718,12 +713,12 @@ formLogin.addEventListener(
             resultado.user;
 
 
-            // =================================
-            // BUSCAR Y VINCULAR EMPLEADO
-            // =================================
+            // ==================================================
+            // VERIFICAR EMPLEADO
+            // ==================================================
 
             const empleado =
-            await vincularEmpleado(
+            await verificarEmpleado(
                 usuario
             );
 
@@ -738,9 +733,9 @@ formLogin.addEventListener(
             );
 
 
-            // =================================
+            // ==================================================
             // IR A FICHAJE
-            // =================================
+            // ==================================================
 
             setTimeout(
                 function(){
@@ -761,16 +756,15 @@ formLogin.addEventListener(
             );
 
 
-            /*
-             * Si falló la vinculación,
-             * cerramos la sesión para que
-             * no quede una cuenta autenticada
-             * sin acceso válido al módulo.
-             */
+            // ==================================================
+            // CERRAR SESIÓN SI FALLA LA VERIFICACIÓN
+            // ==================================================
 
             try{
 
-                await signOut(auth);
+                await signOut(
+                    auth
+                );
 
             }
             catch(errorCerrar){
@@ -787,9 +781,9 @@ formLogin.addEventListener(
             "No se pudo iniciar sesión.";
 
 
-            // =================================
-            // ERRORES FIREBASE AUTH
-            // =================================
+            // ==================================================
+            // FIREBASE AUTH
+            // ==================================================
 
             if(
                 error.code ===
@@ -806,7 +800,7 @@ formLogin.addEventListener(
             ){
 
                 mensaje =
-                "No existe una cuenta de empleado con ese email.";
+                "No existe una cuenta con ese email.";
 
             }
             else if(
@@ -836,10 +830,20 @@ formLogin.addEventListener(
                 "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
 
             }
+            else if(
+                error.code ===
+                "auth/network-request-failed"
+            ){
 
-            // =================================
-            // PERMISOS FIRESTORE
-            // =================================
+                mensaje =
+                "No hay conexión con Firebase. Revisá tu conexión a Internet.";
+
+            }
+
+
+            // ==================================================
+            // FIRESTORE
+            // ==================================================
 
             else if(
                 error.code ===
@@ -847,13 +851,14 @@ formLogin.addEventListener(
             ){
 
                 mensaje =
-                "Firebase bloqueó el acceso a la ficha del empleado. Hay que ajustar las reglas de Firestore.";
+                "Firebase no permite consultar los empleados con las reglas actuales.";
 
             }
 
-            // =================================
+
+            // ==================================================
             // ERROR PERSONALIZADO
-            // =================================
+            // ==================================================
 
             else if(
                 error.message
@@ -887,9 +892,9 @@ formLogin.addEventListener(
 );
 
 
-// ==========================================
+// ==================================================
 // ACCESO ADMINISTRADOR
-// ==========================================
+// ==================================================
 
 btnAdministrador.addEventListener(
     "click",
@@ -897,7 +902,9 @@ btnAdministrador.addEventListener(
 
         try{
 
-            await signOut(auth);
+            await signOut(
+                auth
+            );
 
         }
         catch(error){
@@ -914,14 +921,16 @@ btnAdministrador.addEventListener(
             "gesbase_tipo_acceso"
         );
 
-
         sessionStorage.removeItem(
             "gesbase_empleado_id"
         );
 
-
         sessionStorage.removeItem(
             "gesbase_empresa_id"
+        );
+
+        sessionStorage.removeItem(
+            "gesbase_auth_uid"
         );
 
 
@@ -932,21 +941,13 @@ btnAdministrador.addEventListener(
 );
 
 
-// ==========================================
+// ==================================================
 // SESIÓN EXISTENTE
-// ==========================================
+// ==================================================
 
 onAuthStateChanged(
     auth,
     async function(usuario){
-
-        /*
-         * No redirigimos automáticamente sólo
-         * porque exista una sesión.
-         *
-         * Esto evita que una cuenta administrador
-         * quede atrapada en el acceso empleado.
-         */
 
         if(!usuario){
 
@@ -961,6 +962,14 @@ onAuthStateChanged(
         );
 
 
+        /*
+         * Si no es una sesión de empleado,
+         * no hacemos nada.
+         *
+         * Esto evita que el administrador
+         * quede atrapado en esta pantalla.
+         */
+
         if(
             tipoAcceso !==
             "empleado"
@@ -974,7 +983,7 @@ onAuthStateChanged(
         try{
 
             const empleado =
-            await vincularEmpleado(
+            await verificarEmpleado(
                 usuario
             );
 
@@ -990,14 +999,16 @@ onAuthStateChanged(
         catch(error){
 
             console.warn(
-                "Sesión empleado no válida:",
+                "Sesión de empleado no válida:",
                 error
             );
 
 
             try{
 
-                await signOut(auth);
+                await signOut(
+                    auth
+                );
 
             }
             catch(errorCerrar){
@@ -1008,6 +1019,23 @@ onAuthStateChanged(
 
             }
 
+
+            sessionStorage.removeItem(
+                "gesbase_tipo_acceso"
+            );
+
+            sessionStorage.removeItem(
+                "gesbase_empleado_id"
+            );
+
+            sessionStorage.removeItem(
+                "gesbase_empresa_id"
+            );
+
+            sessionStorage.removeItem(
+                "gesbase_auth_uid"
+            );
+
         }
 
     }
@@ -1015,7 +1043,6 @@ onAuthStateChanged(
 
 
 </script>
-
 
 </body>
 
