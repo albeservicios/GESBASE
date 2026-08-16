@@ -34,8 +34,8 @@ body{
 .contenedor{
     width:100%;
     max-width:750px;
-    min-height:100vh;
     margin:auto;
+    min-height:100vh;
     background:#fff;
 }
 
@@ -294,31 +294,24 @@ textarea:focus{
 
 </head>
 
-
 <body>
 
 <div class="contenedor">
-
 
 <header>
 
 <h1>GESBASE</h1>
 
-<p>
-Correo interno
-</p>
+<p>Correo interno</p>
 
 </header>
 
-
 <main>
-
 
 <div
     id="mensajeError"
     class="error"
 ></div>
-
 
 <div
     id="mensajeExito"
@@ -327,7 +320,7 @@ Correo interno
 
 
 <!-- ==============================
-     USUARIO ACTUAL
+     USUARIO
 ============================== -->
 
 <div class="tarjeta">
@@ -356,15 +349,11 @@ Cargando usuario...
 📝 Nuevo mensaje
 </div>
 
-
 <label for="destinatario">
 Destinatario
 </label>
 
-
-<select
-    id="destinatario"
->
+<select id="destinatario">
 
 <option value="">
 Cargando destinatarios...
@@ -377,7 +366,6 @@ Cargando destinatarios...
 Asunto
 </label>
 
-
 <input
     type="text"
     id="asunto"
@@ -389,7 +377,6 @@ Asunto
 <label for="mensaje">
 Mensaje
 </label>
-
 
 <textarea
     id="mensaje"
@@ -419,14 +406,12 @@ Mensaje
 📥 Bandeja de entrada
 </div>
 
-
 <button
     id="btnRecibidos"
     class="boton boton-recibidos"
 >
 🔄 ACTUALIZAR RECIBIDOS
 </button>
-
 
 <div
     id="recibidos"
@@ -452,14 +437,12 @@ Cargando mensajes...
 📤 Mensajes enviados
 </div>
 
-
 <button
     id="btnEnviados"
     class="boton boton-enviados"
 >
 🔄 ACTUALIZAR ENVIADOS
 </button>
-
 
 <div
     id="enviados"
@@ -488,12 +471,10 @@ Presioná actualizar para ver los enviados.
 📨 Mensaje
 </div>
 
-
 <div
     id="detalleCorreo"
     class="detalle"
 ></div>
-
 
 <button
     id="btnCerrarDetalle"
@@ -519,7 +500,6 @@ Presioná actualizar para ver los enviados.
 >
 🚪 CERRAR SESIÓN
 </button>
-
 
 </main>
 
@@ -657,8 +637,6 @@ let empleadoId = "";
 
 let empresaId = "";
 
-let emailActual = "";
-
 let destinatarios = [];
 
 let correosRecibidos = [];
@@ -698,23 +676,10 @@ function escaparHTML(valor){
 }
 
 
-function nombreCompleto(datos){
-
-    return (
-
-        texto(datos.nombre) +
-        " " +
-        texto(datos.apellido)
-
-    ).trim();
-
-}
-
-
-function mostrarError(textoError){
+function mostrarError(mensajeTexto){
 
     mensajeError.textContent =
-    textoError;
+    mensajeTexto;
 
     mensajeError.style.display =
     "block";
@@ -725,10 +690,10 @@ function mostrarError(textoError){
 }
 
 
-function mostrarExito(textoExito){
+function mostrarExito(mensajeTexto){
 
     mensajeExito.textContent =
-    textoExito;
+    mensajeTexto;
 
     mensajeExito.style.display =
     "block";
@@ -750,23 +715,74 @@ function limpiarMensajes(){
 }
 
 
-function fechaHora(valor){
+function nombreCompleto(datos){
+
+    return (
+        texto(datos.nombre) +
+        " " +
+        texto(datos.apellido)
+    ).trim();
+
+}
+
+
+function fechaActual(){
+
+    const ahora =
+    new Date();
+
+    return (
+        ahora.getFullYear() +
+        "-" +
+        String(
+            ahora.getMonth()+1
+        ).padStart(2,"0") +
+        "-" +
+        String(
+            ahora.getDate()
+        ).padStart(2,"0")
+    );
+
+}
+
+
+function horaActual(){
+
+    const ahora =
+    new Date();
+
+    return (
+        String(
+            ahora.getHours()
+        ).padStart(2,"0") +
+        ":" +
+        String(
+            ahora.getMinutes()
+        ).padStart(2,"0")
+    );
+
+}
+
+
+function fechaCorreo(correo){
 
     if(
-        valor &&
-        typeof valor.toDate ===
+        correo.creado &&
+        typeof correo.creado.toDate ===
         "function"
     ){
 
-        return valor
+        return correo.creado
         .toDate()
-        .toLocaleString(
-            "es-AR"
-        );
+        .toLocaleString("es-AR");
 
     }
 
-    return texto(valor);
+    return (
+        texto(correo.fecha) +
+        " " +
+        texto(correo.hora)
+    ).trim();
 
 }
 
@@ -776,6 +792,15 @@ function fechaHora(valor){
 ========================================= */
 
 async function cargarEmpleado(){
+
+    if(!usuarioSesion){
+
+        throw new Error(
+            "No hay una sesión activa."
+        );
+
+    }
+
 
     const consulta =
     query(
@@ -803,7 +828,7 @@ async function cargarEmpleado(){
     ){
 
         throw new Error(
-            "No encontramos el empleado vinculado a esta cuenta."
+            "No encontramos el perfil de empleado vinculado a esta cuenta."
         );
 
     }
@@ -833,22 +858,30 @@ async function cargarEmpleado(){
     ).trim();
 
 
-    emailActual =
-    texto(
-        empleadoActual.email
-    ).trim()
-    ||
-    texto(
-        usuarioSesion.email
-    ).trim();
+    if(!empresaId){
+
+        throw new Error(
+            "El empleado no tiene empresaId asignado."
+        );
+
+    }
 
 
     const nombre =
     nombreCompleto(
         empleadoActual
-    )
-    ||
+    ) ||
     "Empleado";
+
+
+    const empresa =
+    texto(
+        empleadoActual.empresa
+    ) ||
+    texto(
+        empleadoActual.empresaNombre
+    ) ||
+    "Empresa";
 
 
     usuarioActual.innerHTML = `
@@ -863,102 +896,27 @@ async function cargarEmpleado(){
         ${escaparHTML(
             texto(
                 empleadoActual.puesto
-            ) ||
-            "Empleado"
+            ) || "Empleado"
         )}
 
         <br>
 
         Empresa:
-        ${escaparHTML(
-            texto(
-                empleadoActual.empresa
-            ) ||
-            "Empresa"
-        )}
+        ${escaparHTML(empresa)}
 
         <br>
 
         Correo:
         ${escaparHTML(
-            emailActual
+            texto(
+                empleadoActual.email
+            ) ||
+            texto(
+                usuarioSesion.email
+            )
         )}
 
     `;
-
-}
-
-
-/* =========================================
-   AGREGAR DESTINATARIO
-========================================= */
-
-function agregarDestinatario(
-    id,
-    nombre,
-    email,
-    tipo,
-    authUid=""
-){
-
-    email =
-    texto(email)
-    .trim()
-    .toLowerCase();
-
-
-    if(!email){
-
-        return;
-
-    }
-
-
-    if(
-        email ===
-        emailActual.toLowerCase()
-    ){
-
-        return;
-
-    }
-
-
-    const existe =
-    destinatarios.some(
-        persona =>
-        persona.email.toLowerCase()
-        ===
-        email
-    );
-
-
-    if(existe){
-
-        return;
-
-    }
-
-
-    destinatarios.push({
-
-        id:
-        texto(id),
-
-        nombre:
-        nombre ||
-        email,
-
-        email:
-        email,
-
-        tipo:
-        tipo,
-
-        authUid:
-        texto(authUid)
-
-    });
 
 }
 
@@ -972,81 +930,13 @@ async function cargarDestinatarios(){
     destinatarios = [];
 
 
-    /*
-       ================================
-       EMPLEADOS
-       ================================
-    */
+    /* =====================================
+       ADMINISTRACIÓN
+    ===================================== */
 
     try{
 
-        const consulta =
-        query(
-            collection(
-                db,
-                "empleados"
-            ),
-            where(
-                "empresaId",
-                "==",
-                empresaId
-            )
-        );
-
-
-        const resultados =
-        await getDocs(
-            consulta
-        );
-
-
-        resultados.forEach(
-            documento => {
-
-                const datos =
-                documento.data();
-
-
-                agregarDestinatario(
-
-                    documento.id,
-
-                    nombreCompleto(
-                        datos
-                    ) ||
-                    "Empleado",
-
-                    datos.email,
-
-                    "Empleado",
-
-                    datos.authUid
-
-                );
-
-            }
-        );
-
-    }
-    catch(error){
-
-        console.warn(
-            "Error cargando empleados:",
-            error
-        );
-
-    }
-
-
-    /*
-       ================================
-       ADMINISTRADORES
-       ================================
-    */
-
-    try{
-
-        const consulta =
+        const consultaAdmin =
         query(
             collection(
                 db,
@@ -1060,23 +950,30 @@ async function cargarDestinatarios(){
         );
 
 
-        const resultados =
+        const resultadosAdmin =
         await getDocs(
-            consulta
+            consultaAdmin
         );
 
 
-        resultados.forEach(
+        resultadosAdmin.forEach(
             documento => {
 
                 const datos =
                 documento.data();
 
 
-                agregarDestinatario(
+                destinatarios.push({
 
+                    id:
                     documento.id,
 
+                    authUid:
+                    texto(
+                        datos.authUid
+                    ),
+
+                    nombre:
                     nombreCompleto(
                         datos
                     ) ||
@@ -1085,13 +982,15 @@ async function cargarDestinatarios(){
                     ) ||
                     "Administración",
 
-                    datos.email,
+                    email:
+                    texto(
+                        datos.email
+                    ),
 
-                    "Administración",
+                    tipo:
+                    "Administración"
 
-                    datos.authUid
-
-                );
+                });
 
             }
         );
@@ -1099,27 +998,25 @@ async function cargarDestinatarios(){
     }
     catch(error){
 
-        console.warn(
-            "No se pudo cargar colección administradores:",
+        console.error(
+            "Error cargando administración:",
             error
         );
 
     }
 
 
-    /*
-       ================================
-       COLECCIÓN ADMINISTRACION
-       ================================
-    */
+    /* =====================================
+       OTROS EMPLEADOS
+    ===================================== */
 
     try{
 
-        const consulta =
+        const consultaEmpleados =
         query(
             collection(
                 db,
-                "administracion"
+                "empleados"
             ),
             where(
                 "empresaId",
@@ -1129,38 +1026,54 @@ async function cargarDestinatarios(){
         );
 
 
-        const resultados =
+        const resultadosEmpleados =
         await getDocs(
-            consulta
+            consultaEmpleados
         );
 
 
-        resultados.forEach(
+        resultadosEmpleados.forEach(
             documento => {
+
+                if(
+                    documento.id ===
+                    empleadoId
+                ){
+
+                    return;
+
+                }
+
 
                 const datos =
                 documento.data();
 
 
-                agregarDestinatario(
+                destinatarios.push({
 
+                    id:
                     documento.id,
 
+                    authUid:
+                    texto(
+                        datos.authUid
+                    ),
+
+                    nombre:
                     nombreCompleto(
                         datos
                     ) ||
+                    "Empleado",
+
+                    email:
                     texto(
-                        datos.nombre
-                    ) ||
-                    "Administración",
+                        datos.email
+                    ),
 
-                    datos.email,
+                    tipo:
+                    "Empleado"
 
-                    "Administración",
-
-                    datos.authUid
-
-                );
+                });
 
             }
         );
@@ -1168,19 +1081,17 @@ async function cargarDestinatarios(){
     }
     catch(error){
 
-        console.warn(
-            "No se pudo cargar colección administracion:",
+        console.error(
+            "Error cargando empleados:",
             error
         );
 
     }
 
 
-    /*
-       ================================
-       ARMAR SELECT
-       ================================
-    */
+    /* =====================================
+       MOSTRAR DESTINATARIOS
+    ===================================== */
 
     destinatario.innerHTML = "";
 
@@ -1224,7 +1135,7 @@ async function cargarDestinatarios(){
 
 
             option.value =
-            persona.email;
+            persona.id;
 
 
             option.textContent =
@@ -1253,13 +1164,10 @@ async function cargarDestinatarios(){
 
 function obtenerDestinatario(){
 
-    const email =
-    destinatario.value;
-
-
     return destinatarios.find(
         persona =>
-        persona.email === email
+        persona.id ===
+        destinatario.value
     );
 
 }
@@ -1305,8 +1213,6 @@ btnEnviar.addEventListener(
                 "Escribí un asunto."
             );
 
-            asunto.focus();
-
             return;
 
         }
@@ -1318,7 +1224,16 @@ btnEnviar.addEventListener(
                 "Escribí el mensaje."
             );
 
-            mensaje.focus();
+            return;
+
+        }
+
+
+        if(!persona.authUid){
+
+            mostrarError(
+                "El destinatario no tiene authUid vinculado."
+            );
 
             return;
 
@@ -1335,31 +1250,33 @@ btnEnviar.addEventListener(
 
         try{
 
+            const nombreRemitente =
+            nombreCompleto(
+                empleadoActual
+            ) ||
+            "Empleado";
+
+
+            const emailRemitente =
+            texto(
+                empleadoActual.email
+            ) ||
+            texto(
+                usuarioSesion.email
+            );
+
+
             /*
-               ESTRUCTURA REAL
-               DE TU FIRESTORE
-            */
+             * ESTRUCTURA COMPATIBLE
+             * CON FIRESTORE
+             */
 
             await addDoc(
-
                 collection(
                     db,
                     "correos"
                 ),
-
                 {
-
-                    asunto:
-                    asuntoTexto,
-
-                    mensaje:
-                    mensajeTexto,
-
-                    de:
-                    emailActual,
-
-                    para:
-                    persona.email,
 
                     empresaId:
                     empresaId,
@@ -1367,20 +1284,64 @@ btnEnviar.addEventListener(
                     usuarioId:
                     usuarioSesion.uid,
 
+                    remitenteUid:
+                    usuarioSesion.uid,
+
+                    remitenteId:
+                    empleadoId,
+
+                    remitenteNombre:
+                    nombreRemitente,
+
+                    remitenteEmail:
+                    emailRemitente,
+
+                    destinatarioUid:
+                    persona.authUid,
+
+                    destinatarioId:
+                    persona.id,
+
+                    destinatarioNombre:
+                    persona.nombre,
+
+                    destinatarioEmail:
+                    persona.email,
+
+                    destinatarioTipo:
+                    persona.tipo,
+
+                    asunto:
+                    asuntoTexto,
+
+                    mensaje:
+                    mensajeTexto,
+
                     carpeta:
                     "enviados",
 
                     estado:
-                    "pendiente",
+                    "enviado",
+
+                    leido:
+                    false,
+
+                    fecha:
+                    fechaActual(),
+
+                    hora:
+                    horaActual(),
 
                     creado:
                     serverTimestamp(),
 
                     enviado:
-                    serverTimestamp()
+                    serverTimestamp(),
+
+                    tipo:
+                    "interno"
 
                 }
-
             );
 
 
@@ -1431,7 +1392,7 @@ btnEnviar.addEventListener(
 
 
 /* =========================================
-   CARGAR RECIBIDOS
+   RECIBIDOS
 ========================================= */
 
 async function cargarRecibidos(){
@@ -1449,20 +1410,16 @@ async function cargarRecibidos(){
 
         const consulta =
         query(
-
             collection(
                 db,
                 "correos"
             ),
-
             where(
-                "para",
+                "destinatarioUid",
                 "==",
-                emailActual
+                usuarioSesion.uid
             ),
-
-            limit(100)
-
+            limit(50)
         );
 
 
@@ -1492,29 +1449,12 @@ async function cargarRecibidos(){
 
 
         correosRecibidos.sort(
-            function(a,b){
+            (a,b) => {
 
-                const fechaA =
-                a.creado &&
-                typeof a.creado.toMillis ===
-                "function"
-                ?
-                a.creado.toMillis()
-                :
-                0;
-
-
-                const fechaB =
-                b.creado &&
-                typeof b.creado.toMillis ===
-                "function"
-                ?
-                b.creado.toMillis()
-                :
-                0;
-
-
-                return fechaB - fechaA;
+                return fechaCorreo(b)
+                .localeCompare(
+                    fechaCorreo(a)
+                );
 
             }
         );
@@ -1534,15 +1474,7 @@ async function cargarRecibidos(){
         recibidos.innerHTML = `
 
             <div class="sin-registros">
-
             No se pudieron cargar los mensajes.
-
-            <br><br>
-
-            ${escaparHTML(
-                error.message
-            )}
-
             </div>
 
         `;
@@ -1587,18 +1519,12 @@ function mostrarRecibidos(){
             );
 
 
-            const leido =
-            correo.leido === true;
-
-
             item.className =
             "correo-item" +
             (
-                leido
-                ?
-                ""
-                :
-                " no-leido"
+                correo.leido
+                ? ""
+                : " no-leido"
             );
 
 
@@ -1610,7 +1536,8 @@ function mostrarRecibidos(){
 
                         De:
                         ${escaparHTML(
-                            correo.de
+                            correo.remitenteNombre ||
+                            "Administración"
                         )}
 
                     </div>
@@ -1618,9 +1545,7 @@ function mostrarRecibidos(){
                     <div class="correo-fecha">
 
                         ${escaparHTML(
-                            fechaHora(
-                                correo.creado
-                            )
+                            fechaCorreo(correo)
                         )}
 
                     </div>
@@ -1642,20 +1567,15 @@ function mostrarRecibidos(){
                     ${escaparHTML(
                         texto(
                             correo.mensaje
-                        ).substring(
-                            0,
-                            180
-                        )
+                        ).substring(0,180)
                     )}
 
                     ${
                         texto(
                             correo.mensaje
                         ).length > 180
-                        ?
-                        "..."
-                        :
-                        ""
+                        ? "..."
+                        : ""
                     }
 
                 </div>
@@ -1663,20 +1583,16 @@ function mostrarRecibidos(){
 
                 <span
                     class="estado-correo ${
-                        leido
-                        ?
-                        ""
-                        :
-                        "estado-no-leido"
+                        correo.leido
+                        ? ""
+                        : "estado-no-leido"
                     }"
                 >
 
                     ${
-                        leido
-                        ?
-                        "LEÍDO"
-                        :
-                        "NO LEÍDO"
+                        correo.leido
+                        ? "LEÍDO"
+                        : "NO LEÍDO"
                     }
 
                 </span>
@@ -1708,7 +1624,7 @@ function mostrarRecibidos(){
 
 
 /* =========================================
-   CARGAR ENVIADOS
+   ENVIADOS
 ========================================= */
 
 async function cargarEnviados(){
@@ -1726,20 +1642,16 @@ async function cargarEnviados(){
 
         const consulta =
         query(
-
             collection(
                 db,
                 "correos"
             ),
-
             where(
-                "de",
+                "usuarioId",
                 "==",
-                emailActual
+                usuarioSesion.uid
             ),
-
-            limit(100)
-
+            limit(50)
         );
 
 
@@ -1755,43 +1667,37 @@ async function cargarEnviados(){
         resultados.forEach(
             documento => {
 
-                correosEnviados.push({
+                const datos =
+                documento.data();
 
-                    id:
-                    documento.id,
 
-                    ...documento.data()
+                if(
+                    datos.carpeta ===
+                    "enviados"
+                ){
 
-                });
+                    correosEnviados.push({
+
+                        id:
+                        documento.id,
+
+                        ...datos
+
+                    });
+
+                }
 
             }
         );
 
 
         correosEnviados.sort(
-            function(a,b){
+            (a,b) => {
 
-                const fechaA =
-                a.creado &&
-                typeof a.creado.toMillis ===
-                "function"
-                ?
-                a.creado.toMillis()
-                :
-                0;
-
-
-                const fechaB =
-                b.creado &&
-                typeof b.creado.toMillis ===
-                "function"
-                ?
-                b.creado.toMillis()
-                :
-                0;
-
-
-                return fechaB - fechaA;
+                return fechaCorreo(b)
+                .localeCompare(
+                    fechaCorreo(a)
+                );
 
             }
         );
@@ -1811,15 +1717,7 @@ async function cargarEnviados(){
         enviados.innerHTML = `
 
             <div class="sin-registros">
-
-            No se pudieron cargar los enviados.
-
-            <br><br>
-
-            ${escaparHTML(
-                error.message
-            )}
-
+            No se pudieron cargar los mensajes enviados.
             </div>
 
         `;
@@ -1876,7 +1774,9 @@ function mostrarEnviados(){
 
                         Para:
                         ${escaparHTML(
-                            correo.para
+                            correo.destinatarioNombre ||
+                            correo.destinatarioEmail ||
+                            "Destinatario"
                         )}
 
                     </div>
@@ -1885,9 +1785,7 @@ function mostrarEnviados(){
                     <div class="correo-fecha">
 
                         ${escaparHTML(
-                            fechaHora(
-                                correo.creado
-                            )
+                            fechaCorreo(correo)
                         )}
 
                     </div>
@@ -1909,33 +1807,18 @@ function mostrarEnviados(){
                     ${escaparHTML(
                         texto(
                             correo.mensaje
-                        ).substring(
-                            0,
-                            180
-                        )
+                        ).substring(0,180)
                     )}
 
                     ${
                         texto(
                             correo.mensaje
                         ).length > 180
-                        ?
-                        "..."
-                        :
-                        ""
+                        ? "..."
+                        : ""
                     }
 
                 </div>
-
-
-                <span class="estado-correo">
-
-                    ${escaparHTML(
-                        correo.estado ||
-                        "enviado"
-                    )}
-
-                </span>
 
             `;
 
@@ -1979,7 +1862,8 @@ async function abrirCorreo(
             <strong>De:</strong>
 
             ${escaparHTML(
-                correo.de
+                correo.remitenteNombre ||
+                "Administración"
             )}
 
         </div>
@@ -1990,7 +1874,9 @@ async function abrirCorreo(
             <strong>Para:</strong>
 
             ${escaparHTML(
-                correo.para
+                correo.destinatarioNombre ||
+                correo.destinatarioEmail ||
+                "Destinatario"
             )}
 
         </div>
@@ -2012,21 +1898,7 @@ async function abrirCorreo(
             <strong>Fecha:</strong>
 
             ${escaparHTML(
-                fechaHora(
-                    correo.creado
-                )
-            )}
-
-        </div>
-
-
-        <div class="detalle-linea">
-
-            <strong>Estado:</strong>
-
-            ${escaparHTML(
-                correo.estado ||
-                "pendiente"
+                fechaCorreo(correo)
             )}
 
         </div>
@@ -2056,29 +1928,22 @@ async function abrirCorreo(
     });
 
 
-    /*
-       MARCAR COMO LEÍDO
-    */
-
     if(
         esRecibido &&
-        correo.leido !== true
+        !correo.leido
     ){
 
         try{
 
             await updateDoc(
-
                 doc(
                     db,
                     "correos",
                     correo.id
                 ),
-
                 {
                     leido:true
                 }
-
             );
 
 
@@ -2091,8 +1956,8 @@ async function abrirCorreo(
         }
         catch(error){
 
-            console.warn(
-                "No se pudo marcar como leído:",
+            console.error(
+                "Error marcando leído:",
                 error
             );
 
@@ -2237,10 +2102,6 @@ onAuthStateChanged(
             limpiarMensajes();
 
 
-            usuarioActual.textContent =
-            "Cargando usuario...";
-
-
             await cargarEmpleado();
 
 
@@ -2254,7 +2115,7 @@ onAuthStateChanged(
 
 
             console.log(
-                "CORREO GESBASE INICIALIZADO"
+                "CORREO EMPLEADO GESBASE INICIALIZADO"
             );
 
         }
