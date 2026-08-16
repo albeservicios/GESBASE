@@ -39,12 +39,46 @@ body{
     background:white;
 }
 
+/* ==========================================
+   ENCABEZADO
+========================================== */
+
 header{
     background:#111827;
     color:white;
-    padding:28px 20px;
+    padding:24px 20px 28px;
     text-align:center;
 }
+
+/* LOGO DE LA EMPRESA */
+
+.logo-empresa{
+    width:90px;
+    height:90px;
+    margin:0 auto 12px;
+    border-radius:18px;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    box-shadow:0 4px 12px rgba(0,0,0,.20);
+}
+
+.logo-empresa img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+}
+
+/* Se oculta si no hay logo */
+
+.logo-empresa.oculto{
+    display:none;
+}
+
+/* GESBASE SIEMPRE VISIBLE */
 
 .logo{
     font-size:32px;
@@ -190,6 +224,23 @@ main{
     margin:20px;
 }
 
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media(max-width:400px){
+
+    .logo-empresa{
+        width:75px;
+        height:75px;
+    }
+
+    .logo{
+        font-size:28px;
+    }
+
+}
+
 </style>
 
 </head>
@@ -200,6 +251,28 @@ main{
 <div class="app">
 
 <header>
+
+<!-- ==========================================
+     LOGO DE LA EMPRESA
+========================================== -->
+
+<div
+    id="logoEmpresa"
+    class="logo-empresa oculto"
+>
+
+<img
+    id="imagenLogoEmpresa"
+    src=""
+    alt="Logo de la empresa"
+>
+
+</div>
+
+
+<!-- ==========================================
+     GESBASE - SIEMPRE VISIBLE
+========================================== -->
 
 <div class="logo">
 GESBASE
@@ -497,9 +570,7 @@ Mi empresa
 </button>
 
 
-<!-- ==========================================
-     NUEVO - CORREO EMPRESARIAL
-========================================== -->
+<!-- CORREO EMPRESARIAL -->
 
 <button
     class="boton"
@@ -646,6 +717,93 @@ document.getElementById(
 
 
 // ==========================================
+// ELEMENTOS DEL LOGO
+// ==========================================
+
+const logoEmpresa =
+document.getElementById(
+    "logoEmpresa"
+);
+
+const imagenLogoEmpresa =
+document.getElementById(
+    "imagenLogoEmpresa"
+);
+
+
+// ==========================================
+// MOSTRAR LOGO DE EMPRESA
+// ==========================================
+
+function mostrarLogoEmpresa(
+    datosEmpresa
+){
+
+    /*
+        El sistema busca primero:
+
+        logoUrl
+
+        También acepta:
+
+        logo
+        logoEmpresa
+
+        Esto permite que funcione aunque
+        el campo haya sido guardado con
+        alguno de esos nombres.
+    */
+
+    const logoUrl =
+        datosEmpresa.logoUrl ||
+        datosEmpresa.logo ||
+        datosEmpresa.logoEmpresa ||
+        "";
+
+
+    // Si no existe logo
+    if(!logoUrl){
+
+        logoEmpresa.classList.add(
+            "oculto"
+        );
+
+        imagenLogoEmpresa.src = "";
+
+        return;
+
+    }
+
+
+    // Cargar logo
+    imagenLogoEmpresa.src =
+        logoUrl;
+
+
+    // Mostrar logo
+    logoEmpresa.classList.remove(
+        "oculto"
+    );
+
+
+    // Si la imagen falla
+    imagenLogoEmpresa.onerror =
+    function(){
+
+        console.warn(
+            "No se pudo cargar el logo de la empresa."
+        );
+
+        logoEmpresa.classList.add(
+            "oculto"
+        );
+
+    };
+
+}
+
+
+// ==========================================
 // PANEL ADMINISTRADOR
 // ==========================================
 
@@ -745,7 +903,16 @@ onAuthStateChanged(
 
 
             // ==================================
-            // 3. MOSTRAR USUARIO
+            // 3. MOSTRAR LOGO DE LA EMPRESA
+            // ==================================
+
+            mostrarLogoEmpresa(
+                datosEmpresa
+            );
+
+
+            // ==================================
+            // 4. MOSTRAR USUARIO
             // ==================================
 
             nombreUsuario.textContent =
@@ -756,7 +923,7 @@ onAuthStateChanged(
 
 
             // ==================================
-            // 4. MOSTRAR EMPRESA
+            // 5. MOSTRAR EMPRESA
             // ==================================
 
             empresaUsuario.textContent =
@@ -767,7 +934,7 @@ onAuthStateChanged(
 
 
             // ==================================
-            // 5. MOSTRAR RAZÓN SOCIAL
+            // 6. MOSTRAR RAZÓN SOCIAL
             // ==================================
 
             razonSocialUsuario.textContent =
@@ -777,7 +944,7 @@ onAuthStateChanged(
 
 
             // ==================================
-            // 6. EMAIL
+            // 7. EMAIL
             // ==================================
 
             emailUsuario.textContent =
@@ -788,8 +955,8 @@ onAuthStateChanged(
 
 
             // ==================================
-            // 7. ROL
-            // ==================================
+            // 8. ROL
+            // ==========================================
 
             const rol =
             String(
@@ -806,7 +973,7 @@ onAuthStateChanged(
 
 
             // ==================================
-            // 8. MOSTRAR PANEL ADMIN
+            // 9. MOSTRAR PANEL ADMIN
             // ==================================
 
             if(
@@ -827,7 +994,7 @@ onAuthStateChanged(
 
 
             // ==================================
-            // 9. ESTADO DE SUSCRIPCIÓN
+            // 10. ESTADO DE SUSCRIPCIÓN
             // ==================================
 
             estadoCuenta.textContent =
@@ -837,7 +1004,7 @@ onAuthStateChanged(
 
 
             // ==================================
-            // 10. MOSTRAR PANEL
+            // 11. MOSTRAR PANEL
             // ==================================
 
             cargando.style.display =
