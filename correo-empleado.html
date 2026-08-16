@@ -33,7 +33,7 @@ body{
 
 .contenedor{
     width:100%;
-    max-width:750px;
+    max-width:760px;
     margin:auto;
     min-height:100vh;
     background:#fff;
@@ -94,7 +94,7 @@ textarea{
 }
 
 textarea{
-    min-height:150px;
+    min-height:130px;
     resize:vertical;
 }
 
@@ -114,11 +114,6 @@ textarea:focus{
     font-weight:bold;
     cursor:pointer;
     margin-top:8px;
-}
-
-.boton:disabled{
-    opacity:.5;
-    cursor:not-allowed;
 }
 
 .boton-enviar{
@@ -151,51 +146,25 @@ textarea:focus{
     color:#fff;
 }
 
-.boton-audio{
-    background:#7c3aed;
+.boton-adjunto{
+    background:#f3f4f6;
+    color:#111827;
+    border:1px solid #d1d5db;
+}
+
+.boton-grabar{
+    background:#dc2626;
     color:#fff;
 }
 
-.boton-audio.grabando{
-    background:#dc2626;
+.boton-grabando{
+    background:#991b1b;
+    color:#fff;
 }
 
-.botones-adjunto{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    margin-bottom:10px;
-}
-
-.boton-adjunto{
-    background:#f3f4f6;
-    border:1px solid #d1d5db;
-    color:#111827;
-    border-radius:10px;
-    padding:13px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-.archivo-seleccionado{
-    background:#eff6ff;
-    border:1px solid #bfdbfe;
-    color:#1e40af;
-    padding:10px;
-    border-radius:10px;
-    margin-bottom:10px;
-    font-size:14px;
-    display:none;
-}
-
-.audio-estado{
-    background:#f5f3ff;
-    border:1px solid #ddd6fe;
-    color:#5b21b6;
-    padding:10px;
-    border-radius:10px;
-    margin-bottom:10px;
-    display:none;
+.boton:disabled{
+    opacity:.5;
+    cursor:not-allowed;
 }
 
 .error{
@@ -233,6 +202,16 @@ textarea:focus{
     border-radius:10px;
     padding:12px;
     margin-bottom:10px;
+}
+
+.usuario-nombre{
+    font-weight:bold;
+}
+
+.usuario-tipo{
+    color:#6b7280;
+    font-size:12px;
+    margin-top:4px;
 }
 
 .correo-item{
@@ -336,9 +315,9 @@ textarea:focus{
 .adjunto{
     margin-top:15px;
     padding:12px;
-    background:#f9fafb;
-    border:1px solid #e5e7eb;
+    border:1px solid #d1d5db;
     border-radius:10px;
+    background:#f9fafb;
 }
 
 .adjunto a{
@@ -347,45 +326,53 @@ textarea:focus{
     text-decoration:none;
 }
 
-.audio-player{
+.adjunto img{
+    max-width:100%;
+    max-height:350px;
+    border-radius:10px;
+    margin-top:8px;
+}
+
+.adjunto audio{
     width:100%;
-    margin-top:10px;
+    margin-top:8px;
 }
 
-.respuesta{
-    margin-top:20px;
-    padding-top:20px;
-    border-top:1px solid #e5e7eb;
-}
-
-.conversacion{
-    margin-top:15px;
-}
-
-.mensaje-conversacion{
-    border:1px solid #e5e7eb;
-    border-radius:12px;
-    padding:14px;
+.archivos-seleccionados{
+    font-size:13px;
+    color:#4b5563;
     margin-bottom:10px;
 }
 
-.mensaje-conversacion.propio{
+.respondiendo{
     background:#eff6ff;
+    border:1px solid #bfdbfe;
+    color:#1e40af;
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:12px;
+    font-size:14px;
 }
 
-.mensaje-conversacion.otro{
+.preview{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
     background:#f9fafb;
-}
-
-.mensaje-meta{
-    font-size:12px;
-    color:#6b7280;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:10px;
     margin-bottom:8px;
 }
 
-.mensaje-texto{
-    white-space:pre-wrap;
-    line-height:1.5;
+.preview button{
+    border:none;
+    background:#fee2e2;
+    color:#991b1b;
+    padding:7px 10px;
+    border-radius:8px;
+    cursor:pointer;
 }
 
 @media(max-width:600px){
@@ -403,10 +390,6 @@ textarea:focus{
         gap:3px;
     }
 
-    .botones-adjunto{
-        grid-template-columns:1fr;
-    }
-
 }
 
 </style>
@@ -418,12 +401,11 @@ textarea:focus{
 
 <div class="contenedor">
 
-
 <header>
 
 <h1>GESBASE</h1>
 
-<p>Correo interno del empleado</p>
+<p>Correo interno</p>
 
 </header>
 
@@ -443,9 +425,9 @@ textarea:focus{
 ></div>
 
 
-<!-- =========================================
-     USUARIO
-========================================= -->
+<!-- ==============================
+     CORREO DEL USUARIO
+============================== -->
 
 <div class="tarjeta">
 
@@ -463,15 +445,21 @@ Cargando usuario...
 </div>
 
 
-<!-- =========================================
+<!-- ==============================
      NUEVO MENSAJE
-========================================= -->
+============================== -->
 
 <div class="tarjeta">
 
 <div class="titulo">
 📝 Nuevo mensaje
 </div>
+
+
+<div
+    id="respuestaActiva"
+    class="respondiendo oculto"
+></div>
 
 
 <label for="destinatario">
@@ -513,80 +501,94 @@ Mensaje
 ></textarea>
 
 
-<div class="botones-adjunto">
+<!-- ==============================
+     ADJUNTOS
+============================== -->
 
-
-<button
-    type="button"
-    id="btnFoto"
-    class="boton-adjunto"
->
-📷 FOTO
-</button>
-
-
-<button
-    type="button"
-    id="btnArchivo"
-    class="boton-adjunto"
->
-📎 ARCHIVO
-</button>
-
-</div>
+<label>
+📎 Adjuntos
+</label>
 
 
 <input
     type="file"
-    id="inputFoto"
-    accept="image/*"
-    capture="environment"
-    class="oculto"
->
-
-
-<input
-    type="file"
-    id="inputArchivo"
-    class="oculto"
+    id="archivo"
+    multiple
+    accept="image/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
 >
 
 
 <div
-    id="archivoSeleccionado"
-    class="archivo-seleccionado"
-></div>
+    id="archivosSeleccionados"
+    class="archivos-seleccionados"
+>
+No hay archivos seleccionados.
+</div>
 
+
+<!-- ==============================
+     AUDIO
+============================== -->
 
 <button
+    id="btnGrabarAudio"
+    class="boton boton-grabar"
     type="button"
-    id="btnAudio"
-    class="boton boton-audio"
 >
 🎤 GRABAR AUDIO
 </button>
 
 
 <div
-    id="audioEstado"
-    class="audio-estado"
-></div>
+    id="estadoAudio"
+    class="info oculto"
+>
+Grabando audio...
+</div>
+
+
+<audio
+    id="audioPreview"
+    controls
+    class="oculto"
+    style="width:100%;margin-top:10px;"
+></audio>
+
+
+<button
+    id="btnCancelarAudio"
+    class="boton boton-volver oculto"
+    type="button"
+>
+❌ DESCARTAR AUDIO
+</button>
 
 
 <button
     id="btnEnviar"
     class="boton boton-enviar"
     disabled
+    type="button"
 >
 📤 ENVIAR MENSAJE
 </button>
 
+
+<button
+    id="btnCancelarRespuesta"
+    class="boton boton-volver oculto"
+    type="button"
+>
+❌ CANCELAR RESPUESTA
+</button>
+
+
 </div>
 
 
-<!-- =========================================
+<!-- ==============================
      RECIBIDOS
-========================================= -->
+============================== -->
 
 <div class="tarjeta">
 
@@ -598,6 +600,7 @@ Mensaje
 <button
     id="btnRecibidos"
     class="boton boton-recibidos"
+    type="button"
 >
 🔄 ACTUALIZAR RECIBIDOS
 </button>
@@ -617,9 +620,9 @@ Cargando mensajes...
 </div>
 
 
-<!-- =========================================
+<!-- ==============================
      ENVIADOS
-========================================= -->
+============================== -->
 
 <div class="tarjeta">
 
@@ -631,6 +634,7 @@ Cargando mensajes...
 <button
     id="btnEnviados"
     class="boton boton-enviados"
+    type="button"
 >
 🔄 ACTUALIZAR ENVIADOS
 </button>
@@ -650,9 +654,9 @@ Presioná actualizar para ver los enviados.
 </div>
 
 
-<!-- =========================================
+<!-- ==============================
      DETALLE
-========================================= -->
+============================== -->
 
 <div
     id="tarjetaDetalle"
@@ -667,106 +671,14 @@ Presioná actualizar para ver los enviados.
 <div
     id="detalleCorreo"
     class="detalle"
-></div>
-
-
-<div
-    id="conversacion"
-    class="conversacion"
-></div>
-
-
-<div
-    id="respuestaPanel"
-    class="respuesta oculto"
 >
-
-<div class="titulo">
-↩️ Responder
-</div>
-
-
-<textarea
-    id="respuestaTexto"
-    placeholder="Escribí tu respuesta..."
-    maxlength="5000"
-></textarea>
-
-
-<div class="botones-adjunto">
-
-
-<button
-    type="button"
-    id="btnFotoRespuesta"
-    class="boton-adjunto"
->
-📷 FOTO
-</button>
-
-
-<button
-    type="button"
-    id="btnArchivoRespuesta"
-    class="boton-adjunto"
->
-📎 ARCHIVO
-</button>
-
-</div>
-
-
-<input
-    type="file"
-    id="inputFotoRespuesta"
-    accept="image/*"
-    capture="environment"
-    class="oculto"
->
-
-
-<input
-    type="file"
-    id="inputArchivoRespuesta"
-    class="oculto"
->
-
-
-<div
-    id="archivoRespuestaSeleccionado"
-    class="archivo-seleccionado"
-></div>
-
-
-<button
-    type="button"
-    id="btnAudioRespuesta"
-    class="boton boton-audio"
->
-🎤 GRABAR AUDIO
-</button>
-
-
-<div
-    id="audioRespuestaEstado"
-    class="audio-estado"
-></div>
-
-
-<button
-    type="button"
-    id="btnEnviarRespuesta"
-    class="boton boton-responder"
->
-↩️ ENVIAR RESPUESTA
-</button>
-
 </div>
 
 
 <button
     id="btnResponder"
     class="boton boton-responder"
+    type="button"
 >
 ↩️ RESPONDER
 </button>
@@ -775,16 +687,23 @@ Presioná actualizar para ver los enviados.
 <button
     id="btnCerrarDetalle"
     class="boton boton-volver"
+    type="button"
 >
 ⬅️ VOLVER A LA BANDEJA
 </button>
 
+
 </div>
 
+
+<!-- ==============================
+     NAVEGACIÓN
+============================== -->
 
 <button
     id="btnVolver"
     class="boton boton-volver"
+    type="button"
 >
 ⬅️ VOLVER
 </button>
@@ -793,6 +712,7 @@ Presioná actualizar para ver los enviados.
 <button
     id="btnCerrarSesion"
     class="boton boton-cerrar"
+    type="button"
 >
 🚪 CERRAR SESIÓN
 </button>
@@ -812,8 +732,7 @@ Presioná actualizar para ver los enviados.
 
 import {
     auth,
-    db,
-    storage
+    db
 } from "./Js/firebase.js";
 
 
@@ -839,11 +758,22 @@ import {
 
 
 import {
+    getStorage,
     ref,
     uploadBytes,
     getDownloadURL
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+
+
+/* =========================================
+   STORAGE
+========================================= */
+
+const storage =
+getStorage(
+    auth.app
+);
 
 
 /* =========================================
@@ -868,6 +798,16 @@ document.getElementById(
 const mensaje =
 document.getElementById(
     "mensaje"
+);
+
+const archivo =
+document.getElementById(
+    "archivo"
+);
+
+const archivosSeleccionados =
+document.getElementById(
+    "archivosSeleccionados"
 );
 
 const btnEnviar =
@@ -905,29 +845,9 @@ document.getElementById(
     "detalleCorreo"
 );
 
-const conversacion =
-document.getElementById(
-    "conversacion"
-);
-
-const respuestaPanel =
-document.getElementById(
-    "respuestaPanel"
-);
-
-const respuestaTexto =
-document.getElementById(
-    "respuestaTexto"
-);
-
 const btnResponder =
 document.getElementById(
     "btnResponder"
-);
-
-const btnEnviarRespuesta =
-document.getElementById(
-    "btnEnviarRespuesta"
 );
 
 const btnCerrarDetalle =
@@ -955,84 +875,34 @@ document.getElementById(
     "mensajeExito"
 );
 
-
-/* =========================================
-   ADJUNTOS NUEVO MENSAJE
-========================================= */
-
-const btnFoto =
+const respuestaActiva =
 document.getElementById(
-    "btnFoto"
+    "respuestaActiva"
 );
 
-const btnArchivo =
+const btnCancelarRespuesta =
 document.getElementById(
-    "btnArchivo"
+    "btnCancelarRespuesta"
 );
 
-const inputFoto =
+const btnGrabarAudio =
 document.getElementById(
-    "inputFoto"
+    "btnGrabarAudio"
 );
 
-const inputArchivo =
+const btnCancelarAudio =
 document.getElementById(
-    "inputArchivo"
+    "btnCancelarAudio"
 );
 
-const archivoSeleccionado =
+const estadoAudio =
 document.getElementById(
-    "archivoSeleccionado"
+    "estadoAudio"
 );
 
-const btnAudio =
+const audioPreview =
 document.getElementById(
-    "btnAudio"
-);
-
-const audioEstado =
-document.getElementById(
-    "audioEstado"
-);
-
-
-/* =========================================
-   ADJUNTOS RESPUESTA
-========================================= */
-
-const btnFotoRespuesta =
-document.getElementById(
-    "btnFotoRespuesta"
-);
-
-const btnArchivoRespuesta =
-document.getElementById(
-    "btnArchivoRespuesta"
-);
-
-const inputFotoRespuesta =
-document.getElementById(
-    "inputFotoRespuesta"
-);
-
-const inputArchivoRespuesta =
-document.getElementById(
-    "inputArchivoRespuesta"
-);
-
-const archivoRespuestaSeleccionado =
-document.getElementById(
-    "archivoRespuestaSeleccionado"
-);
-
-const btnAudioRespuesta =
-document.getElementById(
-    "btnAudioRespuesta"
-);
-
-const audioRespuestaEstado =
-document.getElementById(
-    "audioRespuestaEstado"
+    "audioPreview"
 );
 
 
@@ -1054,19 +924,17 @@ let correosRecibidos = [];
 
 let correosEnviados = [];
 
-let correoActual = null;
+let correoSeleccionado = null;
 
-let archivoNuevo = null;
+let respuestaId = "";
 
-let archivoRespuesta = null;
+let archivosParaEnviar = [];
 
 let mediaRecorder = null;
 
 let audioChunks = [];
 
-let audioBlobNuevo = null;
-
-let audioBlobRespuesta = null;
+let audioBlob = null;
 
 
 /* =========================================
@@ -1079,32 +947,12 @@ function texto(valor){
         valor === undefined ||
         valor === null
     ){
+
         return "";
+
     }
 
     return String(valor);
-}
-
-
-function escaparHTML(valor){
-
-    return texto(valor)
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
-
-}
-
-
-function nombreCompleto(datos){
-
-    return (
-        texto(datos.nombre) +
-        " " +
-        texto(datos.apellido)
-    ).trim();
 
 }
 
@@ -1144,6 +992,29 @@ function limpiarMensajes(){
 
     mensajeExito.style.display =
     "none";
+
+}
+
+
+function escaparHTML(valor){
+
+    return texto(valor)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+function nombreCompleto(datos){
+
+    return (
+        texto(datos.nombre) +
+        " " +
+        texto(datos.apellido)
+    ).trim();
 
 }
 
@@ -1190,31 +1061,20 @@ function horaActual(){
 }
 
 
-function fechaHora(valor){
+/* =========================================
+   CARGAR PERFIL DEL EMPLEADO
+========================================= */
 
-    if(
-        valor &&
-        typeof valor.toDate ===
-        "function"
-    ){
+async function cargarEmpleado(){
 
-        return valor.toDate()
-        .toLocaleString(
-            "es-AR"
+    if(!usuarioSesion){
+
+        throw new Error(
+            "No hay una sesión activa."
         );
 
     }
 
-    return texto(valor);
-
-}
-
-
-/* =========================================
-   CARGAR EMPLEADO
-========================================= */
-
-async function cargarEmpleado(){
 
     const consulta =
     query(
@@ -1230,10 +1090,12 @@ async function cargarEmpleado(){
         limit(1)
     );
 
+
     const resultados =
     await getDocs(
         consulta
     );
+
 
     if(
         resultados.empty
@@ -1245,11 +1107,14 @@ async function cargarEmpleado(){
 
     }
 
+
     const documento =
     resultados.docs[0];
 
+
     empleadoId =
     documento.id;
+
 
     empleadoActual = {
 
@@ -1260,6 +1125,7 @@ async function cargarEmpleado(){
 
     };
 
+
     empresaId =
     texto(
         empleadoActual.empresaId
@@ -1269,54 +1135,89 @@ async function cargarEmpleado(){
     if(!empresaId){
 
         throw new Error(
-            "El empleado no tiene empresaId vinculado. Hay que vincularlo con la empresa desde Administración."
+            "El empleado no tiene una empresa vinculada."
         );
 
     }
 
 
-    const nombre =
-    nombreCompleto(
-        empleadoActual
-    ) ||
-    "Empleado";
+    /*
+     * IMPORTANTE:
+     * No mostramos empresaId,
+     * puesto ni demás información
+     * interna.
+     */
 
-
-    const empresa =
+    const email =
     texto(
-        empleadoActual.empresa
+        empleadoActual.email
     ) ||
     texto(
-        empleadoActual.empresaNombre
-    ) ||
-    "Empresa";
+        usuarioSesion.email
+    );
 
 
     usuarioActual.innerHTML = `
-        <strong>
-            ${escaparHTML(nombre)}
-        </strong>
+        <strong>Correo interno</strong>
         <br>
-        Puesto:
-        ${escaparHTML(
-            texto(
-                empleadoActual.puesto
-            ) || "Empleado"
-        )}
-        <br>
-        Empresa:
-        ${escaparHTML(empresa)}
-        <br>
-        Correo:
-        ${escaparHTML(
-            texto(
-                empleadoActual.email
-            ) ||
-            texto(
-                usuarioSesion.email
-            )
-        )}
+        ${escaparHTML(email)}
     `;
+
+}
+
+
+/* =========================================
+   AGREGAR DESTINATARIO
+========================================= */
+
+function agregarDestinatario(
+    persona
+){
+
+    if(
+        !persona ||
+        !persona.id
+    ){
+
+        return;
+
+    }
+
+
+    if(
+        persona.id === empleadoId
+    ){
+
+        return;
+
+    }
+
+
+    if(
+        !persona.authUid
+    ){
+
+        return;
+
+    }
+
+
+    if(
+        destinatarios.some(
+            item =>
+            item.id === persona.id &&
+            item.tipo === persona.tipo
+        )
+    ){
+
+        return;
+
+    }
+
+
+    destinatarios.push(
+        persona
+    );
 
 }
 
@@ -1330,82 +1231,90 @@ async function cargarDestinatarios(){
     destinatarios = [];
 
 
-    /* =====================================
-       OTROS EMPLEADOS
-    ===================================== */
-
-    const consultaEmpleados =
-    query(
-        collection(
-            db,
-            "empleados"
-        ),
-        where(
-            "empresaId",
-            "==",
-            empresaId
-        )
-    );
-
-
-    const resultadosEmpleados =
-    await getDocs(
-        consultaEmpleados
-    );
-
-
-    resultadosEmpleados.forEach(
-        documento => {
-
-            const datos =
-            documento.data();
-
-
-            if(
-                documento.id ===
-                empleadoId
-            ){
-                return;
-            }
-
-
-            destinatarios.push({
-
-                id:
-                documento.id,
-
-                authUid:
-                texto(
-                    datos.authUid
-                ),
-
-                nombre:
-                nombreCompleto(
-                    datos
-                ) ||
-                "Empleado",
-
-                email:
-                texto(
-                    datos.email
-                ),
-
-                tipo:
-                "Empleado"
-
-            });
-
-        }
-    );
-
-
-    /* =====================================
-       ADMINISTRACIÓN
-    ===================================== */
+    /*
+     * ==============================
+     * EMPLEADOS
+     * ==============================
+     */
 
     try{
 
-        const consultaAdmin =
+        const consultaEmpleados =
+        query(
+            collection(
+                db,
+                "empleados"
+            ),
+            where(
+                "empresaId",
+                "==",
+                empresaId
+            )
+        );
+
+
+        const resultadosEmpleados =
+        await getDocs(
+            consultaEmpleados
+        );
+
+
+        resultadosEmpleados.forEach(
+            documento => {
+
+                const datos =
+                documento.data();
+
+
+                agregarDestinatario({
+
+                    id:
+                    documento.id,
+
+                    authUid:
+                    texto(
+                        datos.authUid
+                    ),
+
+                    nombre:
+                    nombreCompleto(
+                        datos
+                    ) ||
+                    "Empleado",
+
+                    email:
+                    texto(
+                        datos.email
+                    ),
+
+                    tipo:
+                    "Empleado"
+
+                });
+
+            }
+        );
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudieron cargar empleados:",
+            error
+        );
+
+    }
+
+
+    /*
+     * ==============================
+     * ADMINISTRACIÓN
+     * ==============================
+     */
+
+    try{
+
+        const consultaAdministradores =
         query(
             collection(
                 db,
@@ -1421,7 +1330,7 @@ async function cargarDestinatarios(){
 
         const resultadosAdmin =
         await getDocs(
-            consultaAdmin
+            consultaAdministradores
         );
 
 
@@ -1432,7 +1341,7 @@ async function cargarDestinatarios(){
                 documento.data();
 
 
-                destinatarios.push({
+                agregarDestinatario({
 
                     id:
                     documento.id,
@@ -1475,141 +1384,14 @@ async function cargarDestinatarios(){
     }
 
 
-    /* =====================================
-       EMPRESA
-       También permite que una empresa
-       pueda aparecer como destinatario
-       si tiene un usuarioAuthUid.
-    ===================================== */
+    /*
+     * ==============================
+     * ARMAR SELECT
+     * ==============================
+     */
 
-    try{
-
-        const consultaEmpresa =
-        query(
-            collection(
-                db,
-                "empresas"
-            ),
-            where(
-                "empresaId",
-                "==",
-                empresaId
-            ),
-            limit(1)
-        );
-
-
-        const resultadoEmpresa =
-        await getDocs(
-            consultaEmpresa
-        );
-
-
-        resultadoEmpresa.forEach(
-            documento => {
-
-                const datos =
-                documento.data();
-
-
-                const authUid =
-                texto(
-                    datos.authUid
-                ) ||
-                texto(
-                    datos.usuarioUid
-                ) ||
-                texto(
-                    datos.propietarioUid
-                );
-
-
-                if(
-                    authUid
-                ){
-
-                    destinatarios.push({
-
-                        id:
-                        documento.id,
-
-                        authUid:
-                        authUid,
-
-                        nombre:
-                        texto(
-                            datos.nombreEmpresa
-                        ) ||
-                        texto(
-                            datos.razonSocial
-                        ) ||
-                        "Administración",
-
-                        email:
-                        texto(
-                            datos.email
-                        ),
-
-                        tipo:
-                        "Empresa"
-
-                    });
-
-                }
-
-            }
-        );
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo cargar empresa:",
-            error
-        );
-
-    }
-
-
-    /* =====================================
-       QUITAR DUPLICADOS
-    ===================================== */
-
-    const mapa =
-    new Map();
-
-
-    destinatarios.forEach(
-        persona => {
-
-            const clave =
-            persona.authUid ||
-            persona.id;
-
-
-            if(
-                clave &&
-                !mapa.has(clave)
-            ){
-
-                mapa.set(
-                    clave,
-                    persona
-                );
-
-            }
-
-        }
-    );
-
-
-    destinatarios =
-    Array.from(
-        mapa.values()
-    );
-
-
-    destinatario.innerHTML = "";
+    destinatario.innerHTML =
+    "";
 
 
     if(
@@ -1637,6 +1419,39 @@ async function cargarDestinatarios(){
     `;
 
 
+    /*
+     * Administración primero
+     */
+
+    destinatarios.sort(
+        function(a,b){
+
+            if(
+                a.tipo ===
+                "Administración"
+            ){
+
+                return -1;
+
+            }
+
+            if(
+                b.tipo ===
+                "Administración"
+            ){
+
+                return 1;
+
+            }
+
+            return a.nombre.localeCompare(
+                b.nombre
+            );
+
+        }
+    );
+
+
     destinatarios.forEach(
         persona => {
 
@@ -1647,7 +1462,9 @@ async function cargarDestinatarios(){
 
 
             option.value =
-            persona.id;
+            persona.id +
+            "|" +
+            persona.tipo;
 
 
             option.textContent =
@@ -1676,358 +1493,280 @@ async function cargarDestinatarios(){
 
 function obtenerDestinatario(){
 
+    const valor =
+    destinatario.value;
+
+
+    if(!valor){
+
+        return null;
+
+    }
+
+
+    const partes =
+    valor.split("|");
+
+
+    const id =
+    partes[0];
+
+    const tipo =
+    partes[1];
+
+
     return destinatarios.find(
         persona =>
-        persona.id ===
-        destinatario.value
-    );
+        persona.id === id &&
+        persona.tipo === tipo
+    ) || null;
 
 }
 
 
 /* =========================================
-   SUBIR ARCHIVO
+   ARCHIVOS
 ========================================= */
 
-async function subirArchivo(
-    archivo,
-    carpeta
-){
+archivo.addEventListener(
+    "change",
+    function(){
 
-    if(!archivo){
-        return null;
-    }
-
-
-    if(
-        !storage
-    ){
-
-        throw new Error(
-            "Firebase Storage no está configurado."
+        archivosParaEnviar =
+        Array.from(
+            archivo.files || []
         );
 
+
+        mostrarArchivos();
+
     }
+);
 
 
-    const nombreSeguro =
-    archivo.name.replace(
-        /[^a-zA-Z0-9._-]/g,
-        "_"
-    );
+function mostrarArchivos(){
 
+    if(
+        archivosParaEnviar.length === 0
+    ){
 
-    const ruta =
-    "correos/" +
-    empresaId +
-    "/" +
-    usuarioSesion.uid +
-    "/" +
-    carpeta +
-    "/" +
-    Date.now() +
-    "_" +
-    nombreSeguro;
-
-
-    const referencia =
-    ref(
-        storage,
-        ruta
-    );
-
-
-    await uploadBytes(
-        referencia,
-        archivo
-    );
-
-
-    const url =
-    await getDownloadURL(
-        referencia
-    );
-
-
-    return {
-
-        url:
-        url,
-
-        nombre:
-        archivo.name,
-
-        tipo:
-        archivo.type,
-
-        tamano:
-        archivo.size
-
-    };
-
-}
-
-
-/* =========================================
-   MOSTRAR ARCHIVO SELECCIONADO
-========================================= */
-
-function mostrarArchivoSeleccionado(
-    archivo,
-    elemento
-){
-
-    if(!archivo){
-
-        elemento.style.display =
-        "none";
-
-        elemento.textContent =
-        "";
+        archivosSeleccionados.textContent =
+        "No hay archivos seleccionados.";
 
         return;
 
     }
 
 
-    elemento.textContent =
-    "📎 " +
-    archivo.name;
+    archivosSeleccionados.innerHTML =
+    "";
 
 
-    elemento.style.display =
-    "block";
+    archivosParaEnviar.forEach(
+        (file,index) => {
+
+            const div =
+            document.createElement(
+                "div"
+            );
+
+
+            div.className =
+            "preview";
+
+
+            div.innerHTML = `
+                <span>
+                    📎
+                    ${escaparHTML(
+                        file.name
+                    )}
+                </span>
+
+                <button
+                    type="button"
+                    data-index="${index}"
+                >
+                    ❌
+                </button>
+            `;
+
+
+            div.querySelector(
+                "button"
+            ).addEventListener(
+                "click",
+                function(){
+
+                    archivosParaEnviar.splice(
+                        index,
+                        1
+                    );
+
+                    mostrarArchivos();
+
+                }
+            );
+
+
+            archivosSeleccionados.appendChild(
+                div
+            );
+
+        }
+    );
 
 }
 
 
 /* =========================================
-   FOTO / ARCHIVO
+   SUBIR ARCHIVOS
 ========================================= */
 
-btnFoto.addEventListener(
-    "click",
-    () => inputFoto.click()
-);
+async function subirArchivos(){
+
+    const adjuntos = [];
 
 
-btnArchivo.addEventListener(
-    "click",
-    () => inputArchivo.click()
-);
+    /*
+     * ARCHIVOS NORMALES
+     */
+
+    for(
+        const file
+        of archivosParaEnviar
+    ){
+
+        const ruta =
+        "correos/" +
+        empresaId +
+        "/" +
+        usuarioSesion.uid +
+        "/" +
+        Date.now() +
+        "_" +
+        file.name;
 
 
-inputFoto.addEventListener(
-    "change",
-    function(){
-
-        archivoNuevo =
-        this.files[0] ||
-        null;
-
-        mostrarArchivoSeleccionado(
-            archivoNuevo,
-            archivoSeleccionado
+        const referencia =
+        ref(
+            storage,
+            ruta
         );
 
-    }
-);
 
-
-inputArchivo.addEventListener(
-    "change",
-    function(){
-
-        archivoNuevo =
-        this.files[0] ||
-        null;
-
-        mostrarArchivoSeleccionado(
-            archivoNuevo,
-            archivoSeleccionado
+        const resultado =
+        await uploadBytes(
+            referencia,
+            file
         );
 
+
+        const url =
+        await getDownloadURL(
+            resultado.ref
+        );
+
+
+        adjuntos.push({
+
+            nombre:
+            file.name,
+
+            tipo:
+            file.type ||
+            "archivo",
+
+            url:
+            url,
+
+            ruta:
+            ruta
+
+        });
+
     }
-);
+
+
+    /*
+     * AUDIO GRABADO
+     */
+
+    if(audioBlob){
+
+        const nombreAudio =
+        "audio_" +
+        Date.now() +
+        ".webm";
+
+
+        const rutaAudio =
+        "correos/" +
+        empresaId +
+        "/" +
+        usuarioSesion.uid +
+        "/" +
+        nombreAudio;
+
+
+        const referenciaAudio =
+        ref(
+            storage,
+            rutaAudio
+        );
+
+
+        const resultadoAudio =
+        await uploadBytes(
+            referenciaAudio,
+            audioBlob,
+            {
+                contentType:
+                "audio/webm"
+            }
+        );
+
+
+        const urlAudio =
+        await getDownloadURL(
+            resultadoAudio.ref
+        );
+
+
+        adjuntos.push({
+
+            nombre:
+            "Audio",
+
+            tipo:
+            "audio/webm",
+
+            url:
+            urlAudio,
+
+            ruta:
+            rutaAudio
+
+        });
+
+    }
+
+
+    return adjuntos;
+
+}
 
 
 /* =========================================
    GRABAR AUDIO
 ========================================= */
 
-async function iniciarGrabacion(
-    modo
-){
-
-    try{
-
-        const stream =
-        await navigator.mediaDevices
-        .getUserMedia({
-            audio:true
-        });
-
-
-        audioChunks = [];
-
-
-        mediaRecorder =
-        new MediaRecorder(
-            stream
-        );
-
-
-        mediaRecorder.ondataavailable =
-        function(event){
-
-            if(
-                event.data.size > 0
-            ){
-
-                audioChunks.push(
-                    event.data
-                );
-
-            }
-
-        };
-
-
-        mediaRecorder.onstop =
-        function(){
-
-            const blob =
-            new Blob(
-                audioChunks,
-                {
-                    type:
-                    "audio/webm"
-                }
-            );
-
-
-            if(
-                modo ===
-                "nuevo"
-            ){
-
-                audioBlobNuevo =
-                blob;
-
-                audioEstado.textContent =
-                "🎤 Audio grabado. Se enviará junto con el mensaje.";
-
-                audioEstado.style.display =
-                "block";
-
-            }
-            else{
-
-                audioBlobRespuesta =
-                blob;
-
-                audioRespuestaEstado.textContent =
-                "🎤 Audio grabado. Se enviará junto con la respuesta.";
-
-                audioRespuestaEstado.style.display =
-                "block";
-
-            }
-
-
-            stream.getTracks()
-            .forEach(
-                track =>
-                track.stop()
-            );
-
-        };
-
-
-        mediaRecorder.start();
-
-
-        if(
-            modo ===
-            "nuevo"
-        ){
-
-            btnAudio.textContent =
-            "⏹️ DETENER AUDIO";
-
-            btnAudio.classList.add(
-                "grabando"
-            );
-
-        }
-        else{
-
-            btnAudioRespuesta.textContent =
-            "⏹️ DETENER AUDIO";
-
-            btnAudioRespuesta.classList.add(
-                "grabando"
-            );
-
-        }
-
-    }
-    catch(error){
-
-        mostrarError(
-            "No se pudo acceder al micrófono. Revisá los permisos del navegador."
-        );
-
-    }
-
-}
-
-
-function detenerGrabacion(
-    modo
-){
-
-    if(
-        mediaRecorder &&
-        mediaRecorder.state !==
-        "inactive"
-    ){
-
-        mediaRecorder.stop();
-
-    }
-
-
-    if(
-        modo ===
-        "nuevo"
-    ){
-
-        btnAudio.textContent =
-        "🎤 GRABAR AUDIO";
-
-        btnAudio.classList.remove(
-            "grabando"
-        );
-
-    }
-    else{
-
-        btnAudioRespuesta.textContent =
-        "🎤 GRABAR AUDIO";
-
-        btnAudioRespuesta.classList.remove(
-            "grabando"
-        );
-
-    }
-
-}
-
-
-btnAudio.addEventListener(
+btnGrabarAudio.addEventListener(
     "click",
-    function(){
+    async function(){
+
+        limpiarMensajes();
+
 
         if(
             mediaRecorder &&
@@ -2035,18 +1774,191 @@ btnAudio.addEventListener(
             "recording"
         ){
 
-            detenerGrabacion(
-                "nuevo"
+            detenerGrabacion();
+
+            return;
+
+        }
+
+
+        try{
+
+            const stream =
+            await navigator.mediaDevices
+            .getUserMedia({
+                audio:true
+            });
+
+
+            audioChunks = [];
+
+
+            mediaRecorder =
+            new MediaRecorder(
+                stream
+            );
+
+
+            mediaRecorder.ondataavailable =
+            function(event){
+
+                if(
+                    event.data.size > 0
+                ){
+
+                    audioChunks.push(
+                        event.data
+                    );
+
+                }
+
+            };
+
+
+            mediaRecorder.onstop =
+            function(){
+
+                audioBlob =
+                new Blob(
+                    audioChunks,
+                    {
+                        type:
+                        "audio/webm"
+                    }
+                );
+
+
+                const url =
+                URL.createObjectURL(
+                    audioBlob
+                );
+
+
+                audioPreview.src =
+                url;
+
+
+                audioPreview.classList.remove(
+                    "oculto"
+                );
+
+
+                btnCancelarAudio.classList.remove(
+                    "oculto"
+                );
+
+
+                estadoAudio.classList.add(
+                    "oculto"
+                );
+
+
+                btnGrabarAudio.classList.remove(
+                    "boton-grabando"
+                );
+
+
+                btnGrabarAudio.classList.add(
+                    "boton-grabar"
+                );
+
+
+                btnGrabarAudio.textContent =
+                "🎤 GRABAR AUDIO";
+
+
+                stream.getTracks().forEach(
+                    track =>
+                    track.stop()
+                );
+
+            };
+
+
+            mediaRecorder.start();
+
+
+            estadoAudio.textContent =
+            "🔴 Grabando audio... Tocá el botón nuevamente para detener.";
+
+
+            estadoAudio.classList.remove(
+                "oculto"
+            );
+
+
+            btnGrabarAudio.classList.remove(
+                "boton-grabar"
+            );
+
+
+            btnGrabarAudio.classList.add(
+                "boton-grabando"
+            );
+
+
+            btnGrabarAudio.textContent =
+            "⏹️ DETENER GRABACIÓN";
+
+        }
+        catch(error){
+
+            console.error(
+                error
+            );
+
+
+            mostrarError(
+                "No se pudo acceder al micrófono."
             );
 
         }
-        else{
 
-            iniciarGrabacion(
-                "nuevo"
-            );
+    }
+);
 
-        }
+
+function detenerGrabacion(){
+
+    if(
+        mediaRecorder &&
+        mediaRecorder.state ===
+        "recording"
+    ){
+
+        mediaRecorder.stop();
+
+    }
+
+}
+
+
+/* =========================================
+   CANCELAR AUDIO
+========================================= */
+
+btnCancelarAudio.addEventListener(
+    "click",
+    function(){
+
+        audioBlob =
+        null;
+
+
+        audioPreview.pause();
+
+        audioPreview.src =
+        "";
+
+
+        audioPreview.classList.add(
+            "oculto"
+        );
+
+
+        btnCancelarAudio.classList.add(
+            "oculto"
+        );
 
     }
 );
@@ -2094,6 +2006,8 @@ btnEnviar.addEventListener(
                 "Escribí un asunto."
             );
 
+            asunto.focus();
+
             return;
 
         }
@@ -2101,12 +2015,12 @@ btnEnviar.addEventListener(
 
         if(
             !mensajeTexto &&
-            !archivoNuevo &&
-            !audioBlobNuevo
+            archivosParaEnviar.length === 0 &&
+            !audioBlob
         ){
 
             mostrarError(
-                "Escribí un mensaje o adjuntá un archivo/audio."
+                "Escribí un mensaje o agregá un archivo, foto o audio."
             );
 
             return;
@@ -2116,6 +2030,7 @@ btnEnviar.addEventListener(
 
         btnEnviar.disabled =
         true;
+
 
         btnEnviar.textContent =
         "📤 ENVIANDO...";
@@ -2139,58 +2054,18 @@ btnEnviar.addEventListener(
             );
 
 
-            let adjunto =
-            null;
+            /*
+             * SUBIR ADJUNTOS
+             */
+
+            const adjuntos =
+            await subirArchivos();
 
 
-            if(
-                archivoNuevo
-            ){
-
-                adjunto =
-                await subirArchivo(
-                    archivoNuevo,
-                    "archivos"
-                );
-
-            }
-
-
-            let audio =
-            null;
-
-
-            if(
-                audioBlobNuevo
-            ){
-
-                const audioArchivo =
-                new File(
-                    [
-                        audioBlobNuevo
-                    ],
-                    "audio-" +
-                    Date.now() +
-                    ".webm",
-                    {
-                        type:
-                        "audio/webm"
-                    }
-                );
-
-
-                audio =
-                await subirArchivo(
-                    audioArchivo,
-                    "audios"
-                );
-
-            }
-
-
-            const conversacionId =
-            crypto.randomUUID();
-
+            /*
+             * DATOS COMPATIBLES
+             * CON EL SISTEMA ACTUAL
+             */
 
             await addDoc(
                 collection(
@@ -2202,8 +2077,41 @@ btnEnviar.addEventListener(
                     empresaId:
                     empresaId,
 
-                    conversacionId:
-                    conversacionId,
+                    /*
+                     * Campos actuales
+                     */
+
+                    de:
+                    emailRemitente,
+
+                    para:
+                    persona.email,
+
+                    usuarioId:
+                    usuarioSesion.uid,
+
+                    asunto:
+                    asuntoTexto,
+
+                    mensaje:
+                    mensajeTexto,
+
+                    carpeta:
+                    "enviados",
+
+                    estado:
+                    "enviado",
+
+                    creado:
+                    serverTimestamp(),
+
+                    enviado:
+                    serverTimestamp(),
+
+
+                    /*
+                     * Campos ampliados
+                     */
 
                     remitenteUid:
                     usuarioSesion.uid,
@@ -2232,20 +2140,11 @@ btnEnviar.addEventListener(
                     destinatarioTipo:
                     persona.tipo,
 
-                    asunto:
-                    asuntoTexto,
-
-                    mensaje:
-                    mensajeTexto,
-
                     fecha:
                     fechaActual(),
 
                     hora:
                     horaActual(),
-
-                    creado:
-                    serverTimestamp(),
 
                     leido:
                     false,
@@ -2253,25 +2152,19 @@ btnEnviar.addEventListener(
                     tipo:
                     "interno",
 
-                    tipoMensaje:
-                    audio
-                    ? "audio"
-                    : adjunto
-                    ? "archivo"
-                    : "texto",
+                    respuestaA:
+                    respuestaId || null,
 
-                    adjunto:
-                    adjunto,
-
-                    audio:
-                    audio,
-
-                    estado:
-                    "enviado"
+                    adjuntos:
+                    adjuntos
 
                 }
             );
 
+
+            /*
+             * LIMPIAR
+             */
 
             asunto.value =
             "";
@@ -2282,23 +2175,38 @@ btnEnviar.addEventListener(
             destinatario.value =
             "";
 
-            archivoNuevo =
-            null;
 
-            audioBlobNuevo =
-            null;
-
-            inputFoto.value =
+            archivo.value =
             "";
 
-            inputArchivo.value =
+
+            archivosParaEnviar =
+            [];
+
+
+            mostrarArchivos();
+
+
+            audioBlob =
+            null;
+
+
+            audioPreview.pause();
+
+            audioPreview.src =
             "";
 
-            archivoSeleccionado.style.display =
-            "none";
+            audioPreview.classList.add(
+                "oculto"
+            );
 
-            audioEstado.style.display =
-            "none";
+
+            btnCancelarAudio.classList.add(
+                "oculto"
+            );
+
+
+            cancelarRespuesta();
 
 
             mostrarExito(
@@ -2312,7 +2220,7 @@ btnEnviar.addEventListener(
         catch(error){
 
             console.error(
-                "Error enviando correo:",
+                "ERROR ENVIANDO CORREO:",
                 error
             );
 
@@ -2363,7 +2271,7 @@ async function cargarRecibidos(){
                 "==",
                 usuarioSesion.uid
             ),
-            limit(50)
+            limit(100)
         );
 
 
@@ -2392,18 +2300,86 @@ async function cargarRecibidos(){
         );
 
 
+        /*
+         * COMPATIBILIDAD CON
+         * MENSAJES ANTIGUOS
+         */
+
+        try{
+
+            const consultaAntigua =
+            query(
+                collection(
+                    db,
+                    "correos"
+                ),
+                where(
+                    "para",
+                    "==",
+                    usuarioSesion.email
+                ),
+                limit(100)
+            );
+
+
+            const antiguos =
+            await getDocs(
+                consultaAntigua
+            );
+
+
+            antiguos.forEach(
+                documento => {
+
+                    const existe =
+                    correosRecibidos.some(
+                        correo =>
+                        correo.id ===
+                        documento.id
+                    );
+
+
+                    if(!existe){
+
+                        correosRecibidos.push({
+
+                            id:
+                            documento.id,
+
+                            ...documento.data()
+
+                        });
+
+                    }
+
+                }
+            );
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudieron consultar mensajes antiguos:",
+                error
+            );
+
+        }
+
+
         correosRecibidos.sort(
-            (a,b) => {
+            function(a,b){
 
                 const fechaA =
                 texto(a.fecha) +
                 " " +
                 texto(a.hora);
 
+
                 const fechaB =
                 texto(b.fecha) +
                 " " +
                 texto(b.hora);
+
 
                 return fechaB.localeCompare(
                     fechaA
@@ -2478,68 +2454,40 @@ function mostrarRecibidos(){
             );
 
 
-            let icono =
-            "💬";
-
-
-            if(
-                correo.audio
-            ){
-
-                icono =
-                "🎤";
-
-            }
-            else if(
-                correo.adjunto
-            ){
-
-                icono =
-                "📎";
-
-            }
-
-
             item.innerHTML = `
 
                 <div class="correo-cabecera">
 
                     <div class="correo-persona">
-
                         De:
                         ${escaparHTML(
-                            correo.remitenteNombre
+                            correo.remitenteNombre ||
+                            correo.de ||
+                            "Usuario"
                         )}
-
                     </div>
 
                     <div class="correo-fecha">
-
                         ${escaparHTML(
-                            correo.fecha
+                            correo.fecha ||
+                            ""
                         )}
-
                         ${escaparHTML(
-                            correo.hora
+                            correo.hora ||
+                            ""
                         )}
-
                     </div>
 
                 </div>
 
-
                 <div class="correo-asunto">
-
-                    ${icono}
                     ${escaparHTML(
-                        correo.asunto
+                        correo.asunto ||
+                        "(Sin asunto)"
                     )}
-
                 </div>
 
-
                 <div class="correo-resumen">
-
                     ${escaparHTML(
                         texto(
                             correo.mensaje
@@ -2549,16 +2497,31 @@ function mostrarRecibidos(){
                         )
                     )}
 
+                    ${
+                        texto(
+                            correo.mensaje
+                        ).length > 180
+                        ? "..."
+                        : ""
+                    }
                 </div>
 
+                ${
+                    correo.adjuntos &&
+                    correo.adjuntos.length
+                    ? `
+                        <span class="estado-correo">
+                            📎 ${correo.adjuntos.length} adjunto(s)
+                        </span>
+                    `
+                    : ""
+                }
 
-                <span
-                    class="estado-correo ${
-                        correo.leido
-                        ? ""
-                        : "estado-no-leido"
-                    }"
-                >
+                <span class="estado-correo ${
+                    correo.leido
+                    ? ""
+                    : "estado-no-leido"
+                }">
 
                     ${
                         correo.leido
@@ -2567,7 +2530,6 @@ function mostrarRecibidos(){
                     }
 
                 </span>
-
             `;
 
 
@@ -2620,7 +2582,7 @@ async function cargarEnviados(){
                 "==",
                 usuarioSesion.uid
             ),
-            limit(50)
+            limit(100)
         );
 
 
@@ -2649,18 +2611,86 @@ async function cargarEnviados(){
         );
 
 
+        /*
+         * COMPATIBILIDAD CON
+         * MENSAJES ANTIGUOS
+         */
+
+        try{
+
+            const consultaAntigua =
+            query(
+                collection(
+                    db,
+                    "correos"
+                ),
+                where(
+                    "de",
+                    "==",
+                    usuarioSesion.email
+                ),
+                limit(100)
+            );
+
+
+            const antiguos =
+            await getDocs(
+                consultaAntigua
+            );
+
+
+            antiguos.forEach(
+                documento => {
+
+                    const existe =
+                    correosEnviados.some(
+                        correo =>
+                        correo.id ===
+                        documento.id
+                    );
+
+
+                    if(!existe){
+
+                        correosEnviados.push({
+
+                            id:
+                            documento.id,
+
+                            ...documento.data()
+
+                        });
+
+                    }
+
+                }
+            );
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudieron consultar enviados antiguos:",
+                error
+            );
+
+        }
+
+
         correosEnviados.sort(
-            (a,b) => {
+            function(a,b){
 
                 const fechaA =
                 texto(a.fecha) +
                 " " +
                 texto(a.hora);
 
+
                 const fechaB =
                 texto(b.fecha) +
                 " " +
                 texto(b.hora);
+
 
                 return fechaB.localeCompare(
                     fechaA
@@ -2738,7 +2768,9 @@ function mostrarEnviados(){
 
                         Para:
                         ${escaparHTML(
-                            correo.destinatarioNombre
+                            correo.destinatarioNombre ||
+                            correo.para ||
+                            "Usuario"
                         )}
 
                     </div>
@@ -2746,11 +2778,13 @@ function mostrarEnviados(){
                     <div class="correo-fecha">
 
                         ${escaparHTML(
-                            correo.fecha
+                            correo.fecha ||
+                            ""
                         )}
 
                         ${escaparHTML(
-                            correo.hora
+                            correo.hora ||
+                            ""
                         )}
 
                     </div>
@@ -2761,7 +2795,8 @@ function mostrarEnviados(){
                 <div class="correo-asunto">
 
                     ${escaparHTML(
-                        correo.asunto
+                        correo.asunto ||
+                        "(Sin asunto)"
                     )}
 
                 </div>
@@ -2779,6 +2814,18 @@ function mostrarEnviados(){
                     )}
 
                 </div>
+
+
+                ${
+                    correo.adjuntos &&
+                    correo.adjuntos.length
+                    ? `
+                        <span class="estado-correo">
+                            📎 ${correo.adjuntos.length} adjunto(s)
+                        </span>
+                    `
+                    : ""
+                }
 
             `;
 
@@ -2807,80 +2854,137 @@ function mostrarEnviados(){
 
 
 /* =========================================
-   MOSTRAR ADJUNTO
+   MOSTRAR ADJUNTOS
 ========================================= */
 
-function mostrarAdjunto(
-    correo
+function mostrarAdjuntos(
+    adjuntos
 ){
 
+    if(
+        !Array.isArray(adjuntos) ||
+        adjuntos.length === 0
+    ){
+
+        return "";
+
+    }
+
+
     let html =
-    "";
+    `<div class="adjunto">
+        <strong>📎 Archivos adjuntos</strong>`;
 
 
-    if(
-        correo.adjunto &&
-        correo.adjunto.url
-    ){
+    adjuntos.forEach(
+        archivo => {
 
-        html += `
-
-            <div class="adjunto">
-
-                📎
-                <strong>
-                    Archivo adjunto
-                </strong>
-
-                <br><br>
-
-                <a
-                    href="${escaparHTML(
-                        correo.adjunto.url
-                    )}"
-                    target="_blank"
-                    rel="noopener"
-                >
-                    Abrir archivo:
-                    ${escaparHTML(
-                        correo.adjunto.nombre
-                    )}
-                </a>
-
-            </div>
-
-        `;
-
-    }
+            const nombre =
+            escaparHTML(
+                archivo.nombre ||
+                "Archivo"
+            );
 
 
-    if(
-        correo.audio &&
-        correo.audio.url
-    ){
+            const url =
+            escaparHTML(
+                archivo.url ||
+                "#"
+            );
 
-        html += `
 
-            <div class="adjunto">
+            const tipo =
+            texto(
+                archivo.tipo
+            );
 
-                🎤
-                <strong>
-                    Audio
-                </strong>
 
-                <audio
-                    class="audio-player"
-                    controls
-                    src="${escaparHTML(
-                        correo.audio.url
-                    )}"
-                ></audio>
+            if(
+                tipo.startsWith(
+                    "image/"
+                )
+            ){
 
-            </div>
+                html += `
 
-        `;
+                    <div style="margin-top:12px;">
 
-    }
+                        <div>
+                            ${nombre}
+                        </div>
+
+                        <a
+                            href="${url}"
+                            target="_blank"
+                            rel="noopener"
+                        >
+
+                            <img
+                                src="${url}"
+                                alt="${nombre}"
+                            >
+
+                        </a>
+
+                    </div>
+
+                `;
+
+            }
+            else if(
+                tipo.startsWith(
+                    "audio/"
+                )
+            ){
+
+                html += `
+
+                    <div style="margin-top:12px;">
+
+                        <div>
+                            🎤 ${nombre}
+                        </div>
+
+                        <audio
+                            controls
+                            src="${url}"
+                        ></audio>
+
+                    </div>
+
+                `;
+
+            }
+            else{
+
+                html += `
+
+                    <div style="margin-top:12px;">
+
+                        📎 ${nombre}
+
+                        <br>
+
+                        <a
+                            href="${url}"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            ABRIR / DESCARGAR
+                        </a>
+
+                    </div>
+
+                `;
+
+            }
+
+        }
+    );
+
+
+    html +=
+    "</div>";
 
 
     return html;
@@ -2897,7 +3001,7 @@ async function abrirCorreo(
     esRecibido
 ){
 
-    correoActual =
+    correoSeleccionado =
     correo;
 
 
@@ -2908,7 +3012,9 @@ async function abrirCorreo(
             <strong>De:</strong>
 
             ${escaparHTML(
-                correo.remitenteNombre
+                correo.remitenteNombre ||
+                correo.de ||
+                "Usuario"
             )}
 
         </div>
@@ -2919,7 +3025,9 @@ async function abrirCorreo(
             <strong>Para:</strong>
 
             ${escaparHTML(
-                correo.destinatarioNombre
+                correo.destinatarioNombre ||
+                correo.para ||
+                "Usuario"
             )}
 
         </div>
@@ -2930,7 +3038,8 @@ async function abrirCorreo(
             <strong>Asunto:</strong>
 
             ${escaparHTML(
-                correo.asunto
+                correo.asunto ||
+                "(Sin asunto)"
             )}
 
         </div>
@@ -2941,11 +3050,13 @@ async function abrirCorreo(
             <strong>Fecha:</strong>
 
             ${escaparHTML(
-                correo.fecha
+                correo.fecha ||
+                ""
             )}
 
             ${escaparHTML(
-                correo.hora
+                correo.hora ||
+                ""
             )}
 
         </div>
@@ -2957,24 +3068,20 @@ async function abrirCorreo(
         <div class="detalle-mensaje">
 
             ${escaparHTML(
-                correo.mensaje
+                correo.mensaje ||
+                ""
             )}
 
         </div>
 
 
-        ${mostrarAdjunto(correo)}
+        ${
+            mostrarAdjuntos(
+                correo.adjuntos
+            )
+        }
 
     `;
-
-
-    respuestaPanel.classList.add(
-        "oculto"
-    );
-
-
-    conversacion.innerHTML =
-    "";
 
 
     tarjetaDetalle.classList.remove(
@@ -2986,6 +3093,10 @@ async function abrirCorreo(
         behavior:"smooth"
     });
 
+
+    /*
+     * MARCAR COMO LEÍDO
+     */
 
     if(
         esRecibido &&
@@ -3024,194 +3135,6 @@ async function abrirCorreo(
 
     }
 
-
-    await cargarConversacion(
-        correo
-    );
-
-}
-
-
-/* =========================================
-   CARGAR CONVERSACIÓN
-========================================= */
-
-async function cargarConversacion(
-    correo
-){
-
-    if(
-        !correo.conversacionId
-    ){
-
-        conversacion.innerHTML =
-        "";
-
-        return;
-
-    }
-
-
-    try{
-
-        const consulta =
-        query(
-            collection(
-                db,
-                "correos"
-            ),
-            where(
-                "conversacionId",
-                "==",
-                correo.conversacionId
-            ),
-            limit(50)
-        );
-
-
-        const resultados =
-        await getDocs(
-            consulta
-        );
-
-
-        const mensajes =
-        [];
-
-
-        resultados.forEach(
-            documento => {
-
-                mensajes.push({
-
-                    id:
-                    documento.id,
-
-                    ...documento.data()
-
-                });
-
-            }
-        );
-
-
-        mensajes.sort(
-            (a,b) => {
-
-                const aFecha =
-                texto(a.fecha) +
-                " " +
-                texto(a.hora);
-
-                const bFecha =
-                texto(b.fecha) +
-                " " +
-                texto(b.hora);
-
-                return aFecha.localeCompare(
-                    bFecha
-                );
-
-            }
-        );
-
-
-        if(
-            mensajes.length <= 1
-        ){
-
-            conversacion.innerHTML =
-            "";
-
-            return;
-
-        }
-
-
-        conversacion.innerHTML = `
-
-            <div class="titulo">
-                💬 Conversación
-            </div>
-
-        `;
-
-
-        mensajes.forEach(
-            mensajeItem => {
-
-                const div =
-                document.createElement(
-                    "div"
-                );
-
-
-                div.className =
-                "mensaje-conversacion " +
-                (
-                    mensajeItem.remitenteUid ===
-                    usuarioSesion.uid
-                    ? "propio"
-                    : "otro"
-                );
-
-
-                div.innerHTML = `
-
-                    <div class="mensaje-meta">
-
-                        <strong>
-                            ${escaparHTML(
-                                mensajeItem.remitenteNombre
-                            )}
-                        </strong>
-
-                        ·
-
-                        ${escaparHTML(
-                            mensajeItem.fecha
-                        )}
-
-                        ${escaparHTML(
-                            mensajeItem.hora
-                        )}
-
-                    </div>
-
-
-                    <div class="mensaje-texto">
-
-                        ${escaparHTML(
-                            mensajeItem.mensaje
-                        )}
-
-                    </div>
-
-
-                    ${mostrarAdjunto(
-                        mensajeItem
-                    )}
-
-                `;
-
-
-                conversacion.appendChild(
-                    div
-                );
-
-            }
-        );
-
-    }
-    catch(error){
-
-        console.error(
-            "Error conversación:",
-            error
-        );
-
-    }
-
 }
 
 
@@ -3224,400 +3147,149 @@ btnResponder.addEventListener(
     function(){
 
         if(
-            !correoActual
+            !correoSeleccionado
         ){
+
             return;
+
         }
 
 
-        respuestaPanel.classList.remove(
+        const emailDestino =
+        correoSeleccionado.remitenteEmail ||
+        correoSeleccionado.de ||
+        "";
+
+
+        /*
+         * Buscar automáticamente
+         * al remitente dentro de
+         * los destinatarios.
+         */
+
+        let persona =
+        destinatarios.find(
+            item =>
+            item.authUid ===
+            correoSeleccionado.remitenteUid
+        );
+
+
+        if(
+            !persona &&
+            emailDestino
+        ){
+
+            persona =
+            destinatarios.find(
+                item =>
+                item.email ===
+                emailDestino
+            );
+
+        }
+
+
+        if(persona){
+
+            destinatario.value =
+            persona.id +
+            "|" +
+            persona.tipo;
+
+        }
+
+
+        asunto.value =
+        "Re: " +
+        (
+            correoSeleccionado.asunto ||
+            ""
+        );
+
+
+        respuestaId =
+        correoSeleccionado.id;
+
+
+        respuestaActiva.innerHTML = `
+
+            ↩️ Respondiendo a:
+
+            <strong>
+                ${escaparHTML(
+                    correoSeleccionado.remitenteNombre ||
+                    emailDestino ||
+                    "Usuario"
+                )}
+            </strong>
+
+        `;
+
+
+        respuestaActiva.classList.remove(
             "oculto"
         );
 
 
-        respuestaTexto.focus();
-
-    }
-);
-
-
-/* =========================================
-   ADJUNTOS RESPUESTA
-========================================= */
-
-btnFotoRespuesta.addEventListener(
-    "click",
-    () =>
-    inputFotoRespuesta.click()
-);
-
-
-btnArchivoRespuesta.addEventListener(
-    "click",
-    () =>
-    inputArchivoRespuesta.click()
-);
-
-
-inputFotoRespuesta.addEventListener(
-    "change",
-    function(){
-
-        archivoRespuesta =
-        this.files[0] ||
-        null;
-
-
-        mostrarArchivoSeleccionado(
-            archivoRespuesta,
-            archivoRespuestaSeleccionado
+        btnCancelarRespuesta.classList.remove(
+            "oculto"
         );
 
-    }
-);
+
+        mensaje.focus();
 
 
-inputArchivoRespuesta.addEventListener(
-    "change",
-    function(){
-
-        archivoRespuesta =
-        this.files[0] ||
-        null;
-
-
-        mostrarArchivoSeleccionado(
-            archivoRespuesta,
-            archivoRespuestaSeleccionado
+        tarjetaDetalle.classList.add(
+            "oculto"
         );
 
+
+        window.scrollTo({
+            top:0,
+            behavior:"smooth"
+        });
+
+
+        if(!persona){
+
+            mostrarError(
+                "No se encontró automáticamente al destinatario. Seleccionalo manualmente."
+            );
+
+        }
+
     }
 );
 
 
 /* =========================================
-   AUDIO RESPUESTA
+   CANCELAR RESPUESTA
 ========================================= */
 
-btnAudioRespuesta.addEventListener(
+function cancelarRespuesta(){
+
+    respuestaId =
+    "";
+
+
+    respuestaActiva.classList.add(
+        "oculto"
+    );
+
+
+    btnCancelarRespuesta.classList.add(
+        "oculto"
+    );
+
+}
+
+
+btnCancelarRespuesta.addEventListener(
     "click",
     function(){
 
-        if(
-            mediaRecorder &&
-            mediaRecorder.state ===
-            "recording"
-        ){
-
-            detenerGrabacion(
-                "respuesta"
-            );
-
-        }
-        else{
-
-            iniciarGrabacion(
-                "respuesta"
-            );
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   ENVIAR RESPUESTA
-========================================= */
-
-btnEnviarRespuesta.addEventListener(
-    "click",
-    async function(){
-
-        limpiarMensajes();
-
-
-        if(
-            !correoActual
-        ){
-
-            mostrarError(
-                "No hay un mensaje seleccionado."
-            );
-
-            return;
-
-        }
-
-
-        const textoRespuesta =
-        respuestaTexto.value.trim();
-
-
-        if(
-            !textoRespuesta &&
-            !archivoRespuesta &&
-            !audioBlobRespuesta
-        ){
-
-            mostrarError(
-                "Escribí una respuesta o adjuntá un archivo/audio."
-            );
-
-            return;
-
-        }
-
-
-        btnEnviarRespuesta.disabled =
-        true;
-
-
-        btnEnviarRespuesta.textContent =
-        "📤 ENVIANDO...";
-
-
-        try{
-
-            let destinatarioUid =
-            texto(
-                correoActual.remitenteUid
-            );
-
-
-            let destinatarioId =
-            texto(
-                correoActual.remitenteId
-            );
-
-
-            let destinatarioNombre =
-            texto(
-                correoActual.remitenteNombre
-            );
-
-
-            let destinatarioEmail =
-            texto(
-                correoActual.remitenteEmail
-            );
-
-
-            let destinatarioTipo =
-            "Empleado";
-
-
-            if(
-                !destinatarioUid
-            ){
-
-                throw new Error(
-                    "El mensaje original no tiene vinculado el usuario destinatario."
-                );
-
-            }
-
-
-            let adjunto =
-            null;
-
-
-            if(
-                archivoRespuesta
-            ){
-
-                adjunto =
-                await subirArchivo(
-                    archivoRespuesta,
-                    "respuestas"
-                );
-
-            }
-
-
-            let audio =
-            null;
-
-
-            if(
-                audioBlobRespuesta
-            ){
-
-                const audioArchivo =
-                new File(
-                    [
-                        audioBlobRespuesta
-                    ],
-                    "audio-respuesta-" +
-                    Date.now() +
-                    ".webm",
-                    {
-                        type:
-                        "audio/webm"
-                    }
-                );
-
-
-                audio =
-                await subirArchivo(
-                    audioArchivo,
-                    "audios"
-                );
-
-            }
-
-
-            await addDoc(
-                collection(
-                    db,
-                    "correos"
-                ),
-                {
-
-                    empresaId:
-                    empresaId,
-
-                    conversacionId:
-                    correoActual.conversacionId ||
-                    crypto.randomUUID(),
-
-                    replyToId:
-                    correoActual.id,
-
-                    remitenteUid:
-                    usuarioSesion.uid,
-
-                    remitenteId:
-                    empleadoId,
-
-                    remitenteNombre:
-                    nombreCompleto(
-                        empleadoActual
-                    ) ||
-                    "Empleado",
-
-                    remitenteEmail:
-                    texto(
-                        empleadoActual.email
-                    ) ||
-                    texto(
-                        usuarioSesion.email
-                    ),
-
-                    destinatarioUid:
-                    destinatarioUid,
-
-                    destinatarioId:
-                    destinatarioId,
-
-                    destinatarioNombre:
-                    destinatarioNombre,
-
-                    destinatarioEmail:
-                    destinatarioEmail,
-
-                    destinatarioTipo:
-                    destinatarioTipo,
-
-                    asunto:
-                    correoActual.asunto,
-
-                    mensaje:
-                    textoRespuesta,
-
-                    fecha:
-                    fechaActual(),
-
-                    hora:
-                    horaActual(),
-
-                    creado:
-                    serverTimestamp(),
-
-                    leido:
-                    false,
-
-                    tipo:
-                    "interno",
-
-                    tipoMensaje:
-                    audio
-                    ? "audio"
-                    : adjunto
-                    ? "archivo"
-                    : "respuesta",
-
-                    adjunto:
-                    adjunto,
-
-                    audio:
-                    audio,
-
-                    estado:
-                    "enviado"
-
-                }
-            );
-
-
-            respuestaTexto.value =
-            "";
-
-            archivoRespuesta =
-            null;
-
-            audioBlobRespuesta =
-            null;
-
-            inputFotoRespuesta.value =
-            "";
-
-            inputArchivoRespuesta.value =
-            "";
-
-            archivoRespuestaSeleccionado.style.display =
-            "none";
-
-            audioRespuestaEstado.style.display =
-            "none";
-
-
-            mostrarExito(
-                "Respuesta enviada correctamente."
-            );
-
-
-            await cargarConversacion(
-                correoActual
-            );
-
-
-            await cargarEnviados();
-
-        }
-        catch(error){
-
-            console.error(
-                "Error enviando respuesta:",
-                error
-            );
-
-
-            mostrarError(
-                "No se pudo enviar la respuesta: " +
-                error.message
-            );
-
-        }
-        finally{
-
-            btnEnviarRespuesta.disabled =
-            false;
-
-            btnEnviarRespuesta.textContent =
-            "↩️ ENVIAR RESPUESTA";
-
-        }
+        cancelarRespuesta();
 
     }
 );
@@ -3634,9 +3306,6 @@ btnCerrarDetalle.addEventListener(
         tarjetaDetalle.classList.add(
             "oculto"
         );
-
-        correoActual =
-        null;
 
     }
 );
@@ -3759,7 +3428,7 @@ onAuthStateChanged(
 
 
             usuarioActual.textContent =
-            "Cargando usuario...";
+            "Cargando correo...";
 
 
             await cargarEmpleado();
@@ -3779,7 +3448,7 @@ onAuthStateChanged(
         catch(error){
 
             console.error(
-                "ERROR CORREO EMPLEADO:",
+                "ERROR INICIANDO CORREO:",
                 error
             );
 
