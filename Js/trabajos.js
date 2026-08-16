@@ -13,7 +13,6 @@ import {
     getDocs,
     query,
     where,
-    orderBy,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -23,11 +22,8 @@ import {
 // ==========================================
 
 let usuarioActual = null;
-
 let trabajos = [];
-
 let clientes = [];
-
 let presupuestos = [];
 
 
@@ -68,13 +64,30 @@ onAuthStateChanged(
         usuarioActual = usuario;
 
         console.log(
-            "GESBASE - Usuario:",
+            "GESBASE: usuario autenticado",
             usuarioActual.uid
         );
 
-        await cargarClientes();
 
-        await cargarTrabajos();
+        try{
+
+            await cargarClientes();
+
+            await cargarTrabajos();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error inicializando Trabajos:",
+                error
+            );
+
+            mostrarError(
+                error
+            );
+
+        }
 
     }
 );
@@ -90,9 +103,11 @@ async function cargarClientes(){
         return;
     }
 
+
     if(!clienteSelect){
         return;
     }
+
 
     try{
 
@@ -102,13 +117,6 @@ async function cargarClientes(){
             </option>
         `;
 
-
-        /*
-         * Primero intentamos la misma estructura
-         * que utiliza clientes.html:
-         *
-         * uid == usuarioActual.uid
-         */
 
         const referencia =
             collection(
@@ -154,51 +162,33 @@ async function cargarClientes(){
 
 
         /*
-         * Si no encontró clientes mediante uid,
+         * Si no encontró por uid,
          * probamos empresaId.
          */
 
         if(clientes.length === 0){
 
-            console.log(
-                "No se encontraron clientes mediante uid. Probando empresaId..."
-            );
+            try{
+
+                const consultaEmpresa =
+                    query(
+                        referencia,
+                        where(
+                            "empresaId",
+                            "==",
+                            usuarioActual.uid
+                        )
+                    );
 
 
-            const consultaEmpresa =
-                query(
-                    referencia,
-                    where(
-                        "empresaId",
-                        "==",
-                        usuarioActual.uid
-                    )
-                );
+                const resultadoEmpresa =
+                    await getDocs(
+                        consultaEmpresa
+                    );
 
 
-            const resultadoEmpresa =
-                await getDocs(
-                    consultaEmpresa
-                );
-
-
-            resultadoEmpresa.forEach(
-                function(documento){
-
-                    const existe =
-                        clientes.some(
-                            function(cliente){
-
-                                return (
-                                    cliente.id ===
-                                    documento.id
-                                );
-
-                            }
-                        );
-
-
-                    if(!existe){
+                resultadoEmpresa.forEach(
+                    function(documento){
 
                         clientes.push({
 
@@ -210,55 +200,47 @@ async function cargarClientes(){
                         });
 
                     }
+                );
 
-                }
-            );
+            }
+            catch(errorEmpresa){
+
+                console.warn(
+                    "No se pudo consultar empresaId:",
+                    errorEmpresa
+                );
+
+            }
 
         }
 
 
-        /*
-         * ORDEN ALFABÉTICO
-         */
-
         clientes.sort(
             function(a,b){
 
-                const nombreA =
-                    obtenerNombreCliente(
-                        a
-                    ).toLowerCase();
-
-
-                const nombreB =
-                    obtenerNombreCliente(
-                        b
-                    ).toLowerCase();
-
-
-                return nombreA.localeCompare(
-                    nombreB,
-                    "es"
-                );
+                return obtenerNombreCliente(a)
+                    .localeCompare(
+                        obtenerNombreCliente(b),
+                        "es"
+                    );
 
             }
-        );
-
-
-        console.log(
-            "GESBASE - Clientes encontrados:",
-            clientes
         );
 
 
         mostrarClientes();
 
 
+        console.log(
+            "Clientes cargados:",
+            clientes.length
+        );
+
     }
     catch(error){
 
         console.error(
-            "ERROR CARGANDO CLIENTES:",
+            "Error cargando clientes:",
             error
         );
 
@@ -269,102 +251,7 @@ async function cargarClientes(){
             </option>
         `;
 
-
-        alert(
-            "No se pudieron cargar los clientes.\n\n" +
-            error.message
-        );
-
     }
-
-}
-
-
-// ==========================================
-// NOMBRE DEL CLIENTE
-// ==========================================
-
-function obtenerNombreCliente(
-    cliente
-){
-
-    if(!cliente){
-
-        return "Cliente sin nombre";
-
-    }
-
-
-    /*
-     * Nombre completo
-     */
-
-    const nombre =
-        String(
-            cliente.nombre ||
-            ""
-        ).trim();
-
-
-    const apellido =
-        String(
-            cliente.apellido ||
-            ""
-        ).trim();
-
-
-    if(nombre || apellido){
-
-        return (
-            nombre +
-            (
-                nombre &&
-                apellido
-                ? " "
-                : ""
-            ) +
-            apellido
-        ).trim();
-
-    }
-
-
-    /*
-     * Empresa
-     */
-
-    if(cliente.empresa){
-
-        return String(
-            cliente.empresa
-        );
-
-    }
-
-
-    /*
-     * Razón social
-     */
-
-    if(cliente.razonSocial){
-
-        return String(
-            cliente.razonSocial
-        );
-
-    }
-
-
-    if(cliente.razon_social){
-
-        return String(
-            cliente.razon_social
-        );
-
-    }
-
-
-    return "Cliente sin nombre";
 
 }
 
@@ -429,6 +316,83 @@ function mostrarClientes(){
 
 
 // ==========================================
+// NOMBRE DEL CLIENTE
+// ==========================================
+
+function obtenerNombreCliente(
+    cliente
+){
+
+    if(!cliente){
+
+        return "Cliente sin nombre";
+
+    }
+
+
+    const nombre =
+        String(
+            cliente.nombre ||
+            ""
+        ).trim();
+
+
+    const apellido =
+        String(
+            cliente.apellido ||
+            ""
+        ).trim();
+
+
+    if(nombre || apellido){
+
+        return (
+            nombre +
+            (
+                nombre &&
+                apellido
+                ? " "
+                : ""
+            ) +
+            apellido
+        ).trim();
+
+    }
+
+
+    if(cliente.empresa){
+
+        return String(
+            cliente.empresa
+        );
+
+    }
+
+
+    if(cliente.razonSocial){
+
+        return String(
+            cliente.razonSocial
+        );
+
+    }
+
+
+    if(cliente.razon_social){
+
+        return String(
+            cliente.razon_social
+        );
+
+    }
+
+
+    return "Cliente sin nombre";
+
+}
+
+
+// ==========================================
 // CAMBIO DE CLIENTE
 // ==========================================
 
@@ -438,18 +402,8 @@ if(clienteSelect){
         "change",
         async function(){
 
-            const clienteId =
-                clienteSelect.value;
-
-
-            console.log(
-                "Cliente seleccionado:",
-                clienteId
-            );
-
-
             await cargarPresupuestos(
-                clienteId
+                clienteSelect.value
             );
 
         }
@@ -459,7 +413,7 @@ if(clienteSelect){
 
 
 // ==========================================
-// CARGAR PRESUPUESTOS
+// PRESUPUESTOS
 // ==========================================
 
 async function cargarPresupuestos(
@@ -479,16 +433,7 @@ async function cargarPresupuestos(
 
 
     if(!clienteId){
-
         return;
-
-    }
-
-
-    if(!usuarioActual){
-
-        return;
-
     }
 
 
@@ -555,16 +500,12 @@ async function cargarPresupuestos(
                     presupuesto.id;
 
 
-                const titulo =
+                opcion.textContent =
                     presupuesto.numero ||
                     presupuesto.titulo ||
                     presupuesto.descripcion ||
                     presupuesto.concepto ||
                     "Presupuesto";
-
-
-                opcion.textContent =
-                    titulo;
 
 
                 presupuestoSelect.appendChild(
@@ -573,7 +514,6 @@ async function cargarPresupuestos(
 
             }
         );
-
 
     }
     catch(error){
@@ -599,7 +539,19 @@ async function cargarTrabajos(){
     }
 
 
+    if(!listaTrabajos){
+        return;
+    }
+
+
     try{
+
+        listaTrabajos.innerHTML = `
+            <div class="message">
+                Cargando trabajos...
+            </div>
+        `;
+
 
         const referencia =
             collection(
@@ -608,6 +560,12 @@ async function cargarTrabajos(){
             );
 
 
+        /*
+         * IMPORTANTE:
+         * No usamos orderBy aquí.
+         * Ordenamos después en JavaScript.
+         */
+
         const consulta =
             query(
                 referencia,
@@ -615,10 +573,6 @@ async function cargarTrabajos(){
                     "empresaId",
                     "==",
                     usuarioActual.uid
-                ),
-                orderBy(
-                    "fechaCreacion",
-                    "desc"
                 )
             );
 
@@ -648,16 +602,44 @@ async function cargarTrabajos(){
         );
 
 
+        /*
+         * Ordenar por fecha de creación
+         */
+
+        trabajos.sort(
+            function(a,b){
+
+                const fechaA =
+                    a.fechaCreacion?.seconds ||
+                    0;
+
+
+                const fechaB =
+                    b.fechaCreacion?.seconds ||
+                    0;
+
+
+                return fechaB - fechaA;
+
+            }
+        );
+
+
+        console.log(
+            "Trabajos cargados:",
+            trabajos.length
+        );
+
+
         mostrarTrabajos(
             trabajos
         );
-
 
     }
     catch(error){
 
         console.error(
-            "Error cargando trabajos:",
+            "ERROR CARGANDO TRABAJOS:",
             error
         );
 
@@ -701,6 +683,7 @@ if(formulario){
                 );
 
                 return;
+
             }
 
 
@@ -935,6 +918,7 @@ function mostrarTrabajos(
         `;
 
         return;
+
     }
 
 
@@ -981,7 +965,6 @@ function mostrarTrabajos(
                                 <small>
 
                                     👤 Cliente:
-
                                     ${escapeHTML(
                                         nombreCliente
                                     )}
@@ -1006,33 +989,25 @@ function mostrarTrabajos(
                         <div class="job-info">
 
                             <div>
-
                                 📍
-
                                 ${escapeHTML(
                                     trabajo.lugar ||
                                     "Sin ubicación"
                                 )}
-
                             </div>
 
 
                             <div>
-
                                 📅 Inicio:
-
                                 ${escapeHTML(
                                     trabajo.fechaInicio ||
                                     "Sin fecha"
                                 )}
-
                             </div>
 
 
                             <div>
-
                                 🧾 Presupuesto:
-
                                 ${
                                     trabajo.presupuestoId
                                     ?
@@ -1040,19 +1015,15 @@ function mostrarTrabajos(
                                     :
                                     "Sin presupuesto"
                                 }
-
                             </div>
 
 
                             <div>
-
                                 📅 Fin:
-
                                 ${escapeHTML(
                                     trabajo.fechaFin ||
                                     "Sin fecha"
                                 )}
-
                             </div>
 
                         </div>
@@ -1073,7 +1044,6 @@ function mostrarTrabajos(
                             >
 
                                 📝
-
                                 ${escapeHTML(
                                     trabajo.observaciones
                                 )}
@@ -1095,7 +1065,7 @@ function mostrarTrabajos(
 
 
 // ==========================================
-// FILTRAR TRABAJOS
+// FILTRAR
 // ==========================================
 
 window.filtrarTrabajos =
@@ -1156,27 +1126,28 @@ function(){
                     ).toLowerCase();
 
 
-                const coincideTexto =
-                    !texto ||
-                    descripcion.includes(
-                        texto
-                    ) ||
-                    lugar.includes(
-                        texto
-                    ) ||
-                    nombreCliente.includes(
-                        texto
-                    );
-
-
-                const coincideEstado =
-                    !estado ||
-                    trabajo.estado === estado;
-
-
                 return (
-                    coincideTexto &&
-                    coincideEstado
+
+                    (
+                        !texto ||
+                        descripcion.includes(
+                            texto
+                        ) ||
+                        lugar.includes(
+                            texto
+                        ) ||
+                        nombreCliente.includes(
+                            texto
+                        )
+                    )
+
+                    &&
+
+                    (
+                        !estado ||
+                        trabajo.estado === estado
+                    )
+
                 );
 
             }
@@ -1188,6 +1159,35 @@ function(){
     );
 
 };
+
+
+// ==========================================
+// ERROR
+// ==========================================
+
+function mostrarError(error){
+
+    if(!listaTrabajos){
+        return;
+    }
+
+
+    listaTrabajos.innerHTML = `
+        <div class="message">
+
+            Ocurrió un error al cargar Trabajos.
+
+            <br><br>
+
+            ${escapeHTML(
+                error?.message ||
+                "Error desconocido"
+            )}
+
+        </div>
+    `;
+
+}
 
 
 // ==========================================
@@ -1213,21 +1213,4 @@ function escapeHTML(
         ">",
         "&gt;"
     )
-    .replaceAll(
-        '"',
-        "&quot;"
-    )
-    .replaceAll(
-        "'",
-        "&#039;"
-    );
-
-}
-
-
-// ==========================================
-// COMPATIBILIDAD
-// ==========================================
-
-window.mostrarTrabajos =
-    mostrarTrabajos;
+    .
