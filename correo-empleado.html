@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Panel del empleado - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.app{
+    width:100%;
+    max-width:700px;
+    min-height:100vh;
+    margin:auto;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:#fff;
+    padding:24px 20px;
+}
+
+.logo{
+    font-size:26px;
+    font-weight:bold;
+}
+
+.subtitulo{
+    margin-top:6px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+.mensaje{
+    display:none;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:15px;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.exito{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.cuenta{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:20px;
+}
+
+.cuenta-titulo{
+    font-size:12px;
+    color:#6b7280;
+    font-weight:bold;
+}
+
+.cuenta-nombre{
+    font-size:22px;
+    font-weight:bold;
+    margin-top:5px;
+}
+
+.cuenta-email{
+    color:#2563eb;
+    margin-top:5px;
+    font-size:14px;
+}
+
+.cuenta-puesto{
+    color:#6b7280;
+    margin-top:5px;
+    font-size:14px;
+}
+
+.titulo{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:14px;
+}
+
+.tarjeta{
+    border:1px solid #d1d5db;
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:16px;
+    background:#fff;
+}
+
+.boton{
+    width:100%;
+    border:none;
+    border-radius:12px;
+    padding:18px;
+    margin-top:10px;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.boton-correo{
+    background:#2563eb;
+    color:#fff;
+}
+
+.boton-fichaje{
+    background:#16a34a;
+    color:#fff;
+}
+
+.boton-cerrar{
+    background:#111827;
+    color:#fff;
+    margin-top:5px;
+}
+
+.descripcion{
+    color:#6b7280;
+    font-size:14px;
+    line-height:1.5;
+    margin-bottom:4px;
+}
+
+.estado{
+    margin-top:12px;
+    padding:12px;
+    border-radius:10px;
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    font-size:14px;
+}
+
+.cargando{
+    color:#6b7280;
+}
+
+.oculto{
+    display:none !important;
+}
+
+@media(max-width:500px){
+
+    main{
+        padding:15px;
+    }
+
+    header{
+        padding:20px 15px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+<header>
+
+<div class="logo">
+GESBASE
+</div>
+
+<div class="subtitulo">
+Panel del empleado
+</div>
+
+</header>
+
+
+<main>
+
+
+<!-- MENSAJES -->
+
+<div
+    id="mensajeError"
+    class="mensaje error"
+></div>
+
+
+<div
+    id="mensajeExito"
+    class="mensaje exito"
+></div>
+
+
+<!-- ==============================
+     CUENTA DEL EMPLEADO
+============================== -->
+
+<div class="cuenta">
+
+<div class="cuenta-titulo">
+CUENTA ACTUAL
+</div>
+
+
+<div
+    id="nombreEmpleado"
+    class="cuenta-nombre"
+>
+Cargando...
+</div>
+
+
+<div
+    id="emailEmpleado"
+    class="cuenta-email"
+>
+Cargando...
+</div>
+
+
+<div
+    id="puestoEmpleado"
+    class="cuenta-puesto"
+>
+Verificando empleado...
+</div>
+
+
+</div>
+
+
+<!-- ==============================
+     CORREO
+============================== -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+✉️ Correo interno
+</div>
+
+
+<div class="descripcion">
+
+Enviá y recibí mensajes dentro de GESBASE.
+
+</div>
+
+
+<button
+    id="btnCorreo"
+    class="boton boton-correo"
+>
+✉️ ABRIR CORREO
+</button>
+
+</div>
+
+
+<!-- ==============================
+     FICHAJE
+============================== -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+🕐 Control de fichaje
+</div>
+
+
+<div class="descripcion">
+
+Registrá tu entrada y salida con ubicación GPS y consultá tus horas trabajadas.
+
+</div>
+
+
+<button
+    id="btnFichaje"
+    class="boton boton-fichaje"
+>
+🕐 ABRIR FICHAJE
+</button>
+
+
+<div
+    id="estadoEmpleado"
+    class="estado"
+>
+
+<span class="cargando">
+Verificando estado...
+</span>
+
+</div>
+
+</div>
+
+
+<!-- ==============================
+     CERRAR SESIÓN
+============================== -->
+
+<button
+    id="btnCerrarSesion"
+    class="boton boton-cerrar"
+>
+🚪 CERRAR SESIÓN
+</button>
+
+
+</main>
+
+</div>
+
+
+<script type="module">
+
+
+/* =========================================
+   FIREBASE
+========================================= */
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged,
+    signOut
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    getDocs,
+    query,
+    where,
+    limit
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+/* =========================================
+   ELEMENTOS
+========================================= */
+
+const nombreEmpleado =
+document.getElementById(
+    "nombreEmpleado"
+);
+
+const emailEmpleado =
+document.getElementById(
+    "emailEmpleado"
+);
+
+const puestoEmpleado =
+document.getElementById(
+    "puestoEmpleado"
+);
+
+const estadoEmpleado =
+document.getElementById(
+    "estadoEmpleado"
+);
+
+const mensajeError =
+document.getElementById(
+    "mensajeError"
+);
+
+const mensajeExito =
+document.getElementById(
+    "mensajeExito"
+);
+
+const btnCorreo =
+document.getElementById(
+    "btnCorreo"
+);
+
+const btnFichaje =
+document.getElementById(
+    "btnFichaje"
+);
+
+const btnCerrarSesion =
+document.getElementById(
+    "btnCerrarSesion"
+);
+
+
+/* =========================================
+   VARIABLES
+========================================= */
+
+let usuarioActual = null;
+
+let empleadoActual = null;
+
+
+/* =========================================
+   UTILIDADES
+========================================= */
+
+function texto(valor){
+
+    if(
+        valor === undefined ||
+        valor === null
+    ){
+
+        return "";
+
+    }
+
+    return String(valor);
+
+}
+
+
+function mostrarError(mensaje){
+
+    mensajeError.textContent =
+    mensaje;
+
+    mensajeError.style.display =
+    "block";
+
+    mensajeExito.style.display =
+    "none";
+
+}
+
+
+function mostrarExito(mensaje){
+
+    mensajeExito.textContent =
+    mensaje;
+
+    mensajeExito.style.display =
+    "block";
+
+    mensajeError.style.display =
+    "none";
+
+}
+
+
+/* =========================================
+   BUSCAR EMPLEADO
+========================================= */
+
+async function cargarEmpleado(){
+
+    if(!usuarioActual){
+
+        throw new Error(
+            "No hay una sesión activa."
+        );
+
+    }
+
+
+    const consulta =
+    query(
+        collection(
+            db,
+            "empleados"
+        ),
+        where(
+            "authUid",
+            "==",
+            usuarioActual.uid
+        ),
+        limit(1)
+    );
+
+
+    const resultado =
+    await getDocs(
+        consulta
+    );
+
+
+    if(
+        resultado.empty
+    ){
+
+        throw new Error(
+            "No encontramos un empleado vinculado a esta cuenta."
+        );
+
+    }
+
+
+    const documento =
+    resultado.docs[0];
+
+
+    empleadoActual = {
+
+        id:
+        documento.id,
+
+        ...documento.data()
+
+    };
+
+
+    return empleadoActual;
+
+}
+
+
+/* =========================================
+   MOSTRAR EMPLEADO
+========================================= */
+
+function mostrarEmpleado(){
+
+    const nombre =
+    texto(
+        empleadoActual.nombre
+    );
+
+    const apellido =
+    texto(
+        empleadoActual.apellido
+    );
+
+
+    const nombreCompleto =
+    (
+        nombre +
+        " " +
+        apellido
+    ).trim();
+
+
+    nombreEmpleado.textContent =
+    nombreCompleto ||
+    "Empleado";
+
+
+    emailEmpleado.textContent =
+    empleadoActual.email ||
+    usuarioActual.email ||
+    "Sin correo";
+
+
+    puestoEmpleado.textContent =
+    empleadoActual.puesto ||
+    "Empleado";
+
+
+    /* =====================================
+       ESTADO
+    ===================================== */
+
+    const estado =
+    texto(
+        empleadoActual.estado
+    );
+
+
+    if(
+        !estado ||
+        estado === "Activo"
+    ){
+
+        estadoEmpleado.innerHTML = `
+            🟢 <strong>Empleado activo</strong>
+            <br>
+            Tenés acceso al correo y al fichaje.
+        `;
+
+    }
+    else{
+
+        estadoEmpleado.innerHTML = `
+            🔴 <strong>Acceso inactivo</strong>
+            <br>
+            Contactá con administración.
+        `;
+
+
+        btnCorreo.disabled =
+        true;
+
+
+        btnFichaje.disabled =
+        true;
+
+    }
+
+}
+
+
+/* =========================================
+   BOTÓN CORREO
+========================================= */
+
+btnCorreo.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "correo-empleado.html";
+
+    }
+);
+
+
+/* =========================================
+   BOTÓN FICHAJE
+========================================= */
+
+btnFichaje.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "Fichaje.html";
+
+    }
+);
+
+
+/* =========================================
+   CERRAR SESIÓN
+========================================= */
+
+btnCerrarSesion.addEventListener(
+    "click",
+    async function(){
+
+        if(
+            !confirm(
+                "¿Querés cerrar la sesión?"
+            )
+        ){
+
+            return;
+
+        }
+
+
+        btnCerrarSesion.disabled =
+        true;
+
+
+        btnCerrarSesion.textContent =
+        "CERRANDO SESIÓN...";
+
+
+        try{
+
+            await signOut(
+                auth
+            );
+
+
+            window.location.replace(
+                "empleado-login.html"
+            );
+
+        }
+        catch(error){
+
+            console.error(
+                error
+            );
+
+
+            mostrarError(
+                "No se pudo cerrar la sesión: " +
+                error.message
+            );
+
+
+            btnCerrarSesion.disabled =
+            false;
+
+
+            btnCerrarSesion.textContent =
+            "🚪 CERRAR SESIÓN";
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   INICIO DE SESIÓN
+========================================= */
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.replace(
+                "empleado-login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+        usuario;
+
+
+        try{
+
+            mensajeError.style.display =
+            "none";
+
+
+            await cargarEmpleado();
+
+
+            mostrarEmpleado();
+
+        }
+        catch(error){
+
+            console.error(
+                "ERROR PANEL EMPLEADO:",
+                error
+            );
+
+
+            nombreEmpleado.textContent =
+            "No disponible";
+
+
+            emailEmpleado.textContent =
+            usuarioActual.email ||
+            "Sin correo";
+
+
+            puestoEmpleado.textContent =
+            "No se pudo verificar el empleado";
+
+
+            estadoEmpleado.innerHTML = `
+                🔴 <strong>No se pudo cargar el perfil</strong>
+            `;
+
+
+            mostrarError(
+                error.message
+            );
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
