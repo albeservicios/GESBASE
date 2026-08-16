@@ -1,7 +1,7 @@
 import {
     auth,
     db
-} from "./Firebase/firebase.js";
+} from "./firebase.js";
 
 import {
     onAuthStateChanged
@@ -67,7 +67,6 @@ onAuthStateChanged(
 
         usuarioActual = usuario;
 
-
         try{
 
             await cargarClientes();
@@ -96,7 +95,6 @@ async function cargarClientes(){
     if(!usuarioActual){
         return;
     }
-
 
     try{
 
@@ -143,10 +141,6 @@ async function cargarClientes(){
         );
 
 
-        // ==================================
-        // ORDENAR CLIENTES
-        // ==================================
-
         clientes.sort(
             function(a,b){
 
@@ -189,9 +183,11 @@ async function cargarClientes(){
         if(clienteSelect){
 
             clienteSelect.innerHTML = `
+
                 <option value="">
                     Error cargando clientes
                 </option>
+
             `;
 
         }
@@ -225,7 +221,10 @@ function cargarClientesEnSelect(){
 
         clienteSelect.innerHTML += `
 
-            <option value="" disabled>
+            <option
+                value=""
+                disabled
+            >
                 No hay clientes registrados
             </option>
 
@@ -293,7 +292,7 @@ if(clienteSelect){
 
 
 // ==========================================
-// CARGAR PRESUPUESTOS DEL CLIENTE
+// CARGAR PRESUPUESTOS
 // ==========================================
 
 async function cargarPresupuestos(
@@ -315,16 +314,12 @@ async function cargarPresupuestos(
 
 
     if(!clienteId){
-
         return;
-
     }
 
 
     if(!usuarioActual){
-
         return;
-
     }
 
 
@@ -377,10 +372,6 @@ async function cargarPresupuestos(
             }
         );
 
-
-        // ==================================
-        // ORDENAR
-        // ==================================
 
         presupuestos.sort(
             function(a,b){
@@ -448,6 +439,7 @@ async function cargarPresupuestos(
             "Error cargando presupuestos:",
             error
         );
+
 
         presupuestoSelect.innerHTML = `
 
@@ -617,7 +609,6 @@ if(formulario){
                 );
 
                 return;
-
             }
 
 
@@ -679,7 +670,6 @@ if(formulario){
                 );
 
                 return;
-
             }
 
 
@@ -690,7 +680,6 @@ if(formulario){
                 );
 
                 return;
-
             }
 
 
@@ -764,7 +753,6 @@ if(formulario){
                 formulario.reset();
 
 
-                // Limpiar presupuestos
                 if(presupuestoSelect){
 
                     presupuestoSelect.innerHTML = `
@@ -857,7 +845,6 @@ function mostrarTrabajos(lista){
         `;
 
         return;
-
     }
 
 
@@ -1011,27 +998,29 @@ function mostrarTrabajos(lista){
 
 function escapeHTML(valor){
 
-    return String(valor ?? "")
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
+    return String(
+        valor ?? ""
+    )
+    .replaceAll(
+        "&",
+        "&amp;"
+    )
+    .replaceAll(
+        "<",
+        "&lt;"
+    )
+    .replaceAll(
+        ">",
+        "&gt;"
+    )
+    .replaceAll(
+        '"',
+        "&quot;"
+    )
+    .replaceAll(
+        "'",
+        "&#039;"
+    );
 
 }
 
