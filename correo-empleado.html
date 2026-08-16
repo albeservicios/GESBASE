@@ -109,11 +109,16 @@ textarea:focus{
     width:100%;
     border:none;
     border-radius:12px;
-    padding:16px;
+    padding:15px;
     font-size:16px;
     font-weight:bold;
     cursor:pointer;
     margin-top:8px;
+}
+
+.boton:disabled{
+    opacity:.5;
+    cursor:not-allowed;
 }
 
 .boton-enviar{
@@ -141,9 +146,56 @@ textarea:focus{
     color:#fff;
 }
 
-.boton:disabled{
-    opacity:.5;
-    cursor:not-allowed;
+.boton-responder{
+    background:#2563eb;
+    color:#fff;
+}
+
+.boton-audio{
+    background:#7c3aed;
+    color:#fff;
+}
+
+.boton-audio.grabando{
+    background:#dc2626;
+}
+
+.botones-adjunto{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:10px;
+}
+
+.boton-adjunto{
+    background:#f3f4f6;
+    border:1px solid #d1d5db;
+    color:#111827;
+    border-radius:10px;
+    padding:13px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.archivo-seleccionado{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    color:#1e40af;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:10px;
+    font-size:14px;
+    display:none;
+}
+
+.audio-estado{
+    background:#f5f3ff;
+    border:1px solid #ddd6fe;
+    color:#5b21b6;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:10px;
+    display:none;
 }
 
 .error{
@@ -173,6 +225,14 @@ textarea:focus{
     margin-bottom:15px;
     font-size:14px;
     line-height:1.5;
+}
+
+.usuario{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
 }
 
 .correo-item{
@@ -273,6 +333,61 @@ textarea:focus{
     margin:18px 0;
 }
 
+.adjunto{
+    margin-top:15px;
+    padding:12px;
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+}
+
+.adjunto a{
+    color:#2563eb;
+    font-weight:bold;
+    text-decoration:none;
+}
+
+.audio-player{
+    width:100%;
+    margin-top:10px;
+}
+
+.respuesta{
+    margin-top:20px;
+    padding-top:20px;
+    border-top:1px solid #e5e7eb;
+}
+
+.conversacion{
+    margin-top:15px;
+}
+
+.mensaje-conversacion{
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:10px;
+}
+
+.mensaje-conversacion.propio{
+    background:#eff6ff;
+}
+
+.mensaje-conversacion.otro{
+    background:#f9fafb;
+}
+
+.mensaje-meta{
+    font-size:12px;
+    color:#6b7280;
+    margin-bottom:8px;
+}
+
+.mensaje-texto{
+    white-space:pre-wrap;
+    line-height:1.5;
+}
+
 @media(max-width:600px){
 
     main{
@@ -288,6 +403,10 @@ textarea:focus{
         gap:3px;
     }
 
+    .botones-adjunto{
+        grid-template-columns:1fr;
+    }
+
 }
 
 </style>
@@ -299,11 +418,12 @@ textarea:focus{
 
 <div class="contenedor">
 
+
 <header>
 
 <h1>GESBASE</h1>
 
-<p>Correo interno</p>
+<p>Correo interno del empleado</p>
 
 </header>
 
@@ -323,16 +443,15 @@ textarea:focus{
 ></div>
 
 
-<!-- ==============================
+<!-- =========================================
      USUARIO
-============================== -->
+========================================= -->
 
 <div class="tarjeta">
 
 <div class="titulo">
 ✉️ Mi correo interno
 </div>
-
 
 <div
     id="usuarioActual"
@@ -344,9 +463,9 @@ Cargando usuario...
 </div>
 
 
-<!-- ==============================
-     NUEVO CORREO
-============================== -->
+<!-- =========================================
+     NUEVO MENSAJE
+========================================= -->
 
 <div class="tarjeta">
 
@@ -394,6 +513,66 @@ Mensaje
 ></textarea>
 
 
+<div class="botones-adjunto">
+
+
+<button
+    type="button"
+    id="btnFoto"
+    class="boton-adjunto"
+>
+📷 FOTO
+</button>
+
+
+<button
+    type="button"
+    id="btnArchivo"
+    class="boton-adjunto"
+>
+📎 ARCHIVO
+</button>
+
+</div>
+
+
+<input
+    type="file"
+    id="inputFoto"
+    accept="image/*"
+    capture="environment"
+    class="oculto"
+>
+
+
+<input
+    type="file"
+    id="inputArchivo"
+    class="oculto"
+>
+
+
+<div
+    id="archivoSeleccionado"
+    class="archivo-seleccionado"
+></div>
+
+
+<button
+    type="button"
+    id="btnAudio"
+    class="boton boton-audio"
+>
+🎤 GRABAR AUDIO
+</button>
+
+
+<div
+    id="audioEstado"
+    class="audio-estado"
+></div>
+
+
 <button
     id="btnEnviar"
     class="boton boton-enviar"
@@ -405,9 +584,9 @@ Mensaje
 </div>
 
 
-<!-- ==============================
+<!-- =========================================
      RECIBIDOS
-============================== -->
+========================================= -->
 
 <div class="tarjeta">
 
@@ -438,9 +617,9 @@ Cargando mensajes...
 </div>
 
 
-<!-- ==============================
+<!-- =========================================
      ENVIADOS
-============================== -->
+========================================= -->
 
 <div class="tarjeta">
 
@@ -471,9 +650,9 @@ Presioná actualizar para ver los enviados.
 </div>
 
 
-<!-- ==============================
+<!-- =========================================
      DETALLE
-============================== -->
+========================================= -->
 
 <div
     id="tarjetaDetalle"
@@ -489,6 +668,108 @@ Presioná actualizar para ver los enviados.
     id="detalleCorreo"
     class="detalle"
 ></div>
+
+
+<div
+    id="conversacion"
+    class="conversacion"
+></div>
+
+
+<div
+    id="respuestaPanel"
+    class="respuesta oculto"
+>
+
+<div class="titulo">
+↩️ Responder
+</div>
+
+
+<textarea
+    id="respuestaTexto"
+    placeholder="Escribí tu respuesta..."
+    maxlength="5000"
+></textarea>
+
+
+<div class="botones-adjunto">
+
+
+<button
+    type="button"
+    id="btnFotoRespuesta"
+    class="boton-adjunto"
+>
+📷 FOTO
+</button>
+
+
+<button
+    type="button"
+    id="btnArchivoRespuesta"
+    class="boton-adjunto"
+>
+📎 ARCHIVO
+</button>
+
+</div>
+
+
+<input
+    type="file"
+    id="inputFotoRespuesta"
+    accept="image/*"
+    capture="environment"
+    class="oculto"
+>
+
+
+<input
+    type="file"
+    id="inputArchivoRespuesta"
+    class="oculto"
+>
+
+
+<div
+    id="archivoRespuestaSeleccionado"
+    class="archivo-seleccionado"
+></div>
+
+
+<button
+    type="button"
+    id="btnAudioRespuesta"
+    class="boton boton-audio"
+>
+🎤 GRABAR AUDIO
+</button>
+
+
+<div
+    id="audioRespuestaEstado"
+    class="audio-estado"
+></div>
+
+
+<button
+    type="button"
+    id="btnEnviarRespuesta"
+    class="boton boton-responder"
+>
+↩️ ENVIAR RESPUESTA
+</button>
+
+</div>
+
+
+<button
+    id="btnResponder"
+    class="boton boton-responder"
+>
+↩️ RESPONDER
+</button>
 
 
 <button
@@ -531,16 +812,15 @@ Presioná actualizar para ver los enviados.
 
 import {
     auth,
-    db
-}
-from "./Js/firebase.js";
+    db,
+    storage
+} from "./Js/firebase.js";
 
 
 import {
     onAuthStateChanged,
     signOut
-}
-from
+} from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
@@ -554,9 +834,16 @@ import {
     where,
     limit,
     serverTimestamp
-}
-from
+} from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+import {
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 
 
 /* =========================================
@@ -618,6 +905,31 @@ document.getElementById(
     "detalleCorreo"
 );
 
+const conversacion =
+document.getElementById(
+    "conversacion"
+);
+
+const respuestaPanel =
+document.getElementById(
+    "respuestaPanel"
+);
+
+const respuestaTexto =
+document.getElementById(
+    "respuestaTexto"
+);
+
+const btnResponder =
+document.getElementById(
+    "btnResponder"
+);
+
+const btnEnviarRespuesta =
+document.getElementById(
+    "btnEnviarRespuesta"
+);
+
 const btnCerrarDetalle =
 document.getElementById(
     "btnCerrarDetalle"
@@ -645,6 +957,86 @@ document.getElementById(
 
 
 /* =========================================
+   ADJUNTOS NUEVO MENSAJE
+========================================= */
+
+const btnFoto =
+document.getElementById(
+    "btnFoto"
+);
+
+const btnArchivo =
+document.getElementById(
+    "btnArchivo"
+);
+
+const inputFoto =
+document.getElementById(
+    "inputFoto"
+);
+
+const inputArchivo =
+document.getElementById(
+    "inputArchivo"
+);
+
+const archivoSeleccionado =
+document.getElementById(
+    "archivoSeleccionado"
+);
+
+const btnAudio =
+document.getElementById(
+    "btnAudio"
+);
+
+const audioEstado =
+document.getElementById(
+    "audioEstado"
+);
+
+
+/* =========================================
+   ADJUNTOS RESPUESTA
+========================================= */
+
+const btnFotoRespuesta =
+document.getElementById(
+    "btnFotoRespuesta"
+);
+
+const btnArchivoRespuesta =
+document.getElementById(
+    "btnArchivoRespuesta"
+);
+
+const inputFotoRespuesta =
+document.getElementById(
+    "inputFotoRespuesta"
+);
+
+const inputArchivoRespuesta =
+document.getElementById(
+    "inputArchivoRespuesta"
+);
+
+const archivoRespuestaSeleccionado =
+document.getElementById(
+    "archivoRespuestaSeleccionado"
+);
+
+const btnAudioRespuesta =
+document.getElementById(
+    "btnAudioRespuesta"
+);
+
+const audioRespuestaEstado =
+document.getElementById(
+    "audioRespuestaEstado"
+);
+
+
+/* =========================================
    VARIABLES
 ========================================= */
 
@@ -654,8 +1046,6 @@ let empleadoActual = null;
 
 let empleadoId = "";
 
-let empresaActual = null;
-
 let empresaId = "";
 
 let destinatarios = [];
@@ -663,6 +1053,20 @@ let destinatarios = [];
 let correosRecibidos = [];
 
 let correosEnviados = [];
+
+let correoActual = null;
+
+let archivoNuevo = null;
+
+let archivoRespuesta = null;
+
+let mediaRecorder = null;
+
+let audioChunks = [];
+
+let audioBlobNuevo = null;
+
+let audioBlobRespuesta = null;
 
 
 /* =========================================
@@ -675,28 +1079,20 @@ function texto(valor){
         valor === undefined ||
         valor === null
     ){
-
         return "";
-
     }
 
     return String(valor);
-
 }
 
 
 function escaparHTML(valor){
 
     return texto(valor)
-
     .replace(/&/g,"&amp;")
-
     .replace(/</g,"&lt;")
-
     .replace(/>/g,"&gt;")
-
     .replace(/"/g,"&quot;")
-
     .replace(/'/g,"&#039;");
 
 }
@@ -705,13 +1101,9 @@ function escaparHTML(valor){
 function nombreCompleto(datos){
 
     return (
-
         texto(datos.nombre) +
-
         " " +
-
         texto(datos.apellido)
-
     ).trim();
 
 }
@@ -762,21 +1154,15 @@ function fechaActual(){
     new Date();
 
     return (
-
         ahora.getFullYear() +
-
         "-" +
-
         String(
             ahora.getMonth()+1
         ).padStart(2,"0") +
-
         "-" +
-
         String(
             ahora.getDate()
         ).padStart(2,"0")
-
     );
 
 }
@@ -788,133 +1174,70 @@ function horaActual(){
     new Date();
 
     return (
-
         String(
             ahora.getHours()
         ).padStart(2,"0") +
-
         ":" +
-
         String(
             ahora.getMinutes()
         ).padStart(2,"0") +
-
         ":" +
-
         String(
             ahora.getSeconds()
         ).padStart(2,"0")
-
     );
 
 }
 
 
-/* =========================================
-   BUSCAR EMPLEADO
-========================================= */
-
-async function buscarEmpleado(){
-
-    if(!usuarioSesion){
-
-        throw new Error(
-            "No hay una sesión activa."
-        );
-
-    }
-
-
-    /*
-       PRIMERA OPCIÓN:
-       buscar por authUid
-    */
-
-    let resultado =
-    await getDocs(
-
-        query(
-            collection(
-                db,
-                "empleados"
-            ),
-
-            where(
-                "authUid",
-                "==",
-                usuarioSesion.uid
-            ),
-
-            limit(1)
-        )
-
-    );
-
-
-    /*
-       SEGUNDA OPCIÓN:
-       buscar por usuarioId
-    */
-
-    if(resultado.empty){
-
-        resultado =
-        await getDocs(
-
-            query(
-                collection(
-                    db,
-                    "empleados"
-                ),
-
-                where(
-                    "usuarioId",
-                    "==",
-                    usuarioSesion.uid
-                ),
-
-                limit(1)
-            )
-
-        );
-
-    }
-
-
-    /*
-       TERCERA OPCIÓN:
-       buscar por email
-    */
+function fechaHora(valor){
 
     if(
-        resultado.empty &&
-        usuarioSesion.email
+        valor &&
+        typeof valor.toDate ===
+        "function"
     ){
 
-        resultado =
-        await getDocs(
-
-            query(
-                collection(
-                    db,
-                    "empleados"
-                ),
-
-                where(
-                    "email",
-                    "==",
-                    usuarioSesion.email
-                ),
-
-                limit(1)
-            )
-
+        return valor.toDate()
+        .toLocaleString(
+            "es-AR"
         );
 
     }
 
+    return texto(valor);
 
-    if(resultado.empty){
+}
+
+
+/* =========================================
+   CARGAR EMPLEADO
+========================================= */
+
+async function cargarEmpleado(){
+
+    const consulta =
+    query(
+        collection(
+            db,
+            "empleados"
+        ),
+        where(
+            "authUid",
+            "==",
+            usuarioSesion.uid
+        ),
+        limit(1)
+    );
+
+    const resultados =
+    await getDocs(
+        consulta
+    );
+
+    if(
+        resultados.empty
+    ){
 
         throw new Error(
             "No encontramos el perfil de empleado vinculado a esta cuenta."
@@ -922,14 +1245,11 @@ async function buscarEmpleado(){
 
     }
 
-
     const documento =
-    resultado.docs[0];
-
+    resultados.docs[0];
 
     empleadoId =
     documento.id;
-
 
     empleadoActual = {
 
@@ -940,7 +1260,6 @@ async function buscarEmpleado(){
 
     };
 
-
     empresaId =
     texto(
         empleadoActual.empresaId
@@ -950,125 +1269,11 @@ async function buscarEmpleado(){
     if(!empresaId){
 
         throw new Error(
-            "El empleado no tiene empresaId asignado."
+            "El empleado no tiene empresaId vinculado. Hay que vincularlo con la empresa desde Administración."
         );
 
     }
 
-}
-
-
-/* =========================================
-   CARGAR EMPRESA
-========================================= */
-
-async function cargarEmpresa(){
-
-    if(!empresaId){
-
-        throw new Error(
-            "No se encontró empresaId."
-        );
-
-    }
-
-
-    const resultado =
-    await getDocs(
-
-        query(
-            collection(
-                db,
-                "empresas"
-            ),
-
-            where(
-                "__name__",
-                "==",
-                empresaId
-            ),
-
-            limit(1)
-        )
-
-    );
-
-
-    if(resultado.empty){
-
-        /*
-           Intento alternativo por campo empresaId
-        */
-
-        const alternativa =
-        await getDocs(
-
-            query(
-                collection(
-                    db,
-                    "empresas"
-                ),
-
-                where(
-                    "empresaId",
-                    "==",
-                    empresaId
-                ),
-
-                limit(1)
-            )
-
-        );
-
-
-        if(alternativa.empty){
-
-            throw new Error(
-                "No encontramos la empresa vinculada al empleado."
-            );
-
-        }
-
-
-        const documento =
-        alternativa.docs[0];
-
-
-        empresaActual = {
-
-            id:
-            documento.id,
-
-            ...documento.data()
-
-        };
-
-        return;
-
-    }
-
-
-    const documento =
-    resultado.docs[0];
-
-
-    empresaActual = {
-
-        id:
-        documento.id,
-
-        ...documento.data()
-
-    };
-
-}
-
-
-/* =========================================
-   MOSTRAR USUARIO
-========================================= */
-
-function mostrarUsuario(){
 
     const nombre =
     nombreCompleto(
@@ -1077,60 +1282,40 @@ function mostrarUsuario(){
     "Empleado";
 
 
-    const email =
-    texto(
-        empleadoActual.email
-    ) ||
-    texto(
-        usuarioSesion.email
-    ) ||
-    "Sin correo";
-
-
-    const puesto =
-    texto(
-        empleadoActual.puesto
-    ) ||
-    "Empleado";
-
-
     const empresa =
-    texto(
-        empresaActual.nombreEmpresa
-    ) ||
-
-    texto(
-        empresaActual.razonSocial
-    ) ||
-
     texto(
         empleadoActual.empresa
     ) ||
-
+    texto(
+        empleadoActual.empresaNombre
+    ) ||
     "Empresa";
 
 
     usuarioActual.innerHTML = `
-
         <strong>
-        ${escaparHTML(nombre)}
+            ${escaparHTML(nombre)}
         </strong>
-
         <br>
-
         Puesto:
-        ${escaparHTML(puesto)}
-
+        ${escaparHTML(
+            texto(
+                empleadoActual.puesto
+            ) || "Empleado"
+        )}
         <br>
-
         Empresa:
         ${escaparHTML(empresa)}
-
         <br>
-
         Correo:
-        ${escaparHTML(email)}
-
+        ${escaparHTML(
+            texto(
+                empleadoActual.email
+            ) ||
+            texto(
+                usuarioSesion.email
+            )
+        )}
     `;
 
 }
@@ -1145,116 +1330,106 @@ async function cargarDestinatarios(){
     destinatarios = [];
 
 
-    /*
-       =====================================
+    /* =====================================
+       OTROS EMPLEADOS
+    ===================================== */
+
+    const consultaEmpleados =
+    query(
+        collection(
+            db,
+            "empleados"
+        ),
+        where(
+            "empresaId",
+            "==",
+            empresaId
+        )
+    );
+
+
+    const resultadosEmpleados =
+    await getDocs(
+        consultaEmpleados
+    );
+
+
+    resultadosEmpleados.forEach(
+        documento => {
+
+            const datos =
+            documento.data();
+
+
+            if(
+                documento.id ===
+                empleadoId
+            ){
+                return;
+            }
+
+
+            destinatarios.push({
+
+                id:
+                documento.id,
+
+                authUid:
+                texto(
+                    datos.authUid
+                ),
+
+                nombre:
+                nombreCompleto(
+                    datos
+                ) ||
+                "Empleado",
+
+                email:
+                texto(
+                    datos.email
+                ),
+
+                tipo:
+                "Empleado"
+
+            });
+
+        }
+    );
+
+
+    /* =====================================
        ADMINISTRACIÓN
-       =====================================
-    */
-
-    const emailAdministracion =
-
-        texto(
-            empresaActual.email
-        ).trim();
-
-
-    const nombreAdministracion =
-
-        texto(
-            empresaActual.nombreEmpresa
-        ).trim()
-
-        ||
-
-        texto(
-            empresaActual.razonSocial
-        ).trim()
-
-        ||
-
-        "Administración";
-
-
-    const propietarioUid =
-
-        texto(
-            empresaActual.propietarioUid
-        ).trim();
-
-
-    /*
-       La empresa se convierte en
-       destinatario de Administración.
-    */
-
-    if(emailAdministracion){
-
-        destinatarios.push({
-
-            id:
-            "administracion_" +
-            empresaActual.id,
-
-            authUid:
-            propietarioUid,
-
-            nombre:
-            "Administración",
-
-            email:
-            emailAdministracion,
-
-            tipo:
-            "Administración"
-
-        });
-
-    }
-
-
-    /*
-       =====================================
-       EMPLEADOS
-       =====================================
-    */
+    ===================================== */
 
     try{
 
-        const resultado =
-        await getDocs(
-
-            query(
-                collection(
-                    db,
-                    "empleados"
-                ),
-
-                where(
-                    "empresaId",
-                    "==",
-                    empresaId
-                )
-
+        const consultaAdmin =
+        query(
+            collection(
+                db,
+                "administradores"
+            ),
+            where(
+                "empresaId",
+                "==",
+                empresaId
             )
-
         );
 
 
-        resultado.forEach(
+        const resultadosAdmin =
+        await getDocs(
+            consultaAdmin
+        );
+
+
+        resultadosAdmin.forEach(
             documento => {
 
                 const datos =
                 documento.data();
-
-
-                if(
-                    documento.id ===
-                    empleadoId
-                ){
-
-                    return;
-
-                }
 
 
                 destinatarios.push({
@@ -1265,18 +1440,16 @@ async function cargarDestinatarios(){
                     authUid:
                     texto(
                         datos.authUid
-                    ) ||
-
-                    texto(
-                        datos.usuarioId
                     ),
 
                     nombre:
                     nombreCompleto(
                         datos
                     ) ||
-
-                    "Empleado",
+                    texto(
+                        datos.nombre
+                    ) ||
+                    "Administración",
 
                     email:
                     texto(
@@ -1284,7 +1457,7 @@ async function cargarDestinatarios(){
                     ),
 
                     tipo:
-                    "Empleado"
+                    "Administración"
 
                 });
 
@@ -1295,21 +1468,148 @@ async function cargarDestinatarios(){
     catch(error){
 
         console.warn(
-            "No se pudieron cargar empleados:",
+            "No se pudo cargar administración:",
             error
         );
 
     }
 
 
-    /*
-       =====================================
-       ARMAR SELECT
-    =====================================
-    */
+    /* =====================================
+       EMPRESA
+       También permite que una empresa
+       pueda aparecer como destinatario
+       si tiene un usuarioAuthUid.
+    ===================================== */
 
-    destinatario.innerHTML =
-    "";
+    try{
+
+        const consultaEmpresa =
+        query(
+            collection(
+                db,
+                "empresas"
+            ),
+            where(
+                "empresaId",
+                "==",
+                empresaId
+            ),
+            limit(1)
+        );
+
+
+        const resultadoEmpresa =
+        await getDocs(
+            consultaEmpresa
+        );
+
+
+        resultadoEmpresa.forEach(
+            documento => {
+
+                const datos =
+                documento.data();
+
+
+                const authUid =
+                texto(
+                    datos.authUid
+                ) ||
+                texto(
+                    datos.usuarioUid
+                ) ||
+                texto(
+                    datos.propietarioUid
+                );
+
+
+                if(
+                    authUid
+                ){
+
+                    destinatarios.push({
+
+                        id:
+                        documento.id,
+
+                        authUid:
+                        authUid,
+
+                        nombre:
+                        texto(
+                            datos.nombreEmpresa
+                        ) ||
+                        texto(
+                            datos.razonSocial
+                        ) ||
+                        "Administración",
+
+                        email:
+                        texto(
+                            datos.email
+                        ),
+
+                        tipo:
+                        "Empresa"
+
+                    });
+
+                }
+
+            }
+        );
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo cargar empresa:",
+            error
+        );
+
+    }
+
+
+    /* =====================================
+       QUITAR DUPLICADOS
+    ===================================== */
+
+    const mapa =
+    new Map();
+
+
+    destinatarios.forEach(
+        persona => {
+
+            const clave =
+            persona.authUid ||
+            persona.id;
+
+
+            if(
+                clave &&
+                !mapa.has(clave)
+            ){
+
+                mapa.set(
+                    clave,
+                    persona
+                );
+
+            }
+
+        }
+    );
+
+
+    destinatarios =
+    Array.from(
+        mapa.values()
+    );
+
+
+    destinatario.innerHTML = "";
 
 
     if(
@@ -1317,11 +1617,9 @@ async function cargarDestinatarios(){
     ){
 
         destinatario.innerHTML = `
-
             <option value="">
-            No hay destinatarios disponibles
+                No hay destinatarios disponibles
             </option>
-
         `;
 
         btnEnviar.disabled =
@@ -1333,11 +1631,9 @@ async function cargarDestinatarios(){
 
 
     destinatario.innerHTML = `
-
         <option value="">
-        Seleccionar destinatario...
+            Seleccionar destinatario...
         </option>
-
     `;
 
 
@@ -1355,12 +1651,9 @@ async function cargarDestinatarios(){
 
 
             option.textContent =
-
-                persona.nombre +
-
-                " — " +
-
-                persona.tipo;
+            persona.nombre +
+            " — " +
+            persona.tipo;
 
 
             destinatario.appendChild(
@@ -1370,11 +1663,6 @@ async function cargarDestinatarios(){
         }
     );
 
-
-    /*
-       Habilitamos envío solamente
-       cuando exista destinatario.
-    */
 
     btnEnviar.disabled =
     false;
@@ -1388,20 +1676,384 @@ async function cargarDestinatarios(){
 
 function obtenerDestinatario(){
 
-    const id =
-    destinatario.value;
-
-
     return destinatarios.find(
         persona =>
-        persona.id === id
+        persona.id ===
+        destinatario.value
     );
 
 }
 
 
 /* =========================================
-   ENVIAR CORREO
+   SUBIR ARCHIVO
+========================================= */
+
+async function subirArchivo(
+    archivo,
+    carpeta
+){
+
+    if(!archivo){
+        return null;
+    }
+
+
+    if(
+        !storage
+    ){
+
+        throw new Error(
+            "Firebase Storage no está configurado."
+        );
+
+    }
+
+
+    const nombreSeguro =
+    archivo.name.replace(
+        /[^a-zA-Z0-9._-]/g,
+        "_"
+    );
+
+
+    const ruta =
+    "correos/" +
+    empresaId +
+    "/" +
+    usuarioSesion.uid +
+    "/" +
+    carpeta +
+    "/" +
+    Date.now() +
+    "_" +
+    nombreSeguro;
+
+
+    const referencia =
+    ref(
+        storage,
+        ruta
+    );
+
+
+    await uploadBytes(
+        referencia,
+        archivo
+    );
+
+
+    const url =
+    await getDownloadURL(
+        referencia
+    );
+
+
+    return {
+
+        url:
+        url,
+
+        nombre:
+        archivo.name,
+
+        tipo:
+        archivo.type,
+
+        tamano:
+        archivo.size
+
+    };
+
+}
+
+
+/* =========================================
+   MOSTRAR ARCHIVO SELECCIONADO
+========================================= */
+
+function mostrarArchivoSeleccionado(
+    archivo,
+    elemento
+){
+
+    if(!archivo){
+
+        elemento.style.display =
+        "none";
+
+        elemento.textContent =
+        "";
+
+        return;
+
+    }
+
+
+    elemento.textContent =
+    "📎 " +
+    archivo.name;
+
+
+    elemento.style.display =
+    "block";
+
+}
+
+
+/* =========================================
+   FOTO / ARCHIVO
+========================================= */
+
+btnFoto.addEventListener(
+    "click",
+    () => inputFoto.click()
+);
+
+
+btnArchivo.addEventListener(
+    "click",
+    () => inputArchivo.click()
+);
+
+
+inputFoto.addEventListener(
+    "change",
+    function(){
+
+        archivoNuevo =
+        this.files[0] ||
+        null;
+
+        mostrarArchivoSeleccionado(
+            archivoNuevo,
+            archivoSeleccionado
+        );
+
+    }
+);
+
+
+inputArchivo.addEventListener(
+    "change",
+    function(){
+
+        archivoNuevo =
+        this.files[0] ||
+        null;
+
+        mostrarArchivoSeleccionado(
+            archivoNuevo,
+            archivoSeleccionado
+        );
+
+    }
+);
+
+
+/* =========================================
+   GRABAR AUDIO
+========================================= */
+
+async function iniciarGrabacion(
+    modo
+){
+
+    try{
+
+        const stream =
+        await navigator.mediaDevices
+        .getUserMedia({
+            audio:true
+        });
+
+
+        audioChunks = [];
+
+
+        mediaRecorder =
+        new MediaRecorder(
+            stream
+        );
+
+
+        mediaRecorder.ondataavailable =
+        function(event){
+
+            if(
+                event.data.size > 0
+            ){
+
+                audioChunks.push(
+                    event.data
+                );
+
+            }
+
+        };
+
+
+        mediaRecorder.onstop =
+        function(){
+
+            const blob =
+            new Blob(
+                audioChunks,
+                {
+                    type:
+                    "audio/webm"
+                }
+            );
+
+
+            if(
+                modo ===
+                "nuevo"
+            ){
+
+                audioBlobNuevo =
+                blob;
+
+                audioEstado.textContent =
+                "🎤 Audio grabado. Se enviará junto con el mensaje.";
+
+                audioEstado.style.display =
+                "block";
+
+            }
+            else{
+
+                audioBlobRespuesta =
+                blob;
+
+                audioRespuestaEstado.textContent =
+                "🎤 Audio grabado. Se enviará junto con la respuesta.";
+
+                audioRespuestaEstado.style.display =
+                "block";
+
+            }
+
+
+            stream.getTracks()
+            .forEach(
+                track =>
+                track.stop()
+            );
+
+        };
+
+
+        mediaRecorder.start();
+
+
+        if(
+            modo ===
+            "nuevo"
+        ){
+
+            btnAudio.textContent =
+            "⏹️ DETENER AUDIO";
+
+            btnAudio.classList.add(
+                "grabando"
+            );
+
+        }
+        else{
+
+            btnAudioRespuesta.textContent =
+            "⏹️ DETENER AUDIO";
+
+            btnAudioRespuesta.classList.add(
+                "grabando"
+            );
+
+        }
+
+    }
+    catch(error){
+
+        mostrarError(
+            "No se pudo acceder al micrófono. Revisá los permisos del navegador."
+        );
+
+    }
+
+}
+
+
+function detenerGrabacion(
+    modo
+){
+
+    if(
+        mediaRecorder &&
+        mediaRecorder.state !==
+        "inactive"
+    ){
+
+        mediaRecorder.stop();
+
+    }
+
+
+    if(
+        modo ===
+        "nuevo"
+    ){
+
+        btnAudio.textContent =
+        "🎤 GRABAR AUDIO";
+
+        btnAudio.classList.remove(
+            "grabando"
+        );
+
+    }
+    else{
+
+        btnAudioRespuesta.textContent =
+        "🎤 GRABAR AUDIO";
+
+        btnAudioRespuesta.classList.remove(
+            "grabando"
+        );
+
+    }
+
+}
+
+
+btnAudio.addEventListener(
+    "click",
+    function(){
+
+        if(
+            mediaRecorder &&
+            mediaRecorder.state ===
+            "recording"
+        ){
+
+            detenerGrabacion(
+                "nuevo"
+            );
+
+        }
+        else{
+
+            iniciarGrabacion(
+                "nuevo"
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   ENVIAR MENSAJE
 ========================================= */
 
 btnEnviar.addEventListener(
@@ -1434,26 +2086,28 @@ btnEnviar.addEventListener(
         }
 
 
-        if(!asuntoTexto){
+        if(
+            !asuntoTexto
+        ){
 
             mostrarError(
                 "Escribí un asunto."
             );
-
-            asunto.focus();
 
             return;
 
         }
 
 
-        if(!mensajeTexto){
+        if(
+            !mensajeTexto &&
+            !archivoNuevo &&
+            !audioBlobNuevo
+        ){
 
             mostrarError(
-                "Escribí el mensaje."
+                "Escribí un mensaje o adjuntá un archivo/audio."
             );
-
-            mensaje.focus();
 
             return;
 
@@ -1462,7 +2116,6 @@ btnEnviar.addEventListener(
 
         btnEnviar.disabled =
         true;
-
 
         btnEnviar.textContent =
         "📤 ENVIANDO...";
@@ -1481,33 +2134,76 @@ btnEnviar.addEventListener(
             texto(
                 empleadoActual.email
             ) ||
-
             texto(
                 usuarioSesion.email
             );
 
 
-            /*
-               Guardamos los dos formatos:
+            let adjunto =
+            null;
 
-               FORMATO NUEVO
-               usado por esta página.
 
-               Y campos compatibles con
-               el formato que ya tenías.
-            */
+            if(
+                archivoNuevo
+            ){
+
+                adjunto =
+                await subirArchivo(
+                    archivoNuevo,
+                    "archivos"
+                );
+
+            }
+
+
+            let audio =
+            null;
+
+
+            if(
+                audioBlobNuevo
+            ){
+
+                const audioArchivo =
+                new File(
+                    [
+                        audioBlobNuevo
+                    ],
+                    "audio-" +
+                    Date.now() +
+                    ".webm",
+                    {
+                        type:
+                        "audio/webm"
+                    }
+                );
+
+
+                audio =
+                await subirArchivo(
+                    audioArchivo,
+                    "audios"
+                );
+
+            }
+
+
+            const conversacionId =
+            crypto.randomUUID();
+
 
             await addDoc(
-
                 collection(
                     db,
                     "correos"
                 ),
-
                 {
 
                     empresaId:
                     empresaId,
+
+                    conversacionId:
+                    conversacionId,
 
                     remitenteUid:
                     usuarioSesion.uid,
@@ -1522,7 +2218,7 @@ btnEnviar.addEventListener(
                     emailRemitente,
 
                     destinatarioUid:
-                    persona.authUid || "",
+                    persona.authUid,
 
                     destinatarioId:
                     persona.id,
@@ -1551,38 +2247,29 @@ btnEnviar.addEventListener(
                     creado:
                     serverTimestamp(),
 
-                    enviado:
-                    serverTimestamp(),
-
                     leido:
                     false,
 
                     tipo:
                     "interno",
 
+                    tipoMensaje:
+                    audio
+                    ? "audio"
+                    : adjunto
+                    ? "archivo"
+                    : "texto",
+
+                    adjunto:
+                    adjunto,
+
+                    audio:
+                    audio,
+
                     estado:
-                    "enviado",
-
-
-                    /*
-                       CAMPOS COMPATIBLES
-                       CON EL FORMATO ANTERIOR
-                    */
-
-                    de:
-                    emailRemitente,
-
-                    para:
-                    persona.email,
-
-                    usuarioId:
-                    usuarioSesion.uid,
-
-                    carpeta:
-                    "enviados"
+                    "enviado"
 
                 }
-
             );
 
 
@@ -1594,6 +2281,24 @@ btnEnviar.addEventListener(
 
             destinatario.value =
             "";
+
+            archivoNuevo =
+            null;
+
+            audioBlobNuevo =
+            null;
+
+            inputFoto.value =
+            "";
+
+            inputArchivo.value =
+            "";
+
+            archivoSeleccionado.style.display =
+            "none";
+
+            audioEstado.style.display =
+            "none";
 
 
             mostrarExito(
@@ -1633,47 +2338,45 @@ btnEnviar.addEventListener(
 
 
 /* =========================================
-   RECIBIDOS
+   CARGAR RECIBIDOS
 ========================================= */
 
 async function cargarRecibidos(){
 
     recibidos.innerHTML = `
-
         <div class="cargando">
-        Cargando mensajes...
+            Cargando mensajes...
         </div>
-
     `;
 
 
     try{
 
-        const resultado =
+        const consulta =
+        query(
+            collection(
+                db,
+                "correos"
+            ),
+            where(
+                "destinatarioUid",
+                "==",
+                usuarioSesion.uid
+            ),
+            limit(50)
+        );
+
+
+        const resultados =
         await getDocs(
-
-            query(
-                collection(
-                    db,
-                    "correos"
-                ),
-
-                where(
-                    "destinatarioUid",
-                    "==",
-                    usuarioSesion.uid
-                ),
-
-                limit(50)
-            )
-
+            consulta
         );
 
 
         correosRecibidos = [];
 
 
-        resultado.forEach(
+        resultados.forEach(
             documento => {
 
                 correosRecibidos.push({
@@ -1684,6 +2387,27 @@ async function cargarRecibidos(){
                     ...documento.data()
 
                 });
+
+            }
+        );
+
+
+        correosRecibidos.sort(
+            (a,b) => {
+
+                const fechaA =
+                texto(a.fecha) +
+                " " +
+                texto(a.hora);
+
+                const fechaB =
+                texto(b.fecha) +
+                " " +
+                texto(b.hora);
+
+                return fechaB.localeCompare(
+                    fechaA
+                );
 
             }
         );
@@ -1701,11 +2425,9 @@ async function cargarRecibidos(){
 
 
         recibidos.innerHTML = `
-
             <div class="sin-registros">
-            No se pudieron cargar los mensajes.
+                No se pudieron cargar los mensajes.
             </div>
-
         `;
 
     }
@@ -1724,11 +2446,9 @@ function mostrarRecibidos(){
     ){
 
         recibidos.innerHTML = `
-
             <div class="sin-registros">
-            No tenés mensajes recibidos.
+                No tenés mensajes recibidos.
             </div>
-
         `;
 
         return;
@@ -1750,14 +2470,34 @@ function mostrarRecibidos(){
 
 
             item.className =
+            "correo-item" +
+            (
+                correo.leido
+                ? ""
+                : " no-leido"
+            );
 
-                "correo-item" +
 
-                (
-                    correo.leido
-                    ? ""
-                    : " no-leido"
-                );
+            let icono =
+            "💬";
+
+
+            if(
+                correo.audio
+            ){
+
+                icono =
+                "🎤";
+
+            }
+            else if(
+                correo.adjunto
+            ){
+
+                icono =
+                "📎";
+
+            }
 
 
             item.innerHTML = `
@@ -1768,22 +2508,19 @@ function mostrarRecibidos(){
 
                         De:
                         ${escaparHTML(
-                            correo.remitenteNombre ||
-                            correo.de ||
-                            "Usuario"
+                            correo.remitenteNombre
                         )}
 
                     </div>
 
-
                     <div class="correo-fecha">
 
                         ${escaparHTML(
-                            correo.fecha || ""
+                            correo.fecha
                         )}
 
                         ${escaparHTML(
-                            correo.hora || ""
+                            correo.hora
                         )}
 
                     </div>
@@ -1793,6 +2530,7 @@ function mostrarRecibidos(){
 
                 <div class="correo-asunto">
 
+                    ${icono}
                     ${escaparHTML(
                         correo.asunto
                     )}
@@ -1803,21 +2541,24 @@ function mostrarRecibidos(){
                 <div class="correo-resumen">
 
                     ${escaparHTML(
-
                         texto(
                             correo.mensaje
-                        ).substring(0,180)
-
+                        ).substring(
+                            0,
+                            180
+                        )
                     )}
 
                 </div>
 
 
-                <span class="estado-correo ${
-                    correo.leido
-                    ? ""
-                    : "estado-no-leido"
-                }">
+                <span
+                    class="estado-correo ${
+                        correo.leido
+                        ? ""
+                        : "estado-no-leido"
+                    }"
+                >
 
                     ${
                         correo.leido
@@ -1854,47 +2595,45 @@ function mostrarRecibidos(){
 
 
 /* =========================================
-   ENVIADOS
+   CARGAR ENVIADOS
 ========================================= */
 
 async function cargarEnviados(){
 
     enviados.innerHTML = `
-
         <div class="cargando">
-        Cargando mensajes...
+            Cargando mensajes...
         </div>
-
     `;
 
 
     try{
 
-        const resultado =
+        const consulta =
+        query(
+            collection(
+                db,
+                "correos"
+            ),
+            where(
+                "remitenteUid",
+                "==",
+                usuarioSesion.uid
+            ),
+            limit(50)
+        );
+
+
+        const resultados =
         await getDocs(
-
-            query(
-                collection(
-                    db,
-                    "correos"
-                ),
-
-                where(
-                    "remitenteUid",
-                    "==",
-                    usuarioSesion.uid
-                ),
-
-                limit(50)
-            )
-
+            consulta
         );
 
 
         correosEnviados = [];
 
 
-        resultado.forEach(
+        resultados.forEach(
             documento => {
 
                 correosEnviados.push({
@@ -1905,6 +2644,27 @@ async function cargarEnviados(){
                     ...documento.data()
 
                 });
+
+            }
+        );
+
+
+        correosEnviados.sort(
+            (a,b) => {
+
+                const fechaA =
+                texto(a.fecha) +
+                " " +
+                texto(a.hora);
+
+                const fechaB =
+                texto(b.fecha) +
+                " " +
+                texto(b.hora);
+
+                return fechaB.localeCompare(
+                    fechaA
+                );
 
             }
         );
@@ -1922,11 +2682,9 @@ async function cargarEnviados(){
 
 
         enviados.innerHTML = `
-
             <div class="sin-registros">
-            No se pudieron cargar los mensajes enviados.
+                No se pudieron cargar los mensajes enviados.
             </div>
-
         `;
 
     }
@@ -1945,11 +2703,9 @@ function mostrarEnviados(){
     ){
 
         enviados.innerHTML = `
-
             <div class="sin-registros">
-            No tenés mensajes enviados.
+                No tenés mensajes enviados.
             </div>
-
         `;
 
         return;
@@ -1982,22 +2738,19 @@ function mostrarEnviados(){
 
                         Para:
                         ${escaparHTML(
-                            correo.destinatarioNombre ||
-                            correo.para ||
-                            "Destinatario"
+                            correo.destinatarioNombre
                         )}
 
                     </div>
 
-
                     <div class="correo-fecha">
 
                         ${escaparHTML(
-                            correo.fecha || ""
+                            correo.fecha
                         )}
 
                         ${escaparHTML(
-                            correo.hora || ""
+                            correo.hora
                         )}
 
                     </div>
@@ -2017,11 +2770,12 @@ function mostrarEnviados(){
                 <div class="correo-resumen">
 
                     ${escaparHTML(
-
                         texto(
                             correo.mensaje
-                        ).substring(0,180)
-
+                        ).substring(
+                            0,
+                            180
+                        )
                     )}
 
                 </div>
@@ -2053,6 +2807,88 @@ function mostrarEnviados(){
 
 
 /* =========================================
+   MOSTRAR ADJUNTO
+========================================= */
+
+function mostrarAdjunto(
+    correo
+){
+
+    let html =
+    "";
+
+
+    if(
+        correo.adjunto &&
+        correo.adjunto.url
+    ){
+
+        html += `
+
+            <div class="adjunto">
+
+                📎
+                <strong>
+                    Archivo adjunto
+                </strong>
+
+                <br><br>
+
+                <a
+                    href="${escaparHTML(
+                        correo.adjunto.url
+                    )}"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    Abrir archivo:
+                    ${escaparHTML(
+                        correo.adjunto.nombre
+                    )}
+                </a>
+
+            </div>
+
+        `;
+
+    }
+
+
+    if(
+        correo.audio &&
+        correo.audio.url
+    ){
+
+        html += `
+
+            <div class="adjunto">
+
+                🎤
+                <strong>
+                    Audio
+                </strong>
+
+                <audio
+                    class="audio-player"
+                    controls
+                    src="${escaparHTML(
+                        correo.audio.url
+                    )}"
+                ></audio>
+
+            </div>
+
+        `;
+
+    }
+
+
+    return html;
+
+}
+
+
+/* =========================================
    ABRIR CORREO
 ========================================= */
 
@@ -2061,6 +2897,10 @@ async function abrirCorreo(
     esRecibido
 ){
 
+    correoActual =
+    correo;
+
+
     detalleCorreo.innerHTML = `
 
         <div class="detalle-linea">
@@ -2068,9 +2908,7 @@ async function abrirCorreo(
             <strong>De:</strong>
 
             ${escaparHTML(
-                correo.remitenteNombre ||
-                correo.de ||
-                ""
+                correo.remitenteNombre
             )}
 
         </div>
@@ -2081,9 +2919,7 @@ async function abrirCorreo(
             <strong>Para:</strong>
 
             ${escaparHTML(
-                correo.destinatarioNombre ||
-                correo.para ||
-                ""
+                correo.destinatarioNombre
             )}
 
         </div>
@@ -2105,11 +2941,11 @@ async function abrirCorreo(
             <strong>Fecha:</strong>
 
             ${escaparHTML(
-                correo.fecha || ""
+                correo.fecha
             )}
 
             ${escaparHTML(
-                correo.hora || ""
+                correo.hora
             )}
 
         </div>
@@ -2126,7 +2962,19 @@ async function abrirCorreo(
 
         </div>
 
+
+        ${mostrarAdjunto(correo)}
+
     `;
+
+
+    respuestaPanel.classList.add(
+        "oculto"
+    );
+
+
+    conversacion.innerHTML =
+    "";
 
 
     tarjetaDetalle.classList.remove(
@@ -2147,17 +2995,14 @@ async function abrirCorreo(
         try{
 
             await updateDoc(
-
                 doc(
                     db,
                     "correos",
                     correo.id
                 ),
-
                 {
                     leido:true
                 }
-
             );
 
 
@@ -2179,7 +3024,603 @@ async function abrirCorreo(
 
     }
 
+
+    await cargarConversacion(
+        correo
+    );
+
 }
+
+
+/* =========================================
+   CARGAR CONVERSACIÓN
+========================================= */
+
+async function cargarConversacion(
+    correo
+){
+
+    if(
+        !correo.conversacionId
+    ){
+
+        conversacion.innerHTML =
+        "";
+
+        return;
+
+    }
+
+
+    try{
+
+        const consulta =
+        query(
+            collection(
+                db,
+                "correos"
+            ),
+            where(
+                "conversacionId",
+                "==",
+                correo.conversacionId
+            ),
+            limit(50)
+        );
+
+
+        const resultados =
+        await getDocs(
+            consulta
+        );
+
+
+        const mensajes =
+        [];
+
+
+        resultados.forEach(
+            documento => {
+
+                mensajes.push({
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+
+        mensajes.sort(
+            (a,b) => {
+
+                const aFecha =
+                texto(a.fecha) +
+                " " +
+                texto(a.hora);
+
+                const bFecha =
+                texto(b.fecha) +
+                " " +
+                texto(b.hora);
+
+                return aFecha.localeCompare(
+                    bFecha
+                );
+
+            }
+        );
+
+
+        if(
+            mensajes.length <= 1
+        ){
+
+            conversacion.innerHTML =
+            "";
+
+            return;
+
+        }
+
+
+        conversacion.innerHTML = `
+
+            <div class="titulo">
+                💬 Conversación
+            </div>
+
+        `;
+
+
+        mensajes.forEach(
+            mensajeItem => {
+
+                const div =
+                document.createElement(
+                    "div"
+                );
+
+
+                div.className =
+                "mensaje-conversacion " +
+                (
+                    mensajeItem.remitenteUid ===
+                    usuarioSesion.uid
+                    ? "propio"
+                    : "otro"
+                );
+
+
+                div.innerHTML = `
+
+                    <div class="mensaje-meta">
+
+                        <strong>
+                            ${escaparHTML(
+                                mensajeItem.remitenteNombre
+                            )}
+                        </strong>
+
+                        ·
+
+                        ${escaparHTML(
+                            mensajeItem.fecha
+                        )}
+
+                        ${escaparHTML(
+                            mensajeItem.hora
+                        )}
+
+                    </div>
+
+
+                    <div class="mensaje-texto">
+
+                        ${escaparHTML(
+                            mensajeItem.mensaje
+                        )}
+
+                    </div>
+
+
+                    ${mostrarAdjunto(
+                        mensajeItem
+                    )}
+
+                `;
+
+
+                conversacion.appendChild(
+                    div
+                );
+
+            }
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error conversación:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   RESPONDER
+========================================= */
+
+btnResponder.addEventListener(
+    "click",
+    function(){
+
+        if(
+            !correoActual
+        ){
+            return;
+        }
+
+
+        respuestaPanel.classList.remove(
+            "oculto"
+        );
+
+
+        respuestaTexto.focus();
+
+    }
+);
+
+
+/* =========================================
+   ADJUNTOS RESPUESTA
+========================================= */
+
+btnFotoRespuesta.addEventListener(
+    "click",
+    () =>
+    inputFotoRespuesta.click()
+);
+
+
+btnArchivoRespuesta.addEventListener(
+    "click",
+    () =>
+    inputArchivoRespuesta.click()
+);
+
+
+inputFotoRespuesta.addEventListener(
+    "change",
+    function(){
+
+        archivoRespuesta =
+        this.files[0] ||
+        null;
+
+
+        mostrarArchivoSeleccionado(
+            archivoRespuesta,
+            archivoRespuestaSeleccionado
+        );
+
+    }
+);
+
+
+inputArchivoRespuesta.addEventListener(
+    "change",
+    function(){
+
+        archivoRespuesta =
+        this.files[0] ||
+        null;
+
+
+        mostrarArchivoSeleccionado(
+            archivoRespuesta,
+            archivoRespuestaSeleccionado
+        );
+
+    }
+);
+
+
+/* =========================================
+   AUDIO RESPUESTA
+========================================= */
+
+btnAudioRespuesta.addEventListener(
+    "click",
+    function(){
+
+        if(
+            mediaRecorder &&
+            mediaRecorder.state ===
+            "recording"
+        ){
+
+            detenerGrabacion(
+                "respuesta"
+            );
+
+        }
+        else{
+
+            iniciarGrabacion(
+                "respuesta"
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   ENVIAR RESPUESTA
+========================================= */
+
+btnEnviarRespuesta.addEventListener(
+    "click",
+    async function(){
+
+        limpiarMensajes();
+
+
+        if(
+            !correoActual
+        ){
+
+            mostrarError(
+                "No hay un mensaje seleccionado."
+            );
+
+            return;
+
+        }
+
+
+        const textoRespuesta =
+        respuestaTexto.value.trim();
+
+
+        if(
+            !textoRespuesta &&
+            !archivoRespuesta &&
+            !audioBlobRespuesta
+        ){
+
+            mostrarError(
+                "Escribí una respuesta o adjuntá un archivo/audio."
+            );
+
+            return;
+
+        }
+
+
+        btnEnviarRespuesta.disabled =
+        true;
+
+
+        btnEnviarRespuesta.textContent =
+        "📤 ENVIANDO...";
+
+
+        try{
+
+            let destinatarioUid =
+            texto(
+                correoActual.remitenteUid
+            );
+
+
+            let destinatarioId =
+            texto(
+                correoActual.remitenteId
+            );
+
+
+            let destinatarioNombre =
+            texto(
+                correoActual.remitenteNombre
+            );
+
+
+            let destinatarioEmail =
+            texto(
+                correoActual.remitenteEmail
+            );
+
+
+            let destinatarioTipo =
+            "Empleado";
+
+
+            if(
+                !destinatarioUid
+            ){
+
+                throw new Error(
+                    "El mensaje original no tiene vinculado el usuario destinatario."
+                );
+
+            }
+
+
+            let adjunto =
+            null;
+
+
+            if(
+                archivoRespuesta
+            ){
+
+                adjunto =
+                await subirArchivo(
+                    archivoRespuesta,
+                    "respuestas"
+                );
+
+            }
+
+
+            let audio =
+            null;
+
+
+            if(
+                audioBlobRespuesta
+            ){
+
+                const audioArchivo =
+                new File(
+                    [
+                        audioBlobRespuesta
+                    ],
+                    "audio-respuesta-" +
+                    Date.now() +
+                    ".webm",
+                    {
+                        type:
+                        "audio/webm"
+                    }
+                );
+
+
+                audio =
+                await subirArchivo(
+                    audioArchivo,
+                    "audios"
+                );
+
+            }
+
+
+            await addDoc(
+                collection(
+                    db,
+                    "correos"
+                ),
+                {
+
+                    empresaId:
+                    empresaId,
+
+                    conversacionId:
+                    correoActual.conversacionId ||
+                    crypto.randomUUID(),
+
+                    replyToId:
+                    correoActual.id,
+
+                    remitenteUid:
+                    usuarioSesion.uid,
+
+                    remitenteId:
+                    empleadoId,
+
+                    remitenteNombre:
+                    nombreCompleto(
+                        empleadoActual
+                    ) ||
+                    "Empleado",
+
+                    remitenteEmail:
+                    texto(
+                        empleadoActual.email
+                    ) ||
+                    texto(
+                        usuarioSesion.email
+                    ),
+
+                    destinatarioUid:
+                    destinatarioUid,
+
+                    destinatarioId:
+                    destinatarioId,
+
+                    destinatarioNombre:
+                    destinatarioNombre,
+
+                    destinatarioEmail:
+                    destinatarioEmail,
+
+                    destinatarioTipo:
+                    destinatarioTipo,
+
+                    asunto:
+                    correoActual.asunto,
+
+                    mensaje:
+                    textoRespuesta,
+
+                    fecha:
+                    fechaActual(),
+
+                    hora:
+                    horaActual(),
+
+                    creado:
+                    serverTimestamp(),
+
+                    leido:
+                    false,
+
+                    tipo:
+                    "interno",
+
+                    tipoMensaje:
+                    audio
+                    ? "audio"
+                    : adjunto
+                    ? "archivo"
+                    : "respuesta",
+
+                    adjunto:
+                    adjunto,
+
+                    audio:
+                    audio,
+
+                    estado:
+                    "enviado"
+
+                }
+            );
+
+
+            respuestaTexto.value =
+            "";
+
+            archivoRespuesta =
+            null;
+
+            audioBlobRespuesta =
+            null;
+
+            inputFotoRespuesta.value =
+            "";
+
+            inputArchivoRespuesta.value =
+            "";
+
+            archivoRespuestaSeleccionado.style.display =
+            "none";
+
+            audioRespuestaEstado.style.display =
+            "none";
+
+
+            mostrarExito(
+                "Respuesta enviada correctamente."
+            );
+
+
+            await cargarConversacion(
+                correoActual
+            );
+
+
+            await cargarEnviados();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error enviando respuesta:",
+                error
+            );
+
+
+            mostrarError(
+                "No se pudo enviar la respuesta: " +
+                error.message
+            );
+
+        }
+        finally{
+
+            btnEnviarRespuesta.disabled =
+            false;
+
+            btnEnviarRespuesta.textContent =
+            "↩️ ENVIAR RESPUESTA";
+
+        }
+
+    }
+);
 
 
 /* =========================================
@@ -2193,6 +3634,9 @@ btnCerrarDetalle.addEventListener(
         tarjetaDetalle.classList.add(
             "oculto"
         );
+
+        correoActual =
+        null;
 
     }
 );
@@ -2270,9 +3714,8 @@ btnCerrarSesion.addEventListener(
             );
 
 
-            window.location.replace(
-                "empleado-login.html"
-            );
+            window.location.href =
+            "empleado-login.html";
 
         }
         catch(error){
@@ -2298,9 +3741,8 @@ onAuthStateChanged(
 
         if(!usuario){
 
-            window.location.replace(
-                "empleado-login.html"
-            );
+            window.location.href =
+            "empleado-login.html";
 
             return;
 
@@ -2317,57 +3759,27 @@ onAuthStateChanged(
 
 
             usuarioActual.textContent =
-            "Buscando perfil...";
+            "Cargando usuario...";
 
 
-            /*
-               1. BUSCAR EMPLEADO
-            */
+            await cargarEmpleado();
 
-            await buscarEmpleado();
-
-
-            /*
-               2. BUSCAR EMPRESA
-            */
-
-            await cargarEmpresa();
-
-
-            /*
-               3. MOSTRAR USUARIO
-            */
-
-            mostrarUsuario();
-
-
-            /*
-               4. CARGAR ADMINISTRACIÓN
-               Y EMPLEADOS
-            */
 
             await cargarDestinatarios();
 
 
-            /*
-               5. CARGAR BANDEJAS
-            */
-
             await cargarRecibidos();
 
 
-            await cargarEnviados();
-
-
             console.log(
-                "CORREO GESBASE INICIALIZADO"
+                "CORREO EMPLEADO GESBASE INICIALIZADO"
             );
 
         }
         catch(error){
 
             console.error(
-                "ERROR CORREO GESBASE:",
+                "ERROR CORREO EMPLEADO:",
                 error
             );
 
@@ -2379,21 +3791,6 @@ onAuthStateChanged(
             mostrarError(
                 error.message
             );
-
-
-            usuarioActual.innerHTML = `
-
-                <strong>
-                No se pudo cargar el perfil
-                </strong>
-
-                <br><br>
-
-                ${escaparHTML(
-                    error.message
-                )}
-
-            `;
 
         }
 
