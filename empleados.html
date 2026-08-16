@@ -35,7 +35,7 @@ header{
     background:#111827;
     color:white;
     padding:22px 20px;
-    position:relative;
+    padding-right:120px;
 }
 
 header h1{
@@ -153,10 +153,8 @@ h2{
    BOTÓN CORREO FLOTANTE
 ========================================== */
 
-.boton-correo-flotante{
-
+#btnCorreoFlotante{
     position:fixed;
-
     top:12px;
     right:12px;
 
@@ -165,17 +163,20 @@ h2{
     display:flex;
     align-items:center;
     justify-content:center;
-
     gap:7px;
 
-    padding:11px 16px;
+    min-width:105px;
+    height:46px;
+
+    padding:0 15px;
 
     background:#2563eb;
-    color:white;
+    color:#ffffff;
+
+    border:2px solid #ffffff;
+    border-radius:25px;
 
     text-decoration:none;
-
-    border-radius:25px;
 
     font-size:14px;
     font-weight:bold;
@@ -184,27 +185,32 @@ h2{
 
     cursor:pointer;
 
-    transition:all .2s ease;
-
+    transition:
+        transform .2s ease,
+        background .2s ease;
 }
 
-.boton-correo-flotante:hover{
-
+#btnCorreoFlotante:hover{
     background:#1d4ed8;
-
     transform:translateY(-2px);
-
 }
 
-.boton-correo-flotante:active{
+#btnCorreoFlotante:active{
+    transform:scale(.96);
+}
 
-    transform:scale(.95);
+#btnCorreoFlotante .icono-correo{
+    font-size:21px;
+    line-height:1;
+}
 
+#btnCorreoFlotante .texto-correo{
+    white-space:nowrap;
 }
 
 
 /* ==========================================
-   LISTA
+   LISTA EMPLEADOS
 ========================================== */
 
 .lista{
@@ -399,7 +405,7 @@ h2{
 
 
 /* ==========================================
-   ESTADOS
+   ESTADO
 ========================================== */
 
 .estado{
@@ -421,6 +427,11 @@ h2{
     color:#991b1b;
 }
 
+
+/* ==========================================
+   ACCESO
+========================================== */
+
 .acceso{
     margin-top:12px;
     padding:10px;
@@ -439,6 +450,11 @@ h2{
     background:#fef3c7;
 }
 
+
+/* ==========================================
+   ACCIONES
+========================================== */
+
 .acciones{
     margin-top:12px;
     display:grid;
@@ -449,6 +465,11 @@ h2{
 .acciones button{
     margin-top:0;
 }
+
+
+/* ==========================================
+   MENSAJES
+========================================== */
 
 .cargando{
     text-align:center;
@@ -513,19 +534,38 @@ h2{
         padding:15px;
     }
 
-    .acciones{
-        grid-template-columns:1fr;
+    header{
+        padding-right:95px;
     }
 
-    .boton-correo-flotante{
+    header h1{
+        font-size:22px;
+    }
+
+    #btnCorreoFlotante{
 
         top:10px;
         right:10px;
 
-        padding:10px 13px;
+        min-width:48px;
+        width:48px;
+        height:48px;
 
-        font-size:13px;
+        padding:0;
 
+        border-radius:50%;
+    }
+
+    #btnCorreoFlotante .texto-correo{
+        display:none;
+    }
+
+    #btnCorreoFlotante .icono-correo{
+        font-size:23px;
+    }
+
+    .acciones{
+        grid-template-columns:1fr;
     }
 
 }
@@ -544,13 +584,16 @@ h2{
 
 <a
     href="correo.html"
-    class="boton-correo-flotante"
-    title="Abrir correo"
+    id="btnCorreoFlotante"
+    title="Abrir correo GESBASE"
+    aria-label="Abrir correo GESBASE"
 >
 
-    ✉️
+    <span class="icono-correo">
+        ✉️
+    </span>
 
-    <span>
+    <span class="texto-correo">
         Correo
     </span>
 
@@ -558,6 +601,7 @@ h2{
 
 
 <div class="contenedor">
+
 
 <header>
 
@@ -574,10 +618,12 @@ Gestión de empleados
 
 <main>
 
+
 <div
     id="mensajeError"
     class="error"
 ></div>
+
 
 <div
     id="mensajeExito"
@@ -717,11 +763,7 @@ Fecha de ingreso
 >
 
 <div class="pago-ayuda">
-
-Solo cargás el pago diario.
-GESBASE calcula automáticamente pago por hora,
-quincena y mes.
-
+Solo cargás el pago diario. GESBASE calcula automáticamente pago por hora, quincena y mes.
 </div>
 
 </div>
@@ -777,13 +819,8 @@ Empleados
 <div class="nota">
 
 <b>Pagos:</b>
-
-GESBASE calcula el valor diario,
-horario, quincenal y mensual.
-
-Los montos entregados se acumulan
-y se descuentan automáticamente
-del total generado.
+GESBASE calcula el valor diario, horario, quincenal y mensual.
+Los montos entregados se acumulan y se descuentan automáticamente del total generado.
 
 </div>
 
@@ -799,8 +836,8 @@ Cargando empleados...
 <div
     id="listaEmpleados"
     class="lista"
->
-</div>
+></div>
+
 
 </main>
 
@@ -818,8 +855,8 @@ import {
 
 import {
     onAuthStateChanged,
-    createUserWithEmailAndPassword,
-    getAuth
+    getAuth,
+    createUserWithEmailAndPassword
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
@@ -846,6 +883,10 @@ import {
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
+
+/* ==========================================
+   ELEMENTOS
+========================================== */
 
 const nombre =
 document.getElementById("nombre");
@@ -896,6 +937,10 @@ const mensajeExito =
 document.getElementById("mensajeExito");
 
 
+/* ==========================================
+   VARIABLES
+========================================== */
+
 let usuarioActual = null;
 
 let datosUsuario = {};
@@ -905,13 +950,19 @@ let empresaId = "";
 let empleadoEditandoId = null;
 
 
+/* ==========================================
+   UTILIDADES
+========================================== */
+
 function texto(valor){
 
     if(
         valor === undefined ||
         valor === null
     ){
+
         return "";
+
     }
 
     return String(valor);
@@ -921,7 +972,8 @@ function texto(valor){
 
 function numero(valor){
 
-    const n = Number(valor);
+    const n =
+    Number(valor);
 
     return Number.isFinite(n)
         ? n
@@ -939,18 +991,23 @@ function moneda(valor){
             currency:"ARS",
             maximumFractionDigits:0
         }
-    ).format(numero(valor));
+    ).format(
+        numero(valor)
+    );
 
 }
 
 
 function mostrarError(mensaje){
 
-    mensajeError.textContent = mensaje;
+    mensajeError.textContent =
+    mensaje;
 
-    mensajeError.style.display = "block";
+    mensajeError.style.display =
+    "block";
 
-    mensajeExito.style.display = "none";
+    mensajeExito.style.display =
+    "none";
 
     window.scrollTo({
         top:0,
@@ -962,38 +1019,52 @@ function mostrarError(mensaje){
 
 function mostrarExito(mensaje){
 
-    mensajeExito.textContent = mensaje;
+    mensajeExito.textContent =
+    mensaje;
 
-    mensajeExito.style.display = "block";
+    mensajeExito.style.display =
+    "block";
 
-    mensajeError.style.display = "none";
+    mensajeError.style.display =
+    "none";
 
 }
 
 
 function limpiarMensajes(){
 
-    mensajeError.style.display = "none";
+    mensajeError.style.display =
+    "none";
 
-    mensajeExito.style.display = "none";
+    mensajeExito.style.display =
+    "none";
 
 }
 
 
 function fechaHoy(){
 
-    const hoy = new Date();
+    const hoy =
+    new Date();
 
     return (
         hoy.getFullYear() +
         "-" +
-        String(hoy.getMonth()+1).padStart(2,"0") +
+        String(
+            hoy.getMonth()+1
+        ).padStart(2,"0") +
         "-" +
-        String(hoy.getDate()).padStart(2,"0")
+        String(
+            hoy.getDate()
+        ).padStart(2,"0")
     );
 
 }
 
+
+/* ==========================================
+   CARGAR USUARIO
+========================================== */
 
 async function cargarDatosUsuario(){
 
@@ -1005,9 +1076,14 @@ async function cargarDatosUsuario(){
     );
 
     const resultado =
-    await getDoc(referencia);
+    await getDoc(
+        referencia
+    );
 
-    if(!resultado.exists()){
+
+    if(
+        !resultado.exists()
+    ){
 
         throw new Error(
             "No encontramos el perfil del administrador."
@@ -1015,8 +1091,10 @@ async function cargarDatosUsuario(){
 
     }
 
+
     datosUsuario =
     resultado.data();
+
 
     empresaId =
     datosUsuario.empresaId ||
@@ -1025,13 +1103,19 @@ async function cargarDatosUsuario(){
 }
 
 
+/* ==========================================
+   FIREBASE SECUNDARIO
+========================================== */
+
 function obtenerAuthSecundario(){
 
     const aplicaciones =
     getApps();
 
+
     const principal =
     aplicaciones[0];
+
 
     if(!principal){
 
@@ -1041,11 +1125,14 @@ function obtenerAuthSecundario(){
 
     }
 
+
     let appSecundaria =
     aplicaciones.find(
         app =>
-        app.name === "GESBASE-Empleado"
+        app.name ===
+        "GESBASE-Empleado"
     );
+
 
     if(!appSecundaria){
 
@@ -1057,6 +1144,7 @@ function obtenerAuthSecundario(){
 
     }
 
+
     return getAuth(
         appSecundaria
     );
@@ -1064,33 +1152,50 @@ function obtenerAuthSecundario(){
 }
 
 
+/* ==========================================
+   LIMPIAR FORMULARIO
+========================================== */
+
 function limpiarFormulario(){
 
-    empleadoEditandoId = null;
+    empleadoEditandoId =
+    null;
 
-    nombre.value = "";
+    nombre.value =
+    "";
 
-    apellido.value = "";
+    apellido.value =
+    "";
 
-    dni.value = "";
+    dni.value =
+    "";
 
-    telefono.value = "";
+    telefono.value =
+    "";
 
-    email.value = "";
+    email.value =
+    "";
 
-    puesto.value = "";
+    puesto.value =
+    "";
 
-    fechaIngreso.value = fechaHoy();
+    fechaIngreso.value =
+    fechaHoy();
 
-    pagoDiario.value = "";
+    pagoDiario.value =
+    "";
 
-    estado.value = "Activo";
+    estado.value =
+    "Activo";
+
 
     tituloFormulario.textContent =
     "Nuevo empleado";
 
+
     btnGuardar.textContent =
     "GUARDAR EMPLEADO";
+
 
     btnCancelar.classList.add(
         "oculto"
@@ -1099,11 +1204,18 @@ function limpiarFormulario(){
 }
 
 
+/* ==========================================
+   CARGAR EMPLEADOS
+========================================== */
+
 async function cargarEmpleados(){
 
-    cargando.style.display = "block";
+    cargando.style.display =
+    "block";
 
-    listaEmpleados.innerHTML = "";
+    listaEmpleados.innerHTML =
+    "";
+
 
     try{
 
@@ -1120,12 +1232,20 @@ async function cargarEmpleados(){
             )
         );
 
+
         const resultados =
-        await getDocs(consulta);
+        await getDocs(
+            consulta
+        );
 
-        cargando.style.display = "none";
 
-        if(resultados.empty){
+        cargando.style.display =
+        "none";
+
+
+        if(
+            resultados.empty
+        ){
 
             listaEmpleados.innerHTML = `
                 <div class="vacio">
@@ -1139,18 +1259,23 @@ async function cargarEmpleados(){
 
         }
 
+
         const empleados = [];
+
 
         resultados.forEach(
             documento => {
 
                 empleados.push({
-                    id:documento.id,
+                    id:
+                    documento.id,
+
                     ...documento.data()
                 });
 
             }
         );
+
 
         empleados.sort(
             (a,b) => {
@@ -1162,12 +1287,14 @@ async function cargarEmpleados(){
                     texto(a.apellido)
                 ).toLowerCase();
 
+
                 const nombreB =
                 (
                     texto(b.nombre) +
                     " " +
                     texto(b.apellido)
                 ).toLowerCase();
+
 
                 return nombreA.localeCompare(
                     nombreB
@@ -1176,6 +1303,7 @@ async function cargarEmpleados(){
             }
         );
 
+
         empleados.forEach(
             mostrarEmpleado
         );
@@ -1183,7 +1311,8 @@ async function cargarEmpleados(){
     }
     catch(error){
 
-        cargando.style.display = "none";
+        cargando.style.display =
+        "none";
 
         console.error(error);
 
@@ -1197,7 +1326,13 @@ async function cargarEmpleados(){
 }
 
 
-function mostrarEmpleado(empleado){
+/* ==========================================
+   MOSTRAR EMPLEADO
+========================================== */
+
+function mostrarEmpleado(
+    empleado
+){
 
     const tarjeta =
     document.createElement("div");
@@ -1205,8 +1340,10 @@ function mostrarEmpleado(empleado){
     tarjeta.className =
     "empleado";
 
+
     if(
-        empleado.estado !== "Activo"
+        empleado.estado !==
+        "Activo"
     ){
 
         tarjeta.classList.add(
@@ -1270,6 +1407,7 @@ function mostrarEmpleado(empleado){
         puestoEmpleado
     );
 
+
     cabecera.appendChild(
         foto
     );
@@ -1277,6 +1415,7 @@ function mostrarEmpleado(empleado){
     cabecera.appendChild(
         informacion
     );
+
 
     tarjeta.appendChild(
         cabecera
@@ -1315,6 +1454,8 @@ function mostrarEmpleado(empleado){
     );
 
 
+    /* PAGOS */
+
     const pago =
     numero(
         empleado.pagoDiario
@@ -1324,8 +1465,10 @@ function mostrarEmpleado(empleado){
     const pagoHora =
     pago / 8;
 
+
     const pagoQuincenal =
     pago * 15;
+
 
     const pagoMensual =
     pago * 30;
@@ -1372,12 +1515,10 @@ function mostrarEmpleado(empleado){
 
             Pago por hora:
             <b>${moneda(pagoHora)}</b>
-
             <br>
 
             Pago quincenal:
             <b>${moneda(pagoQuincenal)}</b>
-
             <br>
 
             Pago mensual:
@@ -1392,6 +1533,8 @@ function mostrarEmpleado(empleado){
         bloquePago
     );
 
+
+    /* RESUMEN */
 
     const resumen =
     document.createElement("div");
@@ -1431,30 +1574,41 @@ function mostrarEmpleado(empleado){
     "saldo-pendiente " +
     (
         saldoPendiente > 0
-        ? "saldo-deuda"
-        : "saldo-ok"
+            ? "saldo-deuda"
+            : "saldo-ok"
     );
 
 
     saldo.innerHTML =
     (
         saldoPendiente > 0
-        ? "🔴 Saldo pendiente: "
-        : "🟢 Saldo pendiente: "
+            ? "🔴 Saldo pendiente: "
+            : "🟢 Saldo pendiente: "
     ) +
     "<b>" +
     moneda(saldoPendiente) +
     "</b>";
 
 
-    resumen.appendChild(generado);
+    resumen.appendChild(
+        generado
+    );
 
-    resumen.appendChild(entregado);
+    resumen.appendChild(
+        entregado
+    );
 
-    resumen.appendChild(saldo);
+    resumen.appendChild(
+        saldo
+    );
 
-    datos.appendChild(resumen);
 
+    datos.appendChild(
+        resumen
+    );
+
+
+    /* ENTREGA */
 
     const entrega =
     document.createElement("div");
@@ -1510,17 +1664,29 @@ function mostrarEmpleado(empleado){
     };
 
 
-    entrega.appendChild(label);
+    entrega.appendChild(
+        label
+    );
 
-    entrega.appendChild(input);
+    entrega.appendChild(
+        input
+    );
 
-    entrega.appendChild(botonPago);
+    entrega.appendChild(
+        botonPago
+    );
 
-    datos.appendChild(entrega);
 
+    datos.appendChild(
+        entrega
+    );
+
+
+    /* HISTORIAL */
 
     const historial =
-    empleado.historialPagos || [];
+    empleado.historialPagos ||
+    [];
 
 
     if(
@@ -1545,7 +1711,9 @@ function mostrarEmpleado(empleado){
         "📋 Historial de entregas";
 
 
-        historialBox.appendChild(titulo);
+        historialBox.appendChild(
+            titulo
+        );
 
 
         historial
@@ -1577,7 +1745,9 @@ function mostrarEmpleado(empleado){
                 fecha;
 
 
-                historialBox.appendChild(item);
+                historialBox.appendChild(
+                    item
+                );
 
             }
         );
@@ -1590,6 +1760,8 @@ function mostrarEmpleado(empleado){
     }
 
 
+    /* ESTADO */
+
     const estadoElemento =
     document.createElement("span");
 
@@ -1598,7 +1770,8 @@ function mostrarEmpleado(empleado){
 
 
     if(
-        empleado.estado === "Activo"
+        empleado.estado ===
+        "Activo"
     ){
 
         estadoElemento.classList.add(
@@ -1625,10 +1798,13 @@ function mostrarEmpleado(empleado){
         estadoElemento
     );
 
+
     tarjeta.appendChild(
         datos
     );
 
+
+    /* ACCESO */
 
     const acceso =
     document.createElement("div");
@@ -1637,7 +1813,9 @@ function mostrarEmpleado(empleado){
     "acceso";
 
 
-    if(empleado.authUid){
+    if(
+        empleado.authUid
+    ){
 
         acceso.classList.add(
             "acceso-ok"
@@ -1645,7 +1823,9 @@ function mostrarEmpleado(empleado){
 
         acceso.innerHTML =
         "🔐 <b>Acceso creado</b><br>" +
-        texto(empleado.email);
+        texto(
+            empleado.email
+        );
 
     }
     else{
@@ -1659,8 +1839,13 @@ function mostrarEmpleado(empleado){
 
     }
 
-    tarjeta.appendChild(acceso);
 
+    tarjeta.appendChild(
+        acceso
+    );
+
+
+    /* ACCIONES */
 
     const acciones =
     document.createElement("div");
@@ -1669,6 +1854,8 @@ function mostrarEmpleado(empleado){
     "acciones";
 
 
+    /* CREAR ACCESO */
+
     const btnAcceso =
     document.createElement("button");
 
@@ -1676,7 +1863,9 @@ function mostrarEmpleado(empleado){
     "boton boton-acceso";
 
 
-    if(empleado.authUid){
+    if(
+        empleado.authUid
+    ){
 
         btnAcceso.textContent =
         "🔐 ACCESO CREADO";
@@ -1701,10 +1890,13 @@ function mostrarEmpleado(empleado){
 
     }
 
+
     acciones.appendChild(
         btnAcceso
     );
 
+
+    /* EDITAR */
 
     const btnEditar =
     document.createElement("button");
@@ -1715,6 +1907,7 @@ function mostrarEmpleado(empleado){
     btnEditar.textContent =
     "✏️ EDITAR";
 
+
     btnEditar.onclick =
     () => {
 
@@ -1724,17 +1917,21 @@ function mostrarEmpleado(empleado){
 
     };
 
+
     acciones.appendChild(
         btnEditar
     );
 
+
+    /* ESTADO */
 
     const btnEstado =
     document.createElement("button");
 
 
     if(
-        empleado.estado === "Activo"
+        empleado.estado ===
+        "Activo"
     ){
 
         btnEstado.className =
@@ -1742,6 +1939,7 @@ function mostrarEmpleado(empleado){
 
         btnEstado.textContent =
         "🚫 DAR DE BAJA";
+
 
         btnEstado.onclick =
         () => {
@@ -1762,6 +1960,7 @@ function mostrarEmpleado(empleado){
         btnEstado.textContent =
         "✅ REACTIVAR";
 
+
         btnEstado.onclick =
         () => {
 
@@ -1774,10 +1973,13 @@ function mostrarEmpleado(empleado){
 
     }
 
+
     acciones.appendChild(
         btnEstado
     );
 
+
+    /* ELIMINAR */
 
     const btnEliminar =
     document.createElement("button");
@@ -1788,6 +1990,7 @@ function mostrarEmpleado(empleado){
     btnEliminar.textContent =
     "🗑️ ELIMINAR";
 
+
     btnEliminar.onclick =
     () => {
 
@@ -1796,6 +1999,7 @@ function mostrarEmpleado(empleado){
         );
 
     };
+
 
     acciones.appendChild(
         btnEliminar
@@ -1806,12 +2010,17 @@ function mostrarEmpleado(empleado){
         acciones
     );
 
+
     listaEmpleados.appendChild(
         tarjeta
     );
 
 }
 
+
+/* ==========================================
+   AGREGAR DATO
+========================================== */
 
 function agregarDato(
     contenedor,
@@ -1822,6 +2031,7 @@ function agregarDato(
     if(!valor){
         return;
     }
+
 
     const elemento =
     document.createElement("div");
@@ -1855,12 +2065,17 @@ function agregarDato(
         valorElemento
     );
 
+
     contenedor.appendChild(
         elemento
     );
 
 }
 
+
+/* ==========================================
+   REGISTRAR PAGO
+========================================== */
 
 async function registrarPago(
     empleado,
@@ -1876,7 +2091,9 @@ async function registrarPago(
     );
 
 
-    if(monto <= 0){
+    if(
+        monto <= 0
+    ){
 
         mostrarError(
             "Ingresá un monto válido."
@@ -1940,16 +2157,18 @@ async function registrarPago(
         Array.isArray(
             empleado.historialPagos
         )
-        ? empleado.historialPagos
-        : [];
+            ? empleado.historialPagos
+            : [];
 
 
         const nuevoRegistro = {
 
-            monto:monto,
+            monto:
+            monto,
 
             fecha:
-            new Date().toLocaleDateString(
+            new Date()
+            .toLocaleDateString(
                 "es-AR"
             ),
 
@@ -1993,7 +2212,8 @@ async function registrarPago(
         );
 
 
-        input.value = "";
+        input.value =
+        "";
 
 
         mostrarExito(
@@ -2020,6 +2240,10 @@ async function registrarPago(
 }
 
 
+/* ==========================================
+   CREAR ACCESO
+========================================== */
+
 async function crearAccesoEmpleado(
     empleado
 ){
@@ -2027,7 +2251,9 @@ async function crearAccesoEmpleado(
     limpiarMensajes();
 
 
-    if(empleado.authUid){
+    if(
+        empleado.authUid
+    ){
 
         mostrarError(
             "Este empleado ya tiene acceso."
@@ -2046,7 +2272,9 @@ async function crearAccesoEmpleado(
     .toLowerCase();
 
 
-    if(!emailEmpleado){
+    if(
+        !emailEmpleado
+    ){
 
         mostrarError(
             "El empleado necesita un email."
@@ -2067,12 +2295,18 @@ async function crearAccesoEmpleado(
     );
 
 
-    if(contraseña === null){
+    if(
+        contraseña === null
+    ){
+
         return;
+
     }
 
 
-    if(contraseña.length < 6){
+    if(
+        contraseña.length < 6
+    ){
 
         mostrarError(
             "La contraseña debe tener al menos 6 caracteres."
@@ -2147,10 +2381,14 @@ async function crearAccesoEmpleado(
             {
 
                 nombre:
-                texto(empleado.nombre),
+                texto(
+                    empleado.nombre
+                ),
 
                 apellido:
-                texto(empleado.apellido),
+                texto(
+                    empleado.apellido
+                ),
 
                 email:
                 emailEmpleado,
@@ -2186,6 +2424,7 @@ async function crearAccesoEmpleado(
 
         console.error(error);
 
+
         let mensaje =
         error.message;
 
@@ -2211,35 +2450,55 @@ async function crearAccesoEmpleado(
 }
 
 
+/* ==========================================
+   EDITAR
+========================================== */
+
 function editarEmpleado(
     empleado
 ){
 
     limpiarMensajes();
 
+
     empleadoEditandoId =
     empleado.id;
 
+
     nombre.value =
-    texto(empleado.nombre);
+    texto(
+        empleado.nombre
+    );
 
     apellido.value =
-    texto(empleado.apellido);
+    texto(
+        empleado.apellido
+    );
 
     dni.value =
-    texto(empleado.dni);
+    texto(
+        empleado.dni
+    );
 
     telefono.value =
-    texto(empleado.telefono);
+    texto(
+        empleado.telefono
+    );
 
     email.value =
-    texto(empleado.email);
+    texto(
+        empleado.email
+    );
 
     puesto.value =
-    texto(empleado.puesto);
+    texto(
+        empleado.puesto
+    );
 
     fechaIngreso.value =
-    texto(empleado.fechaIngreso);
+    texto(
+        empleado.fechaIngreso
+    );
 
     pagoDiario.value =
     numero(
@@ -2252,15 +2511,19 @@ function editarEmpleado(
     ) ||
     "Activo";
 
+
     tituloFormulario.textContent =
     "Editar empleado";
+
 
     btnGuardar.textContent =
     "GUARDAR CAMBIOS";
 
+
     btnCancelar.classList.remove(
         "oculto"
     );
+
 
     window.scrollTo({
         top:0,
@@ -2269,6 +2532,10 @@ function editarEmpleado(
 
 }
 
+
+/* ==========================================
+   CANCELAR
+========================================== */
 
 btnCancelar.onclick =
 function(){
@@ -2279,6 +2546,10 @@ function(){
 
 };
 
+
+/* ==========================================
+   GUARDAR
+========================================== */
 
 btnGuardar.onclick =
 async function(){
@@ -2360,7 +2631,9 @@ async function(){
     }
 
 
-    if(pagoValor <= 0){
+    if(
+        pagoValor <= 0
+    ){
 
         mostrarError(
             "Ingresá el pago diario."
@@ -2421,7 +2694,9 @@ async function(){
         };
 
 
-        if(empleadoEditandoId){
+        if(
+            empleadoEditandoId
+        ){
 
             await updateDoc(
                 doc(
@@ -2431,6 +2706,7 @@ async function(){
                 ),
                 datosEmpleado
             );
+
 
             mostrarExito(
                 "Empleado actualizado correctamente."
@@ -2442,17 +2718,22 @@ async function(){
             datosEmpleado.creado =
             serverTimestamp();
 
+
             datosEmpleado.totalGenerado =
             pagoValor * 30;
+
 
             datosEmpleado.totalEntregado =
             0;
 
+
             datosEmpleado.saldoPendiente =
             pagoValor * 30;
 
+
             datosEmpleado.historialPagos =
             [];
+
 
             await addDoc(
                 collection(
@@ -2461,6 +2742,7 @@ async function(){
                 ),
                 datosEmpleado
             );
+
 
             mostrarExito(
                 "Empleado creado correctamente."
@@ -2497,6 +2779,10 @@ async function(){
 };
 
 
+/* ==========================================
+   CAMBIAR ESTADO
+========================================== */
+
 async function cambiarEstadoEmpleado(
     empleado,
     nuevoEstado
@@ -2507,8 +2793,8 @@ async function cambiarEstadoEmpleado(
 
     const accion =
     nuevoEstado === "Activo"
-    ? "reactivar"
-    : "dar de baja";
+        ? "reactivar"
+        : "dar de baja";
 
 
     if(
@@ -2573,6 +2859,10 @@ async function cambiarEstadoEmpleado(
 }
 
 
+/* ==========================================
+   ELIMINAR
+========================================== */
+
 async function eliminarEmpleado(
     empleado
 ){
@@ -2629,6 +2919,10 @@ async function eliminarEmpleado(
 }
 
 
+/* ==========================================
+   INICIO
+========================================== */
+
 onAuthStateChanged(
     auth,
     async function(usuario){
@@ -2651,8 +2945,10 @@ onAuthStateChanged(
 
             await cargarDatosUsuario();
 
+
             fechaIngreso.value =
             fechaHoy();
+
 
             await cargarEmpleados();
 
@@ -2661,8 +2957,10 @@ onAuthStateChanged(
 
             console.error(error);
 
+
             cargando.style.display =
             "none";
+
 
             mostrarError(
                 error.message
