@@ -1,0 +1,2264 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+
+<title>Fichaje - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.contenedor{
+    width:100%;
+    max-width:700px;
+    margin:auto;
+    min-height:100vh;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:#fff;
+    padding:22px 20px;
+}
+
+header h1{
+    font-size:25px;
+}
+
+header p{
+    margin-top:6px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+.tarjeta{
+    background:#fff;
+    border:1px solid #d1d5db;
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:18px;
+}
+
+.titulo{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+.empleado-nombre{
+    font-size:23px;
+    font-weight:bold;
+}
+
+.empleado-puesto{
+    color:#6b7280;
+    margin-top:5px;
+}
+
+.estado{
+    text-align:center;
+    padding:18px;
+    border-radius:12px;
+    margin-top:15px;
+    background:#f3f4f6;
+}
+
+.estado-titulo{
+    font-size:14px;
+    color:#6b7280;
+}
+
+.estado-texto{
+    font-size:20px;
+    font-weight:bold;
+    margin-top:6px;
+}
+
+.entrada{
+    color:#16a34a;
+}
+
+.salida{
+    color:#dc2626;
+}
+
+.cronometro{
+    text-align:center;
+    font-size:42px;
+    font-weight:bold;
+    letter-spacing:2px;
+    margin:20px 0;
+    font-variant-numeric:tabular-nums;
+}
+
+.boton{
+    width:100%;
+    border:none;
+    border-radius:12px;
+    padding:17px;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+.boton:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+}
+
+.boton-entrada{
+    background:#16a34a;
+    color:#fff;
+}
+
+.boton-salida{
+    background:#dc2626;
+    color:#fff;
+}
+
+.boton-cerrar{
+    background:#111827;
+    color:#fff;
+}
+
+.boton-volver{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.datos{
+    border-top:1px solid #e5e7eb;
+    margin-top:15px;
+    padding-top:15px;
+}
+
+.dato{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    padding:7px 0;
+    font-size:14px;
+}
+
+.etiqueta{
+    font-weight:bold;
+}
+
+.pago-info{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    border-radius:12px;
+    padding:16px;
+    margin-top:10px;
+}
+
+.pago-principal{
+    font-size:13px;
+    color:#1e40af;
+}
+
+.pago-valor{
+    font-size:25px;
+    font-weight:bold;
+    color:#1d4ed8;
+    margin-top:5px;
+}
+
+.pago-calculos{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid #dbeafe;
+    line-height:1.8;
+    font-size:14px;
+    color:#374151;
+}
+
+.historial{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.registro{
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:14px;
+    background:#fafafa;
+}
+
+.registro-fecha{
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.registro-linea{
+    font-size:14px;
+    padding:3px 0;
+}
+
+.sin-registros,
+.cargando{
+    text-align:center;
+    padding:25px;
+    color:#6b7280;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:15px;
+    display:none;
+}
+
+.exito{
+    background:#dcfce7;
+    color:#166534;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:15px;
+    display:none;
+}
+
+.oculto{
+    display:none !important;
+}
+
+.estado-cargando{
+    background:#eff6ff;
+    color:#1e40af;
+}
+
+.ubicacion-info{
+    background:#f0fdf4;
+    border:1px solid #bbf7d0;
+    border-radius:12px;
+    padding:14px;
+    margin-top:15px;
+    font-size:14px;
+    color:#166534;
+    line-height:1.5;
+}
+
+.ubicacion-icono{
+    font-size:22px;
+    margin-right:5px;
+}
+
+@media(max-width:500px){
+
+    main{
+        padding:15px;
+    }
+
+    .cronometro{
+        font-size:34px;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<header>
+
+<h1>GESBASE</h1>
+
+<p>
+Control de fichaje
+</p>
+
+</header>
+
+<main>
+
+<div
+id="mensajeError"
+class="error"
+></div>
+
+<div
+id="mensajeExito"
+class="exito"
+></div>
+
+
+<!-- ==============================
+     EMPLEADO
+============================== -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+Empleado
+</div>
+
+<div
+id="empleadoNombre"
+class="empleado-nombre"
+>
+Cargando...
+</div>
+
+<div
+id="empleadoPuesto"
+class="empleado-puesto"
+>
+Verificando empleado...
+</div>
+
+</div>
+
+
+<!-- ==============================
+     FICHAJE
+============================== -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+Control de jornada
+</div>
+
+<div
+id="estado"
+class="estado estado-cargando"
+>
+
+<div class="estado-titulo">
+Estado actual
+</div>
+
+<div
+id="estadoTexto"
+class="estado-texto"
+>
+VERIFICANDO...
+</div>
+
+</div>
+
+
+<div
+id="cronometro"
+class="cronometro"
+>
+00:00:00
+</div>
+
+
+<div class="ubicacion-info">
+
+<span class="ubicacion-icono">
+📍
+</span>
+
+<strong>
+Control de ubicación activo
+</strong>
+
+<br>
+
+Al fichar se registrará la ubicación GPS del dispositivo.
+
+</div>
+
+
+<button
+id="btnEntrada"
+class="boton boton-entrada"
+disabled
+>
+🟢 FICHAR ENTRADA
+</button>
+
+
+<button
+id="btnSalida"
+class="boton boton-salida"
+disabled
+>
+🔴 FICHAR SALIDA
+</button>
+
+
+<div
+id="datosJornada"
+class="datos oculto"
+>
+
+<div class="dato">
+
+<span class="etiqueta">
+Entrada
+</span>
+
+<span id="horaEntrada">
+-
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Salida
+</span>
+
+<span id="horaSalida">
+-
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Tiempo trabajado
+</span>
+
+<span id="tiempoTrabajado">
+-
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Ubicación
+</span>
+
+<span id="estadoUbicacion">
+-
+</span>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ==============================
+     PAGO
+============================== -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+Pago del empleado
+</div>
+
+<div class="pago-info">
+
+<div class="pago-principal">
+Pago diario configurado por administración
+</div>
+
+<div
+id="pagoDiario"
+class="pago-valor"
+>
+$0
+</div>
+
+
+<div class="pago-calculos">
+
+<div>
+Pago por hora:
+<b id="pagoHora">$0</b>
+</div>
+
+<div>
+Pago quincenal:
+<b id="pagoQuincenal">$0</b>
+</div>
+
+<div>
+Pago mensual:
+<b id="pagoMensual">$0</b>
+</div>
+
+</div>
+
+</div>
+
+
+<div class="datos">
+
+<div class="dato">
+
+<span class="etiqueta">
+Tiempo trabajado hoy
+</span>
+
+<span id="tiempoHoy">
+00:00:00
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Horas trabajadas
+</span>
+
+<span id="horasHoy">
+0.00 h
+</span>
+
+</div>
+
+
+<div class="dato">
+
+<span class="etiqueta">
+Importe generado hoy
+</span>
+
+<span id="importeHoy">
+$0
+</span>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ==============================
+     HISTORIAL
+============================== -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+Mis últimos fichajes
+</div>
+
+<div
+id="historial"
+class="historial"
+>
+
+<div class="cargando">
+Cargando historial...
+</div>
+
+</div>
+
+</div>
+
+
+<button
+id="btnCerrarSesion"
+class="boton boton-cerrar"
+>
+CERRAR SESIÓN
+</button>
+
+
+<button
+id="btnVolver"
+class="boton boton-volver"
+>
+⬅️ VOLVER
+</button>
+
+</main>
+
+</div>
+
+
+<script type="module">
+
+
+/* =========================================
+   FIREBASE
+========================================= */
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged,
+    signOut
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    addDoc,
+    getDocs,
+    updateDoc,
+    doc,
+    query,
+    where,
+    limit,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+/* =========================================
+   ELEMENTOS
+========================================= */
+
+const empleadoNombre =
+document.getElementById("empleadoNombre");
+
+const empleadoPuesto =
+document.getElementById("empleadoPuesto");
+
+const estado =
+document.getElementById("estado");
+
+const estadoTexto =
+document.getElementById("estadoTexto");
+
+const cronometro =
+document.getElementById("cronometro");
+
+const btnEntrada =
+document.getElementById("btnEntrada");
+
+const btnSalida =
+document.getElementById("btnSalida");
+
+const datosJornada =
+document.getElementById("datosJornada");
+
+const horaEntrada =
+document.getElementById("horaEntrada");
+
+const horaSalida =
+document.getElementById("horaSalida");
+
+const tiempoTrabajado =
+document.getElementById("tiempoTrabajado");
+
+const estadoUbicacion =
+document.getElementById("estadoUbicacion");
+
+const pagoDiario =
+document.getElementById("pagoDiario");
+
+const pagoHora =
+document.getElementById("pagoHora");
+
+const pagoQuincenal =
+document.getElementById("pagoQuincenal");
+
+const pagoMensual =
+document.getElementById("pagoMensual");
+
+const tiempoHoy =
+document.getElementById("tiempoHoy");
+
+const horasHoy =
+document.getElementById("horasHoy");
+
+const importeHoy =
+document.getElementById("importeHoy");
+
+const historial =
+document.getElementById("historial");
+
+const mensajeError =
+document.getElementById("mensajeError");
+
+const mensajeExito =
+document.getElementById("mensajeExito");
+
+const btnCerrarSesion =
+document.getElementById("btnCerrarSesion");
+
+const btnVolver =
+document.getElementById("btnVolver");
+
+
+/* =========================================
+   VARIABLES
+========================================= */
+
+let usuarioActual = null;
+
+let empleado = null;
+
+let empleadoId = "";
+
+let empresaId = "";
+
+let fichajeActivo = null;
+
+let intervalo = null;
+
+let pagoDia = 0;
+
+let pagoHoraValor = 0;
+
+
+/* =========================================
+   UTILIDADES
+========================================= */
+
+function texto(valor){
+
+    if(
+        valor === undefined ||
+        valor === null
+    ){
+
+        return "";
+
+    }
+
+    return String(valor);
+
+}
+
+
+function numero(valor){
+
+    const n =
+    Number(valor);
+
+    return Number.isFinite(n)
+        ? n
+        : 0;
+
+}
+
+
+function moneda(valor){
+
+    return new Intl.NumberFormat(
+        "es-AR",
+        {
+            style:"currency",
+            currency:"ARS",
+            maximumFractionDigits:0
+        }
+    ).format(
+        numero(valor)
+    );
+
+}
+
+
+function mostrarError(mensaje){
+
+    mensajeError.textContent =
+    mensaje;
+
+    mensajeError.style.display =
+    "block";
+
+    mensajeExito.style.display =
+    "none";
+
+}
+
+
+function mostrarExito(mensaje){
+
+    mensajeExito.textContent =
+    mensaje;
+
+    mensajeExito.style.display =
+    "block";
+
+    mensajeError.style.display =
+    "none";
+
+}
+
+
+function limpiarMensajes(){
+
+    mensajeError.style.display =
+    "none";
+
+    mensajeExito.style.display =
+    "none";
+
+}
+
+
+/* =========================================
+   FECHA LOCAL
+========================================= */
+
+function fechaLocal(){
+
+    const ahora =
+    new Date();
+
+    return (
+        ahora.getFullYear() +
+        "-" +
+        String(
+            ahora.getMonth() + 1
+        ).padStart(2,"0") +
+        "-" +
+        String(
+            ahora.getDate()
+        ).padStart(2,"0")
+    );
+
+}
+
+
+/* =========================================
+   HORA LOCAL
+========================================= */
+
+function horaLocal(){
+
+    const ahora =
+    new Date();
+
+    return (
+        String(
+            ahora.getHours()
+        ).padStart(2,"0") +
+        ":" +
+        String(
+            ahora.getMinutes()
+        ).padStart(2,"0") +
+        ":" +
+        String(
+            ahora.getSeconds()
+        ).padStart(2,"0")
+    );
+
+}
+
+
+/* =========================================
+   DURACIÓN
+========================================= */
+
+function formatearDuracion(ms){
+
+    if(
+        !Number.isFinite(ms) ||
+        ms < 0
+    ){
+
+        ms = 0;
+
+    }
+
+    const segundos =
+    Math.floor(ms / 1000);
+
+    const horas =
+    Math.floor(segundos / 3600);
+
+    const minutos =
+    Math.floor(
+        (segundos % 3600) / 60
+    );
+
+    const segundosFinal =
+    segundos % 60;
+
+    return (
+        String(horas).padStart(2,"0") +
+        ":" +
+        String(minutos).padStart(2,"0") +
+        ":" +
+        String(segundosFinal).padStart(2,"0")
+    );
+
+}
+
+
+/* =========================================
+   CONVERTIR FECHA FIREBASE
+========================================= */
+
+function convertirFecha(valor){
+
+    if(!valor){
+        return null;
+    }
+
+    if(
+        typeof valor.toDate === "function"
+    ){
+
+        return valor.toDate();
+
+    }
+
+    if(valor instanceof Date){
+
+        return valor;
+
+    }
+
+    if(typeof valor === "number"){
+
+        return new Date(valor);
+
+    }
+
+    return null;
+
+}
+
+
+/* =========================================
+   UBICACIÓN GPS
+========================================= */
+
+function obtenerUbicacion(){
+
+    return new Promise(
+        function(resolve,reject){
+
+            if(
+                !navigator.geolocation
+            ){
+
+                reject(
+                    new Error(
+                        "Este dispositivo o navegador no permite obtener la ubicación."
+                    )
+                );
+
+                return;
+
+            }
+
+
+            navigator.geolocation.getCurrentPosition(
+
+                function(posicion){
+
+                    const coordenadas =
+                    posicion.coords;
+
+                    resolve({
+
+                        lat:
+                        Number(
+                            coordenadas.latitude
+                        ),
+
+                        lng:
+                        Number(
+                            coordenadas.longitude
+                        ),
+
+                        precision:
+                        Number(
+                            coordenadas.accuracy
+                        )
+
+                    });
+
+                },
+
+                function(error){
+
+                    let mensaje =
+                    "No se pudo obtener la ubicación.";
+
+                    switch(error.code){
+
+                        case 1:
+
+                            mensaje =
+                            "Debés permitir el acceso a la ubicación para poder fichar.";
+
+                            break;
+
+                        case 2:
+
+                            mensaje =
+                            "No se pudo determinar tu ubicación. Verificá que el GPS esté activado.";
+
+                            break;
+
+                        case 3:
+
+                            mensaje =
+                            "La ubicación tardó demasiado en responder. Intentá nuevamente.";
+
+                            break;
+
+                    }
+
+                    reject(
+                        new Error(mensaje)
+                    );
+
+                },
+
+                {
+                    enableHighAccuracy:true,
+                    timeout:15000,
+                    maximumAge:0
+                }
+
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================
+   CARGAR EMPLEADO
+========================================= */
+
+async function cargarEmpleado(){
+
+    if(!usuarioActual){
+
+        throw new Error(
+            "No hay una sesión de usuario activa."
+        );
+
+    }
+
+    const consulta =
+    query(
+        collection(
+            db,
+            "empleados"
+        ),
+        where(
+            "authUid",
+            "==",
+            usuarioActual.uid
+        ),
+        limit(1)
+    );
+
+    const resultados =
+    await getDocs(consulta);
+
+    if(resultados.empty){
+
+        throw new Error(
+            "No encontramos un empleado vinculado a esta cuenta."
+        );
+
+    }
+
+    const documento =
+    resultados.docs[0];
+
+    empleadoId =
+    documento.id;
+
+    empleado = {
+
+        id:documento.id,
+        ...documento.data()
+
+    };
+
+    empresaId =
+    texto(
+        empleado.empresaId
+    ).trim();
+
+    if(
+        empleado.estado &&
+        empleado.estado !== "Activo"
+    ){
+
+        throw new Error(
+            "El acceso de este empleado está inactivo."
+        );
+
+    }
+
+    return empleado;
+
+}
+
+
+/* =========================================
+   MOSTRAR EMPLEADO
+========================================= */
+
+function mostrarDatosEmpleado(){
+
+    const nombre =
+    texto(empleado.nombre);
+
+    const apellido =
+    texto(empleado.apellido);
+
+    const nombreCompleto =
+    (
+        nombre +
+        " " +
+        apellido
+    ).trim();
+
+    empleadoNombre.textContent =
+    nombreCompleto || "Empleado";
+
+    empleadoPuesto.textContent =
+    texto(empleado.puesto) ||
+    "Empleado";
+
+}
+
+
+/* =========================================
+   CARGAR PAGO
+========================================= */
+
+function cargarPago(){
+
+    pagoDia =
+    numero(
+        empleado.pagoDiario
+    );
+
+    pagoHoraValor =
+    pagoDia / 8;
+
+    pagoDiario.textContent =
+    moneda(pagoDia);
+
+    pagoHora.textContent =
+    moneda(pagoHoraValor);
+
+    pagoQuincenal.textContent =
+    moneda(pagoDia * 15);
+
+    pagoMensual.textContent =
+    moneda(pagoDia * 30);
+
+}
+
+
+/* =========================================
+   BUSCAR FICHAJE ACTIVO
+========================================= */
+
+async function buscarFichajeActivo(){
+
+    const consulta =
+    query(
+        collection(
+            db,
+            "fichajes"
+        ),
+        where(
+            "empleadoId",
+            "==",
+            empleadoId
+        ),
+        where(
+            "estado",
+            "==",
+            "abierto"
+        ),
+        limit(1)
+    );
+
+    const resultados =
+    await getDocs(consulta);
+
+    if(resultados.empty){
+
+        fichajeActivo = null;
+
+        mostrarSinFichar();
+
+        return;
+
+    }
+
+    const documento =
+    resultados.docs[0];
+
+    fichajeActivo = {
+
+        id:documento.id,
+        ...documento.data()
+
+    };
+
+    mostrarFichajeActivo();
+
+}
+
+
+/* =========================================
+   SIN FICHAR
+========================================= */
+
+function mostrarSinFichar(){
+
+    estado.className =
+    "estado";
+
+    estadoTexto.textContent =
+    "SIN FICHAR";
+
+    estadoTexto.className =
+    "estado-texto";
+
+    cronometro.textContent =
+    "00:00:00";
+
+    cronometro.className =
+    "cronometro";
+
+    btnEntrada.disabled =
+    false;
+
+    btnSalida.disabled =
+    true;
+
+    datosJornada.classList.add(
+        "oculto"
+    );
+
+    horaEntrada.textContent =
+    "-";
+
+    horaSalida.textContent =
+    "-";
+
+    tiempoTrabajado.textContent =
+    "-";
+
+    estadoUbicacion.textContent =
+    "-";
+
+    tiempoHoy.textContent =
+    "00:00:00";
+
+    horasHoy.textContent =
+    "0.00 h";
+
+    importeHoy.textContent =
+    "$0";
+
+}
+
+
+/* =========================================
+   FICHAJE ACTIVO
+========================================= */
+
+function mostrarFichajeActivo(){
+
+    estado.className =
+    "estado";
+
+    estadoTexto.textContent =
+    "JORNADA EN CURSO";
+
+    estadoTexto.className =
+    "estado-texto entrada";
+
+    cronometro.className =
+    "cronometro entrada";
+
+    btnEntrada.disabled =
+    true;
+
+    btnSalida.disabled =
+    false;
+
+    datosJornada.classList.remove(
+        "oculto"
+    );
+
+    horaEntrada.textContent =
+    texto(
+        fichajeActivo.horaEntrada
+    );
+
+    horaSalida.textContent =
+    "-";
+
+    tiempoTrabajado.textContent =
+    "En curso";
+
+    estadoUbicacion.textContent =
+    fichajeActivo.entradaUbicacion
+    ? "📍 Registrada"
+    : "No disponible";
+
+    iniciarCronometro();
+
+}
+
+
+/* =========================================
+   INICIO FICHAJE
+========================================= */
+
+function obtenerInicioFichaje(){
+
+    if(!fichajeActivo){
+        return null;
+    }
+
+    const timestamp =
+    convertirFecha(
+        fichajeActivo.entradaTimestamp
+    );
+
+    if(timestamp){
+        return timestamp;
+    }
+
+    const fecha =
+    texto(
+        fichajeActivo.fecha
+    );
+
+    const hora =
+    texto(
+        fichajeActivo.horaEntrada
+    );
+
+    if(fecha && hora){
+
+        const resultado =
+        new Date(
+            fecha + "T" + hora
+        );
+
+        if(
+            !isNaN(
+                resultado.getTime()
+            )
+        ){
+
+            return resultado;
+
+        }
+
+    }
+
+    return null;
+
+}
+
+
+/* =========================================
+   CRONÓMETRO
+========================================= */
+
+function iniciarCronometro(){
+
+    detenerCronometro();
+
+    actualizarCronometro();
+
+    intervalo =
+    setInterval(
+        actualizarCronometro,
+        1000
+    );
+
+}
+
+
+function detenerCronometro(){
+
+    if(intervalo){
+
+        clearInterval(intervalo);
+
+        intervalo = null;
+
+    }
+
+}
+
+
+function actualizarCronometro(){
+
+    if(!fichajeActivo){
+        return;
+    }
+
+    const inicio =
+    obtenerInicioFichaje();
+
+    if(!inicio){
+
+        cronometro.textContent =
+        "EN CURSO";
+
+        return;
+
+    }
+
+    const ahora =
+    new Date();
+
+    const diferencia =
+    Math.max(
+        0,
+        ahora.getTime() -
+        inicio.getTime()
+    );
+
+    const duracion =
+    formatearDuracion(
+        diferencia
+    );
+
+    cronometro.textContent =
+    duracion;
+
+    tiempoTrabajado.textContent =
+    duracion;
+
+    const horas =
+    diferencia / 3600000;
+
+    tiempoHoy.textContent =
+    duracion;
+
+    horasHoy.textContent =
+    horas.toFixed(2) + " h";
+
+    importeHoy.textContent =
+    moneda(
+        horas * pagoHoraValor
+    );
+
+}
+
+
+/* =========================================
+   FICHAR ENTRADA
+========================================= */
+
+btnEntrada.addEventListener(
+    "click",
+    async function(){
+
+        limpiarMensajes();
+
+        if(
+            !usuarioActual ||
+            !empleado
+        ){
+
+            mostrarError(
+                "No se encontró el empleado de esta sesión."
+            );
+
+            return;
+
+        }
+
+        btnEntrada.disabled = true;
+
+        btnEntrada.textContent =
+        "📍 OBTENIENDO UBICACIÓN...";
+
+        try{
+
+            await buscarFichajeActivo();
+
+            if(fichajeActivo){
+
+                mostrarError(
+                    "Ya existe una jornada abierta."
+                );
+
+                return;
+
+            }
+
+            const ubicacion =
+            await obtenerUbicacion();
+
+            btnEntrada.textContent =
+            "REGISTRANDO...";
+
+            const ahora =
+            new Date();
+
+            const datosFichaje = {
+
+                empresaId:empresaId,
+
+                empleadoId:empleadoId,
+
+                empleadoNombre:
+                (
+                    texto(empleado.nombre) +
+                    " " +
+                    texto(empleado.apellido)
+                ).trim(),
+
+                usuarioId:
+                usuarioActual.uid,
+
+                authUid:
+                usuarioActual.uid,
+
+                fecha:
+                fechaLocal(),
+
+                horaEntrada:
+                horaLocal(),
+
+                entradaTimestamp:
+                serverTimestamp(),
+
+                entradaUbicacion:{
+
+                    lat:ubicacion.lat,
+
+                    lng:ubicacion.lng,
+
+                    precision:ubicacion.precision
+
+                },
+
+                horaSalida:"",
+
+                salidaTimestamp:null,
+
+                salidaUbicacion:null,
+
+                estado:"abierto",
+
+                duracionSegundos:0,
+
+                horasTrabajadas:0,
+
+                importe:0,
+
+                creado:
+                serverTimestamp()
+
+            };
+
+            const referencia =
+            await addDoc(
+                collection(
+                    db,
+                    "fichajes"
+                ),
+                datosFichaje
+            );
+
+            fichajeActivo = {
+
+                id:referencia.id,
+
+                ...datosFichaje,
+
+                entradaTimestamp:ahora
+
+            };
+
+            mostrarFichajeActivo();
+
+            mostrarExito(
+                "Entrada registrada correctamente con ubicación GPS."
+            );
+
+            await cargarHistorial();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error entrada:",
+                error
+            );
+
+            mostrarError(
+                error.message
+            );
+
+            fichajeActivo = null;
+
+            btnEntrada.disabled = false;
+
+        }
+        finally{
+
+            btnEntrada.textContent =
+            "🟢 FICHAR ENTRADA";
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   FICHAR SALIDA
+========================================= */
+
+btnSalida.addEventListener(
+    "click",
+    async function(){
+
+        limpiarMensajes();
+
+        if(!fichajeActivo){
+
+            mostrarError(
+                "No hay una jornada activa."
+            );
+
+            return;
+
+        }
+
+        if(
+            !confirm(
+                "¿Confirmás la salida?"
+            )
+        ){
+
+            return;
+
+        }
+
+        btnSalida.disabled = true;
+
+        btnSalida.textContent =
+        "📍 OBTENIENDO UBICACIÓN...";
+
+        try{
+
+            const ubicacion =
+            await obtenerUbicacion();
+
+            btnSalida.textContent =
+            "REGISTRANDO...";
+
+            const ahora =
+            new Date();
+
+            const inicio =
+            obtenerInicioFichaje();
+
+            let duracionSegundos = 0;
+
+            if(inicio){
+
+                duracionSegundos =
+                Math.max(
+                    0,
+                    Math.floor(
+                        (
+                            ahora.getTime() -
+                            inicio.getTime()
+                        ) / 1000
+                    )
+                );
+
+            }
+
+            const horasTrabajadas =
+            duracionSegundos / 3600;
+
+            const importe =
+            horasTrabajadas *
+            pagoHoraValor;
+
+            const horaSalidaActual =
+            horaLocal();
+
+            await updateDoc(
+                doc(
+                    db,
+                    "fichajes",
+                    fichajeActivo.id
+                ),
+                {
+
+                    horaSalida:
+                    horaSalidaActual,
+
+                    salidaTimestamp:
+                    serverTimestamp(),
+
+                    salidaUbicacion:{
+
+                        lat:ubicacion.lat,
+
+                        lng:ubicacion.lng,
+
+                        precision:ubicacion.precision
+
+                    },
+
+                    estado:"cerrado",
+
+                    duracionSegundos:
+                    duracionSegundos,
+
+                    horasTrabajadas:
+                    Number(
+                        horasTrabajadas.toFixed(4)
+                    ),
+
+                    importe:
+                    Number(
+                        importe.toFixed(2)
+                    )
+
+                }
+            );
+
+            detenerCronometro();
+
+            const duracionFinal =
+            formatearDuracion(
+                duracionSegundos * 1000
+            );
+
+            cronometro.textContent =
+            duracionFinal;
+
+            cronometro.className =
+            "cronometro salida";
+
+            estado.className =
+            "estado";
+
+            estadoTexto.textContent =
+            "JORNADA FINALIZADA";
+
+            estadoTexto.className =
+            "estado-texto salida";
+
+            horaSalida.textContent =
+            horaSalidaActual;
+
+            tiempoTrabajado.textContent =
+            duracionFinal;
+
+            tiempoHoy.textContent =
+            duracionFinal;
+
+            horasHoy.textContent =
+            horasTrabajadas.toFixed(2) +
+            " h";
+
+            importeHoy.textContent =
+            moneda(importe);
+
+            estadoUbicacion.textContent =
+            "📍 Entrada y salida registradas";
+
+            fichajeActivo = null;
+
+            btnEntrada.disabled = false;
+
+            btnSalida.disabled = true;
+
+            datosJornada.classList.remove(
+                "oculto"
+            );
+
+            mostrarExito(
+                "Salida registrada correctamente con ubicación GPS."
+            );
+
+            await cargarHistorial();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error salida:",
+                error
+            );
+
+            mostrarError(
+                error.message
+            );
+
+            btnSalida.disabled = false;
+
+        }
+        finally{
+
+            btnSalida.textContent =
+            "🔴 FICHAR SALIDA";
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   HISTORIAL
+========================================= */
+
+async function cargarHistorial(){
+
+    if(!empleadoId){
+        return;
+    }
+
+    historial.innerHTML =
+    `
+    <div class="cargando">
+        Cargando historial...
+    </div>
+    `;
+
+    try{
+
+        const consulta =
+        query(
+            collection(
+                db,
+                "fichajes"
+            ),
+            where(
+                "empleadoId",
+                "==",
+                empleadoId
+            ),
+            limit(30)
+        );
+
+        const resultados =
+        await getDocs(consulta);
+
+        if(resultados.empty){
+
+            historial.innerHTML =
+            `
+            <div class="sin-registros">
+                Todavía no hay fichajes registrados.
+            </div>
+            `;
+
+            return;
+
+        }
+
+        const registros = [];
+
+        resultados.forEach(
+            documento => {
+
+                registros.push({
+
+                    id:documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+        registros.sort(
+            (a,b) => {
+
+                const fechaA =
+                texto(a.fecha) +
+                " " +
+                texto(a.horaEntrada);
+
+                const fechaB =
+                texto(b.fecha) +
+                " " +
+                texto(b.horaEntrada);
+
+                return fechaB.localeCompare(
+                    fechaA
+                );
+
+            }
+        );
+
+        historial.innerHTML = "";
+
+        registros
+        .slice(0,20)
+        .forEach(
+            registro => {
+
+                const elemento =
+                document.createElement(
+                    "div"
+                );
+
+                elemento.className =
+                "registro";
+
+
+                const fecha =
+                document.createElement(
+                    "div"
+                );
+
+                fecha.className =
+                "registro-fecha";
+
+                fecha.textContent =
+                texto(
+                    registro.fecha
+                );
+
+
+                const entrada =
+                document.createElement(
+                    "div"
+                );
+
+                entrada.className =
+                "registro-linea";
+
+                entrada.textContent =
+                "Entrada: " +
+                (
+                    texto(
+                        registro.horaEntrada
+                    ) || "-"
+                );
+
+
+                const salida =
+                document.createElement(
+                    "div"
+                );
+
+                salida.className =
+                "registro-linea";
+
+                salida.textContent =
+                "Salida: " +
+                (
+                    texto(
+                        registro.horaSalida
+                    ) ||
+                    "En curso"
+                );
+
+
+                const tiempo =
+                document.createElement(
+                    "div"
+                );
+
+                tiempo.className =
+                "registro-linea";
+
+                const segundos =
+                numero(
+                    registro.duracionSegundos
+                );
+
+                tiempo.textContent =
+                "Tiempo: " +
+                formatearDuracion(
+                    segundos * 1000
+                );
+
+
+                const importe =
+                document.createElement(
+                    "div"
+                );
+
+                importe.className =
+                "registro-linea";
+
+                importe.textContent =
+                "Importe: " +
+                moneda(
+                    registro.importe
+                );
+
+
+                const ubicacion =
+                document.createElement(
+                    "div"
+                );
+
+                ubicacion.className =
+                "registro-linea";
+
+                const tieneEntrada =
+                !!registro.entradaUbicacion;
+
+                const tieneSalida =
+                !!registro.salidaUbicacion;
+
+                ubicacion.textContent =
+                "Ubicación: " +
+                (
+                    tieneEntrada &&
+                    tieneSalida
+                    ? "Entrada y salida registradas"
+                    : tieneEntrada
+                    ? "Entrada registrada"
+                    : "No disponible"
+                );
+
+
+                elemento.appendChild(fecha);
+
+                elemento.appendChild(entrada);
+
+                elemento.appendChild(salida);
+
+                elemento.appendChild(tiempo);
+
+                elemento.appendChild(importe);
+
+                elemento.appendChild(ubicacion);
+
+                historial.appendChild(elemento);
+
+            }
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error historial:",
+            error
+        );
+
+        historial.innerHTML =
+        `
+        <div class="sin-registros">
+            No se pudo cargar el historial.
+        </div>
+        `;
+
+    }
+
+}
+
+
+/* =========================================
+   CERRAR SESIÓN
+========================================= */
+
+btnCerrarSesion.addEventListener(
+    "click",
+    async function(){
+
+        if(
+            !confirm(
+                "¿Querés cerrar la sesión?"
+            )
+        ){
+
+            return;
+
+        }
+
+        detenerCronometro();
+
+        try{
+
+            await signOut(auth);
+
+            window.location.href =
+            "empleado-login.html";
+
+        }
+        catch(error){
+
+            mostrarError(
+                "No se pudo cerrar la sesión: " +
+                error.message
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   VOLVER
+========================================= */
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.history.back();
+
+    }
+);
+
+
+/* =========================================
+   INICIO
+========================================= */
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.href =
+            "empleado-login.html";
+
+            return;
+
+        }
+
+        usuarioActual =
+        usuario;
+
+        try{
+
+            limpiarMensajes();
+
+            empleadoNombre.textContent =
+            "Cargando empleado...";
+
+            empleadoPuesto.textContent =
+            "Verificando acceso...";
+
+            estadoTexto.textContent =
+            "VERIFICANDO...";
+
+            estado.className =
+            "estado estado-cargando";
+
+            await cargarEmpleado();
+
+            mostrarDatosEmpleado();
+
+            cargarPago();
+
+            await buscarFichajeActivo();
+
+            await cargarHistorial();
+
+        }
+        catch(error){
+
+            console.error(
+                "ERROR INICIANDO FICHAJE:",
+                error
+            );
+
+            btnEntrada.disabled = true;
+
+            btnSalida.disabled = true;
+
+            estadoTexto.textContent =
+            "ERROR";
+
+            estado.className =
+            "estado";
+
+            empleadoPuesto.textContent =
+            "No se pudo cargar el empleado";
+
+            mostrarError(
+                error.message
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   AL VOLVER A LA APP
+========================================= */
+
+document.addEventListener(
+    "visibilitychange",
+    function(){
+
+        if(
+            !document.hidden &&
+            fichajeActivo
+        ){
+
+            actualizarCronometro();
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   CERRAR PÁGINA
+========================================= */
+
+window.addEventListener(
+    "beforeunload",
+    function(){
+
+        detenerCronometro();
+
+    }
+);
+
+</script>
+
+</body>
+</html>
