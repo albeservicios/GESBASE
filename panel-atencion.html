@@ -295,6 +295,14 @@ button:disabled{
     margin-bottom:20px;
 }
 
+.aviso{
+    background:#dcfce7;
+    color:#166534;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
 .vacio{
     text-align:center;
     color:#6b7280;
@@ -305,6 +313,26 @@ button:disabled{
     margin-top:8px;
     font-size:13px;
     color:#d1d5db;
+}
+
+#btnCerrarSesion{
+    background:#dc2626;
+    color:white;
+}
+
+.acceso-denegado{
+    max-width:600px;
+    margin:30px auto;
+    text-align:center;
+}
+
+.acceso-denegado h2{
+    margin-bottom:12px;
+}
+
+.acceso-denegado p{
+    color:#6b7280;
+    line-height:1.5;
 }
 
 @media(max-width:700px){
@@ -344,7 +372,9 @@ button:disabled{
 
 </head>
 
+
 <body>
+
 
 <header>
 
@@ -360,10 +390,6 @@ Verificando usuario...
 
 
 <div class="container">
-
-<!-- ==========================================
-     MENSAJE
-========================================== -->
 
 <div id="mensajeSistema"></div>
 
@@ -656,6 +682,10 @@ Mensaje
 </div>
 
 
+<!-- ==========================================
+     ARCHIVO / IMAGEN
+========================================== -->
+
 <div
     class="archivo"
     id="detalleArchivo"
@@ -663,6 +693,8 @@ Mensaje
 >
 
 📎 Archivo adjunto:
+
+<br><br>
 
 <a
     id="linkArchivo"
@@ -761,10 +793,27 @@ Cerrada
 
 </div>
 
+
+<!-- ==========================================
+     CERRAR SESIÓN
+========================================== -->
+
+<div class="card">
+
+<button
+    type="button"
+    id="btnCerrarSesion"
+>
+🚪 Cerrar sesión
+</button>
+
+</div>
+
 </div>
 
 
 <script type="module">
+
 
 /* ==========================================
    FIREBASE
@@ -777,7 +826,8 @@ import {
 
 
 import {
-    onAuthStateChanged
+    onAuthStateChanged,
+    signOut
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
@@ -785,6 +835,7 @@ import {
 import {
     collection,
     getDocs,
+    getDoc,
     doc,
     updateDoc,
     deleteDoc,
@@ -795,47 +846,86 @@ import {
 
 
 /* ==========================================
+   ADMINISTRADOR AUTORIZADO
+========================================== */
+
+const EMAIL_ADMIN =
+"julianbattauz006@gmail.com";
+
+
+/* ==========================================
    ELEMENTOS
 ========================================== */
 
 const mensajeSistema =
-document.getElementById("mensajeSistema");
+document.getElementById(
+    "mensajeSistema"
+);
 
 const usuarioActual =
-document.getElementById("usuarioActual");
+document.getElementById(
+    "usuarioActual"
+);
 
 const cargandoConsultas =
-document.getElementById("cargandoConsultas");
+document.getElementById(
+    "cargandoConsultas"
+);
 
 const tablaConsultas =
-document.getElementById("tablaConsultas");
+document.getElementById(
+    "tablaConsultas"
+);
 
 const filtroEstado =
-document.getElementById("filtroEstado");
+document.getElementById(
+    "filtroEstado"
+);
 
 const buscarConsulta =
-document.getElementById("buscarConsulta");
+document.getElementById(
+    "buscarConsulta"
+);
 
 const panelListado =
-document.getElementById("panelListado");
+document.getElementById(
+    "panelListado"
+);
 
 const panelResumen =
-document.getElementById("panelResumen");
+document.getElementById(
+    "panelResumen"
+);
 
 const panelDetalle =
-document.getElementById("panelDetalle");
+document.getElementById(
+    "panelDetalle"
+);
 
 const btnVolver =
-document.getElementById("btnVolver");
+document.getElementById(
+    "btnVolver"
+);
 
 const btnResponder =
-document.getElementById("btnResponder");
+document.getElementById(
+    "btnResponder"
+);
 
 const btnGuardarEstado =
-document.getElementById("btnGuardarEstado");
+document.getElementById(
+    "btnGuardarEstado"
+);
 
 const btnEliminar =
-document.getElementById("btnEliminar");
+document.getElementById(
+    "btnEliminar"
+);
+
+const btnCerrarSesion =
+document.getElementById(
+    "btnCerrarSesion"
+);
 
 
 let usuarioLogueado = null;
@@ -846,10 +936,27 @@ let consultaSeleccionada = null;
 
 
 /* ==========================================
+   OCULTAR PANEL MIENTRAS SE VERIFICA
+========================================== */
+
+panelResumen.style.display =
+"none";
+
+panelListado.style.display =
+"none";
+
+panelDetalle.style.display =
+"none";
+
+
+/* ==========================================
    MOSTRAR MENSAJE
 ========================================== */
 
-function mostrarMensaje(texto, tipo="info"){
+function mostrarMensaje(
+    texto,
+    tipo="info"
+){
 
     if(tipo === "error"){
 
@@ -859,7 +966,8 @@ function mostrarMensaje(texto, tipo="info"){
             </div>
         `;
 
-    }else{
+    }
+    else{
 
         mensajeSistema.innerHTML = `
             <div class="aviso">
@@ -873,12 +981,16 @@ function mostrarMensaje(texto, tipo="info"){
 
 
 /* ==========================================
-   COMPROBAR SESIÓN
+   COMPROBAR SESIÓN Y PERMISOS
 ========================================== */
 
 onAuthStateChanged(
     auth,
     async function(usuario){
+
+        /* ==================================
+           SIN SESIÓN
+        ================================== */
 
         if(!usuario){
 
@@ -891,14 +1003,59 @@ onAuthStateChanged(
         }
 
 
-        usuarioLogueado = usuario;
+        usuarioLogueado =
+        usuario;
 
+
+        /* ==================================
+           COMPROBAR EMAIL
+        ================================== */
+
+        const emailActual =
+        String(
+            usuario.email || ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+        if(
+            emailActual !==
+            EMAIL_ADMIN.toLowerCase()
+        ){
+
+            usuarioActual.textContent =
+            "Acceso no autorizado";
+
+
+            panelResumen.style.display =
+            "none";
+
+
+            panelListado.style.display =
+            "none";
+
+
+            panelDetalle.style.display =
+            "none";
+
+
+            mostrarMensaje(
+                "No tenés permisos para acceder al Panel de Atención.",
+                "error"
+            );
+
+
+            return;
+
+        }
+
+
+        /* ==================================
+           ACCESO AUTORIZADO
+        ================================== */
 
         try{
-
-            /* ==================================
-               VERIFICAR ROL
-            ================================== */
 
             const referenciaUsuario =
             doc(
@@ -909,68 +1066,39 @@ onAuthStateChanged(
 
 
             const documentoUsuario =
-            await getDocs(
-                collection(db,"usuarios")
+            await getDoc(
+                referenciaUsuario
             );
 
 
-            let datosUsuario = null;
-
-
-            documentoUsuario.forEach(documento => {
-
-                if(documento.id === usuario.uid){
-
-                    datosUsuario =
-                    documento.data();
-
-                }
-
-            });
-
-
-            const rol =
-            String(
-                datosUsuario?.rol ||
-                ""
-            )
-            .trim()
-            .toLowerCase();
+            let datosUsuario = {};
 
 
             if(
-                rol !== "administrador" &&
-                rol !== "admin" &&
-                rol !== "empleado"
+                documentoUsuario.exists()
             ){
 
-                usuarioActual.textContent =
-                "Acceso no autorizado";
-
-                panelResumen.style.display =
-                "none";
-
-                panelListado.style.display =
-                "none";
-
-                mostrarMensaje(
-                    "No tenés permisos para acceder al Panel de Atención.",
-                    "error"
-                );
-
-                return;
+                datosUsuario =
+                documentoUsuario.data();
 
             }
 
 
             usuarioActual.textContent =
-            "Usuario: " +
+            "Administrador: " +
             (
-                datosUsuario?.nombre ||
-                usuario.displayName ||
-                usuario.email ||
-                "Usuario"
+                datosUsuario.nombre ||
+                datosUsuario.nombreCompleto ||
+                usuario.email
             );
+
+
+            panelResumen.style.display =
+            "block";
+
+
+            panelListado.style.display =
+            "block";
 
 
             await cargarConsultas();
@@ -978,10 +1106,14 @@ onAuthStateChanged(
         }
         catch(error){
 
-            console.error(error);
+            console.error(
+                "Error verificando administrador:",
+                error
+            );
+
 
             mostrarMensaje(
-                "No se pudo verificar el acceso: " +
+                "No se pudo cargar el panel: " +
                 error.message,
                 "error"
             );
@@ -1001,6 +1133,7 @@ async function cargarConsultas(){
     cargandoConsultas.style.display =
     "block";
 
+
     try{
 
         const referencia =
@@ -1019,21 +1152,26 @@ async function cargarConsultas(){
         consultas = [];
 
 
-        resultado.forEach(documento => {
+        resultado.forEach(
+            documento => {
 
-            consultas.push({
+                consultas.push({
 
-                id: documento.id,
+                    id:
+                    documento.id,
 
-                ...documento.data()
+                    ...documento.data()
 
-            });
+                });
 
-        });
+            }
+        );
 
 
         consultas.sort(
-            (a,b) => obtenerFecha(b) - obtenerFecha(a)
+            (a,b) =>
+            obtenerFecha(b) -
+            obtenerFecha(a)
         );
 
 
@@ -1048,10 +1186,15 @@ async function cargarConsultas(){
     }
     catch(error){
 
-        console.error(error);
+        console.error(
+            "Error cargando consultas:",
+            error
+        );
+
 
         cargandoConsultas.style.display =
         "none";
+
 
         mostrarMensaje(
             "No se pudieron cargar las consultas. " +
@@ -1070,7 +1213,8 @@ async function cargarConsultas(){
 
 function mostrarConsultas(){
 
-    tablaConsultas.innerHTML = "";
+    tablaConsultas.innerHTML =
+    "";
 
 
     const estadoFiltro =
@@ -1084,51 +1228,64 @@ function mostrarConsultas(){
 
 
     const filtradas =
-    consultas.filter(consulta => {
+    consultas.filter(
+        consulta => {
 
-        const estado =
-        consulta.estado ||
-        "nueva";
+            const estado =
+            consulta.estado ||
+            "nueva";
 
 
-        if(
-            estadoFiltro !== "todas" &&
-            estado !== estadoFiltro
-        ){
+            if(
+                estadoFiltro !==
+                "todas" &&
+                estado !==
+                estadoFiltro
+            ){
 
-            return false;
+                return false;
+
+            }
+
+
+            const texto = [
+
+                consulta.cliente,
+
+                consulta.nombre,
+
+                consulta.email,
+
+                consulta.asunto,
+
+                consulta.mensaje
+
+            ]
+            .join(" ")
+            .toLowerCase();
+
+
+            if(
+                busqueda &&
+                !texto.includes(
+                    busqueda
+                )
+            ){
+
+                return false;
+
+            }
+
+
+            return true;
 
         }
+    );
 
 
-        const texto = [
-
-            consulta.cliente,
-            consulta.email,
-            consulta.asunto,
-            consulta.mensaje
-
-        ]
-        .join(" ")
-        .toLowerCase();
-
-
-        if(
-            busqueda &&
-            !texto.includes(busqueda)
-        ){
-
-            return false;
-
-        }
-
-
-        return true;
-
-    });
-
-
-    if(filtradas.length === 0){
+    if(
+        filtradas.length === 0
+    ){
 
         tablaConsultas.innerHTML = `
 
@@ -1152,171 +1309,194 @@ function mostrarConsultas(){
     }
 
 
-    filtradas.forEach(consulta => {
+    filtradas.forEach(
+        consulta => {
 
-        const fila =
-        document.createElement("tr");
-
-
-        const fecha =
-        formatearFechaHora(
-            consulta.fecha ||
-            consulta.creado
-        );
+            const fila =
+            document.createElement(
+                "tr"
+            );
 
 
-        const estado =
-        consulta.estado ||
-        "nueva";
+            const fecha =
+            formatearFechaHora(
+                consulta.fecha ||
+                consulta.creado
+            );
 
 
-        fila.innerHTML = `
+            const estado =
+            consulta.estado ||
+            "nueva";
 
-            <td>
-                ${escapeHTML(fecha)}
-            </td>
 
-            <td>
-                <strong>
+            fila.innerHTML = `
+
+                <td>
+                    ${escapeHTML(fecha)}
+                </td>
+
+                <td>
+
+                    <strong>
+                        ${escapeHTML(
+                            consulta.cliente ||
+                            consulta.nombre ||
+                            "Sin nombre"
+                        )}
+                    </strong>
+
+                    <br>
+
+                    <small>
+                        ${escapeHTML(
+                            consulta.email ||
+                            ""
+                        )}
+                    </small>
+
+                </td>
+
+                <td>
                     ${escapeHTML(
-                        consulta.cliente ||
-                        "Sin nombre"
+                        consulta.asunto ||
+                        "Consulta"
                     )}
-                </strong>
-                <br>
-                <small>
-                    ${escapeHTML(
-                        consulta.email ||
-                        ""
-                    )}
-                </small>
-            </td>
+                </td>
 
-            <td>
-                ${escapeHTML(
-                    consulta.asunto ||
-                    "Consulta"
-                )}
-            </td>
+                <td>
 
-            <td>
+                    <span
+                        class="estado
+                        ${claseEstado(estado)}"
+                    >
 
-                <span class="estado ${claseEstado(estado)}">
-                    ${textoEstado(estado)}
-                </span>
+                        ${textoEstado(estado)}
 
-            </td>
+                    </span>
 
-            <td>
+                </td>
 
-                <button
-                    type="button"
-                    class="btn-ver"
-                    data-id="${consulta.id}"
-                >
-                    👁️ Abrir
-                </button>
+                <td>
 
-            </td>
+                    <button
+                        type="button"
+                        class="btn-ver"
+                    >
+                        👁️ Abrir
+                    </button>
 
-        `;
+                </td>
+
+            `;
 
 
-        const boton =
-        fila.querySelector("button");
+            const boton =
+            fila.querySelector(
+                "button"
+            );
 
 
-        boton.addEventListener(
-            "click",
-            function(){
+            boton.addEventListener(
+                "click",
+                function(){
 
-                abrirConsulta(
-                    consulta.id
-                );
+                    abrirConsulta(
+                        consulta.id
+                    );
 
-            }
-        );
+                }
+            );
 
 
-        tablaConsultas.appendChild(
-            fila
-        );
+            tablaConsultas.appendChild(
+                fila
+            );
 
-    });
+        }
+    );
 
 }
 
 
 /* ==========================================
-   RESUMEN
+   ACTUALIZAR RESUMEN
 ========================================== */
 
 function actualizarResumen(){
 
     let nuevas = 0;
+
     let atencion = 0;
+
     let respondidas = 0;
+
     let cerradas = 0;
 
 
-    consultas.forEach(consulta => {
+    consultas.forEach(
+        consulta => {
 
-        const estado =
-        consulta.estado ||
-        "nueva";
+            const estado =
+            consulta.estado ||
+            "nueva";
 
 
-        if(estado === "nueva"){
+            if(
+                estado === "nueva"
+            ){
 
-            nuevas++;
+                nuevas++;
+
+            }
+            else if(
+                estado === "en_atencion"
+            ){
+
+                atencion++;
+
+            }
+            else if(
+                estado === "respondida"
+            ){
+
+                respondidas++;
+
+            }
+            else if(
+                estado === "cerrada"
+            ){
+
+                cerradas++;
+
+            }
 
         }
-
-        else if(
-            estado === "en_atencion"
-        ){
-
-            atencion++;
-
-        }
-
-        else if(
-            estado === "respondida"
-        ){
-
-            respondidas++;
-
-        }
-
-        else if(
-            estado === "cerrada"
-        ){
-
-            cerradas++;
-
-        }
-
-    });
+    );
 
 
     document.getElementById(
         "totalNuevas"
-    ).textContent = nuevas;
+    ).textContent =
+    nuevas;
 
 
     document.getElementById(
         "totalAtencion"
-    ).textContent = atencion;
+    ).textContent =
+    atencion;
 
 
     document.getElementById(
         "totalRespondidas"
-    ).textContent = respondidas;
+    ).textContent =
+    respondidas;
 
 
     document.getElementById(
         "totalCerradas"
-    ).textContent = cerradas;
+    ).textContent =
+    cerradas;
 
 }
 
@@ -1329,7 +1509,8 @@ function abrirConsulta(id){
 
     const consulta =
     consultas.find(
-        item => item.id === id
+        item =>
+        item.id === id
     );
 
 
@@ -1348,6 +1529,7 @@ function abrirConsulta(id){
         "detalleCliente"
     ).textContent =
     consulta.cliente ||
+    consulta.nombre ||
     "Sin informar";
 
 
@@ -1399,7 +1581,8 @@ function abrirConsulta(id){
 
     document.getElementById(
         "campoRespuesta"
-    ).value = "";
+    ).value =
+    "";
 
 
     /* ==================================
@@ -1411,6 +1594,7 @@ function abrirConsulta(id){
         "detalleArchivo"
     );
 
+
     const link =
     document.getElementById(
         "linkArchivo"
@@ -1420,7 +1604,10 @@ function abrirConsulta(id){
     const url =
     consulta.archivoURL ||
     consulta.archivoUrl ||
-    consulta.urlArchivo;
+    consulta.urlArchivo ||
+    consulta.archivo ||
+    consulta.imagenURL ||
+    consulta.imagenUrl;
 
 
     if(url){
@@ -1428,7 +1615,9 @@ function abrirConsulta(id){
         archivo.style.display =
         "block";
 
-        link.href = url;
+
+        link.href =
+        String(url);
 
     }
     else{
@@ -1436,7 +1625,9 @@ function abrirConsulta(id){
         archivo.style.display =
         "none";
 
-        link.href = "#";
+
+        link.href =
+        "#";
 
     }
 
@@ -1444,16 +1635,21 @@ function abrirConsulta(id){
     panelListado.style.display =
     "none";
 
+
     panelResumen.style.display =
     "none";
+
 
     panelDetalle.style.display =
     "block";
 
 
     window.scrollTo({
+
         top:0,
+
         behavior:"smooth"
+
     });
 
 }
@@ -1465,21 +1661,25 @@ function abrirConsulta(id){
 
 btnVolver.addEventListener(
     "click",
-    function(){
+    async function(){
 
         panelDetalle.style.display =
         "none";
 
+
         panelListado.style.display =
         "block";
+
 
         panelResumen.style.display =
         "block";
 
+
         consultaSeleccionada =
         null;
 
-        cargarConsultas();
+
+        await cargarConsultas();
 
     }
 );
@@ -1509,6 +1709,7 @@ btnGuardarEstado.addEventListener(
         btnGuardarEstado.disabled =
         true;
 
+
         btnGuardarEstado.textContent =
         "Guardando...";
 
@@ -1516,11 +1717,13 @@ btnGuardarEstado.addEventListener(
         try{
 
             await updateDoc(
+
                 doc(
                     db,
                     "consultas",
                     consultaSeleccionada.id
                 ),
+
                 {
 
                     estado:
@@ -1530,6 +1733,7 @@ btnGuardarEstado.addEventListener(
                     serverTimestamp()
 
                 }
+
             );
 
 
@@ -1563,6 +1767,9 @@ btnGuardarEstado.addEventListener(
 
             actualizarResumen();
 
+            mostrarConsultas();
+
+
             mostrarMensaje(
                 "Estado actualizado correctamente."
             );
@@ -1571,6 +1778,7 @@ btnGuardarEstado.addEventListener(
         catch(error){
 
             console.error(error);
+
 
             mostrarMensaje(
                 "No se pudo actualizar el estado: " +
@@ -1583,6 +1791,7 @@ btnGuardarEstado.addEventListener(
 
             btnGuardarEstado.disabled =
             false;
+
 
             btnGuardarEstado.textContent =
             "🔄 Guardar estado";
@@ -1628,51 +1837,57 @@ btnResponder.addEventListener(
         btnResponder.disabled =
         true;
 
+
         btnResponder.textContent =
         "Enviando...";
 
 
         try{
 
-            /* ==================================
-               GUARDAR RESPUESTA EN LA CONSULTA
-            ================================== */
-
-            const nuevaRespuesta = {
-
-                texto:
-                respuesta,
-
-                usuarioId:
-                usuarioLogueado.uid,
-
-                fecha:
-                serverTimestamp()
-
-            };
-
+            /* ==============================
+               GUARDAR RESPUESTA
+            ============================== */
 
             await addDoc(
+
                 collection(
                     db,
                     "consultas",
                     consultaSeleccionada.id,
                     "respuestas"
                 ),
-                nuevaRespuesta
+
+                {
+
+                    texto:
+                    respuesta,
+
+                    usuarioId:
+                    usuarioLogueado.uid,
+
+                    usuarioEmail:
+                    usuarioLogueado.email,
+
+                    fecha:
+                    serverTimestamp()
+
+                }
+
             );
 
 
-            /* ==================================
+            /* ==============================
                ACTUALIZAR CONSULTA
-            ================================== */
+            ============================== */
 
             await updateDoc(
+
                 doc(
                     db,
                     "consultas",
                     consultaSeleccionada.id
                 ),
+
                 {
 
                     estado:
@@ -1684,10 +1899,14 @@ btnResponder.addEventListener(
                     respondidaPor:
                     usuarioLogueado.uid,
 
+                    respondidaPorEmail:
+                    usuarioLogueado.email,
+
                     actualizado:
                     serverTimestamp()
 
                 }
+
             );
 
 
@@ -1709,7 +1928,8 @@ btnResponder.addEventListener(
 
             document.getElementById(
                 "campoRespuesta"
-            ).value = "";
+            ).value =
+            "";
 
 
             const indice =
@@ -1740,6 +1960,7 @@ btnResponder.addEventListener(
 
             console.error(error);
 
+
             mostrarMensaje(
                 "No se pudo enviar la respuesta: " +
                 error.message,
@@ -1751,6 +1972,7 @@ btnResponder.addEventListener(
 
             btnResponder.disabled =
             false;
+
 
             btnResponder.textContent =
             "📨 Enviar respuesta";
@@ -1792,6 +2014,7 @@ btnEliminar.addEventListener(
         btnEliminar.disabled =
         true;
 
+
         btnEliminar.textContent =
         "Eliminando...";
 
@@ -1799,11 +2022,13 @@ btnEliminar.addEventListener(
         try{
 
             await deleteDoc(
+
                 doc(
                     db,
                     "consultas",
                     consultaSeleccionada.id
                 )
+
             );
 
 
@@ -1822,8 +2047,10 @@ btnEliminar.addEventListener(
             panelDetalle.style.display =
             "none";
 
+
             panelListado.style.display =
             "block";
+
 
             panelResumen.style.display =
             "block";
@@ -1843,6 +2070,7 @@ btnEliminar.addEventListener(
 
             console.error(error);
 
+
             mostrarMensaje(
                 "No se pudo eliminar la consulta: " +
                 error.message,
@@ -1854,6 +2082,7 @@ btnEliminar.addEventListener(
 
             btnEliminar.disabled =
             false;
+
 
             btnEliminar.textContent =
             "🗑️ Eliminar consulta";
@@ -1877,6 +2106,56 @@ filtroEstado.addEventListener(
 buscarConsulta.addEventListener(
     "input",
     mostrarConsultas
+);
+
+
+/* ==========================================
+   CERRAR SESIÓN
+========================================== */
+
+btnCerrarSesion.addEventListener(
+    "click",
+    async function(){
+
+        btnCerrarSesion.disabled =
+        true;
+
+
+        btnCerrarSesion.textContent =
+        "Cerrando sesión...";
+
+
+        try{
+
+            await signOut(auth);
+
+
+            window.location.replace(
+                "login.html"
+            );
+
+        }
+        catch(error){
+
+            console.error(error);
+
+
+            btnCerrarSesion.disabled =
+            false;
+
+
+            btnCerrarSesion.textContent =
+            "🚪 Cerrar sesión";
+
+
+            mostrarMensaje(
+                "No se pudo cerrar la sesión.",
+                "error"
+            );
+
+        }
+
+    }
 );
 
 
@@ -1967,7 +2246,12 @@ function obtenerFecha(consulta){
             consulta.fecha
         );
 
-        if(!isNaN(fecha.getTime())){
+
+        if(
+            !isNaN(
+                fecha.getTime()
+            )
+        ){
 
             return fecha.getTime();
 
@@ -2002,7 +2286,6 @@ function formatearFechaHora(valor){
         valor.toDate();
 
     }
-
     else if(
         typeof valor.toMillis ===
         "function"
@@ -2014,7 +2297,6 @@ function formatearFechaHora(valor){
         );
 
     }
-
     else{
 
         fecha =
@@ -2051,27 +2333,29 @@ function formatearFechaHora(valor){
 
 function escapeHTML(text){
 
-    return String(text ?? "")
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
+    return String(
+        text ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
 
 }
 
