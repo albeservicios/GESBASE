@@ -15,7 +15,7 @@
     content="#111827"
 >
 
-<title>Asistencia - GESBASE</title>
+<title>Atención al cliente - GESBASE</title>
 
 <style>
 
@@ -133,7 +133,6 @@ input[type="file"]{
     margin-top:7px;
     color:#6b7280;
     font-size:13px;
-    line-height:1.4;
 }
 
 button{
@@ -161,13 +160,9 @@ button{
 }
 
 .btn-volver{
-    background:#111827;
-    color:white;
+    background:#e5e7eb;
+    color:#111827;
     margin-top:10px;
-}
-
-.btn-volver:hover{
-    background:#1f2937;
 }
 
 .estado{
@@ -183,7 +178,7 @@ button{
     color:#92400e;
 }
 
-.estado-proceso{
+.estado-en-atencion{
     background:#dbeafe;
     color:#1d4ed8;
 }
@@ -248,23 +243,24 @@ button{
     text-decoration:none;
 }
 
-.ticket-archivo:hover{
-    text-decoration:underline;
-}
-
-.ticket-respuesta{
+.respuesta-cliente{
     margin-top:15px;
-    padding:12px;
     background:#f0fdf4;
     border-left:4px solid #16a34a;
+    padding:13px;
     border-radius:7px;
-    line-height:1.5;
 }
 
-.ticket-respuesta strong{
-    display:block;
-    margin-bottom:5px;
+.respuesta-titulo{
+    font-weight:bold;
     color:#166534;
+    margin-bottom:7px;
+}
+
+.respuesta-fecha{
+    color:#6b7280;
+    font-size:12px;
+    margin-top:8px;
 }
 
 .sin-tickets{
@@ -285,7 +281,6 @@ button{
     padding:14px;
     border-radius:9px;
     margin-bottom:15px;
-    line-height:1.5;
 }
 
 .exito{
@@ -295,19 +290,6 @@ button{
     border-radius:9px;
     margin-bottom:15px;
     line-height:1.5;
-}
-
-.usuario{
-    margin-top:15px;
-    padding:12px;
-    background:#f9fafb;
-    border-radius:9px;
-    font-size:13px;
-    color:#6b7280;
-}
-
-.usuario strong{
-    color:#111827;
 }
 
 @media(max-width:600px){
@@ -334,9 +316,7 @@ button{
 
 <body>
 
-
 <div class="app">
-
 
 <header>
 
@@ -345,7 +325,7 @@ GESBASE
 </div>
 
 <div class="subtitulo">
-Asistencia al cliente
+Atención al cliente
 </div>
 
 </header>
@@ -353,10 +333,6 @@ Asistencia al cliente
 
 <main>
 
-
-<!-- ==========================================
-     NUEVA CONSULTA
-========================================== -->
 
 <div class="card">
 
@@ -373,7 +349,7 @@ Estamos para ayudarte. Enviá tu consulta, problema o solicitud y nuestro equipo
 
 📌 <strong>¿Necesitás ayuda?</strong><br>
 
-Explicá lo que sucede y, si es necesario, adjuntá una imagen, captura de pantalla o archivo para que podamos entender mejor el inconveniente.
+Podés explicar lo que sucede y adjuntar una imagen, captura de pantalla o archivo para que podamos entender mejor el inconveniente.
 
 </div>
 
@@ -390,10 +366,7 @@ Explicá lo que sucede y, si es necesario, adjuntá una imagen, captura de panta
 Tipo de consulta
 </label>
 
-<select
-    id="tipoConsulta"
-    required
->
+<select id="tipoConsulta" required>
 
 <option value="">
 Seleccionar...
@@ -478,7 +451,7 @@ Adjuntar archivo o imagen
 >
 
 <div class="archivo-info">
-Podés adjuntar una captura, fotografía, PDF u otro archivo. Máximo: 10 MB.
+Podés adjuntar una captura, fotografía, PDF u otro archivo. Máximo recomendado: 10 MB.
 </div>
 
 </div>
@@ -489,9 +462,7 @@ Podés adjuntar una captura, fotografía, PDF u otro archivo. Máximo: 10 MB.
     class="btn-enviar"
     id="btnEnviar"
 >
-
 📨 Enviar consulta
-
 </button>
 
 
@@ -500,9 +471,6 @@ Podés adjuntar una captura, fotografía, PDF u otro archivo. Máximo: 10 MB.
 </div>
 
 
-<!-- ==========================================
-     MIS CONSULTAS
-========================================== -->
 
 <div class="card">
 
@@ -511,13 +479,10 @@ Podés adjuntar una captura, fotografía, PDF u otro archivo. Máximo: 10 MB.
 </h2>
 
 <p class="descripcion">
-Acá vas a poder ver las consultas que hayas enviado a Atención al cliente y su estado.
+Acá vas a poder ver las consultas que hayas enviado a Atención al cliente y las respuestas recibidas.
 </p>
 
-
-<div
-    id="listaConsultas"
->
+<div id="listaConsultas">
 
 <div class="cargando">
 Cargando consultas...
@@ -528,37 +493,13 @@ Cargando consultas...
 </div>
 
 
-<!-- ==========================================
-     USUARIO
-========================================== -->
-
-<div class="card">
-
-<div class="usuario">
-
-Usuario conectado:
-
-<strong id="usuarioEmail">
-Verificando...
-</strong>
-
-</div>
-
-</div>
-
-
-<!-- ==========================================
-     VOLVER A GESBASE
-========================================== -->
 
 <button
     type="button"
     class="btn-volver"
-    id="btnVolverGesbase"
+    onclick="window.location.href='index.html'"
 >
-
 ← Volver a GESBASE
-
 </button>
 
 
@@ -567,13 +508,8 @@ Verificando...
 </div>
 
 
-
 <script type="module">
 
-
-// ==========================================
-// FIREBASE
-// ==========================================
 
 import {
     auth,
@@ -593,7 +529,9 @@ import {
     addDoc,
     query,
     where,
+    orderBy,
     getDocs,
+    collection as firestoreCollection,
     serverTimestamp
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -607,84 +545,21 @@ import {
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 
 
-
-// ==========================================
-// ELEMENTOS
-// ==========================================
-
 const form =
-document.getElementById(
-    "formAtencion"
-);
-
+document.getElementById("formAtencion");
 
 const btnEnviar =
-document.getElementById(
-    "btnEnviar"
-);
-
+document.getElementById("btnEnviar");
 
 const mensajeSistema =
-document.getElementById(
-    "mensajeSistema"
-);
-
+document.getElementById("mensajeSistema");
 
 const listaConsultas =
-document.getElementById(
-    "listaConsultas"
-);
+document.getElementById("listaConsultas");
 
-
-const usuarioEmail =
-document.getElementById(
-    "usuarioEmail"
-);
-
-
-const btnVolverGesbase =
-document.getElementById(
-    "btnVolverGesbase"
-);
-
-
-
-// ==========================================
-// USUARIO ACTUAL
-// ==========================================
 
 let usuarioActual = null;
 
-
-
-// ==========================================
-// VOLVER A GESBASE
-// ==========================================
-
-btnVolverGesbase.addEventListener(
-    "click",
-    function(){
-
-        /*
-         * index.html es la pantalla
-         * principal de GESBASE.
-         *
-         * No usamos panel.html porque
-         * ese archivo era el que estaba
-         * provocando el 404.
-         */
-
-        window.location.href =
-        "index.html";
-
-    }
-);
-
-
-
-// ==========================================
-// COMPROBAR SESIÓN
-// ==========================================
 
 onAuthStateChanged(
     auth,
@@ -697,18 +572,9 @@ onAuthStateChanged(
             );
 
             return;
-
         }
 
-
-        usuarioActual =
-        usuario;
-
-
-        usuarioEmail.textContent =
-        usuario.email ||
-        "Usuario";
-
+        usuarioActual = usuario;
 
         await cargarConsultas();
 
@@ -716,10 +582,6 @@ onAuthStateChanged(
 );
 
 
-
-// ==========================================
-// ENVIAR CONSULTA
-// ==========================================
 
 form.addEventListener(
     "submit",
@@ -735,65 +597,46 @@ form.addEventListener(
             );
 
             return;
-
         }
 
 
         const tipo =
         document.getElementById(
             "tipoConsulta"
-        )
-        .value
-        .trim();
+        ).value.trim();
 
 
         const asunto =
         document.getElementById(
             "asunto"
-        )
-        .value
-        .trim();
+        ).value.trim();
 
 
         const mensaje =
         document.getElementById(
             "mensaje"
-        )
-        .value
-        .trim();
+        ).value.trim();
 
 
         const archivo =
         document.getElementById(
             "archivo"
-        )
-        .files[0];
+        ).files[0];
 
 
-        if(
-            !tipo ||
-            !asunto ||
-            !mensaje
-        ){
+        if(!tipo || !asunto || !mensaje){
 
             mostrarError(
                 "Completá todos los campos obligatorios."
             );
 
             return;
-
         }
 
 
-
-        // ==================================
-        // COMPROBAR TAMAÑO
-        // ==================================
-
         if(
             archivo &&
-            archivo.size >
-            10 * 1024 * 1024
+            archivo.size > 10 * 1024 * 1024
         ){
 
             mostrarError(
@@ -801,34 +644,21 @@ form.addEventListener(
             );
 
             return;
-
         }
 
 
-
-        btnEnviar.disabled =
-        true;
-
+        btnEnviar.disabled = true;
 
         btnEnviar.textContent =
         "Enviando consulta...";
 
 
-
         try{
 
-            let archivoURL =
-            "";
+            let archivoURL = "";
 
+            let nombreArchivo = "";
 
-            let nombreArchivo =
-            "";
-
-
-
-            // ==================================
-            // SUBIR ARCHIVO
-            // ==================================
 
             if(archivo){
 
@@ -869,27 +699,18 @@ form.addEventListener(
             }
 
 
-
-            // ==================================
-            // GUARDAR CONSULTA
-            // COLECCIÓN: atenciones
-            // ==================================
-
             await addDoc(
-
                 collection(
                     db,
                     "atenciones"
                 ),
-
                 {
 
                     uid:
                     usuarioActual.uid,
 
                     email:
-                    usuarioActual.email ||
-                    "",
+                    usuarioActual.email || "",
 
                     tipo:
                     tipo,
@@ -910,23 +731,14 @@ form.addEventListener(
                     "pendiente",
 
                     fecha:
-                    serverTimestamp(),
-
-                    creado:
                     serverTimestamp()
 
                 }
-
             );
 
 
-
-            // ==================================
-            // ÉXITO
-            // ==================================
-
             mostrarExito(
-                "Tu consulta fue enviada correctamente. Atención al cliente la revisará."
+                "Tu consulta fue enviada correctamente. Nuestro equipo la revisará."
             );
 
 
@@ -934,7 +746,6 @@ form.addEventListener(
 
 
             await cargarConsultas();
-
 
         }
         catch(error){
@@ -953,9 +764,7 @@ form.addEventListener(
         }
         finally{
 
-            btnEnviar.disabled =
-            false;
-
+            btnEnviar.disabled = false;
 
             btnEnviar.textContent =
             "📨 Enviar consulta";
@@ -967,10 +776,6 @@ form.addEventListener(
 
 
 
-// ==========================================
-// CARGAR CONSULTAS DEL USUARIO
-// ==========================================
-
 async function cargarConsultas(){
 
     if(!usuarioActual){
@@ -981,27 +786,13 @@ async function cargarConsultas(){
 
 
     listaConsultas.innerHTML = `
-
         <div class="cargando">
-
             Cargando consultas...
-
         </div>
-
     `;
 
 
     try{
-
-        /*
-         * IMPORTANTE:
-         *
-         * No usamos orderBy("fecha","desc")
-         * junto con where().
-         *
-         * Así evitamos depender de un
-         * índice compuesto de Firestore.
-         */
 
         const referencia =
         collection(
@@ -1012,15 +803,12 @@ async function cargarConsultas(){
 
         const consulta =
         query(
-
             referencia,
-
             where(
                 "uid",
                 "==",
                 usuarioActual.uid
             )
-
         );
 
 
@@ -1030,53 +818,99 @@ async function cargarConsultas(){
         );
 
 
-        const consultas =
-        [];
+        const consultas = [];
 
 
-        resultado.forEach(
-            documento => {
-
-                consultas.push({
-
-                    id:
-                    documento.id,
-
-                    ...documento.data()
-
-                });
-
-            }
-        );
-
-
-        // ==================================
-        // ORDENAR MÁS NUEVAS PRIMERO
-        // ==================================
-
-        consultas.sort(
-            function(a,b){
-
-                return obtenerFecha(b)
-                -
-                obtenerFecha(a);
-
-            }
-        );
-
-
-        if(
-            consultas.length === 0
+        for(
+            const documento
+            of resultado.docs
         ){
 
+            const datos =
+            documento.data();
+
+
+            let respuestas = [];
+
+
+            try{
+
+                const referenciaRespuestas =
+                firestoreCollection(
+                    db,
+                    "atenciones",
+                    documento.id,
+                    "respuestas"
+                );
+
+
+                const resultadoRespuestas =
+                await getDocs(
+                    referenciaRespuestas
+                );
+
+
+                resultadoRespuestas.forEach(
+                    respuestaDocumento => {
+
+                        respuestas.push({
+
+                            id:
+                            respuestaDocumento.id,
+
+                            ...respuestaDocumento.data()
+
+                        });
+
+                    }
+                );
+
+
+                respuestas.sort(
+                    (a,b) =>
+                    obtenerFecha(b) -
+                    obtenerFecha(a)
+                );
+
+            }
+            catch(errorRespuesta){
+
+                console.error(
+                    "Error cargando respuestas:",
+                    errorRespuesta
+                );
+
+            }
+
+
+            consultas.push({
+
+                id:
+                documento.id,
+
+                ...datos,
+
+                respuestas:
+                respuestas
+
+            });
+
+        }
+
+
+        consultas.sort(
+            (a,b) =>
+            obtenerFecha(b) -
+            obtenerFecha(a)
+        );
+
+
+        if(consultas.length === 0){
+
             listaConsultas.innerHTML = `
-
                 <div class="sin-tickets">
-
                     Todavía no tenés consultas enviadas.
-
                 </div>
-
             `;
 
             return;
@@ -1084,20 +918,179 @@ async function cargarConsultas(){
         }
 
 
-        listaConsultas.innerHTML =
-        "";
+        listaConsultas.innerHTML = "";
 
 
         consultas.forEach(
-            function(datos){
+            consulta => {
 
-                mostrarConsulta(
-                    datos
+                const ticket =
+                document.createElement(
+                    "div"
+                );
+
+
+                ticket.className =
+                "ticket";
+
+
+                const estado =
+                consulta.estado ||
+                "pendiente";
+
+
+                const estadoTexto =
+                textoEstado(
+                    estado
+                );
+
+
+                const estadoClase =
+                claseEstado(
+                    estado
+                );
+
+
+                const fechaTexto =
+                formatearFecha(
+                    consulta.fecha
+                );
+
+
+                let archivoHTML = "";
+
+
+                if(
+                    consulta.archivoURL
+                ){
+
+                    archivoHTML = `
+
+                        <a
+                            class="ticket-archivo"
+                            href="${escapeHTML(consulta.archivoURL)}"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            📎 Ver archivo adjunto
+                        </a>
+
+                    `;
+
+                }
+
+
+                let respuestasHTML = "";
+
+
+                if(
+                    consulta.respuestas &&
+                    consulta.respuestas.length > 0
+                ){
+
+                    respuestasHTML = `
+
+                        <div class="respuesta-cliente">
+
+                            <div class="respuesta-titulo">
+                                💬 Respuesta de Atención al cliente
+                            </div>
+
+                    `;
+
+
+                    consulta.respuestas.forEach(
+                        respuesta => {
+
+                            respuestasHTML += `
+
+                                <div class="ticket-mensaje">
+                                    ${escapeHTML(respuesta.texto || "")}
+                                </div>
+
+                                <div class="respuesta-fecha">
+                                    ${escapeHTML(
+                                        formatearFecha(
+                                            respuesta.fecha
+                                        )
+                                    )}
+                                </div>
+
+                            `;
+
+                        }
+                    );
+
+
+                    respuestasHTML += `
+                        </div>
+                    `;
+
+                }
+
+
+                ticket.innerHTML = `
+
+                    <div class="ticket-header">
+
+                        <div>
+
+                            <div class="ticket-id">
+                                Consulta #${escapeHTML(
+                                    consulta.id.substring(0,8)
+                                )}
+                            </div>
+
+                            <div class="ticket-fecha">
+                                ${escapeHTML(fechaTexto)}
+                            </div>
+
+                        </div>
+
+                        <span
+                            class="estado ${estadoClase}"
+                        >
+                            ${escapeHTML(estadoTexto)}
+                        </span>
+
+                    </div>
+
+
+                    <div class="ticket-tipo">
+                        ${escapeHTML(
+                            consulta.tipo || ""
+                        )}
+                    </div>
+
+
+                    <div class="ticket-asunto">
+                        ${escapeHTML(
+                            consulta.asunto || ""
+                        )}
+                    </div>
+
+
+                    <div class="ticket-mensaje">
+                        ${escapeHTML(
+                            consulta.mensaje || ""
+                        )}
+                    </div>
+
+
+                    ${archivoHTML}
+
+
+                    ${respuestasHTML}
+
+                `;
+
+
+                listaConsultas.appendChild(
+                    ticket
                 );
 
             }
         );
-
 
     }
     catch(error){
@@ -1109,21 +1102,11 @@ async function cargarConsultas(){
 
 
         listaConsultas.innerHTML = `
-
             <div class="error">
-
-                <strong>
                 No se pudieron cargar las consultas.
-                </strong>
-
                 <br><br>
-
-                ${escapeHTML(
-                    obtenerMensajeError(error)
-                )}
-
+                ${escapeHTML(error.message)}
             </div>
-
         `;
 
     }
@@ -1132,276 +1115,46 @@ async function cargarConsultas(){
 
 
 
-// ==========================================
-// MOSTRAR CONSULTA
-// ==========================================
+function textoEstado(estado){
 
-function mostrarConsulta(
-    datos
-){
-
-    const fecha =
-    obtenerFechaObjeto(
-        datos.fecha ||
-        datos.creado
-    );
-
-
-    let fechaTexto =
-    "Fecha pendiente";
-
-
-    if(fecha){
-
-        fechaTexto =
-        fecha.toLocaleDateString(
-            "es-AR"
-        )
-        +
-        " "
-        +
-        fecha.toLocaleTimeString(
-            "es-AR",
-            {
-                hour:"2-digit",
-                minute:"2-digit"
-            }
-        );
-
-    }
-
-
-    const estado =
-    datos.estado ||
-    "pendiente";
-
-
-    const estadoInfo =
-    obtenerEstado(
-        estado
-    );
-
-
-    let archivoHTML =
-    "";
-
-
-    if(
-        datos.archivoURL
-    ){
-
-        archivoHTML = `
-
-            <a
-                class="ticket-archivo"
-                href="${escapeHTML(
-                    datos.archivoURL
-                )}"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-
-                📎 Ver archivo adjunto
-
-            </a>
-
-        `;
-
-    }
-
-
-    let respuestaHTML =
-    "";
-
-
-    if(
-        datos.ultimaRespuesta
-    ){
-
-        respuestaHTML = `
-
-            <div class="ticket-respuesta">
-
-                <strong>
-                    💬 Respuesta de Atención al cliente
-                </strong>
-
-                ${escapeHTML(
-                    datos.ultimaRespuesta
-                )}
-
-            </div>
-
-        `;
-
-    }
-
-
-    const ticket =
-    document.createElement(
-        "div"
-    );
-
-
-    ticket.className =
-    "ticket";
-
-
-    ticket.innerHTML = `
-
-        <div class="ticket-header">
-
-            <div>
-
-                <div class="ticket-id">
-
-                    Consulta #${escapeHTML(
-                        String(
-                            datos.id || ""
-                        ).substring(
-                            0,
-                            8
-                        )
-                    )}
-
-                </div>
-
-                <div class="ticket-fecha">
-
-                    ${escapeHTML(
-                        fechaTexto
-                    )}
-
-                </div>
-
-            </div>
-
-
-            <span
-                class="estado
-                ${escapeHTML(
-                    estadoInfo.clase
-                )}"
-            >
-
-                ${escapeHTML(
-                    estadoInfo.texto
-                )}
-
-            </span>
-
-        </div>
-
-
-        <div class="ticket-tipo">
-
-            ${escapeHTML(
-                datos.tipo ||
-                "Consulta"
-            )}
-
-        </div>
-
-
-        <div class="ticket-asunto">
-
-            ${escapeHTML(
-                datos.asunto ||
-                "Sin asunto"
-            )}
-
-        </div>
-
-
-        <div class="ticket-mensaje">
-
-            ${escapeHTML(
-                datos.mensaje ||
-                ""
-            )}
-
-        </div>
-
-
-        ${archivoHTML}
-
-
-        ${respuestaHTML}
-
-    `;
-
-
-    listaConsultas.appendChild(
-        ticket
-    );
-
-}
-
-
-
-// ==========================================
-// ESTADO
-// ==========================================
-
-function obtenerEstado(
-    estado
-){
-
-    switch(
-        String(
-            estado ||
-            ""
-        ).toLowerCase()
-    ){
-
-        case "en_atencion":
-
-            return {
-                texto:"En atención",
-                clase:"estado-proceso"
-            };
-
-
-        case "en_proceso":
-
-            return {
-                texto:"En proceso",
-                clase:"estado-proceso"
-            };
-
-
-        case "respondida":
-
-            return {
-                texto:"Respondida",
-                clase:"estado-respondida"
-            };
-
-
-        case "resuelto":
-
-        case "resuelta":
-
-        case "cerrada":
-
-        case "cerrado":
-
-            return {
-                texto:"Cerrada",
-                clase:"estado-cerrada"
-            };
-
+    switch(estado){
 
         case "pendiente":
-
         case "nueva":
+            return "Pendiente";
+
+        case "en_atencion":
+            return "En atención";
+
+        case "respondida":
+            return "Respondida";
+
+        case "cerrada":
+            return "Cerrada";
 
         default:
+            return "Pendiente";
 
-            return {
-                texto:"Pendiente",
-                clase:"estado-pendiente"
-            };
+    }
+
+}
+
+
+function claseEstado(estado){
+
+    switch(estado){
+
+        case "en_atencion":
+            return "estado-en-atencion";
+
+        case "respondida":
+            return "estado-respondida";
+
+        case "cerrada":
+            return "estado-cerrada";
+
+        default:
+            return "estado-pendiente";
 
     }
 
@@ -1409,15 +1162,9 @@ function obtenerEstado(
 
 
 
-// ==========================================
-// OBTENER FECHA PARA ORDENAR
-// ==========================================
+function obtenerFecha(objeto){
 
-function obtenerFecha(
-    datos
-){
-
-    if(!datos){
+    if(!objeto){
 
         return 0;
 
@@ -1425,29 +1172,27 @@ function obtenerFecha(
 
 
     if(
-        typeof datos.toMillis ===
+        typeof objeto.toMillis ===
         "function"
     ){
 
-        return datos.toMillis();
+        return objeto.toMillis();
 
     }
 
 
     if(
-        typeof datos.toDate ===
+        typeof objeto.toDate ===
         "function"
     ){
 
-        return datos.toDate().getTime();
+        return objeto.toDate().getTime();
 
     }
 
 
     const fecha =
-    new Date(
-        datos
-    );
+    new Date(objeto);
 
 
     if(
@@ -1467,47 +1212,44 @@ function obtenerFecha(
 
 
 
-// ==========================================
-// OBTENER OBJETO FECHA
-// ==========================================
+function formatearFecha(valor){
 
-function obtenerFechaObjeto(
-    datos
-){
+    if(!valor){
 
-    if(!datos){
-
-        return null;
+        return "Fecha pendiente";
 
     }
 
 
+    let fecha;
+
+
     if(
-        typeof datos.toDate ===
+        typeof valor.toDate ===
         "function"
     ){
 
-        return datos.toDate();
+        fecha =
+        valor.toDate();
 
     }
-
-
-    if(
-        typeof datos.toMillis ===
+    else if(
+        typeof valor.toMillis ===
         "function"
     ){
 
-        return new Date(
-            datos.toMillis()
+        fecha =
+        new Date(
+            valor.toMillis()
         );
 
     }
+    else{
 
+        fecha =
+        new Date(valor);
 
-    const fecha =
-    new Date(
-        datos
-    );
+    }
 
 
     if(
@@ -1516,80 +1258,29 @@ function obtenerFechaObjeto(
         )
     ){
 
-        return null;
+        return "Fecha pendiente";
 
     }
 
 
-    return fecha;
+    return new Intl.DateTimeFormat(
+        "es-AR",
+        {
+            dateStyle:"short",
+            timeStyle:"short"
+        }
+    ).format(fecha);
 
 }
 
 
 
-// ==========================================
-// MENSAJE DE ERROR
-// ==========================================
-
-function obtenerMensajeError(
-    error
-){
-
-    if(
-        error &&
-        error.code ===
-        "permission-denied"
-    ){
-
-        return (
-            "Firebase está rechazando el acceso a las consultas. "
-            +
-            "Hay que revisar las reglas de Firestore para la colección atenciones."
-        );
-
-    }
-
-
-    if(
-        error &&
-        error.code ===
-        "failed-precondition"
-    ){
-
-        return (
-            "Firestore indicó que falta una configuración o índice. "
-            +
-            "Con esta versión no debería necesitarse un índice compuesto."
-        );
-
-    }
-
-
-    return (
-        error?.message ||
-        "Error desconocido."
-    );
-
-}
-
-
-
-// ==========================================
-// MENSAJES DE SISTEMA
-// ==========================================
-
-function mostrarError(
-    texto
-){
+function mostrarError(texto){
 
     mensajeSistema.innerHTML = `
 
         <div class="error">
-
-            ${escapeHTML(
-                texto
-            )}
-
+            ${escapeHTML(texto)}
         </div>
 
     `;
@@ -1597,18 +1288,12 @@ function mostrarError(
 }
 
 
-function mostrarExito(
-    texto
-){
+function mostrarExito(texto){
 
     mensajeSistema.innerHTML = `
 
         <div class="exito">
-
-            ✅ ${escapeHTML(
-                texto
-            )}
-
+            ✅ ${escapeHTML(texto)}
         </div>
 
     `;
@@ -1617,42 +1302,18 @@ function mostrarExito(
 
 
 
-// ==========================================
-// SEGURIDAD HTML
-// ==========================================
+function escapeHTML(texto){
 
-function escapeHTML(
-    texto
-){
-
-    return String(
-        texto ?? ""
-    )
-    .replace(
-        /&/g,
-        "&amp;"
-    )
-    .replace(
-        /</g,
-        "&lt;"
-    )
-    .replace(
-        />/g,
-        "&gt;"
-    )
-    .replace(
-        /"/g,
-        "&quot;"
-    )
-    .replace(
-        /'/g,
-        "&#039;"
-    );
+    return String(texto ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
 
 }
 
 </script>
-
 
 </body>
 
