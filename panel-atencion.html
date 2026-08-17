@@ -1,0 +1,2248 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="theme-color" content="#111827">
+
+<title>Panel de Atención - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+    min-height:100vh;
+}
+
+.app{
+    max-width:1100px;
+    margin:auto;
+    min-height:100vh;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:25px 20px;
+    text-align:center;
+}
+
+.logo{
+    font-size:30px;
+    font-weight:bold;
+    letter-spacing:1px;
+}
+
+.subtitulo{
+    margin-top:7px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+/* ==============================
+   CARGANDO
+============================== */
+
+#cargando{
+    text-align:center;
+    padding:40px;
+    color:#6b7280;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+    padding:14px;
+    border-radius:9px;
+    margin-bottom:15px;
+}
+
+.exito{
+    background:#dcfce7;
+    color:#166534;
+    padding:14px;
+    border-radius:9px;
+    margin-bottom:15px;
+}
+
+
+/* ==============================
+   CABECERA
+============================== */
+
+.titulo{
+    margin-bottom:20px;
+}
+
+.titulo h1{
+    font-size:25px;
+    margin-bottom:7px;
+}
+
+.titulo p{
+    color:#6b7280;
+}
+
+
+/* ==============================
+   RESUMEN
+============================== */
+
+.resumen{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin-bottom:20px;
+}
+
+.resumen-box{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:18px;
+}
+
+.resumen-box span{
+    display:block;
+    color:#6b7280;
+    font-size:13px;
+    margin-bottom:7px;
+}
+
+.resumen-box strong{
+    font-size:25px;
+}
+
+
+/* ==============================
+   FILTROS
+============================== */
+
+.filtros{
+    background:white;
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.filtros-grid{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:12px;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:12px;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    font-size:15px;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+    outline:none;
+    border-color:#2563eb;
+}
+
+
+/* ==============================
+   LISTA
+============================== */
+
+.lista{
+    display:grid;
+    gap:14px;
+}
+
+.consulta{
+    background:white;
+    border-radius:14px;
+    padding:18px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    border-left:5px solid #f59e0b;
+}
+
+.consulta.en-proceso{
+    border-left-color:#2563eb;
+}
+
+.consulta.resuelto{
+    border-left-color:#16a34a;
+}
+
+.consulta-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:15px;
+}
+
+.consulta-id{
+    font-size:12px;
+    color:#6b7280;
+    margin-bottom:5px;
+}
+
+.consulta-asunto{
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.consulta-info{
+    color:#6b7280;
+    font-size:13px;
+    line-height:1.5;
+}
+
+.estado{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.estado-pendiente{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.estado-proceso{
+    background:#dbeafe;
+    color:#1e40af;
+}
+
+.estado-resuelto{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.consulta-mensaje{
+    margin-top:14px;
+    background:#f9fafb;
+    padding:13px;
+    border-radius:9px;
+    line-height:1.5;
+    color:#374151;
+    white-space:pre-wrap;
+}
+
+.acciones{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:14px;
+}
+
+button{
+    border:0;
+    border-radius:9px;
+    padding:11px 15px;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.btn-abrir{
+    background:#111827;
+    color:white;
+}
+
+.btn-proceso{
+    background:#2563eb;
+    color:white;
+}
+
+.btn-resuelto{
+    background:#16a34a;
+    color:white;
+}
+
+.btn-volver{
+    background:#e5e7eb;
+    color:#111827;
+    width:100%;
+    margin-top:20px;
+}
+
+
+/* ==============================
+   MODAL
+============================== */
+
+.modal-fondo{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+    z-index:1000;
+}
+
+.modal-fondo.mostrar{
+    display:flex;
+}
+
+.modal{
+    width:100%;
+    max-width:750px;
+    max-height:92vh;
+    overflow-y:auto;
+    background:white;
+    border-radius:16px;
+    padding:22px;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:15px;
+    margin-bottom:18px;
+}
+
+.modal-header h2{
+    font-size:22px;
+}
+
+.btn-cerrar{
+    background:#e5e7eb;
+    color:#111827;
+    padding:8px 12px;
+}
+
+.detalle{
+    margin-bottom:18px;
+}
+
+.detalle-label{
+    color:#6b7280;
+    font-size:12px;
+    margin-bottom:4px;
+}
+
+.detalle-valor{
+    font-weight:bold;
+    word-break:break-word;
+}
+
+.mensaje-cliente{
+    background:#f3f4f6;
+    border-radius:10px;
+    padding:15px;
+    line-height:1.6;
+    white-space:pre-wrap;
+}
+
+.archivo{
+    display:inline-block;
+    margin-top:10px;
+    color:#2563eb;
+    font-weight:bold;
+    text-decoration:none;
+}
+
+.separador{
+    height:1px;
+    background:#e5e7eb;
+    margin:20px 0;
+}
+
+
+/* ==============================
+   RESPUESTAS
+============================== */
+
+.respuestas h3{
+    margin-bottom:12px;
+}
+
+.respuesta{
+    padding:13px;
+    border-radius:10px;
+    background:#eff6ff;
+    margin-bottom:10px;
+}
+
+.respuesta-emisor{
+    font-weight:bold;
+    font-size:13px;
+    margin-bottom:5px;
+}
+
+.respuesta-fecha{
+    color:#6b7280;
+    font-size:11px;
+    margin-bottom:8px;
+}
+
+.respuesta-texto{
+    line-height:1.5;
+    white-space:pre-wrap;
+}
+
+.sin-respuestas{
+    color:#6b7280;
+    padding:10px 0;
+}
+
+
+/* ==============================
+   RESPONDER
+============================== */
+
+.responder h3{
+    margin-bottom:10px;
+}
+
+.responder textarea{
+    min-height:130px;
+    resize:vertical;
+}
+
+.btn-enviar-respuesta{
+    margin-top:10px;
+    background:#111827;
+    color:white;
+    width:100%;
+}
+
+.btn-enviar-respuesta:disabled{
+    opacity:.6;
+}
+
+
+/* ==============================
+   CAMBIAR ESTADO
+============================== */
+
+.cambiar-estado{
+    margin-top:18px;
+}
+
+.cambiar-estado label{
+    display:block;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+
+/* ==============================
+   VACÍO
+============================== */
+
+.vacio{
+    text-align:center;
+    padding:35px;
+    color:#6b7280;
+    background:white;
+    border-radius:14px;
+}
+
+
+/* ==============================
+   RESPONSIVE
+============================== */
+
+@media(max-width:700px){
+
+    main{
+        padding:12px;
+    }
+
+    .resumen{
+        grid-template-columns:1fr;
+    }
+
+    .filtros-grid{
+        grid-template-columns:1fr;
+    }
+
+    .consulta-top{
+        flex-direction:column;
+    }
+
+    .acciones button{
+        width:100%;
+    }
+
+    .modal{
+        padding:17px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+<header>
+
+<div class="logo">
+GESBASE
+</div>
+
+<div class="subtitulo">
+Panel de Atención al cliente
+</div>
+
+</header>
+
+
+<div id="cargando">
+Verificando sesión...
+</div>
+
+
+<main id="contenido" style="display:none;">
+
+
+<!-- ==============================
+     TÍTULO
+============================== -->
+
+<section class="titulo">
+
+<h1>
+🎧 Atención al cliente
+</h1>
+
+<p>
+Administrá y respondé las consultas recibidas.
+</p>
+
+</section>
+
+
+<!-- ==============================
+     RESUMEN
+============================== -->
+
+<section class="resumen">
+
+<div class="resumen-box">
+
+<span>
+Pendientes
+</span>
+
+<strong id="totalPendientes">
+0
+</strong>
+
+</div>
+
+
+<div class="resumen-box">
+
+<span>
+En proceso
+</span>
+
+<strong id="totalProceso">
+0
+</strong>
+
+</div>
+
+
+<div class="resumen-box">
+
+<span>
+Resueltas
+</span>
+
+<strong id="totalResueltas">
+0
+</strong>
+
+</div>
+
+</section>
+
+
+<!-- ==============================
+     FILTROS
+============================== -->
+
+<section class="filtros">
+
+<div class="filtros-grid">
+
+<input
+type="search"
+id="buscar"
+placeholder="🔎 Buscar por cliente, email o asunto..."
+>
+
+<select id="filtroEstado">
+
+<option value="todos">
+Todos los estados
+</option>
+
+<option value="pendiente">
+Pendientes
+</option>
+
+<option value="en_proceso">
+En proceso
+</option>
+
+<option value="resuelto">
+Resueltas
+</option>
+
+</select>
+
+</div>
+
+</section>
+
+
+<div id="mensajeSistema"></div>
+
+
+<!-- ==============================
+     LISTA
+============================== -->
+
+<section id="listaConsultas" class="lista">
+
+<div class="vacio">
+Cargando consultas...
+</div>
+
+</section>
+
+
+<button
+class="btn-volver"
+onclick="window.location.href='panel.html'"
+>
+
+← Volver al panel
+
+</button>
+
+
+</main>
+
+</div>
+
+
+
+<!-- ==============================
+     MODAL DETALLE
+============================== -->
+
+<div
+id="modalFondo"
+class="modal-fondo"
+>
+
+<div class="modal">
+
+
+<div class="modal-header">
+
+<div>
+
+<h2>
+📂 Consulta
+</h2>
+
+<div
+id="modalId"
+style="color:#6b7280;font-size:12px;margin-top:5px;"
+></div>
+
+</div>
+
+<button
+class="btn-cerrar"
+onclick="cerrarModal()"
+>
+✕
+</button>
+
+</div>
+
+
+<!-- DATOS -->
+
+<div class="detalle">
+
+<div class="detalle-label">
+Cliente / Email
+</div>
+
+<div
+class="detalle-valor"
+id="modalCliente"
+>
+-
+</div>
+
+</div>
+
+
+<div class="detalle">
+
+<div class="detalle-label">
+Tipo
+</div>
+
+<div
+class="detalle-valor"
+id="modalTipo"
+>
+-
+</div>
+
+</div>
+
+
+<div class="detalle">
+
+<div class="detalle-label">
+Asunto
+</div>
+
+<div
+class="detalle-valor"
+id="modalAsunto"
+>
+-
+</div>
+
+</div>
+
+
+<div class="detalle">
+
+<div class="detalle-label">
+Fecha
+</div>
+
+<div
+class="detalle-valor"
+id="modalFecha"
+>
+-
+</div>
+
+</div>
+
+
+<div class="detalle">
+
+<div class="detalle-label">
+Mensaje del cliente
+</div>
+
+<div
+class="mensaje-cliente"
+id="modalMensaje"
+>
+-
+</div>
+
+</div>
+
+
+<div
+id="modalArchivo"
+>
+</div>
+
+
+<div class="separador"></div>
+
+
+<!-- ESTADO -->
+
+<div class="cambiar-estado">
+
+<label for="modalEstado">
+Estado de la consulta
+</label>
+
+<select id="modalEstado">
+
+<option value="pendiente">
+Pendiente
+</option>
+
+<option value="en_proceso">
+En proceso
+</option>
+
+<option value="resuelto">
+Resuelto
+</option>
+
+</select>
+
+</div>
+
+
+<div
+class="separador"
+></div>
+
+
+<!-- RESPUESTAS -->
+
+<div class="respuestas">
+
+<h3>
+💬 Historial de respuestas
+</h3>
+
+<div id="listaRespuestas">
+
+<div class="sin-respuestas">
+Cargando respuestas...
+</div>
+
+</div>
+
+</div>
+
+
+<div class="separador"></div>
+
+
+<!-- RESPONDER -->
+
+<div class="responder">
+
+<h3>
+✍️ Responder al cliente
+</h3>
+
+<textarea
+id="respuestaTexto"
+placeholder="Escribí la respuesta para el cliente..."
+maxlength="3000"
+></textarea>
+
+<button
+id="btnEnviarRespuesta"
+class="btn-enviar-respuesta"
+>
+
+📨 Enviar respuesta
+
+</button>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+
+<script type="module">
+
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    getDocs,
+    query,
+    where,
+    addDoc,
+    updateDoc,
+    doc,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const cargando =
+document.getElementById("cargando");
+
+const contenido =
+document.getElementById("contenido");
+
+const listaConsultas =
+document.getElementById("listaConsultas");
+
+const buscar =
+document.getElementById("buscar");
+
+const filtroEstado =
+document.getElementById("filtroEstado");
+
+const totalPendientes =
+document.getElementById("totalPendientes");
+
+const totalProceso =
+document.getElementById("totalProceso");
+
+const totalResueltas =
+document.getElementById("totalResueltas");
+
+const mensajeSistema =
+document.getElementById("mensajeSistema");
+
+
+// ==========================================
+// MODAL
+// ==========================================
+
+const modalFondo =
+document.getElementById("modalFondo");
+
+const modalId =
+document.getElementById("modalId");
+
+const modalCliente =
+document.getElementById("modalCliente");
+
+const modalTipo =
+document.getElementById("modalTipo");
+
+const modalAsunto =
+document.getElementById("modalAsunto");
+
+const modalFecha =
+document.getElementById("modalFecha");
+
+const modalMensaje =
+document.getElementById("modalMensaje");
+
+const modalArchivo =
+document.getElementById("modalArchivo");
+
+const modalEstado =
+document.getElementById("modalEstado");
+
+const listaRespuestas =
+document.getElementById("listaRespuestas");
+
+const respuestaTexto =
+document.getElementById("respuestaTexto");
+
+const btnEnviarRespuesta =
+document.getElementById(
+    "btnEnviarRespuesta"
+);
+
+
+// ==========================================
+// VARIABLES
+// ==========================================
+
+let usuarioActual = null;
+
+let consultas = [];
+
+let consultaSeleccionada = null;
+
+
+
+// ==========================================
+// SESIÓN
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual = usuario;
+
+
+        cargando.style.display =
+        "none";
+
+        contenido.style.display =
+        "block";
+
+
+        await cargarConsultas();
+
+    }
+);
+
+
+
+// ==========================================
+// CARGAR CONSULTAS
+// ==========================================
+
+async function cargarConsultas(){
+
+    listaConsultas.innerHTML = `
+        <div class="vacio">
+            Cargando consultas...
+        </div>
+    `;
+
+
+    try{
+
+        const referencia =
+        collection(
+            db,
+            "atenciones"
+        );
+
+
+        /*
+         IMPORTANTE:
+
+         No usamos orderBy aquí para evitar
+         exigir un índice compuesto de Firestore.
+
+         Ordenamos después en JavaScript.
+        */
+
+        const resultado =
+        await getDocs(
+            referencia
+        );
+
+
+        consultas = [];
+
+
+        resultado.forEach(
+            documento => {
+
+                consultas.push({
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+
+        consultas.sort(
+            function(a,b){
+
+                const fechaA =
+                a.fecha
+                ?
+                a.fecha.toMillis()
+                :
+                0;
+
+
+                const fechaB =
+                b.fecha
+                ?
+                b.fecha.toMillis()
+                :
+                0;
+
+
+                return fechaB - fechaA;
+
+            }
+        );
+
+
+        actualizarResumen();
+
+        mostrarConsultas();
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando consultas:",
+            error
+        );
+
+
+        listaConsultas.innerHTML = `
+            <div class="error">
+                No se pudieron cargar las consultas.
+                ${escapeHTML(error.message)}
+            </div>
+        `;
+
+    }
+
+}
+
+
+
+// ==========================================
+// MOSTRAR CONSULTAS
+// ==========================================
+
+function mostrarConsultas(){
+
+    const texto =
+    buscar.value
+    .trim()
+    .toLowerCase();
+
+
+    const estado =
+    filtroEstado.value;
+
+
+    const filtradas =
+    consultas.filter(
+        function(consulta){
+
+            const coincideTexto =
+                !texto ||
+                String(
+                    consulta.email || ""
+                )
+                .toLowerCase()
+                .includes(texto) ||
+
+                String(
+                    consulta.asunto || ""
+                )
+                .toLowerCase()
+                .includes(texto) ||
+
+                String(
+                    consulta.mensaje || ""
+                )
+                .toLowerCase()
+                .includes(texto);
+
+
+            const coincideEstado =
+                estado === "todos" ||
+                (
+                    consulta.estado ||
+                    "pendiente"
+                ) === estado;
+
+
+            return coincideTexto &&
+                   coincideEstado;
+
+        }
+    );
+
+
+    if(filtradas.length === 0){
+
+        listaConsultas.innerHTML = `
+            <div class="vacio">
+                No hay consultas que coincidan.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    listaConsultas.innerHTML = "";
+
+
+    filtradas.forEach(
+        function(consulta){
+
+            const estadoActual =
+            consulta.estado ||
+            "pendiente";
+
+
+            const claseEstado =
+            estadoActual === "resuelto"
+            ?
+            "resuelto"
+            :
+            estadoActual === "en_proceso"
+            ?
+            "en-proceso"
+            :
+            "pendiente";
+
+
+            const textoEstado =
+            estadoActual === "resuelto"
+            ?
+            "Resuelto"
+            :
+            estadoActual === "en_proceso"
+            ?
+            "En proceso"
+            :
+            "Pendiente";
+
+
+            const fecha =
+            formatearFecha(
+                consulta.fecha
+            );
+
+
+            const tarjeta =
+            document.createElement(
+                "article"
+            );
+
+
+            tarjeta.className =
+            "consulta " +
+            claseEstado;
+
+
+            tarjeta.innerHTML = `
+
+                <div class="consulta-top">
+
+                    <div>
+
+                        <div class="consulta-id">
+                            #${escapeHTML(
+                                consulta.id.substring(0,8)
+                            )}
+                        </div>
+
+                        <div class="consulta-asunto">
+                            ${escapeHTML(
+                                consulta.asunto ||
+                                "Sin asunto"
+                            )}
+                        </div>
+
+                        <div class="consulta-info">
+
+                            👤 ${escapeHTML(
+                                consulta.email ||
+                                "Sin email"
+                            )}
+
+                            <br>
+
+                            🏷️ ${escapeHTML(
+                                consulta.tipo ||
+                                "Otro"
+                            )}
+
+                            <br>
+
+                            📅 ${escapeHTML(fecha)}
+
+                        </div>
+
+                    </div>
+
+
+                    <span
+                        class="estado estado-${claseEstado}"
+                    >
+                        ${textoEstado}
+                    </span>
+
+                </div>
+
+
+                <div class="consulta-mensaje">
+
+                    ${escapeHTML(
+                        consulta.mensaje ||
+                        ""
+                    )}
+
+                </div>
+
+
+                <div class="acciones">
+
+                    <button
+                        class="btn-abrir"
+                        data-id="${escapeHTML(consulta.id)}"
+                        data-accion="abrir"
+                    >
+                        📂 Abrir consulta
+                    </button>
+
+
+                    ${
+                        estadoActual !== "en_proceso"
+                        ?
+                        `
+                        <button
+                            class="btn-proceso"
+                            data-id="${escapeHTML(consulta.id)}"
+                            data-accion="proceso"
+                        >
+                            🔄 En proceso
+                        </button>
+                        `
+                        :
+                        ""
+                    }
+
+
+                    ${
+                        estadoActual !== "resuelto"
+                        ?
+                        `
+                        <button
+                            class="btn-resuelto"
+                            data-id="${escapeHTML(consulta.id)}"
+                            data-accion="resuelto"
+                        >
+                            ✓ Resolver
+                        </button>
+                        `
+                        :
+                        ""
+                    }
+
+                </div>
+
+            `;
+
+
+            listaConsultas.appendChild(
+                tarjeta
+            );
+
+        }
+    );
+
+}
+
+
+
+// ==========================================
+// EVENTOS DE BOTONES
+// ==========================================
+
+listaConsultas.addEventListener(
+    "click",
+    async function(e){
+
+        const boton =
+        e.target.closest(
+            "button"
+        );
+
+
+        if(!boton){
+            return;
+        }
+
+
+        const id =
+        boton.dataset.id;
+
+
+        const accion =
+        boton.dataset.accion;
+
+
+        if(accion === "abrir"){
+
+            abrirConsulta(id);
+
+        }
+
+
+        if(accion === "proceso"){
+
+            await cambiarEstado(
+                id,
+                "en_proceso"
+            );
+
+        }
+
+
+        if(accion === "resuelto"){
+
+            await cambiarEstado(
+                id,
+                "resuelto"
+            );
+
+        }
+
+    }
+);
+
+
+
+// ==========================================
+// ABRIR CONSULTA
+// ==========================================
+
+async function abrirConsulta(id){
+
+    const consulta =
+    consultas.find(
+        c => c.id === id
+    );
+
+
+    if(!consulta){
+        return;
+    }
+
+
+    consultaSeleccionada =
+    consulta;
+
+
+    modalId.textContent =
+    "ID: " + consulta.id;
+
+
+    modalCliente.textContent =
+    consulta.email ||
+    "Sin email";
+
+
+    modalTipo.textContent =
+    consulta.tipo ||
+    "Otro";
+
+
+    modalAsunto.textContent =
+    consulta.asunto ||
+    "Sin asunto";
+
+
+    modalFecha.textContent =
+    formatearFecha(
+        consulta.fecha
+    );
+
+
+    modalMensaje.textContent =
+    consulta.mensaje ||
+    "";
+
+
+    modalEstado.value =
+    consulta.estado ||
+    "pendiente";
+
+
+    if(consulta.archivoURL){
+
+        modalArchivo.innerHTML = `
+
+            <a
+                class="archivo"
+                href="${escapeHTML(
+                    consulta.archivoURL
+                )}"
+                target="_blank"
+                rel="noopener"
+            >
+                📎 Abrir archivo adjunto
+            </a>
+
+        `;
+
+    }
+    else{
+
+        modalArchivo.innerHTML = "";
+
+    }
+
+
+    respuestaTexto.value = "";
+
+
+    modalFondo.classList.add(
+        "mostrar"
+    );
+
+
+    await cargarRespuestas(
+        consulta.id
+    );
+
+}
+
+
+
+// ==========================================
+// CERRAR MODAL
+// ==========================================
+
+window.cerrarModal =
+function(){
+
+    modalFondo.classList.remove(
+        "mostrar"
+    );
+
+    consultaSeleccionada =
+    null;
+
+};
+
+
+
+// ==========================================
+// CERRAR AL TOCAR FUERA
+// ==========================================
+
+modalFondo.addEventListener(
+    "click",
+    function(e){
+
+        if(
+            e.target === modalFondo
+        ){
+
+            cerrarModal();
+
+        }
+
+    }
+);
+
+
+
+// ==========================================
+// CAMBIAR ESTADO DESDE MODAL
+// ==========================================
+
+modalEstado.addEventListener(
+    "change",
+    async function(){
+
+        if(!consultaSeleccionada){
+            return;
+        }
+
+
+        await cambiarEstado(
+            consultaSeleccionada.id,
+            modalEstado.value,
+            false
+        );
+
+    }
+);
+
+
+
+// ==========================================
+// CAMBIAR ESTADO
+// ==========================================
+
+async function cambiarEstado(
+    id,
+    nuevoEstado,
+    mostrarMensaje = true
+){
+
+    try{
+
+        await updateDoc(
+            doc(
+                db,
+                "atenciones",
+                id
+            ),
+            {
+
+                estado:
+                nuevoEstado,
+
+                ultimaActualizacion:
+                serverTimestamp()
+
+            }
+        );
+
+
+        const consulta =
+        consultas.find(
+            c => c.id === id
+        );
+
+
+        if(consulta){
+
+            consulta.estado =
+            nuevoEstado;
+
+        }
+
+
+        actualizarResumen();
+
+        mostrarConsultas();
+
+
+        if(
+            consultaSeleccionada &&
+            consultaSeleccionada.id === id
+        ){
+
+            consultaSeleccionada.estado =
+            nuevoEstado;
+
+            modalEstado.value =
+            nuevoEstado;
+
+        }
+
+
+        if(mostrarMensaje){
+
+            mostrarExito(
+                "Estado actualizado correctamente."
+            );
+
+        }
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cambiando estado:",
+            error
+        );
+
+
+        mostrarError(
+            "No se pudo cambiar el estado."
+        );
+
+    }
+
+}
+
+
+
+// ==========================================
+// CARGAR RESPUESTAS
+// ==========================================
+
+async function cargarRespuestas(
+    atencionId
+){
+
+    listaRespuestas.innerHTML = `
+        <div class="sin-respuestas">
+            Cargando respuestas...
+        </div>
+    `;
+
+
+    try{
+
+        const referencia =
+        collection(
+            db,
+            "atenciones",
+            atencionId,
+            "respuestas"
+        );
+
+
+        const resultado =
+        await getDocs(
+            referencia
+        );
+
+
+        if(resultado.empty){
+
+            listaRespuestas.innerHTML = `
+                <div class="sin-respuestas">
+                    Todavía no hay respuestas.
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        const respuestas = [];
+
+
+        resultado.forEach(
+            documento => {
+
+                respuestas.push({
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+
+        respuestas.sort(
+            function(a,b){
+
+                const fechaA =
+                a.fecha
+                ?
+                a.fecha.toMillis()
+                :
+                0;
+
+
+                const fechaB =
+                b.fecha
+                ?
+                b.fecha.toMillis()
+                :
+                0;
+
+
+                return fechaA - fechaB;
+
+            }
+        );
+
+
+        listaRespuestas.innerHTML = "";
+
+
+        respuestas.forEach(
+            function(respuesta){
+
+                const div =
+                document.createElement(
+                    "div"
+                );
+
+
+                div.className =
+                "respuesta";
+
+
+                const fecha =
+                formatearFecha(
+                    respuesta.fecha
+                );
+
+
+                div.innerHTML = `
+
+                    <div class="respuesta-emisor">
+
+                        👤 ${escapeHTML(
+                            respuesta.emisorEmail ||
+                            "Atención al cliente"
+                        )}
+
+                    </div>
+
+
+                    <div class="respuesta-fecha">
+
+                        ${escapeHTML(fecha)}
+
+                    </div>
+
+
+                    <div class="respuesta-texto">
+
+                        ${escapeHTML(
+                            respuesta.mensaje ||
+                            ""
+                        )}
+
+                    </div>
+
+                `;
+
+
+                listaRespuestas.appendChild(
+                    div
+                );
+
+            }
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando respuestas:",
+            error
+        );
+
+
+        listaRespuestas.innerHTML = `
+            <div class="error">
+                No se pudieron cargar las respuestas.
+            </div>
+        `;
+
+    }
+
+}
+
+
+
+// ==========================================
+// ENVIAR RESPUESTA
+// ==========================================
+
+btnEnviarRespuesta.addEventListener(
+    "click",
+    async function(){
+
+        if(!consultaSeleccionada){
+
+            return;
+
+        }
+
+
+        const texto =
+        respuestaTexto.value.trim();
+
+
+        if(!texto){
+
+            alert(
+                "Escribí una respuesta."
+            );
+
+            return;
+
+        }
+
+
+        btnEnviarRespuesta.disabled =
+        true;
+
+
+        btnEnviarRespuesta.textContent =
+        "Enviando respuesta...";
+
+
+        try{
+
+            await addDoc(
+                collection(
+                    db,
+                    "atenciones",
+                    consultaSeleccionada.id,
+                    "respuestas"
+                ),
+                {
+
+                    mensaje:
+                    texto,
+
+                    emisorUid:
+                    usuarioActual.uid,
+
+                    emisorEmail:
+                    usuarioActual.email ||
+                    "Atención al cliente",
+
+                    fecha:
+                    serverTimestamp()
+
+                }
+            );
+
+
+            // ============================
+            // PASAR A EN PROCESO
+            // ============================
+
+            await updateDoc(
+                doc(
+                    db,
+                    "atenciones",
+                    consultaSeleccionada.id
+                ),
+                {
+
+                    estado:
+                    "en_proceso",
+
+                    ultimaActualizacion:
+                    serverTimestamp()
+
+                }
+            );
+
+
+            const consulta =
+            consultas.find(
+                c =>
+                c.id ===
+                consultaSeleccionada.id
+            );
+
+
+            if(consulta){
+
+                consulta.estado =
+                "en_proceso";
+
+            }
+
+
+            consultaSeleccionada.estado =
+            "en_proceso";
+
+
+            modalEstado.value =
+            "en_proceso";
+
+
+            respuestaTexto.value =
+            "";
+
+
+            await cargarRespuestas(
+                consultaSeleccionada.id
+            );
+
+
+            actualizarResumen();
+
+            mostrarConsultas();
+
+
+            mostrarExito(
+                "Respuesta enviada correctamente."
+            );
+
+        }
+        catch(error){
+
+            console.error(
+                "Error enviando respuesta:",
+                error
+            );
+
+
+            mostrarError(
+                "No se pudo enviar la respuesta."
+            );
+
+        }
+        finally{
+
+            btnEnviarRespuesta.disabled =
+            false;
+
+            btnEnviarRespuesta.textContent =
+            "📨 Enviar respuesta";
+
+        }
+
+    }
+);
+
+
+
+// ==========================================
+// RESUMEN
+// ==========================================
+
+function actualizarResumen(){
+
+    let pendientes = 0;
+
+    let proceso = 0;
+
+    let resueltas = 0;
+
+
+    consultas.forEach(
+        function(consulta){
+
+            const estado =
+            consulta.estado ||
+            "pendiente";
+
+
+            if(
+                estado === "pendiente"
+            ){
+
+                pendientes++;
+
+            }
+            else if(
+                estado === "en_proceso"
+            ){
+
+                proceso++;
+
+            }
+            else if(
+                estado === "resuelto"
+            ){
+
+                resueltas++;
+
+            }
+
+        }
+    );
+
+
+    totalPendientes.textContent =
+    pendientes;
+
+
+    totalProceso.textContent =
+    proceso;
+
+
+    totalResueltas.textContent =
+    resueltas;
+
+}
+
+
+
+// ==========================================
+// BUSCADOR
+// ==========================================
+
+buscar.addEventListener(
+    "input",
+    mostrarConsultas
+);
+
+
+filtroEstado.addEventListener(
+    "change",
+    mostrarConsultas
+);
+
+
+
+// ==========================================
+// FORMATO FECHA
+// ==========================================
+
+function formatearFecha(
+    timestamp
+){
+
+    if(!timestamp){
+
+        return "Fecha pendiente";
+
+    }
+
+
+    try{
+
+        const fecha =
+        timestamp.toDate();
+
+
+        return (
+            fecha.toLocaleDateString(
+                "es-AR"
+            )
+            +
+            " "
+            +
+            fecha.toLocaleTimeString(
+                "es-AR",
+                {
+                    hour:"2-digit",
+                    minute:"2-digit"
+                }
+            )
+        );
+
+    }
+    catch(error){
+
+        return "Fecha pendiente";
+
+    }
+
+}
+
+
+
+// ==========================================
+// MENSAJES
+// ==========================================
+
+function mostrarError(
+    texto
+){
+
+    mensajeSistema.innerHTML = `
+
+        <div class="error">
+            ${escapeHTML(texto)}
+        </div>
+
+    `;
+
+
+    setTimeout(
+        function(){
+
+            mensajeSistema.innerHTML = "";
+
+        },
+        4000
+    );
+
+}
+
+
+function mostrarExito(
+    texto
+){
+
+    mensajeSistema.innerHTML = `
+
+        <div class="exito">
+            ✅ ${escapeHTML(texto)}
+        </div>
+
+    `;
+
+
+    setTimeout(
+        function(){
+
+            mensajeSistema.innerHTML = "";
+
+        },
+        3500
+    );
+
+}
+
+
+
+// ==========================================
+// SEGURIDAD HTML
+// ==========================================
+
+function escapeHTML(
+    texto
+){
+
+    return String(texto)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+</script>
+
+</body>
+
+</html>
