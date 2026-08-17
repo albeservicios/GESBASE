@@ -992,4 +992,343 @@ formulario.addEventListener(
             false;
 
         btnEnviar.textContent =
-           
+            "📩 Enviar consulta";
+
+    }
+);
+
+
+// =========================================
+// LIMPIAR
+// =========================================
+
+btnLimpiar.addEventListener(
+    "click",
+    function(){
+
+        formulario.reset();
+
+        archivoSeleccionado.style.display =
+            "none";
+
+        archivoSeleccionado.textContent =
+            "";
+
+        mensaje.innerHTML =
+            "";
+
+    }
+);
+
+
+// =========================================
+// CARGAR CONSULTAS DEL USUARIO
+// =========================================
+
+async function cargarConsultas(){
+
+    if(!usuarioActual){
+        return;
+    }
+
+
+    listaConsultas.innerHTML =
+        `
+        <div class="sin-consultas">
+            Cargando consultas...
+        </div>
+        `;
+
+
+    try{
+
+        const referencia =
+            collection(
+                db,
+                "atencion_cliente"
+            );
+
+
+        const consulta =
+            query(
+                referencia,
+                where(
+                    "uid",
+                    "==",
+                    usuarioActual.uid
+                ),
+                orderBy(
+                    "creado",
+                    "desc"
+                )
+            );
+
+
+        const resultado =
+            await getDocs(
+                consulta
+            );
+
+
+        if(resultado.empty){
+
+            listaConsultas.innerHTML =
+                `
+                <div class="sin-consultas">
+                    Todavía no tenés consultas realizadas.
+                </div>
+                `;
+
+            return;
+
+        }
+
+
+        listaConsultas.innerHTML =
+            "";
+
+
+        resultado.forEach(
+            documento => {
+
+                const datos =
+                    documento.data();
+
+
+                const estado =
+                    datos.estado ||
+                    "pendiente";
+
+
+                let claseEstado =
+                    "estado-pendiente";
+
+
+                let textoEstado =
+                    "Pendiente";
+
+
+                if(
+                    estado ===
+                    "en_proceso"
+                ){
+
+                    claseEstado =
+                        "estado-en-proceso";
+
+                    textoEstado =
+                        "En proceso";
+
+                }
+
+
+                if(
+                    estado ===
+                    "resuelto"
+                ){
+
+                    claseEstado =
+                        "estado-resuelto";
+
+                    textoEstado =
+                        "Resuelto";
+
+                }
+
+
+                let fecha =
+                    "Sin fecha";
+
+
+                if(
+                    datos.creado &&
+                    datos.creado.toDate
+                ){
+
+                    fecha =
+                        datos.creado
+                        .toDate()
+                        .toLocaleString(
+                            "es-AR"
+                        );
+
+                }
+
+
+                const ticket =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                ticket.className =
+                    "ticket";
+
+
+                let archivoHTML =
+                    "";
+
+
+                if(
+                    datos.archivoURL
+                ){
+
+                    archivoHTML =
+                    `
+                    <a
+                        class="archivo-link"
+                        href="${escapeHTML(datos.archivoURL)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        📎 Ver archivo adjunto
+                    </a>
+                    `;
+
+                }
+
+
+                ticket.innerHTML =
+                `
+
+                <div class="ticket-cabecera">
+
+                    <div class="ticket-id">
+                        #${escapeHTML(
+                            documento.id.substring(0,8)
+                        )}
+                    </div>
+
+                    <span
+                        class="estado ${claseEstado}"
+                    >
+                        ${textoEstado}
+                    </span>
+
+                </div>
+
+                <p>
+                    <strong>
+                        ${escapeHTML(
+                            datos.asunto || ""
+                        )}
+                    </strong>
+                </p>
+
+                <p>
+                    <strong>
+                        Categoría:
+                    </strong>
+
+                    ${escapeHTML(
+                        datos.categoria || ""
+                    )}
+                </p>
+
+                <p>
+                    ${escapeHTML(
+                        datos.mensaje || ""
+                    )}
+                </p>
+
+                <div class="ticket-fecha">
+                    ${fecha}
+                </div>
+
+                ${archivoHTML}
+
+                `;
+
+
+                listaConsultas.appendChild(
+                    ticket
+                );
+
+            }
+        );
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando consultas:",
+            error
+        );
+
+
+        /*
+         * Si todavía no existe el índice
+         * compuesto de Firestore, mostramos
+         * las consultas sin romper la página.
+         */
+
+        listaConsultas.innerHTML =
+        `
+        <div class="error">
+            No se pudieron cargar las consultas.
+            Si es la primera vez que usás esta
+            sección, puede ser necesario crear
+            el índice de Firestore.
+        </div>
+        `;
+
+    }
+
+}
+
+
+// =========================================
+// MENSAJES
+// =========================================
+
+function mostrarMensaje(
+    texto,
+    tipo
+){
+
+    mensaje.innerHTML =
+        `
+        <div class="${tipo}">
+            ${escapeHTML(texto)}
+        </div>
+        `;
+
+}
+
+
+// =========================================
+// SEGURIDAD HTML
+// =========================================
+
+function escapeHTML(texto){
+
+    return String(texto)
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+</script>
+
+</body>
+
+</html>
