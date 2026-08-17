@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>GESBASE - Atención al cliente</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+    min-height:100vh;
+}
+
+.app{
+    width:100%;
+    max-width:700px;
+    margin:auto;
+    min-height:100vh;
+    background:white;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:24px 20px;
+    text-align:center;
+}
+
+.logo{
+    font-size:28px;
+    font-weight:bold;
+}
+
+.subtitulo{
+    margin-top:7px;
+    font-size:14px;
+    color:#d1d5db;
+}
+
+main{
+    padding:20px;
+}
+
+.boton-volver{
+    width:100%;
+    border:0;
+    background:#374151;
+    color:white;
+    padding:13px;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-bottom:20px;
+}
+
+.card{
+    background:white;
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.card h2{
+    font-size:20px;
+    margin-bottom:16px;
+}
+
+.info-usuario{
+    background:#f3f4f6;
+    border-radius:10px;
+    padding:14px;
+    margin-bottom:18px;
+}
+
+.info-item{
+    margin-bottom:9px;
+}
+
+.info-item:last-child{
+    margin-bottom:0;
+}
+
+.etiqueta{
+    display:block;
+    font-size:12px;
+    color:#6b7280;
+    margin-bottom:3px;
+}
+
+.valor{
+    font-weight:bold;
+    word-break:break-word;
+}
+
+.campo{
+    margin-bottom:16px;
+}
+
+label{
+    display:block;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+select,
+textarea{
+    width:100%;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    padding:12px;
+    font-size:16px;
+    font-family:Arial,Helvetica,sans-serif;
+    background:white;
+}
+
+textarea{
+    min-height:130px;
+    resize:vertical;
+}
+
+select:focus,
+textarea:focus{
+    outline:none;
+    border-color:#2563eb;
+}
+
+.btn-enviar{
+    width:100%;
+    border:0;
+    border-radius:10px;
+    padding:15px;
+    background:#2563eb;
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.btn-enviar:hover{
+    background:#1d4ed8;
+}
+
+.btn-enviar:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+.mensaje{
+    padding:13px;
+    border-radius:9px;
+    margin-bottom:18px;
+    display:none;
+    line-height:1.4;
+}
+
+.mensaje.exito{
+    display:block;
+    background:#dcfce7;
+    color:#166534;
+}
+
+.mensaje.error{
+    display:block;
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.ticket{
+    background:#eff6ff;
+    border-left:4px solid #2563eb;
+    padding:13px;
+    border-radius:7px;
+    margin-bottom:18px;
+    display:none;
+}
+
+.ticket strong{
+    color:#1d4ed8;
+}
+
+.tabla-container{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:620px;
+}
+
+th,
+td{
+    text-align:left;
+    padding:11px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+th{
+    background:#f9fafb;
+}
+
+.estado{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.estado-abierta{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.estado-atencion{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.estado-resuelta{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.sin-consultas{
+    text-align:center;
+    padding:25px 10px;
+    color:#6b7280;
+}
+
+.cargando{
+    text-align:center;
+    padding:30px;
+    color:#6b7280;
+}
+
+@media(max-width:600px){
+
+    main{
+        padding:12px;
+    }
+
+    .card{
+        padding:15px;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<div class="app">
+
+
+<header>
+
+    <div class="logo">
+        🎧 GESBASE
+    </div>
+
+    <div class="subtitulo">
+        Atención al cliente
+    </div>
+
+</header>
+
+
+<main>
+
+
+<button
+    type="button"
+    class="boton-volver"
+    onclick="window.location.href='index.html'"
+>
+    ← Volver al panel
+</button>
+
+
+<!-- ==========================================
+     DATOS DEL USUARIO
+========================================== -->
+
+<div class="card">
+
+    <h2>
+        👤 Mi cuenta
+    </h2>
+
+    <div class="info-usuario">
+
+        <div class="info-item">
+
+            <span class="etiqueta">
+                Nombre
+            </span>
+
+            <div
+                class="valor"
+                id="nombreUsuario"
+            >
+                Cargando...
+            </div>
+
+        </div>
+
+
+        <div class="info-item">
+
+            <span class="etiqueta">
+                Empresa
+            </span>
+
+            <div
+                class="valor"
+                id="empresaUsuario"
+            >
+                Cargando...
+            </div>
+
+        </div>
+
+
+        <div class="info-item">
+
+            <span class="etiqueta">
+                Email
+            </span>
+
+            <div
+                class="valor"
+                id="emailUsuario"
+            >
+                Cargando...
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     NUEVA CONSULTA
+========================================== -->
+
+<div class="card">
+
+    <h2>
+        📝 Nueva consulta
+    </h2>
+
+
+    <div
+        id="mensaje"
+        class="mensaje"
+    ></div>
+
+
+    <div
+        id="ticketCreado"
+        class="ticket"
+    >
+        Consulta creada correctamente.
+
+        <br>
+
+        Número de ticket:
+
+        <strong id="numeroTicket">
+            -
+        </strong>
+    </div>
+
+
+    <form id="formConsulta">
+
+
+        <div class="campo">
+
+            <label for="motivo">
+                Motivo de la consulta
+            </label>
+
+            <select
+                id="motivo"
+                required
+            >
+
+                <option value="">
+                    Seleccioná un motivo
+                </option>
+
+                <option value="Problema técnico">
+                    Problema técnico
+                </option>
+
+                <option value="Facturación">
+                    Facturación
+                </option>
+
+                <option value="Suscripción">
+                    Suscripción
+                </option>
+
+                <option value="Cuenta">
+                    Cuenta
+                </option>
+
+                <option value="Presupuestos">
+                    Presupuestos
+                </option>
+
+                <option value="Clientes">
+                    Clientes
+                </option>
+
+                <option value="Trabajos">
+                    Trabajos
+                </option>
+
+                <option value="Otro">
+                    Otro
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="campo">
+
+            <label for="mensajeConsulta">
+                Mensaje
+            </label>
+
+            <textarea
+                id="mensajeConsulta"
+                placeholder="Contanos qué necesitás..."
+                required
+            ></textarea>
+
+        </div>
+
+
+        <button
+            type="submit"
+            class="btn-enviar"
+            id="btnEnviar"
+        >
+            📩 Enviar consulta
+        </button>
+
+
+    </form>
+
+</div>
+
+
+<!-- ==========================================
+     HISTORIAL
+========================================== -->
+
+<div class="card">
+
+    <h2>
+        📋 Mis consultas
+    </h2>
+
+
+    <div class="tabla-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Ticket
+                    </th>
+
+                    <th>
+                        Fecha
+                    </th>
+
+                    <th>
+                        Motivo
+                    </th>
+
+                    <th>
+                        Estado
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="tablaConsultas">
+
+                <tr>
+
+                    <td
+                        colspan="4"
+                        class="cargando"
+                    >
+                        Cargando consultas...
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+</main>
+
+</div>
+
+
+<script type="module">
+
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    addDoc,
+    query,
+    where,
+    orderBy,
+    getDocs,
+    doc,
+    getDoc,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const nombreUsuario =
+document.getElementById("nombreUsuario");
+
+const empresaUsuario =
+document.getElementById("empresaUsuario");
+
+const emailUsuario =
+document.getElementById("emailUsuario");
+
+const formConsulta =
+document.getElementById("formConsulta");
+
+const motivo =
+document.getElementById("motivo");
+
+const mensajeConsulta =
+document.getElementById("mensajeConsulta");
+
+const btnEnviar =
+document.getElementById("btnEnviar");
+
+const mensaje =
+document.getElementById("mensaje");
+
+const ticketCreado =
+document.getElementById("ticketCreado");
+
+const numeroTicket =
+document.getElementById("numeroTicket");
+
+const tablaConsultas =
+document.getElementById("tablaConsultas");
+
+
+// ==========================================
+// VARIABLES
+// ==========================================
+
+let usuarioActual = null;
+
+let datosUsuario = {};
+
+let datosEmpresa = {};
+
+
+// ==========================================
+// GENERAR NÚMERO DE TICKET
+// ==========================================
+
+function generarTicket(){
+
+    const fecha = new Date();
+
+    const año =
+        fecha.getFullYear();
+
+    const numero =
+        String(
+            Date.now()
+        ).slice(-6);
+
+    return `GES-${año}-${numero}`;
+
+}
+
+
+// ==========================================
+// ESCAPAR HTML
+// ==========================================
+
+function escapeHTML(text){
+
+    return String(text || "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+// ==========================================
+// FORMATO FECHA
+// ==========================================
+
+function formatearFecha(timestamp){
+
+    if(!timestamp){
+        return "-";
+    }
+
+    try{
+
+        const fecha =
+            timestamp.toDate
+            ? timestamp.toDate()
+            : new Date(timestamp);
+
+        return fecha.toLocaleString(
+            "es-AR",
+            {
+                day:"2-digit",
+                month:"2-digit",
+                year:"numeric",
+                hour:"2-digit",
+                minute:"2-digit"
+            }
+        );
+
+    }
+    catch(error){
+
+        return "-";
+
+    }
+
+}
+
+
+// ==========================================
+// ESTADO
+// ==========================================
+
+function mostrarEstado(estado){
+
+    const valor =
+        String(
+            estado || "abierta"
+        )
+        .toLowerCase();
+
+
+    if(valor === "resuelta"){
+
+        return `
+            <span class="estado estado-resuelta">
+                Resuelta
+            </span>
+        `;
+
+    }
+
+
+    if(
+        valor === "en atención" ||
+        valor === "en_atencion" ||
+        valor === "en atencion"
+    ){
+
+        return `
+            <span class="estado estado-atencion">
+                En atención
+            </span>
+        `;
+
+    }
+
+
+    return `
+        <span class="estado estado-abierta">
+            Abierta
+        </span>
+    `;
+
+}
+
+
+// ==========================================
+// CARGAR DATOS DEL USUARIO
+// ==========================================
+
+async function cargarDatosUsuario(usuario){
+
+    try{
+
+        const referenciaUsuario =
+            doc(
+                db,
+                "usuarios",
+                usuario.uid
+            );
+
+
+        const documentoUsuario =
+            await getDoc(
+                referenciaUsuario
+            );
+
+
+        if(
+            documentoUsuario.exists()
+        ){
+
+            datosUsuario =
+                documentoUsuario.data();
+
+        }
+
+
+        const referenciaEmpresa =
+            doc(
+                db,
+                "empresas",
+                usuario.uid
+            );
+
+
+        const documentoEmpresa =
+            await getDoc(
+                referenciaEmpresa
+            );
+
+
+        if(
+            documentoEmpresa.exists()
+        ){
+
+            datosEmpresa =
+                documentoEmpresa.data();
+
+        }
+
+
+        nombreUsuario.textContent =
+            datosUsuario.nombre ||
+            datosUsuario.nombreCompleto ||
+            usuario.displayName ||
+            "Usuario";
+
+
+        empresaUsuario.textContent =
+            datosEmpresa.nombreEmpresa ||
+            datosUsuario.nombreEmpresa ||
+            datosUsuario.empresa ||
+            "Sin empresa";
+
+
+        emailUsuario.textContent =
+            datosUsuario.email ||
+            datosEmpresa.email ||
+            usuario.email ||
+            "Sin email";
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando usuario:",
+            error
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// CARGAR CONSULTAS
+// ==========================================
+
+async function cargarConsultas(){
+
+    if(!usuarioActual){
+        return;
+    }
+
+
+    tablaConsultas.innerHTML = `
+
+        <tr>
+
+            <td
+                colspan="4"
+                class="cargando"
+            >
+                Cargando consultas...
+            </td>
+
+        </tr>
+
+    `;
+
+
+    try{
+
+        const referencia =
+            collection(
+                db,
+                "consultas_atencion"
+            );
+
+
+        const consulta =
+            query(
+                referencia,
+                where(
+                    "uid",
+                    "==",
+                    usuarioActual.uid
+                ),
+                orderBy(
+                    "creado",
+                    "desc"
+                )
+            );
+
+
+        const resultado =
+            await getDocs(
+                consulta
+            );
+
+
+        if(
+            resultado.empty
+        ){
+
+            tablaConsultas.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="4"
+                        class="sin-consultas"
+                    >
+                        Todavía no tenés consultas.
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        tablaConsultas.innerHTML = "";
+
+
+        resultado.forEach(
+            documento => {
+
+                const datos =
+                    documento.data();
+
+
+                tablaConsultas.innerHTML += `
+
+                    <tr>
+
+                        <td>
+
+                            <strong>
+                                ${escapeHTML(
+                                    datos.ticket
+                                )}
+                            </strong>
+
+                        </td>
+
+                        <td>
+
+                            ${escapeHTML(
+                                formatearFecha(
+                                    datos.creado
+                                )
+                            )}
+
+                        </td>
+
+                        <td>
+
+                            ${escapeHTML(
+                                datos.motivo
+                            )}
+
+                        </td>
+
+                        <td>
+
+                            ${mostrarEstado(
+                                datos.estado
+                            )}
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        );
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando consultas:",
+            error
+        );
+
+
+        /*
+         * Si todavía no existe el índice compuesto
+         * de Firestore, mostramos igualmente un
+         * mensaje claro.
+         */
+
+        tablaConsultas.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="4"
+                    class="sin-consultas"
+                >
+                    No se pudo cargar el historial.
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+
+// ==========================================
+// SESIÓN
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async usuario => {
+
+
+        if(!usuario){
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+            usuario;
+
+
+        await cargarDatosUsuario(
+            usuario
+        );
+
+
+        await cargarConsultas();
+
+
+    }
+);
+
+
+// ==========================================
+// ENVIAR CONSULTA
+// ==========================================
+
+formConsulta.addEventListener(
+    "submit",
+    async function(event){
+
+        event.preventDefault();
+
+
+        if(!usuarioActual){
+
+            mostrarMensaje(
+                "No hay una sesión activa.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        const motivoValor =
+            motivo.value.trim();
+
+
+        const mensajeValor =
+            mensajeConsulta.value.trim();
+
+
+        if(!motivoValor){
+
+            mostrarMensaje(
+                "Seleccioná el motivo de la consulta.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if(!mensajeValor){
+
+            mostrarMensaje(
+                "Escribí el mensaje de la consulta.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        btnEnviar.disabled =
+            true;
+
+        btnEnviar.textContent =
+            "Enviando consulta...";
+
+
+        mensaje.className =
+            "mensaje";
+
+        mensaje.textContent =
+            "";
+
+
+        ticketCreado.style.display =
+            "none";
+
+
+        try{
+
+
+            const ticket =
+                generarTicket();
+
+
+            const empresa =
+                datosEmpresa.nombreEmpresa ||
+                datosUsuario.nombreEmpresa ||
+                datosUsuario.empresa ||
+                "Sin empresa";
+
+
+            const nombre =
+                datosUsuario.nombre ||
+                datosUsuario.nombreCompleto ||
+                usuarioActual.displayName ||
+                "Usuario";
+
+
+            const email =
+                datosUsuario.email ||
+                datosEmpresa.email ||
+                usuarioActual.email ||
+                "";
+
+
+            // ==================================
+            // GUARDAR EN FIRESTORE
+            // ==================================
+
+            await addDoc(
+                collection(
+                    db,
+                    "consultas_atencion"
+                ),
+                {
+
+                    ticket:
+                        ticket,
+
+                    uid:
+                        usuarioActual.uid,
+
+                    nombre:
+                        nombre,
+
+                    empresa:
+                        empresa,
+
+                    email:
+                        email,
+
+                    motivo:
+                        motivoValor,
+
+                    mensaje:
+                        mensajeValor,
+
+                    estado:
+                        "abierta",
+
+                    creado:
+                        serverTimestamp(),
+
+                    asignadoA:
+                        null,
+
+                    respondido:
+                        false
+
+                }
+            );
+
+
+            // ==================================
+            // MOSTRAR RESULTADO
+            // ==================================
+
+            numeroTicket.textContent =
+                ticket;
+
+
+            ticketCreado.style.display =
+                "block";
+
+
+            mostrarMensaje(
+                "Tu consulta fue enviada correctamente. Nuestro equipo podrá verla desde el sistema de atención.",
+                "exito"
+            );
+
+
+            formConsulta.reset();
+
+
+            await cargarConsultas();
+
+
+        }
+        catch(error){
+
+            console.error(
+                "Error creando consulta:",
+                error
+            );
+
+
+            mostrarMensaje(
+                "No se pudo enviar la consulta. " +
+                error.message,
+                "error"
+            );
+
+        }
+        finally{
+
+            btnEnviar.disabled =
+                false;
+
+            btnEnviar.textContent =
+                "📩 Enviar consulta";
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// MENSAJES
+// ==========================================
+
+function mostrarMensaje(
+    texto,
+    tipo
+){
+
+    mensaje.textContent =
+        texto;
+
+    mensaje.className =
+        "mensaje " + tipo;
+
+}
+
+</script>
+
+</body>
+
+</html>
