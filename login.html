@@ -178,7 +178,9 @@ input:focus{
 
 <body>
 
+
 <div class="contenedor">
+
 
 <header>
 
@@ -195,9 +197,11 @@ Gestión para empresas y profesionales
 
 <main>
 
+
 <h1>
 Iniciar sesión
 </h1>
+
 
 <p class="descripcion">
 Ingresá a tu cuenta para continuar utilizando GESBASE.
@@ -267,8 +271,8 @@ Iniciar sesión
 
 <button
     type="button"
-    class="boton boton-secundario"
     id="btnRegistro"
+    class="boton boton-secundario"
 >
 Crear una cuenta
 </button>
@@ -296,35 +300,26 @@ Registrate
 <script type="module">
 
 
-/* ==========================================
-   FIREBASE
-========================================== */
+// ==========================================
+// FIREBASE
+// ==========================================
 
 import {
-    auth,
-    db
+    auth
 } from "./Js/firebase.js";
 
 
 import {
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
-    onAuthStateChanged,
-    signOut
+    onAuthStateChanged
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
-import {
-    doc,
-    getDoc
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-
-/* ==========================================
-   ELEMENTOS
-========================================== */
+// ==========================================
+// ELEMENTOS
+// ==========================================
 
 const formulario =
 document.getElementById(
@@ -368,9 +363,9 @@ document.getElementById(
 );
 
 
-/* ==========================================
-   MENSAJES
-========================================== */
+// ==========================================
+// MENSAJE
+// ==========================================
 
 function mostrarMensaje(
     texto,
@@ -378,39 +373,40 @@ function mostrarMensaje(
 ){
 
     mensaje.textContent =
-    texto;
+        texto;
 
     mensaje.className =
-    "mensaje " + tipo;
+        "mensaje " +
+        tipo;
 
 }
 
 
-/* ==========================================
-   REGISTRO
-========================================== */
+// ==========================================
+// REGISTRO
+// ==========================================
 
 botonRegistro.addEventListener(
     "click",
     function(){
 
         window.location.href =
-        "registro.html";
+            "registro.html";
 
     }
 );
 
 
-/* ==========================================
-   RECUPERAR CONTRASEÑA
-========================================== */
+// ==========================================
+// RECUPERAR CONTRASEÑA
+// ==========================================
 
 botonRecuperar.addEventListener(
     "click",
     async function(){
 
         const email =
-        emailInput.value.trim();
+            emailInput.value.trim();
 
 
         if(!email){
@@ -428,10 +424,11 @@ botonRecuperar.addEventListener(
 
 
         botonRecuperar.disabled =
-        true;
+            true;
+
 
         botonRecuperar.textContent =
-        "Enviando...";
+            "Enviando...";
 
 
         try{
@@ -443,7 +440,7 @@ botonRecuperar.addEventListener(
 
 
             mostrarMensaje(
-                "Te enviamos un correo para restablecer tu contraseña. Revisá también la carpeta de spam.",
+                "Te enviamos un correo para restablecer tu contraseña. Revisá también Spam.",
                 "exito"
             );
 
@@ -457,7 +454,7 @@ botonRecuperar.addEventListener(
 
 
             let texto =
-            "No se pudo enviar el correo de recuperación.";
+                "No se pudo enviar el correo de recuperación.";
 
 
             switch(error.code){
@@ -465,7 +462,7 @@ botonRecuperar.addEventListener(
                 case "auth/invalid-email":
 
                     texto =
-                    "El email no es válido.";
+                        "El email no es válido.";
 
                     break;
 
@@ -473,7 +470,7 @@ botonRecuperar.addEventListener(
                 case "auth/user-not-found":
 
                     texto =
-                    "No existe una cuenta con ese email.";
+                        "No existe una cuenta con ese email.";
 
                     break;
 
@@ -481,15 +478,9 @@ botonRecuperar.addEventListener(
                 case "auth/too-many-requests":
 
                     texto =
-                    "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
+                        "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
 
                     break;
-
-
-                default:
-
-                    texto =
-                    "Error al recuperar la contraseña.";
 
             }
 
@@ -503,123 +494,23 @@ botonRecuperar.addEventListener(
 
 
         botonRecuperar.disabled =
-        false;
+            false;
+
 
         botonRecuperar.textContent =
-        "¿Olvidaste tu contraseña?";
+            "¿Olvidaste tu contraseña?";
 
     }
 );
 
 
-/* ==========================================
-   VERIFICAR USUARIO DE EMPRESA
-========================================== */
-
-async function verificarUsuarioEmpresa(
-    usuario
-){
-
-    if(!usuario){
-
-        return false;
-
-    }
-
-
-    /*
-     * IMPORTANTE:
-     *
-     * El perfil de empresa se busca en:
-     *
-     * usuarios/{UID}
-     *
-     * usando el mismo UID de Firebase Authentication.
-     */
-
-    const referencia =
-    doc(
-        db,
-        "usuarios",
-        usuario.uid
-    );
-
-
-    const resultado =
-    await getDoc(
-        referencia
-    );
-
-
-    if(
-        !resultado.exists()
-    ){
-
-        return false;
-
-    }
-
-
-    const datos =
-    resultado.data();
-
-
-    /*
-     * Un usuario de empresa debe tener
-     * empresaId asociado.
-     */
-
-    const empresaId =
-    datos.empresaId;
-
-
-    if(
-        !empresaId ||
-        String(
-            empresaId
-        ).trim() === ""
-    ){
-
-        return false;
-
-    }
-
-
-    /*
-     * Si existe un estado y está inactivo,
-     * no permitimos el acceso.
-     */
-
-    if(
-        datos.estado &&
-        String(
-            datos.estado
-        ).toLowerCase() !==
-        "activo"
-    ){
-
-        return false;
-
-    }
-
-
-    return true;
-
-}
-
-
-/* ==========================================
-   COMPROBAR SESIÓN EXISTENTE
-========================================== */
+// ==========================================
+// SESIÓN EXISTENTE
+// ==========================================
 
 onAuthStateChanged(
     auth,
-    async function(usuario){
-
-        /*
-         * Si NO hay usuario autenticado,
-         * simplemente mostramos el login.
-         */
+    function(usuario){
 
         if(!usuario){
 
@@ -628,72 +519,28 @@ onAuthStateChanged(
         }
 
 
-        try{
-
-            const autorizado =
-            await verificarUsuarioEmpresa(
-                usuario
-            );
+        console.log(
+            "GESBASE - Usuario autenticado:",
+            usuario.uid
+        );
 
 
-            if(autorizado){
+        /*
+         * Si ya existe una sesión válida,
+         * entramos directamente al panel.
+         */
 
-                /*
-                 * Usuario autenticado y autorizado.
-                 */
-
-                window.location.replace(
-                    "index.html"
-                );
-
-                return;
-
-            }
-
-
-            /*
-             * Está autenticado en Firebase,
-             * pero no tiene perfil de empresa válido.
-             */
-
-            await signOut(
-                auth
-            );
-
-
-            mostrarMensaje(
-                "Esta cuenta no tiene un perfil de empresa autorizado para ingresar a GESBASE.",
-                "error"
-            );
-
-        }
-        catch(error){
-
-            console.error(
-                "Error verificando sesión:",
-                error
-            );
-
-
-            await signOut(
-                auth
-            );
-
-
-            mostrarMensaje(
-                "No se pudo verificar el acceso de la cuenta.",
-                "error"
-            );
-
-        }
+        window.location.replace(
+            "index.html"
+        );
 
     }
 );
 
 
-/* ==========================================
-   INICIAR SESIÓN
-========================================== */
+// ==========================================
+// LOGIN
+// ==========================================
 
 formulario.addEventListener(
     "submit",
@@ -703,11 +550,11 @@ formulario.addEventListener(
 
 
         const email =
-        emailInput.value.trim();
+            emailInput.value.trim();
 
 
         const password =
-        passwordInput.value;
+            passwordInput.value;
 
 
         if(!email || !password){
@@ -723,66 +570,33 @@ formulario.addEventListener(
 
 
         botonLogin.disabled =
-        true;
+            true;
+
 
         botonLogin.textContent =
-        "Verificando acceso...";
+            "Ingresando...";
+
+
+        mostrarMensaje(
+            "Verificando acceso...",
+            "exito"
+        );
 
 
         try{
 
-            /*
-             * PRIMERA CAPA:
-             * Firebase Authentication
-             */
-
             const resultado =
-            await signInWithEmailAndPassword(
-                auth,
-                email,
-                password
-            );
-
-
-            const usuario =
-            resultado.user;
-
-
-            /*
-             * SEGUNDA CAPA:
-             * verificar que exista el usuario
-             * de empresa en Firestore.
-             */
-
-            botonLogin.textContent =
-            "Verificando empresa...";
-
-
-            const autorizado =
-            await verificarUsuarioEmpresa(
-                usuario
-            );
-
-
-            if(!autorizado){
-
-                /*
-                 * Si está autenticado pero no
-                 * corresponde a un usuario de
-                 * empresa autorizado, cerramos
-                 * inmediatamente la sesión.
-                 */
-
-                await signOut(
-                    auth
+                await signInWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
                 );
 
 
-                throw new Error(
-                    "Esta cuenta no tiene un perfil de empresa autorizado."
-                );
-
-            }
+            console.log(
+                "GESBASE - Login correcto:",
+                resultado.user.uid
+            );
 
 
             mostrarMensaje(
@@ -792,7 +606,8 @@ formulario.addEventListener(
 
 
             /*
-             * SOLO ACÁ permitimos entrar.
+             * Firebase ya confirmó las
+             * credenciales.
              */
 
             window.location.replace(
@@ -803,13 +618,13 @@ formulario.addEventListener(
         catch(error){
 
             console.error(
-                "Error Firebase:",
+                "ERROR LOGIN:",
                 error
             );
 
 
             let texto =
-            "No se pudo iniciar sesión.";
+                "No se pudo iniciar sesión.";
 
 
             switch(error.code){
@@ -817,23 +632,7 @@ formulario.addEventListener(
                 case "auth/invalid-credential":
 
                     texto =
-                    "Email o contraseña incorrectos.";
-
-                    break;
-
-
-                case "auth/user-not-found":
-
-                    texto =
-                    "No existe una cuenta con ese email.";
-
-                    break;
-
-
-                case "auth/wrong-password":
-
-                    texto =
-                    "La contraseña es incorrecta.";
+                        "Email o contraseña incorrectos.";
 
                     break;
 
@@ -841,7 +640,31 @@ formulario.addEventListener(
                 case "auth/invalid-email":
 
                     texto =
-                    "El email no es válido.";
+                        "El email no es válido.";
+
+                    break;
+
+
+                case "auth/user-not-found":
+
+                    texto =
+                        "No existe una cuenta con ese email.";
+
+                    break;
+
+
+                case "auth/wrong-password":
+
+                    texto =
+                        "La contraseña es incorrecta.";
+
+                    break;
+
+
+                case "auth/user-disabled":
+
+                    texto =
+                        "Esta cuenta fue deshabilitada.";
 
                     break;
 
@@ -849,7 +672,15 @@ formulario.addEventListener(
                 case "auth/too-many-requests":
 
                     texto =
-                    "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
+                        "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
+
+                    break;
+
+
+                case "auth/network-request-failed":
+
+                    texto =
+                        "No hay conexión con Firebase. Revisá tu conexión a Internet.";
 
                     break;
 
@@ -857,8 +688,8 @@ formulario.addEventListener(
                 default:
 
                     texto =
-                    error.message ||
-                    "No se pudo verificar el acceso.";
+                        error.message ||
+                        "Error al iniciar sesión.";
 
             }
 
@@ -870,10 +701,11 @@ formulario.addEventListener(
 
 
             botonLogin.disabled =
-            false;
+                false;
+
 
             botonLogin.textContent =
-            "Iniciar sesión";
+                "Iniciar sesión";
 
         }
 
