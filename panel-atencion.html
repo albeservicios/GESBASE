@@ -1,23 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-
-<meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<meta
-    name="theme-color"
-    content="#111827"
->
-
-<title>Panel de Atención - GESBASE</title>
-
-<style>
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#111827"><title>Panel de Atención - GESBASE</title><style>
 
 *{
     box-sizing:border-box;
@@ -148,22 +129,22 @@ th{
     font-weight:bold;
 }
 
-.estado-nueva{
-    background:#dbeafe;
-    color:#1d4ed8;
-}
-
-.estado-atencion{
+.estado-pendiente{
     background:#fef3c7;
     color:#92400e;
 }
 
-.estado-respondida{
+.estado-atencion{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+.estado-resuelto{
     background:#dcfce7;
     color:#166534;
 }
 
-.estado-cerrada{
+.estado-cerrado{
     background:#e5e7eb;
     color:#374151;
 }
@@ -293,6 +274,7 @@ button:disabled{
     padding:15px;
     border-radius:10px;
     margin-bottom:20px;
+    line-height:1.5;
 }
 
 .aviso{
@@ -301,6 +283,7 @@ button:disabled{
     padding:15px;
     border-radius:10px;
     margin-bottom:20px;
+    line-height:1.5;
 }
 
 .vacio{
@@ -318,6 +301,7 @@ button:disabled{
 #btnCerrarSesion{
     background:#dc2626;
     color:white;
+    width:100%;
 }
 
 .acceso-denegado{
@@ -368,451 +352,168 @@ button:disabled{
 
 }
 
-</style>
-
-</head>
-
-
-<body>
-
-
-<header>
-
-<h1>🎧 GESBASE</h1>
-
-<p>Panel de Atención al Cliente</p>
-
-<div id="usuarioActual">
+</style></head><body><header><h1>🎧 GESBASE</h1><p>Panel de Atención al Cliente</p><div id="usuarioActual">
 Verificando usuario...
-</div>
-
-</header>
-
-
-<div class="container">
-
-<div id="mensajeSistema"></div>
-
-
-<!-- ==========================================
+</div></header><div class="container"><div id="mensajeSistema"></div><!-- ==========================================
      RESUMEN
-========================================== -->
-
-<div
-    class="card"
-    id="panelResumen"
->
-
-<h2>📊 Resumen</h2>
-
-<br>
-
-<div class="resumen">
-
-<div class="resumen-box">
-
-<span>
-Nuevas
-</span>
-
-<strong id="totalNuevas">
-0
-</strong>
-
-</div>
-
-
-<div class="resumen-box">
-
-<span>
-En atención
-</span>
-
-<strong id="totalAtencion">
-0
-</strong>
-
-</div>
-
-
-<div class="resumen-box">
-
-<span>
-Respondidas
-</span>
-
-<strong id="totalRespondidas">
-0
-</strong>
-
-</div>
-
-
-<div class="resumen-box">
-
-<span>
-Cerradas
-</span>
-
-<strong id="totalCerradas">
-0
-</strong>
-
-</div>
-
-</div>
-
-</div>
-
-
-<!-- ==========================================
+========================================== --><div class="card" id="panelResumen"><h2>📊 Resumen</h2><br><div class="resumen"><div class="resumen-box">
+<span>Pendientes</span>
+<strong id="totalPendientes">0</strong>
+</div><div class="resumen-box">
+<span>En atención</span>
+<strong id="totalAtencion">0</strong>
+</div><div class="resumen-box">
+<span>Resueltas</span>
+<strong id="totalResueltas">0</strong>
+</div><div class="resumen-box">
+<span>Total</span>
+<strong id="totalConsultas">0</strong>
+</div></div></div><!-- ==========================================
      LISTADO
-========================================== -->
-
-<div
-    class="card"
-    id="panelListado"
->
-
-<h2>
+========================================== --><div class="card" id="panelListado"><h2>
 📋 Consultas de clientes
-</h2>
-
-<br>
-
-<div class="filtros">
-
-<select id="filtroEstado">
-
-<option value="todas">
+</h2><br><div class="filtros"><select id="filtroEstado"><option value="todas">
 Todas las consultas
-</option>
-
-<option value="nueva">
-Nuevas
-</option>
-
-<option value="en_atencion">
+</option><option value="pendiente">
+Pendientes
+</option><option value="en_proceso">
 En atención
-</option>
+</option><option value="resuelto">
+Resueltas
+</option></select><input
+type="text"
+id="buscarConsulta"
+placeholder="🔎 Buscar cliente, asunto o email..."
 
-<option value="respondida">
-Respondidas
-</option>
+«»
 
-<option value="cerrada">
-Cerradas
-</option>
-
-</select>
-
-
-<input
-    type="text"
-    id="buscarConsulta"
-    placeholder="🔎 Buscar cliente, asunto o email..."
->
-
-</div>
-
-<br>
-
-
-<div
-    id="cargandoConsultas"
-    class="cargando"
->
-
+</div><br><div id="cargandoConsultas" class="cargando">
 Cargando consultas...
-
-</div>
-
-
-<div class="tabla-container">
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>
-Fecha
-</th>
-
-<th>
-Cliente
-</th>
-
-<th>
-Asunto
-</th>
-
-<th>
-Estado
-</th>
-
-<th>
-Acción
-</th>
-
-</tr>
-
-</thead>
-
-<tbody id="tablaConsultas">
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-
-<!-- ==========================================
+</div><div class="tabla-container"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Asunto</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="tablaConsultas"></tbody></table></div></div><!-- ==========================================
      DETALLE
-========================================== -->
-
-<div
-    class="card detalle"
-    id="panelDetalle"
->
-
-<div class="detalle-header">
-
-<h2>
+========================================== --><div class="card detalle" id="panelDetalle"><div class="detalle-header"><h2>
 📨 Detalle de consulta
-</h2>
+</h2><button
+type="button"
+class="btn-volver"
+id="btnVolver"
 
-<button
-    type="button"
-    class="btn-volver"
-    id="btnVolver"
->
+«»
+
 ← Volver
 </button>
 
-</div>
-
-
-<div class="info-grid">
-
-<div class="info">
-
-<small>
+</div><div class="info-grid"><div class="info"><small>
 Cliente
-</small>
-
-<strong id="detalleCliente">
+</small><strong id="detalleCliente">
 -
-</strong>
-
-</div>
-
-
-<div class="info">
-
-<small>
+</strong></div><div class="info"><small>
 Email
-</small>
-
-<strong id="detalleEmail">
+</small><strong id="detalleEmail">
 -
-</strong>
-
-</div>
-
-
-<div class="info">
-
-<small>
+</strong></div><div class="info"><small>
 Fecha
-</small>
-
-<strong id="detalleFecha">
+</small><strong id="detalleFecha">
 -
-</strong>
-
-</div>
-
-
-<div class="info">
-
-<small>
+</strong></div><div class="info"><small>
 Estado
-</small>
-
-<strong id="detalleEstado">
+</small><strong id="detalleEstado">
 -
-</strong>
-
-</div>
-
-</div>
-
-
-<div class="info">
-
-<small>
+</strong></div></div><div class="info"><small>
+Tipo de consulta
+</small><strong id="detalleTipo">
+-
+</strong></div><br><div class="info"><small>
 Asunto
-</small>
-
-<strong id="detalleAsunto">
+</small><strong id="detalleAsunto">
 -
-</strong>
-
-</div>
-
-<br>
-
-
-<h3>
+</strong></div><br><h3>
 Mensaje
-</h3>
-
-<br>
-
-<div
-    class="mensaje"
-    id="detalleMensaje"
+</h3><br><div
+class="mensaje"
+id="detalleMensaje"
 >
 -
-</div>
-
-
-<!-- ==========================================
-     ARCHIVO / IMAGEN
-========================================== -->
-
-<div
-    class="archivo"
-    id="detalleArchivo"
-    style="display:none;"
->
-
-📎 Archivo adjunto:
+</div><!-- ==========================================
+     ARCHIVO
+========================================== --><div
+class="archivo"
+id="detalleArchivo"
+style="display:none;"
+>📎 Archivo adjunto:
 
 <br><br>
 
 <a
-    id="linkArchivo"
-    href="#"
-    target="_blank"
-    rel="noopener"
->
+id="linkArchivo"
+href="#"
+target="_blank"
+rel="noopener"
+
+«»
+
 Ver archivo
 </a>
 
-</div>
-
-
-<!-- ==========================================
+</div><!-- ==========================================
      ESTADO
-========================================== -->
-
-<div>
-
-<h3>
+========================================== --><div><h3>
 Cambiar estado
-</h3>
-
-<br>
-
-<select id="detalleEstadoSelect">
-
-<option value="nueva">
-Nueva
-</option>
-
-<option value="en_atencion">
+</h3><br><select id="detalleEstadoSelect"><option value="pendiente">
+Pendiente
+</option><option value="en_proceso">
 En atención
-</option>
-
-<option value="respondida">
-Respondida
-</option>
-
-<option value="cerrada">
-Cerrada
-</option>
-
-</select>
-
-</div>
-
-
-<!-- ==========================================
+</option><option value="resuelto">
+Resuelto
+</option></select></div><!-- ==========================================
      RESPUESTA
-========================================== -->
-
-<div class="respuesta">
-
-<h3>
+========================================== --><div class="respuesta"><h3>
 💬 Responder al cliente
-</h3>
+</h3><textarea
+id="campoRespuesta"
+placeholder="Escribí aquí la respuesta para el cliente..."
+></textarea><div class="botones"><button
+type="button"
+class="btn-responder"
+id="btnResponder"
 
-<textarea
-    id="campoRespuesta"
-    placeholder="Escribí aquí la respuesta para el cliente..."
-></textarea>
+«»
 
-
-<div class="botones">
-
-<button
-    type="button"
-    class="btn-responder"
-    id="btnResponder"
->
 📨 Enviar respuesta
 </button>
 
-
 <button
-    type="button"
-    class="btn-cerrar"
-    id="btnGuardarEstado"
->
+type="button"
+class="btn-cerrar"
+id="btnGuardarEstado"
+
+«»
+
 🔄 Guardar estado
 </button>
 
-
 <button
-    type="button"
-    class="btn-eliminar"
-    id="btnEliminar"
->
+type="button"
+class="btn-eliminar"
+id="btnEliminar"
+
+«»
+
 🗑️ Eliminar consulta
 </button>
 
-</div>
-
-</div>
-
-</div>
-
-
-<!-- ==========================================
+</div></div></div><!-- ==========================================
      CERRAR SESIÓN
-========================================== -->
+========================================== --><div class="card"><button
+type="button"
+id="btnCerrarSesion"
 
-<div class="card">
+«»
 
-<button
-    type="button"
-    id="btnCerrarSesion"
->
 🚪 Cerrar sesión
 </button>
 
-</div>
-
-</div>
-
-
-<script type="module">
+</div></div><script type="module">
 
 
 /* ==========================================
@@ -858,74 +559,46 @@ const EMAIL_ADMIN =
 ========================================== */
 
 const mensajeSistema =
-document.getElementById(
-    "mensajeSistema"
-);
+document.getElementById("mensajeSistema");
 
 const usuarioActual =
-document.getElementById(
-    "usuarioActual"
-);
+document.getElementById("usuarioActual");
 
 const cargandoConsultas =
-document.getElementById(
-    "cargandoConsultas"
-);
+document.getElementById("cargandoConsultas");
 
 const tablaConsultas =
-document.getElementById(
-    "tablaConsultas"
-);
+document.getElementById("tablaConsultas");
 
 const filtroEstado =
-document.getElementById(
-    "filtroEstado"
-);
+document.getElementById("filtroEstado");
 
 const buscarConsulta =
-document.getElementById(
-    "buscarConsulta"
-);
+document.getElementById("buscarConsulta");
 
 const panelListado =
-document.getElementById(
-    "panelListado"
-);
+document.getElementById("panelListado");
 
 const panelResumen =
-document.getElementById(
-    "panelResumen"
-);
+document.getElementById("panelResumen");
 
 const panelDetalle =
-document.getElementById(
-    "panelDetalle"
-);
+document.getElementById("panelDetalle");
 
 const btnVolver =
-document.getElementById(
-    "btnVolver"
-);
+document.getElementById("btnVolver");
 
 const btnResponder =
-document.getElementById(
-    "btnResponder"
-);
+document.getElementById("btnResponder");
 
 const btnGuardarEstado =
-document.getElementById(
-    "btnGuardarEstado"
-);
+document.getElementById("btnGuardarEstado");
 
 const btnEliminar =
-document.getElementById(
-    "btnEliminar"
-);
+document.getElementById("btnEliminar");
 
 const btnCerrarSesion =
-document.getElementById(
-    "btnCerrarSesion"
-);
+document.getElementById("btnCerrarSesion");
 
 
 let usuarioLogueado = null;
@@ -936,21 +609,7 @@ let consultaSeleccionada = null;
 
 
 /* ==========================================
-   OCULTAR PANEL MIENTRAS SE VERIFICA
-========================================== */
-
-panelResumen.style.display =
-"none";
-
-panelListado.style.display =
-"none";
-
-panelDetalle.style.display =
-"none";
-
-
-/* ==========================================
-   MOSTRAR MENSAJE
+   MENSAJES
 ========================================== */
 
 function mostrarMensaje(
@@ -981,16 +640,12 @@ function mostrarMensaje(
 
 
 /* ==========================================
-   COMPROBAR SESIÓN Y PERMISOS
+   SESIÓN
 ========================================== */
 
 onAuthStateChanged(
     auth,
     async function(usuario){
-
-        /* ==================================
-           SIN SESIÓN
-        ================================== */
 
         if(!usuario){
 
@@ -1006,10 +661,6 @@ onAuthStateChanged(
         usuarioLogueado =
         usuario;
 
-
-        /* ==================================
-           COMPROBAR EMAIL
-        ================================== */
 
         const emailActual =
         String(
@@ -1045,15 +696,10 @@ onAuthStateChanged(
                 "error"
             );
 
-
             return;
 
         }
 
-
-        /* ==================================
-           ACCESO AUTORIZADO
-        ================================== */
 
         try{
 
@@ -1126,6 +772,8 @@ onAuthStateChanged(
 
 /* ==========================================
    CARGAR CONSULTAS
+   IMPORTANTE:
+   LA COLECCIÓN CORRECTA ES "atenciones"
 ========================================== */
 
 async function cargarConsultas(){
@@ -1139,7 +787,7 @@ async function cargarConsultas(){
         const referencia =
         collection(
             db,
-            "consultas"
+            "atenciones"
         );
 
 
@@ -1187,7 +835,7 @@ async function cargarConsultas(){
     catch(error){
 
         console.error(
-            "Error cargando consultas:",
+            "Error cargando atenciones:",
             error
         );
 
@@ -1198,7 +846,10 @@ async function cargarConsultas(){
 
         mostrarMensaje(
             "No se pudieron cargar las consultas. " +
-            error.message,
+            "Código: " +
+            (error.code || "desconocido") +
+            " - " +
+            (error.message || "Error desconocido"),
             "error"
         );
 
@@ -1233,14 +884,12 @@ function mostrarConsultas(){
 
             const estado =
             consulta.estado ||
-            "nueva";
+            "pendiente";
 
 
             if(
-                estadoFiltro !==
-                "todas" &&
-                estado !==
-                estadoFiltro
+                estadoFiltro !== "todas" &&
+                estado !== estadoFiltro
             ){
 
                 return false;
@@ -1250,15 +899,19 @@ function mostrarConsultas(){
 
             const texto = [
 
+                consulta.email,
+
+                consulta.uid,
+
                 consulta.cliente,
 
                 consulta.nombre,
 
-                consulta.email,
-
                 consulta.asunto,
 
-                consulta.mensaje
+                consulta.mensaje,
+
+                consulta.tipo
 
             ]
             .join(" ")
@@ -1267,9 +920,7 @@ function mostrarConsultas(){
 
             if(
                 busqueda &&
-                !texto.includes(
-                    busqueda
-                )
+                !texto.includes(busqueda)
             ){
 
                 return false;
@@ -1292,7 +943,7 @@ function mostrarConsultas(){
             <tr>
 
                 <td
-                    colspan="5"
+                    colspan="6"
                     class="vacio"
                 >
 
@@ -1313,9 +964,7 @@ function mostrarConsultas(){
         consulta => {
 
             const fila =
-            document.createElement(
-                "tr"
-            );
+            document.createElement("tr");
 
 
             const fecha =
@@ -1327,7 +976,13 @@ function mostrarConsultas(){
 
             const estado =
             consulta.estado ||
-            "nueva";
+            "pendiente";
+
+
+            const cliente =
+            consulta.cliente ||
+            consulta.nombre ||
+            "Cliente";
 
 
             fila.innerHTML = `
@@ -1339,19 +994,14 @@ function mostrarConsultas(){
                 <td>
 
                     <strong>
-                        ${escapeHTML(
-                            consulta.cliente ||
-                            consulta.nombre ||
-                            "Sin nombre"
-                        )}
+                        ${escapeHTML(cliente)}
                     </strong>
 
                     <br>
 
                     <small>
                         ${escapeHTML(
-                            consulta.email ||
-                            ""
+                            consulta.email || ""
                         )}
                     </small>
 
@@ -1359,19 +1009,27 @@ function mostrarConsultas(){
 
                 <td>
                     ${escapeHTML(
-                        consulta.asunto ||
+                        consulta.tipo ||
                         "Consulta"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        consulta.asunto ||
+                        "Sin asunto"
                     )}
                 </td>
 
                 <td>
 
                     <span
-                        class="estado
-                        ${claseEstado(estado)}"
+                        class="estado ${claseEstado(estado)}"
                     >
 
-                        ${textoEstado(estado)}
+                        ${escapeHTML(
+                            textoEstado(estado)
+                        )}
 
                     </span>
 
@@ -1391,13 +1049,9 @@ function mostrarConsultas(){
             `;
 
 
-            const boton =
-            fila.querySelector(
-                "button"
-            );
-
-
-            boton.addEventListener(
+            fila
+            .querySelector("button")
+            .addEventListener(
                 "click",
                 function(){
 
@@ -1420,18 +1074,16 @@ function mostrarConsultas(){
 
 
 /* ==========================================
-   ACTUALIZAR RESUMEN
+   RESUMEN
 ========================================== */
 
 function actualizarResumen(){
 
-    let nuevas = 0;
+    let pendientes = 0;
 
     let atencion = 0;
 
-    let respondidas = 0;
-
-    let cerradas = 0;
+    let resueltas = 0;
 
 
     consultas.forEach(
@@ -1439,35 +1091,28 @@ function actualizarResumen(){
 
             const estado =
             consulta.estado ||
-            "nueva";
+            "pendiente";
 
 
             if(
-                estado === "nueva"
+                estado === "pendiente"
             ){
 
-                nuevas++;
+                pendientes++;
 
             }
             else if(
-                estado === "en_atencion"
+                estado === "en_proceso"
             ){
 
                 atencion++;
 
             }
             else if(
-                estado === "respondida"
+                estado === "resuelto"
             ){
 
-                respondidas++;
-
-            }
-            else if(
-                estado === "cerrada"
-            ){
-
-                cerradas++;
+                resueltas++;
 
             }
 
@@ -1476,9 +1121,9 @@ function actualizarResumen(){
 
 
     document.getElementById(
-        "totalNuevas"
+        "totalPendientes"
     ).textContent =
-    nuevas;
+    pendientes;
 
 
     document.getElementById(
@@ -1488,15 +1133,15 @@ function actualizarResumen(){
 
 
     document.getElementById(
-        "totalRespondidas"
+        "totalResueltas"
     ).textContent =
-    respondidas;
+    resueltas;
 
 
     document.getElementById(
-        "totalCerradas"
+        "totalConsultas"
     ).textContent =
-    cerradas;
+    consultas.length;
 
 }
 
@@ -1530,7 +1175,7 @@ function abrirConsulta(id){
     ).textContent =
     consulta.cliente ||
     consulta.nombre ||
-    "Sin informar";
+    "Cliente";
 
 
     document.getElementById(
@@ -1554,15 +1199,22 @@ function abrirConsulta(id){
     ).textContent =
     textoEstado(
         consulta.estado ||
-        "nueva"
+        "pendiente"
     );
+
+
+    document.getElementById(
+        "detalleTipo"
+    ).textContent =
+    consulta.tipo ||
+    "Consulta";
 
 
     document.getElementById(
         "detalleAsunto"
     ).textContent =
     consulta.asunto ||
-    "Consulta";
+    "Sin asunto";
 
 
     document.getElementById(
@@ -1576,7 +1228,7 @@ function abrirConsulta(id){
         "detalleEstadoSelect"
     ).value =
     consulta.estado ||
-    "nueva";
+    "pendiente";
 
 
     document.getElementById(
@@ -1645,11 +1297,8 @@ function abrirConsulta(id){
 
 
     window.scrollTo({
-
         top:0,
-
         behavior:"smooth"
-
     });
 
 }
@@ -1720,7 +1369,7 @@ btnGuardarEstado.addEventListener(
 
                 doc(
                     db,
-                    "consultas",
+                    "atenciones",
                     consultaSeleccionada.id
                 ),
 
@@ -1744,9 +1393,7 @@ btnGuardarEstado.addEventListener(
             document.getElementById(
                 "detalleEstado"
             ).textContent =
-            textoEstado(
-                nuevoEstado
-            );
+            textoEstado(nuevoEstado);
 
 
             const indice =
@@ -1777,7 +1424,10 @@ btnGuardarEstado.addEventListener(
         }
         catch(error){
 
-            console.error(error);
+            console.error(
+                "Error actualizando estado:",
+                error
+            );
 
 
             mostrarMensaje(
@@ -1803,7 +1453,7 @@ btnGuardarEstado.addEventListener(
 
 
 /* ==========================================
-   RESPONDER
+   RESPONDER AL CLIENTE
 ========================================== */
 
 btnResponder.addEventListener(
@@ -1852,7 +1502,7 @@ btnResponder.addEventListener(
 
                 collection(
                     db,
-                    "consultas",
+                    "atenciones",
                     consultaSeleccionada.id,
                     "respuestas"
                 ),
@@ -1866,7 +1516,7 @@ btnResponder.addEventListener(
                     usuarioLogueado.uid,
 
                     usuarioEmail:
-                    usuarioLogueado.email,
+                    usuarioLogueado.email || "",
 
                     fecha:
                     serverTimestamp()
@@ -1884,14 +1534,14 @@ btnResponder.addEventListener(
 
                 doc(
                     db,
-                    "consultas",
+                    "atenciones",
                     consultaSeleccionada.id
                 ),
 
                 {
 
                     estado:
-                    "respondida",
+                    "resuelto",
 
                     ultimaRespuesta:
                     respuesta,
@@ -1900,7 +1550,7 @@ btnResponder.addEventListener(
                     usuarioLogueado.uid,
 
                     respondidaPorEmail:
-                    usuarioLogueado.email,
+                    usuarioLogueado.email || "",
 
                     actualizado:
                     serverTimestamp()
@@ -1911,19 +1561,23 @@ btnResponder.addEventListener(
 
 
             consultaSeleccionada.estado =
-            "respondida";
+            "resuelto";
+
+
+            consultaSeleccionada.ultimaRespuesta =
+            respuesta;
 
 
             document.getElementById(
                 "detalleEstado"
             ).textContent =
-            "Respondida";
+            "Resuelto";
 
 
             document.getElementById(
                 "detalleEstadoSelect"
             ).value =
-            "respondida";
+            "resuelto";
 
 
             document.getElementById(
@@ -1943,12 +1597,17 @@ btnResponder.addEventListener(
             if(indice !== -1){
 
                 consultas[indice].estado =
-                "respondida";
+                "resuelto";
+
+                consultas[indice].ultimaRespuesta =
+                respuesta;
 
             }
 
 
             actualizarResumen();
+
+            mostrarConsultas();
 
 
             mostrarMensaje(
@@ -1958,7 +1617,10 @@ btnResponder.addEventListener(
         }
         catch(error){
 
-            console.error(error);
+            console.error(
+                "Error enviando respuesta:",
+                error
+            );
 
 
             mostrarMensaje(
@@ -1984,7 +1646,7 @@ btnResponder.addEventListener(
 
 
 /* ==========================================
-   ELIMINAR CONSULTA
+   ELIMINAR
 ========================================== */
 
 btnEliminar.addEventListener(
@@ -2025,7 +1687,7 @@ btnEliminar.addEventListener(
 
                 doc(
                     db,
-                    "consultas",
+                    "atenciones",
                     consultaSeleccionada.id
                 )
 
@@ -2068,7 +1730,10 @@ btnEliminar.addEventListener(
         }
         catch(error){
 
-            console.error(error);
+            console.error(
+                "Error eliminando consulta:",
+                error
+            );
 
 
             mostrarMensaje(
@@ -2167,20 +1832,20 @@ function textoEstado(estado){
 
     switch(estado){
 
-        case "nueva":
-            return "Nueva";
+        case "pendiente":
+            return "Pendiente";
 
-        case "en_atencion":
+        case "en_proceso":
             return "En atención";
 
-        case "respondida":
-            return "Respondida";
+        case "resuelto":
+            return "Resuelto";
 
         case "cerrada":
             return "Cerrada";
 
         default:
-            return "Nueva";
+            return "Pendiente";
 
     }
 
@@ -2191,20 +1856,20 @@ function claseEstado(estado){
 
     switch(estado){
 
-        case "nueva":
-            return "estado-nueva";
+        case "pendiente":
+            return "estado-pendiente";
 
-        case "en_atencion":
+        case "en_proceso":
             return "estado-atencion";
 
-        case "respondida":
-            return "estado-respondida";
+        case "resuelto":
+            return "estado-resuelto";
 
         case "cerrada":
-            return "estado-cerrada";
+            return "estado-cerrado";
 
         default:
-            return "estado-nueva";
+            return "estado-pendiente";
 
     }
 
@@ -2218,17 +1883,6 @@ function claseEstado(estado){
 function obtenerFecha(consulta){
 
     if(
-        consulta.creado &&
-        typeof consulta.creado.toMillis ===
-        "function"
-    ){
-
-        return consulta.creado.toMillis();
-
-    }
-
-
-    if(
         consulta.fecha &&
         typeof consulta.fecha.toMillis ===
         "function"
@@ -2239,12 +1893,21 @@ function obtenerFecha(consulta){
     }
 
 
+    if(
+        consulta.creado &&
+        typeof consulta.creado.toMillis ===
+        "function"
+    ){
+
+        return consulta.creado.toMillis();
+
+    }
+
+
     if(consulta.fecha){
 
         const fecha =
-        new Date(
-            consulta.fecha
-        );
+        new Date(consulta.fecha);
 
 
         if(
@@ -2359,8 +2022,4 @@ function escapeHTML(text){
 
 }
 
-</script>
-
-</body>
-
-</html>
+</script></body></html>
