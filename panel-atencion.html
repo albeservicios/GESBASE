@@ -1,4 +1,23 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#111827"><title>Panel de Atención - GESBASE</title><style>
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Panel de Atención - GESBASE</title>
+
+<style>
 
 *{
     box-sizing:border-box;
@@ -129,22 +148,22 @@ th{
     font-weight:bold;
 }
 
-.estado-pendiente{
-    background:#fef3c7;
-    color:#92400e;
-}
-
-.estado-atencion{
+.estado-nueva{
     background:#dbeafe;
     color:#1d4ed8;
 }
 
-.estado-resuelto{
+.estado-atencion{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.estado-respondida{
     background:#dcfce7;
     color:#166534;
 }
 
-.estado-cerrado{
+.estado-cerrada{
     background:#e5e7eb;
     color:#374151;
 }
@@ -247,6 +266,29 @@ button:disabled{
     text-decoration:none;
 }
 
+.respuestas{
+    margin-top:20px;
+    margin-bottom:20px;
+}
+
+.respuesta-item{
+    background:#f0fdf4;
+    border-left:4px solid #16a34a;
+    padding:13px;
+    border-radius:7px;
+    margin-top:10px;
+}
+
+.respuesta-item strong{
+    color:#166534;
+}
+
+.respuesta-fecha{
+    color:#6b7280;
+    font-size:12px;
+    margin-top:8px;
+}
+
 .respuesta{
     margin-top:20px;
 }
@@ -274,7 +316,6 @@ button:disabled{
     padding:15px;
     border-radius:10px;
     margin-bottom:20px;
-    line-height:1.5;
 }
 
 .aviso{
@@ -283,7 +324,6 @@ button:disabled{
     padding:15px;
     border-radius:10px;
     margin-bottom:20px;
-    line-height:1.5;
 }
 
 .vacio{
@@ -301,22 +341,6 @@ button:disabled{
 #btnCerrarSesion{
     background:#dc2626;
     color:white;
-    width:100%;
-}
-
-.acceso-denegado{
-    max-width:600px;
-    margin:30px auto;
-    text-align:center;
-}
-
-.acceso-denegado h2{
-    margin-bottom:12px;
-}
-
-.acceso-denegado p{
-    color:#6b7280;
-    line-height:1.5;
 }
 
 @media(max-width:700px){
@@ -352,173 +376,413 @@ button:disabled{
 
 }
 
-</style></head><body><header><h1>🎧 GESBASE</h1><p>Panel de Atención al Cliente</p><div id="usuarioActual">
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+<h1>🎧 GESBASE</h1>
+
+<p>Panel de Atención al Cliente</p>
+
+<div id="usuarioActual">
 Verificando usuario...
-</div></header><div class="container"><div id="mensajeSistema"></div><!-- ==========================================
-     RESUMEN
-========================================== --><div class="card" id="panelResumen"><h2>📊 Resumen</h2><br><div class="resumen"><div class="resumen-box">
-<span>Pendientes</span>
-<strong id="totalPendientes">0</strong>
-</div><div class="resumen-box">
+</div>
+
+</header>
+
+
+<div class="container">
+
+<div id="mensajeSistema"></div>
+
+
+<div
+    class="card"
+    id="panelResumen"
+>
+
+<h2>📊 Resumen</h2>
+
+<br>
+
+<div class="resumen">
+
+<div class="resumen-box">
+
+<span>Nuevas</span>
+
+<strong id="totalNuevas">
+0
+</strong>
+
+</div>
+
+
+<div class="resumen-box">
+
 <span>En atención</span>
-<strong id="totalAtencion">0</strong>
-</div><div class="resumen-box">
-<span>Resueltas</span>
-<strong id="totalResueltas">0</strong>
-</div><div class="resumen-box">
-<span>Total</span>
-<strong id="totalConsultas">0</strong>
-</div></div></div><!-- ==========================================
-     LISTADO
-========================================== --><div class="card" id="panelListado"><h2>
+
+<strong id="totalAtencion">
+0
+</strong>
+
+</div>
+
+
+<div class="resumen-box">
+
+<span>Respondidas</span>
+
+<strong id="totalRespondidas">
+0
+</strong>
+
+</div>
+
+
+<div class="resumen-box">
+
+<span>Cerradas</span>
+
+<strong id="totalCerradas">
+0
+</strong>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div
+    class="card"
+    id="panelListado"
+>
+
+<h2>
 📋 Consultas de clientes
-</h2><br><div class="filtros"><select id="filtroEstado"><option value="todas">
+</h2>
+
+<br>
+
+<div class="filtros">
+
+<select id="filtroEstado">
+
+<option value="todas">
 Todas las consultas
-</option><option value="pendiente">
+</option>
+
+<option value="pendiente">
 Pendientes
-</option><option value="en_proceso">
+</option>
+
+<option value="en_atencion">
 En atención
-</option><option value="resuelto">
-Resueltas
-</option></select><input
-type="text"
-id="buscarConsulta"
-placeholder="🔎 Buscar cliente, asunto o email..."
+</option>
 
-«»
+<option value="respondida">
+Respondidas
+</option>
 
-</div><br><div id="cargandoConsultas" class="cargando">
+<option value="cerrada">
+Cerradas
+</option>
+
+</select>
+
+
+<input
+    type="text"
+    id="buscarConsulta"
+    placeholder="🔎 Buscar cliente, asunto o email..."
+>
+
+</div>
+
+<br>
+
+
+<div
+    id="cargandoConsultas"
+    class="cargando"
+>
 Cargando consultas...
-</div><div class="tabla-container"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Asunto</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="tablaConsultas"></tbody></table></div></div><!-- ==========================================
-     DETALLE
-========================================== --><div class="card detalle" id="panelDetalle"><div class="detalle-header"><h2>
+</div>
+
+
+<div class="tabla-container">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Fecha</th>
+
+<th>Cliente</th>
+
+<th>Asunto</th>
+
+<th>Estado</th>
+
+<th>Acción</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tablaConsultas">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+
+<div
+    class="card detalle"
+    id="panelDetalle"
+>
+
+<div class="detalle-header">
+
+<h2>
 📨 Detalle de consulta
-</h2><button
-type="button"
-class="btn-volver"
-id="btnVolver"
+</h2>
 
-«»
-
+<button
+    type="button"
+    class="btn-volver"
+    id="btnVolver"
+>
 ← Volver
 </button>
 
-</div><div class="info-grid"><div class="info"><small>
-Cliente
-</small><strong id="detalleCliente">
+</div>
+
+
+<div class="info-grid">
+
+<div class="info">
+
+<small>Cliente</small>
+
+<strong id="detalleCliente">
 -
-</strong></div><div class="info"><small>
-Email
-</small><strong id="detalleEmail">
+</strong>
+
+</div>
+
+
+<div class="info">
+
+<small>Email</small>
+
+<strong id="detalleEmail">
 -
-</strong></div><div class="info"><small>
-Fecha
-</small><strong id="detalleFecha">
+</strong>
+
+</div>
+
+
+<div class="info">
+
+<small>Fecha</small>
+
+<strong id="detalleFecha">
 -
-</strong></div><div class="info"><small>
-Estado
-</small><strong id="detalleEstado">
+</strong>
+
+</div>
+
+
+<div class="info">
+
+<small>Estado</small>
+
+<strong id="detalleEstado">
 -
-</strong></div></div><div class="info"><small>
-Tipo de consulta
-</small><strong id="detalleTipo">
+</strong>
+
+</div>
+
+</div>
+
+
+<div class="info">
+
+<small>Asunto</small>
+
+<strong id="detalleAsunto">
 -
-</strong></div><br><div class="info"><small>
-Asunto
-</small><strong id="detalleAsunto">
--
-</strong></div><br><h3>
+</strong>
+
+</div>
+
+<br>
+
+
+<h3>
 Mensaje
-</h3><br><div
-class="mensaje"
-id="detalleMensaje"
+</h3>
+
+<br>
+
+<div
+    class="mensaje"
+    id="detalleMensaje"
 >
 -
-</div><!-- ==========================================
-     ARCHIVO
-========================================== --><div
-class="archivo"
-id="detalleArchivo"
-style="display:none;"
->📎 Archivo adjunto:
+</div>
+
+
+
+<div
+    class="archivo"
+    id="detalleArchivo"
+    style="display:none;"
+>
+
+📎 Archivo adjunto:
 
 <br><br>
 
 <a
-id="linkArchivo"
-href="#"
-target="_blank"
-rel="noopener"
-
-«»
-
+    id="linkArchivo"
+    href="#"
+    target="_blank"
+    rel="noopener"
+>
 Ver archivo
 </a>
 
-</div><!-- ==========================================
-     ESTADO
-========================================== --><div><h3>
+</div>
+
+
+
+<div class="respuestas">
+
+<h3>
+💬 Respuestas enviadas
+</h3>
+
+<div id="listaRespuestas">
+</div>
+
+</div>
+
+
+
+<div>
+
+<h3>
 Cambiar estado
-</h3><br><select id="detalleEstadoSelect"><option value="pendiente">
+</h3>
+
+<br>
+
+<select id="detalleEstadoSelect">
+
+<option value="pendiente">
 Pendiente
-</option><option value="en_proceso">
+</option>
+
+<option value="en_atencion">
 En atención
-</option><option value="resuelto">
-Resuelto
-</option></select></div><!-- ==========================================
-     RESPUESTA
-========================================== --><div class="respuesta"><h3>
+</option>
+
+<option value="respondida">
+Respondida
+</option>
+
+<option value="cerrada">
+Cerrada
+</option>
+
+</select>
+
+</div>
+
+
+
+<div class="respuesta">
+
+<h3>
 💬 Responder al cliente
-</h3><textarea
-id="campoRespuesta"
-placeholder="Escribí aquí la respuesta para el cliente..."
-></textarea><div class="botones"><button
-type="button"
-class="btn-responder"
-id="btnResponder"
+</h3>
 
-«»
+<textarea
+    id="campoRespuesta"
+    placeholder="Escribí aquí la respuesta para el cliente..."
+></textarea>
 
+
+<div class="botones">
+
+<button
+    type="button"
+    class="btn-responder"
+    id="btnResponder"
+>
 📨 Enviar respuesta
 </button>
 
+
 <button
-type="button"
-class="btn-cerrar"
-id="btnGuardarEstado"
-
-«»
-
+    type="button"
+    class="btn-cerrar"
+    id="btnGuardarEstado"
+>
 🔄 Guardar estado
 </button>
 
+
 <button
-type="button"
-class="btn-eliminar"
-id="btnEliminar"
-
-«»
-
+    type="button"
+    class="btn-eliminar"
+    id="btnEliminar"
+>
 🗑️ Eliminar consulta
 </button>
 
-</div></div></div><!-- ==========================================
-     CERRAR SESIÓN
-========================================== --><div class="card"><button
-type="button"
-id="btnCerrarSesion"
+</div>
 
-«»
+</div>
 
+</div>
+
+
+
+<div class="card">
+
+<button
+    type="button"
+    id="btnCerrarSesion"
+>
 🚪 Cerrar sesión
 </button>
 
-</div></div><script type="module">
+</div>
+
+</div>
 
 
-/* ==========================================
-   FIREBASE
-========================================== */
+<script type="module">
+
 
 import {
     auth,
@@ -536,7 +800,6 @@ import {
 import {
     collection,
     getDocs,
-    getDoc,
     doc,
     updateDoc,
     deleteDoc,
@@ -546,59 +809,80 @@ import {
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
-/* ==========================================
-   ADMINISTRADOR AUTORIZADO
-========================================== */
 
 const EMAIL_ADMIN =
 "julianbattauz006@gmail.com";
 
 
-/* ==========================================
-   ELEMENTOS
-========================================== */
-
 const mensajeSistema =
-document.getElementById("mensajeSistema");
+document.getElementById(
+    "mensajeSistema"
+);
 
 const usuarioActual =
-document.getElementById("usuarioActual");
+document.getElementById(
+    "usuarioActual"
+);
 
 const cargandoConsultas =
-document.getElementById("cargandoConsultas");
+document.getElementById(
+    "cargandoConsultas"
+);
 
 const tablaConsultas =
-document.getElementById("tablaConsultas");
+document.getElementById(
+    "tablaConsultas"
+);
 
 const filtroEstado =
-document.getElementById("filtroEstado");
+document.getElementById(
+    "filtroEstado"
+);
 
 const buscarConsulta =
-document.getElementById("buscarConsulta");
+document.getElementById(
+    "buscarConsulta"
+);
 
 const panelListado =
-document.getElementById("panelListado");
+document.getElementById(
+    "panelListado"
+);
 
 const panelResumen =
-document.getElementById("panelResumen");
+document.getElementById(
+    "panelResumen"
+);
 
 const panelDetalle =
-document.getElementById("panelDetalle");
+document.getElementById(
+    "panelDetalle"
+);
 
 const btnVolver =
-document.getElementById("btnVolver");
+document.getElementById(
+    "btnVolver"
+);
 
 const btnResponder =
-document.getElementById("btnResponder");
+document.getElementById(
+    "btnResponder"
+);
 
 const btnGuardarEstado =
-document.getElementById("btnGuardarEstado");
+document.getElementById(
+    "btnGuardarEstado"
+);
 
 const btnEliminar =
-document.getElementById("btnEliminar");
+document.getElementById(
+    "btnEliminar"
+);
 
 const btnCerrarSesion =
-document.getElementById("btnCerrarSesion");
+document.getElementById(
+    "btnCerrarSesion"
+);
 
 
 let usuarioLogueado = null;
@@ -608,9 +892,17 @@ let consultas = [];
 let consultaSeleccionada = null;
 
 
-/* ==========================================
-   MENSAJES
-========================================== */
+
+panelResumen.style.display =
+"none";
+
+panelListado.style.display =
+"none";
+
+panelDetalle.style.display =
+"none";
+
+
 
 function mostrarMensaje(
     texto,
@@ -639,9 +931,6 @@ function mostrarMensaje(
 }
 
 
-/* ==========================================
-   SESIÓN
-========================================== */
 
 onAuthStateChanged(
     auth,
@@ -679,102 +968,36 @@ onAuthStateChanged(
             "Acceso no autorizado";
 
 
-            panelResumen.style.display =
-            "none";
-
-
-            panelListado.style.display =
-            "none";
-
-
-            panelDetalle.style.display =
-            "none";
-
-
             mostrarMensaje(
                 "No tenés permisos para acceder al Panel de Atención.",
                 "error"
             );
+
 
             return;
 
         }
 
 
-        try{
-
-            const referenciaUsuario =
-            doc(
-                db,
-                "usuarios",
-                usuario.uid
-            );
+        usuarioActual.textContent =
+        "Administrador: " +
+        usuario.email;
 
 
-            const documentoUsuario =
-            await getDoc(
-                referenciaUsuario
-            );
+        panelResumen.style.display =
+        "block";
 
 
-            let datosUsuario = {};
+        panelListado.style.display =
+        "block";
 
 
-            if(
-                documentoUsuario.exists()
-            ){
-
-                datosUsuario =
-                documentoUsuario.data();
-
-            }
-
-
-            usuarioActual.textContent =
-            "Administrador: " +
-            (
-                datosUsuario.nombre ||
-                datosUsuario.nombreCompleto ||
-                usuario.email
-            );
-
-
-            panelResumen.style.display =
-            "block";
-
-
-            panelListado.style.display =
-            "block";
-
-
-            await cargarConsultas();
-
-        }
-        catch(error){
-
-            console.error(
-                "Error verificando administrador:",
-                error
-            );
-
-
-            mostrarMensaje(
-                "No se pudo cargar el panel: " +
-                error.message,
-                "error"
-            );
-
-        }
+        await cargarConsultas();
 
     }
 );
 
 
-/* ==========================================
-   CARGAR CONSULTAS
-   IMPORTANTE:
-   LA COLECCIÓN CORRECTA ES "atenciones"
-========================================== */
 
 async function cargarConsultas(){
 
@@ -846,10 +1069,7 @@ async function cargarConsultas(){
 
         mostrarMensaje(
             "No se pudieron cargar las consultas. " +
-            "Código: " +
-            (error.code || "desconocido") +
-            " - " +
-            (error.message || "Error desconocido"),
+            error.message,
             "error"
         );
 
@@ -858,9 +1078,6 @@ async function cargarConsultas(){
 }
 
 
-/* ==========================================
-   MOSTRAR CONSULTAS
-========================================== */
 
 function mostrarConsultas(){
 
@@ -882,9 +1099,19 @@ function mostrarConsultas(){
     consultas.filter(
         consulta => {
 
-            const estado =
+            let estado =
             consulta.estado ||
             "pendiente";
+
+
+            if(
+                estado === "nueva"
+            ){
+
+                estado =
+                "pendiente";
+
+            }
 
 
             if(
@@ -901,17 +1128,13 @@ function mostrarConsultas(){
 
                 consulta.email,
 
-                consulta.uid,
-
                 consulta.cliente,
 
                 consulta.nombre,
 
                 consulta.asunto,
 
-                consulta.mensaje,
-
-                consulta.tipo
+                consulta.mensaje
 
             ]
             .join(" ")
@@ -920,7 +1143,9 @@ function mostrarConsultas(){
 
             if(
                 busqueda &&
-                !texto.includes(busqueda)
+                !texto.includes(
+                    busqueda
+                )
             ){
 
                 return false;
@@ -943,12 +1168,10 @@ function mostrarConsultas(){
             <tr>
 
                 <td
-                    colspan="6"
+                    colspan="5"
                     class="vacio"
                 >
-
                     No hay consultas para mostrar.
-
                 </td>
 
             </tr>
@@ -964,44 +1187,52 @@ function mostrarConsultas(){
         consulta => {
 
             const fila =
-            document.createElement("tr");
-
-
-            const fecha =
-            formatearFechaHora(
-                consulta.fecha ||
-                consulta.creado
+            document.createElement(
+                "tr"
             );
 
 
-            const estado =
+            let estado =
             consulta.estado ||
             "pendiente";
 
 
-            const cliente =
-            consulta.cliente ||
-            consulta.nombre ||
-            "Cliente";
+            if(
+                estado === "nueva"
+            ){
+
+                estado =
+                "pendiente";
+
+            }
 
 
             fila.innerHTML = `
 
                 <td>
-                    ${escapeHTML(fecha)}
+                    ${escapeHTML(
+                        formatearFechaHora(
+                            consulta.fecha
+                        )
+                    )}
                 </td>
 
                 <td>
 
                     <strong>
-                        ${escapeHTML(cliente)}
+                        ${escapeHTML(
+                            consulta.cliente ||
+                            consulta.nombre ||
+                            "Cliente GESBASE"
+                        )}
                     </strong>
 
                     <br>
 
                     <small>
                         ${escapeHTML(
-                            consulta.email || ""
+                            consulta.email ||
+                            ""
                         )}
                     </small>
 
@@ -1009,28 +1240,20 @@ function mostrarConsultas(){
 
                 <td>
                     ${escapeHTML(
-                        consulta.tipo ||
-                        "Consulta"
-                    )}
-                </td>
-
-                <td>
-                    ${escapeHTML(
                         consulta.asunto ||
-                        "Sin asunto"
+                        "Consulta"
                     )}
                 </td>
 
                 <td>
 
                     <span
-                        class="estado ${claseEstado(estado)}"
+                        class="estado
+                        ${claseEstado(estado)}"
                     >
-
                         ${escapeHTML(
                             textoEstado(estado)
                         )}
-
                     </span>
 
                 </td>
@@ -1073,46 +1296,62 @@ function mostrarConsultas(){
 }
 
 
-/* ==========================================
-   RESUMEN
-========================================== */
 
 function actualizarResumen(){
 
-    let pendientes = 0;
+    let nuevas = 0;
 
     let atencion = 0;
 
-    let resueltas = 0;
+    let respondidas = 0;
+
+    let cerradas = 0;
 
 
     consultas.forEach(
         consulta => {
 
-            const estado =
+            let estado =
             consulta.estado ||
             "pendiente";
+
+
+            if(
+                estado === "nueva"
+            ){
+
+                estado =
+                "pendiente";
+
+            }
 
 
             if(
                 estado === "pendiente"
             ){
 
-                pendientes++;
+                nuevas++;
 
             }
             else if(
-                estado === "en_proceso"
+                estado === "en_atencion"
             ){
 
                 atencion++;
 
             }
             else if(
-                estado === "resuelto"
+                estado === "respondida"
             ){
 
-                resueltas++;
+                respondidas++;
+
+            }
+            else if(
+                estado === "cerrada"
+            ){
+
+                cerradas++;
 
             }
 
@@ -1121,9 +1360,9 @@ function actualizarResumen(){
 
 
     document.getElementById(
-        "totalPendientes"
+        "totalNuevas"
     ).textContent =
-    pendientes;
+    nuevas;
 
 
     document.getElementById(
@@ -1133,24 +1372,21 @@ function actualizarResumen(){
 
 
     document.getElementById(
-        "totalResueltas"
+        "totalRespondidas"
     ).textContent =
-    resueltas;
+    respondidas;
 
 
     document.getElementById(
-        "totalConsultas"
+        "totalCerradas"
     ).textContent =
-    consultas.length;
+    cerradas;
 
 }
 
 
-/* ==========================================
-   ABRIR CONSULTA
-========================================== */
 
-function abrirConsulta(id){
+async function abrirConsulta(id){
 
     const consulta =
     consultas.find(
@@ -1175,7 +1411,7 @@ function abrirConsulta(id){
     ).textContent =
     consulta.cliente ||
     consulta.nombre ||
-    "Cliente";
+    "Cliente GESBASE";
 
 
     document.getElementById(
@@ -1189,8 +1425,7 @@ function abrirConsulta(id){
         "detalleFecha"
     ).textContent =
     formatearFechaHora(
-        consulta.fecha ||
-        consulta.creado
+        consulta.fecha
     );
 
 
@@ -1204,17 +1439,10 @@ function abrirConsulta(id){
 
 
     document.getElementById(
-        "detalleTipo"
-    ).textContent =
-    consulta.tipo ||
-    "Consulta";
-
-
-    document.getElementById(
         "detalleAsunto"
     ).textContent =
     consulta.asunto ||
-    "Sin asunto";
+    "Consulta";
 
 
     document.getElementById(
@@ -1237,15 +1465,10 @@ function abrirConsulta(id){
     "";
 
 
-    /* ==================================
-       ARCHIVO
-    ================================== */
-
     const archivo =
     document.getElementById(
         "detalleArchivo"
     );
-
 
     const link =
     document.getElementById(
@@ -1267,7 +1490,6 @@ function abrirConsulta(id){
         archivo.style.display =
         "block";
 
-
         link.href =
         String(url);
 
@@ -1277,36 +1499,188 @@ function abrirConsulta(id){
         archivo.style.display =
         "none";
 
-
         link.href =
         "#";
 
     }
 
 
+    await cargarRespuestas(
+        consulta.id
+    );
+
+
     panelListado.style.display =
     "none";
 
-
     panelResumen.style.display =
     "none";
-
 
     panelDetalle.style.display =
     "block";
 
 
     window.scrollTo({
+
         top:0,
+
         behavior:"smooth"
+
     });
 
 }
 
 
-/* ==========================================
-   VOLVER
-========================================== */
+
+async function cargarRespuestas(id){
+
+    const lista =
+    document.getElementById(
+        "listaRespuestas"
+    );
+
+
+    lista.innerHTML = `
+
+        <div class="cargando">
+            Cargando respuestas...
+        </div>
+
+    `;
+
+
+    try{
+
+        const referencia =
+        collection(
+            db,
+            "atenciones",
+            id,
+            "respuestas"
+        );
+
+
+        const resultado =
+        await getDocs(
+            referencia
+        );
+
+
+        if(resultado.empty){
+
+            lista.innerHTML = `
+
+                <div class="vacio">
+                    Todavía no hay respuestas.
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        const respuestas = [];
+
+
+        resultado.forEach(
+            documento => {
+
+                respuestas.push({
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+
+        respuestas.sort(
+            (a,b) =>
+            obtenerFecha(b) -
+            obtenerFecha(a)
+        );
+
+
+        lista.innerHTML =
+        "";
+
+
+        respuestas.forEach(
+            respuesta => {
+
+                const elemento =
+                document.createElement(
+                    "div"
+                );
+
+
+                elemento.className =
+                "respuesta-item";
+
+
+                elemento.innerHTML = `
+
+                    <strong>
+                        Atención al cliente
+                    </strong>
+
+                    <div class="mensaje">
+                        ${escapeHTML(
+                            respuesta.texto ||
+                            ""
+                        )}
+                    </div>
+
+                    <div class="respuesta-fecha">
+                        ${escapeHTML(
+                            formatearFechaHora(
+                                respuesta.fecha
+                            )
+                        )}
+                    </div>
+
+                `;
+
+
+                lista.appendChild(
+                    elemento
+                );
+
+            }
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando respuestas:",
+            error
+        );
+
+
+        lista.innerHTML = `
+
+            <div class="error">
+                No se pudieron cargar las respuestas.
+                <br><br>
+                ${escapeHTML(
+                    error.message
+                )}
+            </div>
+
+        `;
+
+    }
+
+}
+
+
 
 btnVolver.addEventListener(
     "click",
@@ -1315,18 +1689,14 @@ btnVolver.addEventListener(
         panelDetalle.style.display =
         "none";
 
-
         panelListado.style.display =
         "block";
-
 
         panelResumen.style.display =
         "block";
 
-
         consultaSeleccionada =
         null;
-
 
         await cargarConsultas();
 
@@ -1334,9 +1704,6 @@ btnVolver.addEventListener(
 );
 
 
-/* ==========================================
-   GUARDAR ESTADO
-========================================== */
 
 btnGuardarEstado.addEventListener(
     "click",
@@ -1357,7 +1724,6 @@ btnGuardarEstado.addEventListener(
 
         btnGuardarEstado.disabled =
         true;
-
 
         btnGuardarEstado.textContent =
         "Guardando...";
@@ -1393,7 +1759,9 @@ btnGuardarEstado.addEventListener(
             document.getElementById(
                 "detalleEstado"
             ).textContent =
-            textoEstado(nuevoEstado);
+            textoEstado(
+                nuevoEstado
+            );
 
 
             const indice =
@@ -1424,10 +1792,7 @@ btnGuardarEstado.addEventListener(
         }
         catch(error){
 
-            console.error(
-                "Error actualizando estado:",
-                error
-            );
+            console.error(error);
 
 
             mostrarMensaje(
@@ -1442,7 +1807,6 @@ btnGuardarEstado.addEventListener(
             btnGuardarEstado.disabled =
             false;
 
-
             btnGuardarEstado.textContent =
             "🔄 Guardar estado";
 
@@ -1452,9 +1816,6 @@ btnGuardarEstado.addEventListener(
 );
 
 
-/* ==========================================
-   RESPONDER AL CLIENTE
-========================================== */
 
 btnResponder.addEventListener(
     "click",
@@ -1487,16 +1848,11 @@ btnResponder.addEventListener(
         btnResponder.disabled =
         true;
 
-
         btnResponder.textContent =
         "Enviando...";
 
 
         try{
-
-            /* ==============================
-               GUARDAR RESPUESTA
-            ============================== */
 
             await addDoc(
 
@@ -1526,10 +1882,6 @@ btnResponder.addEventListener(
             );
 
 
-            /* ==============================
-               ACTUALIZAR CONSULTA
-            ============================== */
-
             await updateDoc(
 
                 doc(
@@ -1541,7 +1893,7 @@ btnResponder.addEventListener(
                 {
 
                     estado:
-                    "resuelto",
+                    "respondida",
 
                     ultimaRespuesta:
                     respuesta,
@@ -1561,23 +1913,19 @@ btnResponder.addEventListener(
 
 
             consultaSeleccionada.estado =
-            "resuelto";
-
-
-            consultaSeleccionada.ultimaRespuesta =
-            respuesta;
+            "respondida";
 
 
             document.getElementById(
                 "detalleEstado"
             ).textContent =
-            "Resuelto";
+            "Respondida";
 
 
             document.getElementById(
                 "detalleEstadoSelect"
             ).value =
-            "resuelto";
+            "respondida";
 
 
             document.getElementById(
@@ -1597,21 +1945,21 @@ btnResponder.addEventListener(
             if(indice !== -1){
 
                 consultas[indice].estado =
-                "resuelto";
-
-                consultas[indice].ultimaRespuesta =
-                respuesta;
+                "respondida";
 
             }
 
 
             actualizarResumen();
 
-            mostrarConsultas();
+
+            await cargarRespuestas(
+                consultaSeleccionada.id
+            );
 
 
             mostrarMensaje(
-                "Respuesta enviada correctamente."
+                "Respuesta enviada correctamente. El cliente ya puede verla en Atención al cliente."
             );
 
         }
@@ -1635,7 +1983,6 @@ btnResponder.addEventListener(
             btnResponder.disabled =
             false;
 
-
             btnResponder.textContent =
             "📨 Enviar respuesta";
 
@@ -1645,9 +1992,6 @@ btnResponder.addEventListener(
 );
 
 
-/* ==========================================
-   ELIMINAR
-========================================== */
 
 btnEliminar.addEventListener(
     "click",
@@ -1675,7 +2019,6 @@ btnEliminar.addEventListener(
 
         btnEliminar.disabled =
         true;
-
 
         btnEliminar.textContent =
         "Eliminando...";
@@ -1709,10 +2052,8 @@ btnEliminar.addEventListener(
             panelDetalle.style.display =
             "none";
 
-
             panelListado.style.display =
             "block";
-
 
             panelResumen.style.display =
             "block";
@@ -1730,10 +2071,7 @@ btnEliminar.addEventListener(
         }
         catch(error){
 
-            console.error(
-                "Error eliminando consulta:",
-                error
-            );
+            console.error(error);
 
 
             mostrarMensaje(
@@ -1748,7 +2086,6 @@ btnEliminar.addEventListener(
             btnEliminar.disabled =
             false;
 
-
             btnEliminar.textContent =
             "🗑️ Eliminar consulta";
 
@@ -1758,9 +2095,6 @@ btnEliminar.addEventListener(
 );
 
 
-/* ==========================================
-   FILTROS
-========================================== */
 
 filtroEstado.addEventListener(
     "change",
@@ -1774,9 +2108,6 @@ buscarConsulta.addEventListener(
 );
 
 
-/* ==========================================
-   CERRAR SESIÓN
-========================================== */
 
 btnCerrarSesion.addEventListener(
     "click",
@@ -1784,7 +2115,6 @@ btnCerrarSesion.addEventListener(
 
         btnCerrarSesion.disabled =
         true;
-
 
         btnCerrarSesion.textContent =
         "Cerrando sesión...";
@@ -1808,7 +2138,6 @@ btnCerrarSesion.addEventListener(
             btnCerrarSesion.disabled =
             false;
 
-
             btnCerrarSesion.textContent =
             "🚪 Cerrar sesión";
 
@@ -1824,22 +2153,20 @@ btnCerrarSesion.addEventListener(
 );
 
 
-/* ==========================================
-   ESTADOS
-========================================== */
 
 function textoEstado(estado){
 
     switch(estado){
 
         case "pendiente":
+        case "nueva":
             return "Pendiente";
 
-        case "en_proceso":
+        case "en_atencion":
             return "En atención";
 
-        case "resuelto":
-            return "Resuelto";
+        case "respondida":
+            return "Respondida";
 
         case "cerrada":
             return "Cerrada";
@@ -1852,73 +2179,73 @@ function textoEstado(estado){
 }
 
 
+
 function claseEstado(estado){
 
     switch(estado){
 
         case "pendiente":
-            return "estado-pendiente";
+        case "nueva":
+            return "estado-nueva";
 
-        case "en_proceso":
+        case "en_atencion":
             return "estado-atencion";
 
-        case "resuelto":
-            return "estado-resuelto";
+        case "respondida":
+            return "estado-respondida";
 
         case "cerrada":
-            return "estado-cerrado";
+            return "estado-cerrada";
 
         default:
-            return "estado-pendiente";
+            return "estado-nueva";
 
     }
 
 }
 
 
-/* ==========================================
-   FECHAS
-========================================== */
 
-function obtenerFecha(consulta){
+function obtenerFecha(objeto){
 
-    if(
-        consulta.fecha &&
-        typeof consulta.fecha.toMillis ===
-        "function"
-    ){
+    if(!objeto){
 
-        return consulta.fecha.toMillis();
+        return 0;
 
     }
 
 
     if(
-        consulta.creado &&
-        typeof consulta.creado.toMillis ===
+        typeof objeto.toMillis ===
         "function"
     ){
 
-        return consulta.creado.toMillis();
+        return objeto.toMillis();
 
     }
 
 
-    if(consulta.fecha){
+    if(
+        typeof objeto.toDate ===
+        "function"
+    ){
 
-        const fecha =
-        new Date(consulta.fecha);
+        return objeto.toDate().getTime();
+
+    }
 
 
-        if(
-            !isNaN(
-                fecha.getTime()
-            )
-        ){
+    const fecha =
+    new Date(objeto);
 
-            return fecha.getTime();
 
-        }
+    if(
+        !isNaN(
+            fecha.getTime()
+        )
+    ){
+
+        return fecha.getTime();
 
     }
 
@@ -1928,11 +2255,12 @@ function obtenerFecha(consulta){
 }
 
 
+
 function formatearFechaHora(valor){
 
     if(!valor){
 
-        return "Sin fecha";
+        return "Fecha pendiente";
 
     }
 
@@ -1974,7 +2302,7 @@ function formatearFechaHora(valor){
         )
     ){
 
-        return "Sin fecha";
+        return "Fecha pendiente";
 
     }
 
@@ -1990,9 +2318,6 @@ function formatearFechaHora(valor){
 }
 
 
-/* ==========================================
-   SEGURIDAD HTML
-========================================== */
 
 function escapeHTML(text){
 
@@ -2022,4 +2347,8 @@ function escapeHTML(text){
 
 }
 
-</script></body></html>
+</script>
+
+</body>
+
+</html>
