@@ -1,730 +1,1691 @@
-<!DOCTYPE html>  <html lang="es">  <head>  <meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1.0">  
-<meta name="theme-color" content="#111827">  <title>Panel de empleado - GESBASE</title>  <style>  
-  
-*{  
-    box-sizing:border-box;  
-    margin:0;  
-    padding:0;  
-}  
-  
-body{  
-    font-family:Arial,sans-serif;  
-    background:#f3f4f6;  
-    color:#111827;  
-}  
-  
-.contenedor{  
-    width:100%;  
-    max-width:700px;  
-    margin:auto;  
-    min-height:100vh;  
-    background:#fff;  
-}  
-  
-header{  
-    background:#111827;  
-    color:#fff;  
-    padding:22px 20px;  
-    position:relative;  
-}  
-  
-header h1{  
-    font-size:25px;  
-}  
-  
-header p{  
-    margin-top:6px;  
-    color:#d1d5db;  
-    font-size:14px;  
-}  
-  
-/* ==============================  
-   BOTONES FLOTANTES  
-============================== */  
-  
-.accesos-flotantes{  
-    position:fixed;  
-    top:14px;  
-    right:14px;  
-    z-index:9999;  
-    display:flex;  
-    gap:8px;  
-}  
-  
-.acceso-flotante{  
-    display:flex;  
-    align-items:center;  
-    justify-content:center;  
-    gap:6px;  
-    border:none;  
-    border-radius:12px;  
-    padding:11px 13px;  
-    color:#fff;  
-    font-size:13px;  
-    font-weight:bold;  
-    text-decoration:none;  
-    box-shadow:0 4px 12px rgba(0,0,0,.25);  
-    cursor:pointer;  
-    white-space:nowrap;  
-}  
-  
-.acceso-correo{  
-    background:#2563eb;  
-}  
-  
-.acceso-fichaje{  
-    background:#16a34a;  
-}  
-  
-.acceso-flotante:active{  
-    transform:scale(.97);  
-}  
-  
-main{  
-    padding:20px;  
-}  
-  
-.tarjeta{  
-    background:#fff;  
-    border:1px solid #d1d5db;  
-    border-radius:14px;  
-    padding:20px;  
-    margin-bottom:18px;  
-}  
-  
-.titulo{  
-    font-size:20px;  
-    font-weight:bold;  
-    margin-bottom:15px;  
-}  
-  
-.empleado-nombre{  
-    font-size:23px;  
-    font-weight:bold;  
-}  
-  
-.empleado-puesto{  
-    color:#6b7280;  
-    margin-top:5px;  
-}  
-  
-.estado{  
-    margin-top:15px;  
-    padding:14px;  
-    border-radius:12px;  
-    background:#f0fdf4;  
-    border:1px solid #bbf7d0;  
-    color:#166534;  
-}  
-  
-.estado-titulo{  
-    font-size:13px;  
-    color:#6b7280;  
-    margin-bottom:5px;  
-}  
-  
-.estado-texto{  
-    font-size:17px;  
-    font-weight:bold;  
-}  
-  
-.menu{  
-    display:grid;  
-    grid-template-columns:1fr 1fr;  
-    gap:12px;  
-}  
-  
-.menu-boton{  
-    display:flex;  
-    flex-direction:column;  
-    align-items:center;  
-    justify-content:center;  
-    min-height:120px;  
-    border-radius:14px;  
-    text-decoration:none;  
-    font-weight:bold;  
-    color:#111827;  
-    border:1px solid #d1d5db;  
-    background:#fff;  
-    transition:.2s;  
-}  
-  
-.menu-boton:hover{  
-    transform:translateY(-2px);  
-    box-shadow:0 5px 15px rgba(0,0,0,.08);  
-}  
-  
-.menu-icono{  
-    font-size:35px;  
-    margin-bottom:10px;  
-}  
-  
-.menu-texto{  
-    font-size:16px;  
-}  
-  
-.menu-descripcion{  
-    font-size:12px;  
-    color:#6b7280;  
-    margin-top:5px;  
-    text-align:center;  
-}  
-  
-.correo{  
-    background:#eff6ff;  
-    border-color:#bfdbfe;  
-}  
-  
-.fichaje{  
-    background:#f0fdf4;  
-    border-color:#bbf7d0;  
-}  
-  
-.boton{  
-    width:100%;  
-    border:none;  
-    border-radius:12px;  
-    padding:16px;  
-    font-size:16px;  
-    font-weight:bold;  
-    cursor:pointer;  
-}  
-  
-.boton-cerrar{  
-    background:#111827;  
-    color:#fff;  
-    margin-top:5px;  
-}  
-  
-.boton-volver{  
-    background:#e5e7eb;  
-    color:#111827;  
-    margin-top:10px;  
-}  
-  
-.error{  
-    background:#fee2e2;  
-    color:#991b1b;  
-    padding:14px;  
-    border-radius:10px;  
-    margin-bottom:15px;  
-    display:none;  
-}  
-  
-.cargando{  
-    color:#6b7280;  
-}  
-  
-@media(max-width:600px){  
-  
-    header{  
-        padding-top:75px;  
-    }  
-  
-    .accesos-flotantes{  
-        top:10px;  
-        right:10px;  
-        left:10px;  
-        justify-content:flex-end;  
-    }  
-  
-    .acceso-flotante{  
-        padding:10px 11px;  
-        font-size:12px;  
-    }  
-  
-    main{  
-        padding:15px;  
-    }  
-  
-    .menu{  
-        grid-template-columns:1fr 1fr;  
-    }  
-  
-}  
-  
-@media(max-width:380px){  
-  
-    .acceso-flotante{  
-        padding:9px;  
-    }  
-  
-    .acceso-flotante span.texto-acceso{  
-        display:none;  
-    }  
-  
-}  
-  
-</style>  </head>  <body>  <!-- =========================================  
-     ACCESOS FLOTANTES  
-========================================= -->  <div class="accesos-flotantes">  <a  
-    href="correo.html"  
-    class="acceso-flotante acceso-correo"  
-    title="Correo interno"  
->  
-    ✉️  
-    <span class="texto-acceso">  
-        Correo  
-    </span>  
-</a>  
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+
+<title>Panel de empleado - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.contenedor{
+    width:100%;
+    max-width:700px;
+    min-height:100vh;
+    margin:auto;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:#fff;
+    padding:22px 20px;
+}
+
+header h1{
+    font-size:25px;
+}
+
+header p{
+    margin-top:6px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+.tarjeta{
+    background:#fff;
+    border:1px solid #d1d5db;
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:18px;
+}
+
+.titulo{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+.nombre{
+    font-size:24px;
+    font-weight:bold;
+}
+
+.puesto{
+    margin-top:6px;
+    color:#6b7280;
+}
+
+.estado{
+    margin-top:15px;
+    padding:14px;
+    border-radius:12px;
+    background:#f0fdf4;
+    border:1px solid #bbf7d0;
+}
+
+.estado-titulo{
+    font-size:13px;
+    color:#6b7280;
+}
+
+.estado-texto{
+    margin-top:5px;
+    font-size:17px;
+    font-weight:bold;
+    color:#166534;
+}
+
+.menu{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+.menu-boton{
+    min-height:125px;
+    padding:15px;
+    border-radius:14px;
+    text-decoration:none;
+    color:#111827;
+    border:1px solid #d1d5db;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+}
+
+.menu-boton:hover{
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.icono{
+    font-size:34px;
+    margin-bottom:9px;
+}
+
+.menu-titulo{
+    font-size:16px;
+    font-weight:bold;
+}
+
+.menu-descripcion{
+    margin-top:5px;
+    font-size:12px;
+    color:#6b7280;
+}
+
+.correo{
+    background:#eff6ff;
+    border-color:#bfdbfe;
+}
+
+.fichaje{
+    background:#f0fdf4;
+    border-color:#bbf7d0;
+}
+
+.asistencia{
+    background:#faf5ff;
+    border-color:#e9d5ff;
+}
+
+.datos{
+    line-height:1.9;
+    font-size:14px;
+    color:#374151;
+}
+
+.dato{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    padding:6px 0;
+    border-bottom:1px solid #f3f4f6;
+}
+
+.dato:last-child{
+    border-bottom:none;
+}
+
+.etiqueta{
+    font-weight:bold;
+}
+
+.valor{
+    text-align:right;
+    word-break:break-word;
+}
+
+.resumen{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+}
+
+.resumen-item{
+    text-align:center;
+    padding:14px 8px;
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+}
+
+.resumen-numero{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.resumen-texto{
+    margin-top:5px;
+    font-size:11px;
+    color:#6b7280;
+}
+
+.registros{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.registro{
+    padding:14px;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    background:#fafafa;
+}
+
+.registro-fecha{
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.registro-linea{
+    font-size:14px;
+    padding:3px 0;
+}
+
+.registro-estado{
+    margin-top:8px;
+    font-weight:bold;
+}
+
+.en-curso{
+    color:#166534;
+}
+
+.finalizado{
+    color:#1d4ed8;
+}
+
+.sin-registros,
+.cargando{
+    padding:20px;
+    text-align:center;
+    color:#6b7280;
+}
+
+.error{
+    display:none;
+    padding:14px;
+    margin-bottom:15px;
+    border-radius:10px;
+    background:#fee2e2;
+    color:#991b1b;
+    font-size:14px;
+}
+
+.exito{
+    display:none;
+    padding:14px;
+    margin-bottom:15px;
+    border-radius:10px;
+    background:#dcfce7;
+    color:#166534;
+    font-size:14px;
+}
+
+.boton{
+    width:100%;
+    border:none;
+    border-radius:12px;
+    padding:16px;
+    margin-top:10px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.boton-actualizar{
+    background:#2563eb;
+    color:#fff;
+}
+
+.boton-cerrar{
+    background:#111827;
+    color:#fff;
+}
+
+.boton-volver{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.oculto{
+    display:none !important;
+}
+
+@media(max-width:500px){
+
+    main{
+        padding:15px;
+    }
+
+    .menu{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .resumen{
+        grid-template-columns:1fr 1fr 1fr;
+    }
+
+    .dato{
+        flex-direction:column;
+        gap:0;
+    }
+
+    .valor{
+        text-align:left;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<header>
+
+<h1>GESBASE</h1>
+
+<p>Panel de empleado</p>
+
+</header>
+
+<main>
+
+<div
+id="mensajeError"
+class="error"
+></div>
+
+<div
+id="mensajeExito"
+class="exito"
+></div>
 
 
-<a  
-    href="fichaje.html"  
-    class="acceso-flotante acceso-fichaje"  
-    title="Control de fichaje"  
->  
-    ⏱️  
-    <span class="texto-acceso">  
-        Fichaje  
-    </span>  
-</a>
+<!-- =========================================
+     MI PERFIL
+========================================= -->
 
-</div>  <div class="contenedor">  <header>  <h1>  
-GESBASE  
-</h1>  <p>  
-Panel de empleado  
-</p>  </header>  <main>  <div  
-id="mensajeError"  
-class="error"  
-></div>  <!-- =========================================  
-     EMPLEADO  
-========================================= -->  <div class="tarjeta">  <div class="titulo">  
-👤 Mi perfil  
-</div>  <div  
-id="empleadoNombre"  
-class="empleado-nombre"  
->  
-Cargando...  
-</div>  <div  
-id="empleadoPuesto"  
-class="empleado-puesto"  
->  
-Verificando empleado...  
-</div>  <div class="estado">  <div class="estado-titulo">  
-Estado de cuenta  
-</div>  <div  
-id="estadoEmpleado"  
-class="estado-texto"  
->  
-VERIFICANDO...  
-</div>  </div>  </div>  <!-- =========================================  
-     ACCESOS  
-========================================= -->  <div class="tarjeta">  <div class="titulo">  
-Accesos de empleado  
-</div>  <div class="menu">  <a
+<div class="tarjeta">
+
+<div class="titulo">
+👤 Mi perfil
+</div>
+
+<div
+id="empleadoNombre"
+class="nombre"
+>
+Cargando...
+</div>
+
+<div
+id="empleadoPuesto"
+class="puesto"
+>
+Cargando...
+</div>
+
+<div class="estado">
+
+<div class="estado-titulo">
+Estado de acceso
+</div>
+
+<div
+id="estadoEmpleado"
+class="estado-texto"
+>
+VERIFICANDO...
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =========================================
+     ACCESOS DEL EMPLEADO
+========================================= -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+Accesos de empleado
+</div>
+
+<div class="menu">
+
+
+<a
 href="correo.html"
 class="menu-boton correo"
+>
 
-> 
+<div class="icono">
+✉️
+</div>
 
-<div class="menu-icono">  
-✉️  
-</div>  <div class="menu-texto">  
-Correo interno  
-</div>  <div class="menu-descripcion">  
-Enviar y recibir correos  
-</div>  </a>  <a
+<div class="menu-titulo">
+Correo interno
+</div>
+
+<div class="menu-descripcion">
+Enviar y recibir correos
+</div>
+
+</a>
+
+
+<a
 href="fichaje.html"
 class="menu-boton fichaje"
+>
 
-> 
+<div class="icono">
+⏱️
+</div>
 
-<div class="menu-icono">  
-⏱️  
-</div>  <div class="menu-texto">  
-Fichaje  
-</div>  <div class="menu-descripcion">  
-Entrada, salida y jornada  
-</div>  </a>  </div>  </div>  <!-- =========================================  
-     INFORMACIÓN  
-========================================= -->  <div class="tarjeta">  <div class="titulo">  
-📋 Información  
-</div>  <div style="line-height:1.8;font-size:14px;color:#374151;">  <div>  
-<strong>Empresa:</strong>  
-<span id="empresaNombre">  
-Cargando...  
-</span>  
-</div>  <div>  
-<strong>Puesto:</strong>  
-<span id="puestoInfo">  
-Cargando...  
-</span>  
-</div>  <div>  
-<strong>Correo:</strong>  
-<span id="correoUsuario">  
-Cargando...  
-</span>  
-</div>  </div>  </div>  <!-- =========================================  
-     CERRAR SESIÓN  
-========================================= -->  <button
+<div class="menu-titulo">
+Fichaje
+</div>
+
+<div class="menu-descripcion">
+Entrada, salida y jornada
+</div>
+
+</a>
+
+
+<a
+href="asistencia.html"
+class="menu-boton asistencia"
+>
+
+<div class="icono">
+📅
+</div>
+
+<div class="menu-titulo">
+Mi asistencia
+</div>
+
+<div class="menu-descripcion">
+Control de mi jornada
+</div>
+
+</a>
+
+
+</div>
+
+</div>
+
+
+<!-- =========================================
+     MI ASISTENCIA
+========================================= -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+📅 Mi asistencia
+</div>
+
+<p style="font-size:14px;color:#6b7280;line-height:1.6;margin-bottom:15px;">
+
+Consultá tus entradas, salidas, horas trabajadas y registros de ubicación GPS.
+
+</p>
+
+
+<div class="resumen">
+
+<div class="resumen-item">
+
+<div
+id="totalFichajes"
+class="resumen-numero"
+>
+0
+</div>
+
+<div class="resumen-texto">
+Fichajes
+</div>
+
+</div>
+
+
+<div class="resumen-item">
+
+<div
+id="totalEnCurso"
+class="resumen-numero"
+>
+0
+</div>
+
+<div class="resumen-texto">
+En curso
+</div>
+
+</div>
+
+
+<div class="resumen-item">
+
+<div
+id="totalGPS"
+class="resumen-numero"
+>
+0
+</div>
+
+<div class="resumen-texto">
+Con GPS
+</div>
+
+</div>
+
+</div>
+
+
+<button
+id="btnActualizar"
+class="boton boton-actualizar"
+>
+🔄 ACTUALIZAR MI ASISTENCIA
+</button>
+
+</div>
+
+
+<!-- =========================================
+     ESTADO ACTUAL
+========================================= -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+Estado actual
+</div>
+
+<div
+id="estadoAsistencia"
+style="
+padding:15px;
+border-radius:12px;
+background:#f3f4f6;
+font-weight:bold;
+"
+>
+VERIFICANDO...
+</div>
+
+<div
+id="jornadaActual"
+style="
+margin-top:12px;
+font-size:14px;
+line-height:1.8;
+"
+>
+
+Empleado: <b id="jornadaEmpleado">-</b>
+
+<br>
+
+Entrada: <b id="jornadaEntrada">-</b>
+
+<br>
+
+Salida: <b id="jornadaSalida">-</b>
+
+<br>
+
+Horas trabajadas: <b id="jornadaHoras">-</b>
+
+</div>
+
+</div>
+
+
+<!-- =========================================
+     MIS DATOS
+========================================= -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+📋 Mis datos
+</div>
+
+<div class="datos">
+
+<div class="dato">
+<span class="etiqueta">Nombre</span>
+<span
+id="datoNombre"
+class="valor"
+>
+Cargando...
+</span>
+</div>
+
+<div class="dato">
+<span class="etiqueta">Puesto</span>
+<span
+id="datoPuesto"
+class="valor"
+>
+Cargando...
+</span>
+</div>
+
+<div class="dato">
+<span class="etiqueta">Correo</span>
+<span
+id="datoCorreo"
+class="valor"
+>
+Cargando...
+</span>
+</div>
+
+<div class="dato">
+<span class="etiqueta">Teléfono</span>
+<span
+id="datoTelefono"
+class="valor"
+>
+-
+</span>
+</div>
+
+<div class="dato">
+<span class="etiqueta">DNI</span>
+<span
+id="datoDni"
+class="valor"
+>
+-
+</span>
+</div>
+
+<div class="dato">
+<span class="etiqueta">Fecha de ingreso</span>
+<span
+id="datoFechaIngreso"
+class="valor"
+>
+-
+</span>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =========================================
+     HISTORIAL
+========================================= -->
+
+<div class="tarjeta">
+
+<div class="titulo">
+📋 Mis últimos registros
+</div>
+
+<div
+id="registros"
+class="registros"
+>
+
+<div class="cargando">
+Cargando asistencia...
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =========================================
+     SESIÓN
+========================================= -->
+
+<button
 id="btnCerrarSesion"
 class="boton boton-cerrar"
-
-> 
-
+>
 CERRAR SESIÓN
 </button>
+
 
 <button
 id="btnVolver"
 class="boton boton-volver"
-
-> 
-
+>
 ⬅️ VOLVER
 </button>
 
-</main>  </div>  <script type="module">  
-  
-  
-/* =========================================  
-   FIREBASE  
-========================================= */  
-  
-import {  
-    auth,  
-    db  
-} from "./Js/firebase.js";  
-  
-  
-import {  
-    onAuthStateChanged,  
-    signOut  
-} from  
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";  
-  
-  
-import {  
-    collection,  
-    getDocs,  
-    query,  
-    where,  
-    limit  
-} from  
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";  
-  
-  
-/* =========================================  
-   ELEMENTOS  
-========================================= */  
-  
-const empleadoNombre =  
-document.getElementById(  
-    "empleadoNombre"  
-);  
-  
-const empleadoPuesto =  
-document.getElementById(  
-    "empleadoPuesto"  
-);  
-  
-const estadoEmpleado =  
-document.getElementById(  
-    "estadoEmpleado"  
-);  
-  
-const empresaNombre =  
-document.getElementById(  
-    "empresaNombre"  
-);  
-  
-const puestoInfo =  
-document.getElementById(  
-    "puestoInfo"  
-);  
-  
-const correoUsuario =  
-document.getElementById(  
-    "correoUsuario"  
-);  
-  
-const mensajeError =  
-document.getElementById(  
-    "mensajeError"  
-);  
-  
-const btnCerrarSesion =  
-document.getElementById(  
-    "btnCerrarSesion"  
-);  
-  
-const btnVolver =  
-document.getElementById(  
-    "btnVolver"  
-);  
-  
-  
-/* =========================================  
-   UTILIDADES  
-========================================= */  
-  
-function texto(valor){  
-  
-    if(  
-        valor === undefined ||  
-        valor === null  
-    ){  
-  
-        return "";  
-  
-    }  
-  
-    return String(valor);  
-  
-}  
-  
-  
-function mostrarError(mensaje){  
-  
-    mensajeError.textContent =  
-    mensaje;  
-  
-    mensajeError.style.display =  
-    "block";  
-  
-}  
-  
-  
-/* =========================================  
-   CARGAR EMPLEADO  
-========================================= */  
-  
-async function cargarEmpleado(usuario){  
-  
-    const consulta =  
-    query(  
-        collection(  
-            db,  
-            "empleados"  
-        ),  
-        where(  
-            "authUid",  
-            "==",  
-            usuario.uid  
-        ),  
-        limit(1)  
-    );  
-  
-  
-    const resultados =  
-    await getDocs(  
-        consulta  
-    );  
-  
-  
-    if(  
-        resultados.empty  
-    ){  
-  
-        throw new Error(  
-            "No encontramos el perfil del usuario."  
-        );  
-  
-    }  
-  
-  
-    const documento =  
-    resultados.docs[0];  
-  
-  
-    const datos =  
-    documento.data();  
-  
-  
-    const nombre =  
-    texto(  
-        datos.nombre  
-    );  
-  
-    const apellido =  
-    texto(  
-        datos.apellido  
-    );  
-  
-  
-    const nombreCompleto =  
-    (  
-        nombre +  
-        " " +  
-        apellido  
-    ).trim();  
-  
-  
-    empleadoNombre.textContent =  
-    nombreCompleto ||  
-    "Empleado";  
-  
-  
-    empleadoPuesto.textContent =  
-    texto(  
-        datos.puesto  
-    ) ||  
-    "Empleado";  
-  
-  
-    puestoInfo.textContent =  
-    texto(  
-        datos.puesto  
-    ) ||  
-    "Empleado";  
-  
-  
-    correoUsuario.textContent =  
-    texto(  
-        datos.email  
-    ) ||  
-    texto(  
-        usuario.email  
-    ) ||  
-    "Sin correo";  
-  
-  
-    empresaNombre.textContent =  
-    texto(  
-        datos.empresa  
-    ) ||  
-    texto(  
-        datos.empresaNombre  
-    ) ||  
-    "ALBE GENERALES";  
-  
-  
-    const estado =  
-    texto(  
-        datos.estado  
-    );  
-  
-  
-    if(  
-        estado &&  
-        estado !== "Activo"  
-    ){  
-  
-        estadoEmpleado.textContent =  
-        estado.toUpperCase();  
-  
-    }  
-    else{  
-  
-        estadoEmpleado.textContent =  
-        "ACTIVO";  
-  
-    }  
-  
-}  
-  
-  
-/* =========================================  
-   CERRAR SESIÓN  
-========================================= */  
-  
-btnCerrarSesion.addEventListener(  
-    "click",  
-    async function(){  
-  
-        if(  
-            !confirm(  
-                "¿Querés cerrar la sesión?"  
-            )  
-        ){  
-  
-            return;  
-  
-        }  
-  
-  
-        try{  
-  
-            await signOut(  
-                auth  
-            );  
-  
-  
-            window.location.href =  
-            "empleado-login.html";  
-  
-        }  
-        catch(error){  
-  
-            mostrarError(  
-                "No se pudo cerrar la sesión: " +  
-                error.message  
-            );  
-  
-        }  
-  
-    }  
-);  
-  
-  
-/* =========================================  
-   VOLVER  
-========================================= */  
-  
-btnVolver.addEventListener(  
-    "click",  
-    function(){  
-  
-        window.history.back();  
-  
-    }  
-);  
-  
-  
-/* =========================================  
-   COMPROBAR SESIÓN  
-========================================= */  
-  
-onAuthStateChanged(  
-    auth,  
-    async function(usuario){  
-  
-        if(!usuario){  
-  
-            window.location.href =  
-            "empleado-login.html";  
-  
-            return;  
-  
-        }  
-  
-  
-        try{  
-  
-            await cargarEmpleado(  
-                usuario  
-            );  
-  
-        }  
-        catch(error){  
-  
-            console.error(  
-                "Error cargando empleado:",  
-                error  
-            );  
-  
-  
-            empleadoNombre.textContent =  
-            "No disponible";  
-  
-  
-            empleadoPuesto.textContent =  
-            "No se pudo cargar el perfil";  
-  
-  
-            estadoEmpleado.textContent =  
-            "ERROR";  
-  
-  
-            mostrarError(  
-                error.message  
-            );  
-  
-        }  
-  
-    }  
-);  
-  
-</script>  </body>  </html>
+</main>
+
+</div>
+
+
+<script type="module">
+
+/* =========================================
+   FIREBASE
+========================================= */
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+import {
+    onAuthStateChanged,
+    signOut
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+import {
+    collection,
+    getDocs,
+    query,
+    where,
+    limit
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+/* =========================================
+   ELEMENTOS
+========================================= */
+
+const empleadoNombre =
+document.getElementById("empleadoNombre");
+
+const empleadoPuesto =
+document.getElementById("empleadoPuesto");
+
+const estadoEmpleado =
+document.getElementById("estadoEmpleado");
+
+const mensajeError =
+document.getElementById("mensajeError");
+
+const mensajeExito =
+document.getElementById("mensajeExito");
+
+const datoNombre =
+document.getElementById("datoNombre");
+
+const datoPuesto =
+document.getElementById("datoPuesto");
+
+const datoCorreo =
+document.getElementById("datoCorreo");
+
+const datoTelefono =
+document.getElementById("datoTelefono");
+
+const datoDni =
+document.getElementById("datoDni");
+
+const datoFechaIngreso =
+document.getElementById("datoFechaIngreso");
+
+const totalFichajes =
+document.getElementById("totalFichajes");
+
+const totalEnCurso =
+document.getElementById("totalEnCurso");
+
+const totalGPS =
+document.getElementById("totalGPS");
+
+const estadoAsistencia =
+document.getElementById("estadoAsistencia");
+
+const jornadaEmpleado =
+document.getElementById("jornadaEmpleado");
+
+const jornadaEntrada =
+document.getElementById("jornadaEntrada");
+
+const jornadaSalida =
+document.getElementById("jornadaSalida");
+
+const jornadaHoras =
+document.getElementById("jornadaHoras");
+
+const registros =
+document.getElementById("registros");
+
+const btnActualizar =
+document.getElementById("btnActualizar");
+
+const btnCerrarSesion =
+document.getElementById("btnCerrarSesion");
+
+const btnVolver =
+document.getElementById("btnVolver");
+
+
+/* =========================================
+   VARIABLES
+========================================= */
+
+let usuarioActual = null;
+
+let empleadoActual = null;
+
+let empleadoId = "";
+
+
+/* =========================================
+   UTILIDADES
+========================================= */
+
+function texto(valor){
+
+    if(
+        valor === undefined ||
+        valor === null
+    ){
+
+        return "";
+
+    }
+
+    return String(valor);
+
+}
+
+
+function mostrarError(mensaje){
+
+    mensajeError.textContent =
+    mensaje;
+
+    mensajeError.style.display =
+    "block";
+
+    mensajeExito.style.display =
+    "none";
+
+}
+
+
+function mostrarExito(mensaje){
+
+    mensajeExito.textContent =
+    mensaje;
+
+    mensajeExito.style.display =
+    "block";
+
+    mensajeError.style.display =
+    "none";
+
+}
+
+
+function limpiarMensajes(){
+
+    mensajeError.style.display =
+    "none";
+
+    mensajeExito.style.display =
+    "none";
+
+}
+
+
+function numero(valor){
+
+    const n =
+    Number(valor);
+
+    return Number.isFinite(n)
+        ? n
+        : 0;
+
+}
+
+
+function horasTexto(valor){
+
+    const horas =
+    numero(valor);
+
+    return horas.toFixed(2) + " h";
+
+}
+
+
+/* =========================================
+   CARGAR PERFIL
+========================================= */
+
+async function cargarEmpleado(){
+
+    if(!usuarioActual){
+
+        throw new Error(
+            "No hay una sesión iniciada."
+        );
+
+    }
+
+
+    /*
+       IMPORTANTE:
+
+       El empleado se busca ÚNICAMENTE
+       por authUid.
+
+       No se utiliza empresaId
+       para localizar el empleado.
+    */
+
+    const consulta =
+    query(
+        collection(
+            db,
+            "empleados"
+        ),
+        where(
+            "authUid",
+            "==",
+            usuarioActual.uid
+        ),
+        limit(1)
+    );
+
+
+    const resultado =
+    await getDocs(
+        consulta
+    );
+
+
+    if(resultado.empty){
+
+        throw new Error(
+            "No encontramos el perfil del empleado asociado a esta cuenta."
+        );
+
+    }
+
+
+    const documento =
+    resultado.docs[0];
+
+
+    empleadoId =
+    documento.id;
+
+
+    empleadoActual =
+    documento.data();
+
+
+    mostrarPerfil();
+
+}
+
+
+/* =========================================
+   MOSTRAR PERFIL
+========================================= */
+
+function mostrarPerfil(){
+
+    const nombre =
+    texto(
+        empleadoActual.nombre
+    );
+
+    const apellido =
+    texto(
+        empleadoActual.apellido
+    );
+
+
+    const nombreCompleto =
+    (
+        nombre +
+        " " +
+        apellido
+    ).trim();
+
+
+    const nombreMostrar =
+    nombreCompleto ||
+    "Empleado";
+
+
+    empleadoNombre.textContent =
+    nombreMostrar;
+
+
+    empleadoPuesto.textContent =
+    texto(
+        empleadoActual.puesto
+    ) ||
+    "Empleado";
+
+
+    datoNombre.textContent =
+    nombreMostrar;
+
+
+    datoPuesto.textContent =
+    texto(
+        empleadoActual.puesto
+    ) ||
+    "-";
+
+
+    datoCorreo.textContent =
+    texto(
+        empleadoActual.email
+    ) ||
+    texto(
+        usuarioActual.email
+    ) ||
+    "-";
+
+
+    datoTelefono.textContent =
+    texto(
+        empleadoActual.telefono
+    ) ||
+    "-";
+
+
+    datoDni.textContent =
+    texto(
+        empleadoActual.dni
+    ) ||
+    "-";
+
+
+    datoFechaIngreso.textContent =
+    texto(
+        empleadoActual.fechaIngreso
+    ) ||
+    "-";
+
+
+    const estado =
+    texto(
+        empleadoActual.estado
+    );
+
+
+    if(
+        estado.toLowerCase() ===
+        "activo"
+    ){
+
+        estadoEmpleado.textContent =
+        "ACTIVO";
+
+        estadoEmpleado.style.color =
+        "#166534";
+
+    }
+    else{
+
+        estadoEmpleado.textContent =
+        (
+            estado ||
+            "SIN ESTADO"
+        ).toUpperCase();
+
+        estadoEmpleado.style.color =
+        "#991b1b";
+
+    }
+
+}
+
+
+/* =========================================
+   CARGAR ASISTENCIA
+========================================= */
+
+async function cargarAsistencia(){
+
+    if(!empleadoId){
+
+        return;
+
+    }
+
+
+    registros.innerHTML = `
+        <div class="cargando">
+            Cargando asistencia...
+        </div>
+    `;
+
+
+    try{
+
+        const consulta =
+        query(
+            collection(
+                db,
+                "fichajes"
+            ),
+            where(
+                "empleadoId",
+                "==",
+                empleadoId
+            ),
+            limit(100)
+        );
+
+
+        const resultado =
+        await getDocs(
+            consulta
+        );
+
+
+        const lista = [];
+
+
+        resultado.forEach(
+            documento => {
+
+                lista.push({
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+
+        lista.sort(
+            function(a,b){
+
+                const fechaA =
+                texto(a.fecha) +
+                " " +
+                texto(a.horaEntrada);
+
+                const fechaB =
+                texto(b.fecha) +
+                " " +
+                texto(b.horaEntrada);
+
+                return fechaB.localeCompare(
+                    fechaA
+                );
+
+            }
+        );
+
+
+        const enCurso =
+        lista.filter(
+            registro =>
+            texto(
+                registro.estado
+            ).toLowerCase()
+            ===
+            "abierto"
+        ).length;
+
+
+        const conGPS =
+        lista.filter(
+            registro =>
+            !!registro.entradaUbicacion ||
+            !!registro.salidaUbicacion
+        ).length;
+
+
+        totalFichajes.textContent =
+        lista.length;
+
+
+        totalEnCurso.textContent =
+        enCurso;
+
+
+        totalGPS.textContent =
+        conGPS;
+
+
+        const actual =
+        lista.find(
+            registro =>
+            texto(
+                registro.estado
+            ).toLowerCase()
+            ===
+            "abierto"
+        );
+
+
+        mostrarEstadoActual(
+            actual
+        );
+
+
+        if(!lista.length){
+
+            registros.innerHTML = `
+                <div class="sin-registros">
+                    Todavía no tenés fichajes registrados.
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        registros.innerHTML =
+        "";
+
+
+        lista
+        .slice(0,20)
+        .forEach(
+            crearRegistro
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando asistencia:",
+            error
+        );
+
+
+        registros.innerHTML = `
+            <div class="sin-registros">
+                No se pudo cargar la asistencia.
+            </div>
+        `;
+
+
+        mostrarError(
+            "No se pudo cargar tu asistencia: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   ESTADO ACTUAL
+========================================= */
+
+function mostrarEstadoActual(registro){
+
+    if(!registro){
+
+        estadoAsistencia.textContent =
+        "SIN JORNADA EN CURSO";
+
+        estadoAsistencia.style.background =
+        "#f3f4f6";
+
+        estadoAsistencia.style.color =
+        "#374151";
+
+
+        jornadaEmpleado.textContent =
+        "-";
+
+        jornadaEntrada.textContent =
+        "-";
+
+        jornadaSalida.textContent =
+        "-";
+
+        jornadaHoras.textContent =
+        "-";
+
+        return;
+
+    }
+
+
+    estadoAsistencia.textContent =
+    "JORNADA EN CURSO";
+
+    estadoAsistencia.style.background =
+    "#dcfce7";
+
+    estadoAsistencia.style.color =
+    "#166534";
+
+
+    const nombre =
+    texto(
+        registro.empleadoNombre
+    ) ||
+    (
+        texto(
+            empleadoActual.nombre
+        ) +
+        " " +
+        texto(
+            empleadoActual.apellido
+        )
+    ).trim();
+
+
+    jornadaEmpleado.textContent =
+    nombre ||
+    "-";
+
+
+    jornadaEntrada.textContent =
+    texto(
+        registro.horaEntrada
+    ) ||
+    "-";
+
+
+    jornadaSalida.textContent =
+    texto(
+        registro.horaSalida
+    ) ||
+    "En curso";
+
+
+    const horas =
+    numero(
+        registro.horasTrabajadas
+    );
+
+
+    jornadaHoras.textContent =
+    horas > 0
+    ? horasTexto(horas)
+    : "En curso";
+
+}
+
+
+/* =========================================
+   CREAR REGISTRO
+========================================= */
+
+function crearRegistro(registro){
+
+    const elemento =
+    document.createElement("div");
+
+    elemento.className =
+    "registro";
+
+
+    const fecha =
+    document.createElement("div");
+
+    fecha.className =
+    "registro-fecha";
+
+    fecha.textContent =
+    texto(
+        registro.fecha
+    ) ||
+    "Fecha no disponible";
+
+
+    const entrada =
+    document.createElement("div");
+
+    entrada.className =
+    "registro-linea";
+
+    entrada.textContent =
+    "Entrada: " +
+    (
+        texto(
+            registro.horaEntrada
+        ) ||
+        "-"
+    );
+
+
+    const salida =
+    document.createElement("div");
+
+    salida.className =
+    "registro-linea";
+
+    salida.textContent =
+    "Salida: " +
+    (
+        texto(
+            registro.horaSalida
+        ) ||
+        "En curso"
+    );
+
+
+    const horas =
+    document.createElement("div");
+
+    horas.className =
+    "registro-linea";
+
+    horas.textContent =
+    "Horas trabajadas: " +
+    (
+        registro.horasTrabajadas !== undefined
+        ? horasTexto(
+            registro.horasTrabajadas
+        )
+        : "-"
+    );
+
+
+    const gps =
+    document.createElement("div");
+
+    gps.className =
+    "registro-linea";
+
+    const tieneGPS =
+    !!registro.entradaUbicacion ||
+    !!registro.salidaUbicacion;
+
+
+    gps.textContent =
+    "GPS: " +
+    (
+        tieneGPS
+        ? "📍 Registrado"
+        : "No registrado"
+    );
+
+
+    const estado =
+    document.createElement("div");
+
+    estado.className =
+    "registro-estado " +
+    (
+        texto(
+            registro.estado
+        ).toLowerCase()
+        ===
+        "abierto"
+        ? "en-curso"
+        : "finalizado"
+    );
+
+
+    estado.textContent =
+    texto(
+        registro.estado
+    ).toLowerCase()
+    ===
+    "abierto"
+    ? "EN CURSO"
+    : "FINALIZADO";
+
+
+    elemento.appendChild(fecha);
+
+    elemento.appendChild(entrada);
+
+    elemento.appendChild(salida);
+
+    elemento.appendChild(horas);
+
+    elemento.appendChild(gps);
+
+    elemento.appendChild(estado);
+
+
+    registros.appendChild(
+        elemento
+    );
+
+}
+
+
+/* =========================================
+   ACTUALIZAR
+========================================= */
+
+btnActualizar.addEventListener(
+    "click",
+    async function(){
+
+        limpiarMensajes();
+
+        btnActualizar.disabled =
+        true;
+
+        btnActualizar.textContent =
+        "🔄 ACTUALIZANDO...";
+
+
+        try{
+
+            await cargarAsistencia();
+
+            mostrarExito(
+                "Tu asistencia fue actualizada."
+            );
+
+        }
+        catch(error){
+
+            mostrarError(
+                error.message
+            );
+
+        }
+        finally{
+
+            btnActualizar.disabled =
+            false;
+
+            btnActualizar.textContent =
+            "🔄 ACTUALIZAR MI ASISTENCIA";
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   CERRAR SESIÓN
+========================================= */
+
+btnCerrarSesion.addEventListener(
+    "click",
+    async function(){
+
+        if(
+            !confirm(
+                "¿Querés cerrar la sesión?"
+            )
+        ){
+
+            return;
+
+        }
+
+
+        try{
+
+            await signOut(
+                auth
+            );
+
+
+            window.location.href =
+            "empleado-login.html";
+
+        }
+        catch(error){
+
+            mostrarError(
+                "No se pudo cerrar la sesión: " +
+                error.message
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   VOLVER
+========================================= */
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.history.back();
+
+    }
+);
+
+
+/* =========================================
+   INICIO
+========================================= */
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.href =
+            "empleado-login.html";
+
+            return;
+
+        }
+
+
+        usuarioActual =
+        usuario;
+
+
+        try{
+
+            limpiarMensajes();
+
+
+            await cargarEmpleado();
+
+
+            await cargarAsistencia();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error panel empleado:",
+                error
+            );
+
+
+            empleadoNombre.textContent =
+            "No disponible";
+
+
+            empleadoPuesto.textContent =
+            "No se pudo cargar el perfil";
+
+
+            estadoEmpleado.textContent =
+            "ERROR";
+
+
+            mostrarError(
+                error.message
+            );
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
