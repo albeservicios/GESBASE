@@ -101,8 +101,7 @@ main{
     margin-bottom:6px;
 }
 
-.campo input,
-.campo select{
+.campo input{
     width:100%;
     padding:12px;
     border:1px solid #d1d5db;
@@ -111,60 +110,9 @@ main{
     background:#fff;
 }
 
-.campo input:focus,
-.campo select:focus{
+.campo input:focus{
     outline:none;
     border-color:#2563eb;
-}
-
-.acceso{
-    grid-column:1/-1;
-    background:#eff6ff;
-    border:1px solid #bfdbfe;
-    border-radius:12px;
-    padding:16px;
-}
-
-.acceso-titulo{
-    font-size:16px;
-    font-weight:bold;
-    color:#1e40af;
-    margin-bottom:6px;
-}
-
-.acceso-descripcion{
-    font-size:13px;
-    color:#374151;
-    line-height:1.5;
-    margin-bottom:14px;
-}
-
-.checkbox{
-    display:flex;
-    align-items:center;
-    gap:9px;
-    font-size:14px;
-    font-weight:bold;
-    margin-bottom:14px;
-}
-
-.checkbox input{
-    width:18px;
-    height:18px;
-}
-
-.contrasena-contenedor{
-    display:none;
-}
-
-.contrasena-contenedor.visible{
-    display:block;
-}
-
-.ayuda{
-    margin-top:6px;
-    font-size:11px;
-    color:#6b7280;
 }
 
 .botones{
@@ -182,6 +130,11 @@ main{
     cursor:pointer;
 }
 
+.boton:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
 .boton-guardar{
     flex:1;
     background:#111827;
@@ -193,9 +146,11 @@ main{
     color:#111827;
 }
 
-.boton:disabled{
-    opacity:.6;
-    cursor:not-allowed;
+.boton-volver{
+    width:100%;
+    background:#e5e7eb;
+    color:#111827;
+    margin-top:5px;
 }
 
 .mensaje{
@@ -306,39 +261,41 @@ main{
 }
 
 .acciones{
-    display:flex;
+    display:grid;
+    grid-template-columns:1fr 1fr;
     gap:8px;
     margin-top:14px;
 }
 
 .accion{
-    flex:1;
     border:none;
     border-radius:9px;
-    padding:11px;
+    padding:11px 8px;
     font-size:13px;
     font-weight:bold;
     cursor:pointer;
 }
 
-.editar{
+.modificar{
     background:#dbeafe;
     color:#1e40af;
 }
 
-.acceso-btn{
-    background:#dcfce7;
-    color:#166534;
-}
-
-.acceso-btn.desactivar{
-    background:#fef3c7;
-    color:#92400e;
-}
-
-.eliminar{
+.borrar{
     background:#fee2e2;
     color:#991b1b;
+}
+
+.habilitar{
+    background:#dcfce7;
+    color:#166534;
+    grid-column:1/-1;
+}
+
+.deshabilitar{
+    background:#fef3c7;
+    color:#92400e;
+    grid-column:1/-1;
 }
 
 .vacio,
@@ -348,16 +305,76 @@ main{
     color:#6b7280;
 }
 
-.volver{
-    width:100%;
-    background:#e5e7eb;
-    color:#111827;
-    margin-top:5px;
+/* ==========================================
+   MODAL
+========================================== */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:9999;
 }
 
-.modo-edicion{
-    background:#fff7ed;
-    border-color:#fed7aa;
+.modal.visible{
+    display:flex;
+}
+
+.modal-contenido{
+    width:100%;
+    max-width:450px;
+    background:#fff;
+    border-radius:16px;
+    padding:22px;
+    box-shadow:0 15px 40px rgba(0,0,0,.25);
+}
+
+.modal-titulo{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.modal-descripcion{
+    color:#6b7280;
+    font-size:14px;
+    line-height:1.5;
+    margin-bottom:18px;
+}
+
+.modal-botones{
+    display:flex;
+    gap:10px;
+    margin-top:20px;
+}
+
+.modal-botones button{
+    flex:1;
+}
+
+.btn-crear{
+    background:#111827;
+    color:#fff;
+}
+
+.btn-cancelar{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.aviso{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    color:#1e40af;
+    border-radius:10px;
+    padding:11px;
+    margin-top:12px;
+    font-size:12px;
+    line-height:1.5;
 }
 
 @media(max-width:600px){
@@ -370,8 +387,7 @@ main{
         grid-template-columns:1fr;
     }
 
-    .campo-completo,
-    .acceso{
+    .campo-completo{
         grid-column:auto;
     }
 
@@ -387,22 +403,15 @@ main{
         flex-direction:column;
     }
 
-    .acciones{
-        flex-direction:column;
-    }
-
 }
 
 </style>
 
 </head>
 
-
 <body>
 
-
 <div class="app">
-
 
 <header>
 
@@ -417,12 +426,10 @@ Gestión de empleados
 
 <main>
 
-
 <div
 id="mensajeError"
 class="mensaje error"
 ></div>
-
 
 <div
 id="mensajeExito"
@@ -431,14 +438,10 @@ class="mensaje exito"
 
 
 <!-- ==========================================
-     CARGAR / EDITAR EMPLEADO
+     CARGAR / MODIFICAR
 ========================================== -->
 
-<div
-id="tarjetaFormulario"
-class="tarjeta"
->
-
+<div class="tarjeta">
 
 <div
 id="tituloFormulario"
@@ -447,11 +450,10 @@ class="titulo"
 👤 Cargar empleado
 </div>
 
-
 <div class="descripcion">
 
 Completá los datos del empleado.
-Podés crear su acceso a GESBASE y luego modificar sus datos cuando quieras.
+El acceso a GESBASE se habilita posteriormente.
 
 </div>
 
@@ -526,7 +528,7 @@ autocomplete="tel"
 <div class="campo">
 
 <label for="email">
-Correo de acceso
+Correo
 </label>
 
 <input
@@ -585,86 +587,10 @@ placeholder="0"
 </div>
 
 
-<!-- ==========================================
-     ACCESO
-========================================== -->
-
-<div class="acceso">
-
-
-<div class="acceso-titulo">
-🔐 Acceso del empleado
-</div>
-
-
-<div class="acceso-descripcion">
-
-Si habilitás el acceso, se creará una cuenta en Firebase Authentication.
-El empleado podrá utilizar el login de empleados.
-
-</div>
-
-
-<label class="checkbox">
-
-<input
-id="darAcceso"
-type="checkbox"
-checked
->
-
-<span>
-Dar acceso al empleado
-</span>
-
-</label>
-
-
-<div
-id="contrasenaContenedor"
-class="contrasena-contenedor visible"
->
-
-
-<div class="campo">
-
-
-<label for="contrasena">
-Contraseña inicial
-</label>
-
-
-<input
-id="contrasena"
-type="password"
-placeholder="Mínimo 6 caracteres"
-autocomplete="new-password"
-minlength="6"
->
-
-
-<div class="ayuda">
-
-La contraseña se utiliza solamente para crear la cuenta.
-No se guarda en Firestore.
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
 </div>
 
 
 <div class="botones">
-
 
 <button
 id="btnGuardar"
@@ -673,7 +599,6 @@ class="boton boton-guardar"
 💾 GUARDAR EMPLEADO
 </button>
 
-
 <button
 id="btnLimpiar"
 class="boton boton-limpiar"
@@ -681,9 +606,7 @@ class="boton boton-limpiar"
 LIMPIAR
 </button>
 
-
 </div>
-
 
 </div>
 
@@ -694,18 +617,13 @@ LIMPIAR
 
 <div class="tarjeta">
 
-
 <div class="titulo">
 👥 Empleados
 </div>
 
-
 <div class="descripcion">
-
 Empleados cargados en esta empresa.
-
 </div>
-
 
 <div
 id="listaEmpleados"
@@ -718,49 +636,117 @@ Cargando empleados...
 
 </div>
 
-
 </div>
 
 
 <button
 id="btnVolver"
-class="boton volver"
+class="boton boton-volver"
 >
 ⬅️ VOLVER
 </button>
-
 
 </main>
 
 </div>
 
 
+<!-- ==========================================
+     MODAL ACCESO
+========================================== -->
+
+<div
+id="modalAcceso"
+class="modal"
+>
+
+<div class="modal-contenido">
+
+<div class="modal-titulo">
+🔐 Habilitar acceso
+</div>
+
+<div
+id="nombreEmpleadoAcceso"
+class="modal-descripcion"
+>
+</div>
+
+
+<div class="campo">
+
+<label for="emailAcceso">
+Email de acceso
+</label>
+
+<input
+id="emailAcceso"
+type="email"
+placeholder="empleado@correo.com"
+autocomplete="off"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="passwordAcceso">
+Contraseña inicial
+</label>
+
+<input
+id="passwordAcceso"
+type="password"
+placeholder="Mínimo 6 caracteres"
+autocomplete="new-password"
+>
+
+</div>
+
+
+<div class="aviso">
+
+La contraseña se utiliza para crear la cuenta
+del empleado en Firebase Authentication.
+No se guarda en Firestore.
+
+</div>
+
+
+<div class="modal-botones">
+
+<button
+id="btnCancelarAcceso"
+class="boton btn-cancelar"
+>
+CANCELAR
+</button>
+
+<button
+id="btnCrearAcceso"
+class="boton btn-crear"
+>
+CREAR ACCESO
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
 <script type="module">
 
-
 // =====================================================
-// FIREBASE PRINCIPAL
+// FIREBASE
 // =====================================================
 
 import {
     auth,
     db
 } from "./Js/firebase.js";
-
-
-import {
-    getApp,
-    initializeApp
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-
-
-import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    signOut
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
 import {
@@ -783,6 +769,13 @@ import {
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
+import {
+    getFunctions,
+    httpsCallable
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
+
+
 // =====================================================
 // VARIABLES
 // =====================================================
@@ -793,17 +786,15 @@ let empresaId = "";
 
 let empleadoEditando = null;
 
-let appSecundaria = null;
-
-let authSecundaria = null;
+let empleadoAcceso = null;
 
 
 // =====================================================
 // ELEMENTOS
 // =====================================================
 
-const $ =
-id => document.getElementById(id);
+const $ = id =>
+document.getElementById(id);
 
 
 // =====================================================
@@ -834,6 +825,22 @@ function numero(valor){
     return Number.isFinite(n)
         ? n
         : 0;
+
+}
+
+
+function dinero(valor){
+
+    return new Intl.NumberFormat(
+        "es-AR",
+        {
+            style:"currency",
+            currency:"ARS",
+            maximumFractionDigits:0
+        }
+    ).format(
+        numero(valor)
+    );
 
 }
 
@@ -873,22 +880,6 @@ function limpiarMensajes(){
 
     $("mensajeExito").style.display =
     "none";
-
-}
-
-
-function dinero(valor){
-
-    return new Intl.NumberFormat(
-        "es-AR",
-        {
-            style:"currency",
-            currency:"ARS",
-            maximumFractionDigits:0
-        }
-    ).format(
-        numero(valor)
-    );
 
 }
 
@@ -957,6 +948,11 @@ async function obtenerEmpresa(){
     }
 
 
+    /*
+     * Compatibilidad con el esquema
+     * actual de GESBASE.
+     */
+
     if(!empresaId){
 
         empresaId =
@@ -968,212 +964,99 @@ async function obtenerEmpresa(){
 
 
 // =====================================================
-// CREAR APP SECUNDARIA
+// LIMPIAR FORMULARIO
 // =====================================================
 
-function obtenerAuthSecundaria(){
+function limpiarFormulario(){
 
-    if(
-        authSecundaria
-    ){
+    empleadoEditando = null;
 
-        return authSecundaria;
+    $("tituloFormulario").textContent =
+    "👤 Cargar empleado";
 
-    }
-
-
-    const appPrincipal =
-    getApp();
+    $("btnGuardar").textContent =
+    "💾 GUARDAR EMPLEADO";
 
 
-    const nombreApp =
-    "GESBASE-Empleado-" +
-    Date.now();
+    $("nombre").value = "";
 
+    $("apellido").value = "";
 
-    appSecundaria =
-    initializeApp(
-        appPrincipal.options,
-        nombreApp
-    );
+    $("dni").value = "";
 
+    $("telefono").value = "";
 
-    authSecundaria =
-    getAuth(
-        appSecundaria
-    );
+    $("email").value = "";
 
+    $("puesto").value = "";
 
-    return authSecundaria;
+    $("fechaIngreso").value = "";
+
+    $("pagoHora").value = "";
 
 }
 
 
 // =====================================================
-// CREAR CUENTA AUTH DEL EMPLEADO
+// CARGAR EMPLEADO EN FORMULARIO
 // =====================================================
 
-async function crearCuentaEmpleado(
-    empleadoId,
-    email,
-    password
-){
+function cargarParaModificar(empleado){
 
-    const authEmpleado =
-    obtenerAuthSecundaria();
+    empleadoEditando =
+    empleado;
 
 
-    try{
-
-        const resultado =
-        await createUserWithEmailAndPassword(
-            authEmpleado,
-            email,
-            password
-        );
+    $("tituloFormulario").textContent =
+    "✏️ Modificar empleado";
 
 
-        const authUid =
-        resultado.user.uid;
+    $("btnGuardar").textContent =
+    "💾 GUARDAR CAMBIOS";
 
 
-        await updateDoc(
-            doc(
-                db,
-                "empleados",
-                empleadoId
-            ),
-            {
-
-                authUid:
-                authUid,
-
-                accesoHabilitado:
-                true,
-
-                estado:
-                "Activo",
-
-                accesoCreado:
-                serverTimestamp()
-
-            }
-        );
+    $("nombre").value =
+    texto(empleado.nombre);
 
 
-        await signOut(
-            authEmpleado
-        );
+    $("apellido").value =
+    texto(empleado.apellido);
 
 
-        return authUid;
-
-    }
-    catch(error){
-
-        try{
-
-            await signOut(
-                authEmpleado
-            );
-
-        }
-        catch(e){}
+    $("dni").value =
+    texto(empleado.dni);
 
 
-        throw error;
+    $("telefono").value =
+    texto(empleado.telefono);
 
-    }
+
+    $("email").value =
+    texto(empleado.email);
+
+
+    $("puesto").value =
+    texto(empleado.puesto);
+
+
+    $("fechaIngreso").value =
+    texto(empleado.fechaIngreso);
+
+
+    $("pagoHora").value =
+    numero(empleado.pagoHora);
+
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
 
 }
 
 
 // =====================================================
-// CAMBIAR ACCESO
-// =====================================================
-
-async function cambiarAcceso(
-    empleado
-){
-
-    limpiarMensajes();
-
-
-    if(
-        !texto(
-            empleado.authUid
-        )
-    ){
-
-        mostrarError(
-            "Este empleado todavía no tiene una cuenta de acceso."
-        );
-
-        return;
-
-    }
-
-
-    const nuevoEstado =
-    empleado.accesoHabilitado
-        ? false
-        : true;
-
-
-    try{
-
-        await updateDoc(
-            doc(
-                db,
-                "empleados",
-                empleado.id
-            ),
-            {
-
-                accesoHabilitado:
-                nuevoEstado,
-
-                estado:
-                nuevoEstado
-                    ? "Activo"
-                    : "Inactivo"
-
-            }
-        );
-
-
-        mostrarExito(
-            nuevoEstado
-                ? "Acceso del empleado habilitado."
-                : "Acceso del empleado deshabilitado."
-        );
-
-
-        await cargarEmpleados();
-
-    }
-    catch(error){
-
-        console.error(
-            error
-        );
-
-
-        mostrarError(
-            "No se pudo modificar el acceso: " +
-            (
-                error.message ||
-                "Error desconocido"
-            )
-        );
-
-    }
-
-}
-
-
-// =====================================================
-// GUARDAR EMPLEADO
+// GUARDAR
 // =====================================================
 
 async function guardarEmpleado(){
@@ -1182,64 +1065,37 @@ async function guardarEmpleado(){
 
 
     const nombre =
-    texto(
-        $("nombre").value
-    );
+    texto($("nombre").value);
 
 
     const apellido =
-    texto(
-        $("apellido").value
-    );
+    texto($("apellido").value);
 
 
     const dni =
-    texto(
-        $("dni").value
-    );
+    texto($("dni").value);
 
 
     const telefono =
-    texto(
-        $("telefono").value
-    );
+    texto($("telefono").value);
 
 
     const email =
-    texto(
-        $("email").value
-    ).toLowerCase();
+    texto($("email").value)
+    .toLowerCase();
 
 
     const puesto =
-    texto(
-        $("puesto").value
-    );
+    texto($("puesto").value);
 
 
     const fechaIngreso =
-    texto(
-        $("fechaIngreso").value
-    );
+    texto($("fechaIngreso").value);
 
 
     const pagoHora =
-    numero(
-        $("pagoHora").value
-    );
+    numero($("pagoHora").value);
 
-
-    const darAcceso =
-    $("darAcceso").checked;
-
-
-    const contrasena =
-    $("contrasena").value;
-
-
-    // =================================================
-    // VALIDACIONES
-    // =================================================
 
     if(!nombre){
 
@@ -1307,42 +1163,11 @@ async function guardarEmpleado(){
     }
 
 
-    if(darAcceso){
-
-        if(!email){
-
-            mostrarError(
-                "Ingresá el correo del empleado."
-            );
-
-            return;
-
-        }
-
-
-        if(
-            contrasena.length < 6 &&
-            !empleadoEditando
-        ){
-
-            mostrarError(
-                "La contraseña debe tener como mínimo 6 caracteres."
-            );
-
-            return;
-
-        }
-
-    }
-
-
     const boton =
     $("btnGuardar");
 
 
-    boton.disabled =
-    true;
-
+    boton.disabled = true;
 
     boton.textContent =
     "GUARDANDO...";
@@ -1350,51 +1175,40 @@ async function guardarEmpleado(){
 
     try{
 
-        // =================================================
-        // EDITAR EXISTENTE
-        // =================================================
+        // ============================================
+        // MODIFICAR
+        // ============================================
 
         if(empleadoEditando){
 
-            const cambios = {
-
-                nombre:
-                nombre,
-
-                apellido:
-                apellido,
-
-                dni:
-                dni,
-
-                telefono:
-                telefono,
-
-                email:
-                email,
-
-                puesto:
-                puesto,
-
-                fechaIngreso:
-                fechaIngreso,
-
-                pagoHora:
-                pagoHora,
-
-                actualizado:
-                serverTimestamp()
-
-            };
+            const referencia =
+            doc(
+                db,
+                "empleados",
+                empleadoEditando.id
+            );
 
 
             await updateDoc(
-                doc(
-                    db,
-                    "empleados",
-                    empleadoEditando.id
-                ),
-                cambios
+                referencia,
+                {
+
+                    nombre,
+                    apellido,
+                    dni,
+                    telefono,
+                    email,
+                    puesto,
+                    fechaIngreso,
+                    pagoHora,
+
+                    modificado:
+                    serverTimestamp(),
+
+                    modificadoPor:
+                    usuarioActual.uid
+
+                }
             );
 
 
@@ -1402,203 +1216,91 @@ async function guardarEmpleado(){
                 "Empleado modificado correctamente."
             );
 
-
-            cancelarEdicion();
-
-            await cargarEmpleados();
-
-
-            return;
-
         }
 
+        // ============================================
+        // NUEVO
+        // ============================================
 
-        // =================================================
-        // COMPROBAR DNI DUPLICADO
-        // =================================================
-
-        const consultaDni =
-        query(
-            collection(
-                db,
-                "empleados"
-            ),
-            where(
-                "empresaId",
-                "==",
-                empresaId
-            ),
-            where(
-                "dni",
-                "==",
-                dni
-            )
-        );
-
-
-        const existentes =
-        await getDocs(
-            consultaDni
-        );
-
-
-        if(!existentes.empty){
-
-            throw new Error(
-                "Ya existe un empleado con ese DNI."
-            );
-
-        }
-
-
-        // =================================================
-        // CREAR FICHA
-        // =================================================
-
-        const documento =
-        await addDoc(
-            collection(
-                db,
-                "empleados"
-            ),
-            {
-
-                empresaId:
-                empresaId,
-
-                authUid:
-                "",
-
-                nombre:
-                nombre,
-
-                apellido:
-                apellido,
-
-                dni:
-                dni,
-
-                telefono:
-                telefono,
-
-                email:
-                email,
-
-                puesto:
-                puesto,
-
-                fechaIngreso:
-                fechaIngreso,
-
-                pagoHora:
-                pagoHora,
-
-                accesoHabilitado:
-                false,
-
-                estado:
-                "Inactivo",
-
-                creado:
-                serverTimestamp(),
-
-                creadoPor:
-                usuarioActual.uid
-
-            }
-        );
-
-
-        // =================================================
-        // CREAR ACCESO
-        // =================================================
-
-        if(darAcceso){
-
-            try{
-
-                await crearCuentaEmpleado(
-                    documento.id,
-                    email,
-                    contrasena
-                );
-
-
-                mostrarExito(
-                    "Empleado creado correctamente y acceso habilitado. Ya puede ingresar desde el login de empleados."
-                );
-
-            }
-            catch(errorAuth){
-
-                console.error(
-                    "Error creando cuenta:",
-                    errorAuth
-                );
-
-
-                let mensajeAuth =
-                "El empleado fue guardado, pero no se pudo crear su cuenta.";
-
-
-                if(
-                    errorAuth.code ===
-                    "auth/email-already-in-use"
-                ){
-
-                    mensajeAuth =
-                    "El empleado fue guardado, pero ese email ya tiene una cuenta en Firebase Authentication.";
-
-                }
-                else if(
-                    errorAuth.code ===
-                    "auth/invalid-email"
-                ){
-
-                    mensajeAuth =
-                    "El empleado fue guardado, pero el email no es válido.";
-
-                }
-                else if(
-                    errorAuth.code ===
-                    "auth/weak-password"
-                ){
-
-                    mensajeAuth =
-                    "El empleado fue guardado, pero la contraseña es demasiado débil.";
-
-                }
-                else if(
-                    errorAuth.code ===
-                    "auth/operation-not-allowed"
-                ){
-
-                    mensajeAuth =
-                    "El empleado fue guardado, pero Email/Password no está habilitado en Firebase Authentication.";
-
-                }
-                else if(
-                    errorAuth.code ===
-                    "auth/network-request-failed"
-                ){
-
-                    mensajeAuth =
-                    "El empleado fue guardado, pero no hay conexión con Firebase Authentication.";
-
-                }
-
-
-                mostrarError(
-                    mensajeAuth
-                );
-
-            }
-
-        }
         else{
 
+            const consulta =
+            query(
+                collection(
+                    db,
+                    "empleados"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                ),
+                where(
+                    "dni",
+                    "==",
+                    dni
+                )
+            );
+
+
+            const existentes =
+            await getDocs(
+                consulta
+            );
+
+
+            if(!existentes.empty){
+
+                throw new Error(
+                    "Ya existe un empleado con ese DNI."
+                );
+
+            }
+
+
+            await addDoc(
+                collection(
+                    db,
+                    "empleados"
+                ),
+                {
+
+                    empresaId,
+
+                    authUid:"",
+
+                    nombre,
+
+                    apellido,
+
+                    dni,
+
+                    telefono,
+
+                    email,
+
+                    puesto,
+
+                    fechaIngreso,
+
+                    pagoHora,
+
+                    accesoHabilitado:false,
+
+                    estado:"Activo",
+
+                    creado:
+                    serverTimestamp(),
+
+                    creadoPor:
+                    usuarioActual.uid
+
+                }
+            );
+
+
             mostrarExito(
-                "Empleado guardado sin acceso."
+                "Empleado cargado correctamente. Ahora podés habilitarle el acceso cuando quieras."
             );
 
         }
@@ -1612,7 +1314,7 @@ async function guardarEmpleado(){
     catch(error){
 
         console.error(
-            "Error guardando empleado:",
+            "ERROR GUARDANDO EMPLEADO:",
             error
         );
 
@@ -1621,18 +1323,27 @@ async function guardarEmpleado(){
             "No se pudo guardar el empleado: " +
             (
                 error.message ||
-                "Error desconocido"
+                "Error desconocido."
             )
         );
 
     }
     finally{
 
-        boton.disabled =
-        false;
+        boton.disabled = false;
 
-        boton.textContent =
-        "💾 GUARDAR EMPLEADO";
+        if(empleadoEditando){
+
+            boton.textContent =
+            "💾 GUARDAR CAMBIOS";
+
+        }
+        else{
+
+            boton.textContent =
+            "💾 GUARDAR EMPLEADO";
+
+        }
 
     }
 
@@ -1640,164 +1351,16 @@ async function guardarEmpleado(){
 
 
 // =====================================================
-// EDITAR EMPLEADO
+// BORRAR
 // =====================================================
 
-function editarEmpleado(
-    empleado
-){
-
-    limpiarMensajes();
-
-
-    empleadoEditando =
-    empleado;
-
-
-    $("tarjetaFormulario")
-        .classList
-        .add(
-            "modo-edicion"
-        );
-
-
-    $("tituloFormulario")
-        .textContent =
-        "✏️ Modificar empleado";
-
-
-    $("nombre").value =
-    texto(
-        empleado.nombre
-    );
-
-
-    $("apellido").value =
-    texto(
-        empleado.apellido
-    );
-
-
-    $("dni").value =
-    texto(
-        empleado.dni
-    );
-
-
-    $("telefono").value =
-    texto(
-        empleado.telefono
-    );
-
-
-    $("email").value =
-    texto(
-        empleado.email
-    );
-
-
-    $("puesto").value =
-    texto(
-        empleado.puesto
-    );
-
-
-    $("fechaIngreso").value =
-    texto(
-        empleado.fechaIngreso
-    );
-
-
-    $("pagoHora").value =
-    numero(
-        empleado.pagoHora
-    );
-
-
-    /*
-     * Durante la edición no mostramos
-     * contraseña porque Firebase no
-     * permite recuperar contraseñas.
-     */
-
-    $("darAcceso").checked =
-    Boolean(
-        empleado.accesoHabilitado
-    );
-
-
-    $("contrasenaContenedor")
-        .classList
-        .remove(
-            "visible"
-        );
-
-
-    $("btnGuardar")
-        .textContent =
-        "💾 GUARDAR CAMBIOS";
-
-
-    window.scrollTo({
-        top:0,
-        behavior:"smooth"
-    });
-
-}
-
-
-// =====================================================
-// CANCELAR EDICIÓN
-// =====================================================
-
-function cancelarEdicion(){
-
-    empleadoEditando =
-    null;
-
-
-    $("tarjetaFormulario")
-        .classList
-        .remove(
-            "modo-edicion"
-        );
-
-
-    $("tituloFormulario")
-        .textContent =
-        "👤 Cargar empleado";
-
-
-    $("btnGuardar")
-        .textContent =
-        "💾 GUARDAR EMPLEADO";
-
-
-    limpiarFormulario();
-
-}
-
-
-// =====================================================
-// BORRAR EMPLEADO
-// =====================================================
-
-async function borrarEmpleado(
-    empleado
-){
-
-    limpiarMensajes();
-
+async function borrarEmpleado(empleado){
 
     const nombre =
     (
-        texto(
-            empleado.nombre
-        ) +
+        texto(empleado.nombre) +
         " " +
-        texto(
-            empleado.apellido
-        )
+        texto(empleado.apellido)
     ).trim();
 
 
@@ -1805,8 +1368,7 @@ async function borrarEmpleado(
     confirm(
         "¿Seguro que querés borrar a " +
         nombre +
-        "?\n\n" +
-        "Se eliminará su ficha de GESBASE."
+        "?\n\nEsta acción eliminará el registro del empleado."
     );
 
 
@@ -1829,7 +1391,7 @@ async function borrarEmpleado(
 
 
         mostrarExito(
-            "Empleado eliminado correctamente de GESBASE."
+            "Empleado eliminado correctamente."
         );
 
 
@@ -1839,13 +1401,13 @@ async function borrarEmpleado(
     catch(error){
 
         console.error(
-            "Error eliminando empleado:",
+            "ERROR BORRANDO:",
             error
         );
 
 
         mostrarError(
-            "No se pudo eliminar el empleado: " +
+            "No se pudo borrar el empleado: " +
             error.message
         );
 
@@ -1855,40 +1417,401 @@ async function borrarEmpleado(
 
 
 // =====================================================
-// LIMPIAR FORMULARIO
+// ABRIR MODAL ACCESO
 // =====================================================
 
-function limpiarFormulario(){
+function abrirAcceso(empleado){
 
-    $("nombre").value =
+    empleadoAcceso =
+    empleado;
+
+
+    const nombre =
+    (
+        texto(empleado.nombre) +
+        " " +
+        texto(empleado.apellido)
+    ).trim();
+
+
+    $("nombreEmpleadoAcceso").textContent =
+    "Empleado: " + nombre;
+
+
+    $("emailAcceso").value =
+    texto(empleado.email);
+
+
+    $("passwordAcceso").value =
     "";
 
-    $("apellido").value =
-    "";
 
-    $("dni").value =
-    "";
+    $("modalAcceso")
+        .classList
+        .add("visible");
 
-    $("telefono").value =
-    "";
 
-    $("email").value =
-    "";
+    $("passwordAcceso").focus();
 
-    $("puesto").value =
-    "";
+}
 
-    $("fechaIngreso").value =
-    "";
 
-    $("pagoHora").value =
-    "";
+// =====================================================
+// CERRAR MODAL
+// =====================================================
 
-    $("contrasena").value =
-    "";
+function cerrarAcceso(){
 
-    $("darAcceso").checked =
-    true;
+    empleadoAcceso = null;
+
+    $("emailAcceso").value = "";
+
+    $("passwordAcceso").value = "";
+
+
+    $("modalAcceso")
+        .classList
+        .remove("visible");
+
+}
+
+
+// =====================================================
+// CREAR ACCESO
+// =====================================================
+
+async function crearAcceso(){
+
+    if(!empleadoAcceso){
+
+        mostrarError(
+            "No se seleccionó ningún empleado."
+        );
+
+        return;
+
+    }
+
+
+    const email =
+    texto(
+        $("emailAcceso").value
+    )
+    .toLowerCase();
+
+
+    const password =
+    $("passwordAcceso").value;
+
+
+    if(!email){
+
+        alert(
+            "Ingresá el email del empleado."
+        );
+
+        return;
+
+    }
+
+
+    if(password.length < 6){
+
+        alert(
+            "La contraseña debe tener como mínimo 6 caracteres."
+        );
+
+        return;
+
+    }
+
+
+    const boton =
+    $("btnCrearAcceso");
+
+
+    boton.disabled = true;
+
+    boton.textContent =
+    "CREANDO...";
+
+
+    try{
+
+        /*
+         * IMPORTANTE:
+         *
+         * La cuenta NO se crea con
+         * createUserWithEmailAndPassword
+         * porque eso cerraría la sesión
+         * del administrador.
+         *
+         * Se utiliza la Cloud Function
+         * administrativa.
+         */
+
+        const functions =
+        getFunctions(
+            undefined,
+            "us-central1"
+        );
+
+
+        const crearCuenta =
+        httpsCallable(
+            functions,
+            "crearCuentaEmpleado"
+        );
+
+
+        const respuesta =
+        await crearCuenta({
+
+            empleadoId:
+            empleadoAcceso.id,
+
+            empresaId:
+            empresaId,
+
+            email:
+            email,
+
+            password:
+            password
+
+        });
+
+
+        console.log(
+            "Cuenta empleado:",
+            respuesta.data
+        );
+
+
+        /*
+         * La Cloud Function debe dejar
+         * guardado el authUid en:
+         *
+         * empleados/{empleadoId}
+         */
+
+        await updateDoc(
+            doc(
+                db,
+                "empleados",
+                empleadoAcceso.id
+            ),
+            {
+
+                email:
+
+                email,
+
+                accesoHabilitado:
+                true,
+
+                estado:
+                "Activo",
+
+                accesoCreado:
+                serverTimestamp(),
+
+                accesoCreadoPor:
+                usuarioActual.uid
+
+            }
+        );
+
+
+        cerrarAcceso();
+
+
+        mostrarExito(
+            "Acceso creado correctamente. El empleado ya puede ingresar desde el login de empleado."
+        );
+
+
+        await cargarEmpleados();
+
+    }
+    catch(error){
+
+        console.error(
+            "ERROR CREANDO ACCESO:",
+            error
+        );
+
+
+        let mensaje =
+        "No se pudo crear el acceso.";
+
+
+        if(
+            error.code ===
+            "functions/already-exists"
+        ){
+
+            mensaje =
+            "Ya existe una cuenta con ese email.";
+
+        }
+
+        else if(
+            error.code ===
+            "functions/invalid-argument"
+        ){
+
+            mensaje =
+            "Los datos enviados no son válidos.";
+
+        }
+
+        else if(
+            error.code ===
+            "functions/permission-denied"
+        ){
+
+            mensaje =
+            "No tenés permisos para crear este acceso.";
+
+        }
+
+        else if(
+            error.message
+        ){
+
+            mensaje =
+            error.message;
+
+        }
+
+
+        mostrarError(
+            mensaje
+        );
+
+    }
+    finally{
+
+        boton.disabled = false;
+
+        boton.textContent =
+        "CREAR ACCESO";
+
+    }
+
+}
+
+
+// =====================================================
+// DESHABILITAR ACCESO
+// =====================================================
+
+async function deshabilitarAcceso(empleado){
+
+    const nombre =
+    (
+        texto(empleado.nombre) +
+        " " +
+        texto(empleado.apellido)
+    ).trim();
+
+
+    const confirmar =
+    confirm(
+        "¿Querés deshabilitar el acceso de " +
+        nombre +
+        "?\n\nEl empleado seguirá registrado, pero no podrá utilizar el acceso de GESBASE."
+    );
+
+
+    if(!confirmar){
+
+        return;
+
+    }
+
+
+    try{
+
+        /*
+         * La Cloud Function debe deshabilitar
+         * el usuario de Firebase Authentication.
+         */
+
+        const functions =
+        getFunctions(
+            undefined,
+            "us-central1"
+        );
+
+
+        const deshabilitar =
+        httpsCallable(
+            functions,
+            "deshabilitarCuentaEmpleado"
+        );
+
+
+        await deshabilitar({
+
+            empleadoId:
+            empleado.id,
+
+            empresaId:
+            empresaId,
+
+            authUid:
+            texto(
+                empleado.authUid
+            )
+
+        });
+
+
+        await updateDoc(
+            doc(
+                db,
+                "empleados",
+                empleado.id
+            ),
+            {
+
+                accesoHabilitado:
+                false,
+
+                modificado:
+                serverTimestamp(),
+
+                modificadoPor:
+                usuarioActual.uid
+
+            }
+        );
+
+
+        mostrarExito(
+            "Acceso del empleado deshabilitado."
+        );
+
+
+        await cargarEmpleados();
+
+    }
+    catch(error){
+
+        console.error(
+            "ERROR DESHABILITANDO:",
+            error
+        );
+
+
+        mostrarError(
+            "No se pudo deshabilitar el acceso: " +
+            error.message
+        );
+
+    }
 
 }
 
@@ -1974,7 +1897,7 @@ async function cargarEmpleados(){
     catch(error){
 
         console.error(
-            "Error cargando empleados:",
+            "ERROR CARGANDO EMPLEADOS:",
             error
         );
 
@@ -1983,8 +1906,6 @@ async function cargarEmpleados(){
         `
         <div class="vacio">
             No se pudieron cargar los empleados.
-            <br><br>
-            ${texto(error.message)}
         </div>
         `;
 
@@ -1994,16 +1915,13 @@ async function cargarEmpleados(){
 
 
 // =====================================================
-// CREAR TARJETA EMPLEADO
+// CREAR TARJETA
 // =====================================================
 
-function crearEmpleado(
-    empleado
-){
+function crearEmpleado(empleado){
 
     const tarjeta =
     document.createElement("div");
-
 
     tarjeta.className =
     "empleado";
@@ -2011,7 +1929,6 @@ function crearEmpleado(
 
     const cabecera =
     document.createElement("div");
-
 
     cabecera.className =
     "empleado-cabecera";
@@ -2024,20 +1941,14 @@ function crearEmpleado(
     const nombre =
     document.createElement("div");
 
-
     nombre.className =
     "nombre";
 
-
     nombre.textContent =
     (
-        texto(
-            empleado.nombre
-        ) +
+        texto(empleado.nombre) +
         " " +
-        texto(
-            empleado.apellido
-        )
+        texto(empleado.apellido)
     ).trim();
 
 
@@ -2049,10 +1960,8 @@ function crearEmpleado(
     const puesto =
     document.createElement("div");
 
-
     puesto.className =
     "puesto";
-
 
     puesto.textContent =
     texto(
@@ -2070,11 +1979,15 @@ function crearEmpleado(
     document.createElement("span");
 
 
+    const authUid =
+    texto(
+        empleado.authUid
+    );
+
+
     if(
         empleado.accesoHabilitado &&
-        texto(
-            empleado.authUid
-        )
+        authUid
     ){
 
         estado.className =
@@ -2084,6 +1997,7 @@ function crearEmpleado(
         "ACCESO ACTIVO";
 
     }
+
     else if(
         empleado.accesoHabilitado
     ){
@@ -2095,6 +2009,7 @@ function crearEmpleado(
         "ACCESO PENDIENTE";
 
     }
+
     else{
 
         estado.className =
@@ -2110,7 +2025,6 @@ function crearEmpleado(
         izquierda
     );
 
-
     cabecera.appendChild(
         estado
     );
@@ -2121,9 +2035,12 @@ function crearEmpleado(
     );
 
 
+    // ===============================================
+    // DATOS
+    // ===============================================
+
     const datos =
     document.createElement("div");
-
 
     datos.className =
     "datos";
@@ -2132,45 +2049,35 @@ function crearEmpleado(
     agregarDato(
         datos,
         "DNI",
-        texto(
-            empleado.dni
-        ) || "-"
+        texto(empleado.dni) || "-"
     );
 
 
     agregarDato(
         datos,
         "Correo",
-        texto(
-            empleado.email
-        ) || "-"
+        texto(empleado.email) || "-"
     );
 
 
     agregarDato(
         datos,
         "Teléfono",
-        texto(
-            empleado.telefono
-        ) || "-"
+        texto(empleado.telefono) || "-"
     );
 
 
     agregarDato(
         datos,
         "Ingreso",
-        texto(
-            empleado.fechaIngreso
-        ) || "-"
+        texto(empleado.fechaIngreso) || "-"
     );
 
 
     agregarDato(
         datos,
         "Valor hora",
-        dinero(
-            empleado.pagoHora
-        )
+        dinero(empleado.pagoHora)
     );
 
 
@@ -2179,9 +2086,12 @@ function crearEmpleado(
     );
 
 
+    // ===============================================
+    // ESTADO ACCESO
+    // ===============================================
+
     const acceso =
     document.createElement("div");
-
 
     acceso.className =
     "acceso-estado";
@@ -2189,15 +2099,14 @@ function crearEmpleado(
 
     if(
         empleado.accesoHabilitado &&
-        texto(
-            empleado.authUid
-        )
+        authUid
     ){
 
         acceso.innerHTML =
-        "🔐 <strong>Acceso habilitado.</strong> El empleado puede ingresar desde el login de empleados.";
+        "🔐 <strong>Acceso activo.</strong> El empleado puede ingresar a GESBASE.";
 
     }
+
     else if(
         empleado.accesoHabilitado
     ){
@@ -2206,10 +2115,11 @@ function crearEmpleado(
         "🟡 <strong>Acceso pendiente.</strong> Falta vincular la cuenta.";
 
     }
+
     else{
 
         acceso.innerHTML =
-        "🔒 <strong>Acceso deshabilitado.</strong>";
+        "🔒 <strong>Sin acceso.</strong> El empleado todavía no tiene acceso a GESBASE.";
 
     }
 
@@ -2219,35 +2129,32 @@ function crearEmpleado(
     );
 
 
-    // =================================================
+    // ===============================================
     // ACCIONES
-    // =================================================
+    // ===============================================
 
     const acciones =
     document.createElement("div");
-
 
     acciones.className =
     "acciones";
 
 
-    const btnEditar =
+    const btnModificar =
     document.createElement("button");
 
+    btnModificar.className =
+    "accion modificar";
 
-    btnEditar.className =
-    "accion editar";
-
-
-    btnEditar.textContent =
+    btnModificar.textContent =
     "✏️ MODIFICAR";
 
 
-    btnEditar.addEventListener(
+    btnModificar.addEventListener(
         "click",
         function(){
 
-            editarEmpleado(
+            cargarParaModificar(
                 empleado
             );
 
@@ -2256,68 +2163,21 @@ function crearEmpleado(
 
 
     acciones.appendChild(
-        btnEditar
+        btnModificar
     );
 
 
-    const btnAcceso =
+    const btnBorrar =
     document.createElement("button");
 
+    btnBorrar.className =
+    "accion borrar";
 
-    btnAcceso.className =
-    "accion acceso-btn";
-
-
-    if(
-        empleado.accesoHabilitado
-    ){
-
-        btnAcceso.textContent =
-        "🔒 DESACTIVAR";
-
-        btnAcceso.classList.add(
-            "desactivar"
-        );
-
-    }
-    else{
-
-        btnAcceso.textContent =
-        "🔓 HABILITAR";
-
-    }
-
-
-    btnAcceso.addEventListener(
-        "click",
-        function(){
-
-            cambiarAcceso(
-                empleado
-            );
-
-        }
-    );
-
-
-    acciones.appendChild(
-        btnAcceso
-    );
-
-
-    const btnEliminar =
-    document.createElement("button");
-
-
-    btnEliminar.className =
-    "accion eliminar";
-
-
-    btnEliminar.textContent =
+    btnBorrar.textContent =
     "🗑️ BORRAR";
 
 
-    btnEliminar.addEventListener(
+    btnBorrar.addEventListener(
         "click",
         function(){
 
@@ -2330,8 +2190,76 @@ function crearEmpleado(
 
 
     acciones.appendChild(
-        btnEliminar
+        btnBorrar
     );
+
+
+    // ===============================================
+    // ACCESO
+    // ===============================================
+
+    if(
+        empleado.accesoHabilitado &&
+        authUid
+    ){
+
+        const btnDeshabilitar =
+        document.createElement("button");
+
+        btnDeshabilitar.className =
+        "accion deshabilitar";
+
+        btnDeshabilitar.textContent =
+        "🚫 DESHABILITAR ACCESO";
+
+
+        btnDeshabilitar.addEventListener(
+            "click",
+            function(){
+
+                deshabilitarAcceso(
+                    empleado
+                );
+
+            }
+        );
+
+
+        acciones.appendChild(
+            btnDeshabilitar
+        );
+
+    }
+
+    else{
+
+        const btnHabilitar =
+        document.createElement("button");
+
+        btnHabilitar.className =
+        "accion habilitar";
+
+        btnHabilitar.textContent =
+        "🔐 HABILITAR ACCESO";
+
+
+        btnHabilitar.addEventListener(
+            "click",
+            function(){
+
+                abrirAcceso(
+                    empleado
+                );
+
+            }
+        );
+
+
+        acciones.appendChild(
+            btnHabilitar
+        );
+
+    }
 
 
     tarjeta.appendChild(
@@ -2357,14 +2285,12 @@ function agregarDato(
     const dato =
     document.createElement("div");
 
-
     dato.className =
     "dato";
 
 
     const small =
     document.createElement("small");
-
 
     small.textContent =
     etiqueta;
@@ -2373,7 +2299,6 @@ function agregarDato(
     const strong =
     document.createElement("strong");
 
-
     strong.textContent =
     valor;
 
@@ -2381,7 +2306,6 @@ function agregarDato(
     dato.appendChild(
         small
     );
-
 
     dato.appendChild(
         strong
@@ -2396,41 +2320,7 @@ function agregarDato(
 
 
 // =====================================================
-// ACCESO CHECKBOX
-// =====================================================
-
-$("darAcceso").addEventListener(
-    "change",
-    function(){
-
-        const contenedor =
-        $("contrasenaContenedor");
-
-
-        if(
-            $("darAcceso").checked &&
-            !empleadoEditando
-        ){
-
-            contenedor.classList.add(
-                "visible"
-            );
-
-        }
-        else{
-
-            contenedor.classList.remove(
-                "visible"
-            );
-
-        }
-
-    }
-);
-
-
-// =====================================================
-// BOTONES
+// EVENTOS
 // =====================================================
 
 $("btnGuardar").addEventListener(
@@ -2445,19 +2335,21 @@ $("btnLimpiar").addEventListener(
 
         limpiarMensajes();
 
-
-        if(empleadoEditando){
-
-            cancelarEdicion();
-
-        }
-        else{
-
-            limpiarFormulario();
-
-        }
+        limpiarFormulario();
 
     }
+);
+
+
+$("btnCrearAcceso").addEventListener(
+    "click",
+    crearAcceso
+);
+
+
+$("btnCancelarAcceso").addEventListener(
+    "click",
+    cerrarAcceso
 );
 
 
@@ -2471,8 +2363,27 @@ $("btnVolver").addEventListener(
 );
 
 
+// Cerrar modal tocando afuera
+
+$("modalAcceso").addEventListener(
+    "click",
+    function(event){
+
+        if(
+            event.target ===
+            $("modalAcceso")
+        ){
+
+            cerrarAcceso();
+
+        }
+
+    }
+);
+
+
 // =====================================================
-// AUTENTICACIÓN ADMINISTRADOR
+// AUTENTICACIÓN
 // =====================================================
 
 onAuthStateChanged(
