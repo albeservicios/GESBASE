@@ -1,5 +1,3 @@
-empleados.html
-
 <!DOCTYPE html>
 <html lang="es">
 
@@ -27,7 +25,7 @@ body{
 
 .app{
     width:100%;
-    max-width:900px;
+    max-width:1000px;
     margin:auto;
     min-height:100vh;
     background:#fff;
@@ -161,6 +159,22 @@ main{
     color:#6b7280;
 }
 
+.modo-edicion{
+    display:none;
+    background:#fef3c7;
+    border:1px solid #fcd34d;
+    color:#92400e;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.modo-edicion.visible{
+    display:block;
+}
+
 .botones{
     display:flex;
     gap:10px;
@@ -185,6 +199,16 @@ main{
 .boton-limpiar{
     background:#e5e7eb;
     color:#111827;
+}
+
+.boton-cancelar{
+    display:none;
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.boton-cancelar.visible{
+    display:block;
 }
 
 .boton:disabled{
@@ -267,7 +291,7 @@ main{
 
 .datos{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:repeat(3,1fr);
     gap:9px;
     margin-top:14px;
 }
@@ -299,11 +323,160 @@ main{
     font-size:13px;
 }
 
+.acciones-empleado{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-top:14px;
+}
+
+.accion{
+    border:none;
+    border-radius:9px;
+    padding:11px 8px;
+    font-size:12px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.editar{
+    background:#dbeafe;
+    color:#1e40af;
+}
+
+.liquidar{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.recibo{
+    background:#dcfce7;
+    color:#166534;
+}
+
 .vacio,
 .cargando{
     text-align:center;
     padding:25px;
     color:#6b7280;
+}
+
+/* LIQUIDACIÓN */
+
+.liquidacion-panel{
+    display:none;
+    margin-top:15px;
+    padding:16px;
+    border-radius:12px;
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+}
+
+.liquidacion-panel.visible{
+    display:block;
+}
+
+.liquidacion-titulo{
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:5px;
+}
+
+.liquidacion-empleado{
+    color:#6b7280;
+    font-size:13px;
+    margin-bottom:15px;
+}
+
+.filtros{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.resumen{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin-top:15px;
+}
+
+.resumen-item{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:12px;
+}
+
+.resumen-etiqueta{
+    color:#6b7280;
+    font-size:11px;
+}
+
+.resumen-valor{
+    font-size:18px;
+    font-weight:bold;
+    margin-top:5px;
+}
+
+.total{
+    margin-top:15px;
+    padding:18px;
+    border-radius:12px;
+    background:#111827;
+    color:#fff;
+}
+
+.total small{
+    color:#d1d5db;
+}
+
+.total strong{
+    display:block;
+    font-size:27px;
+    margin-top:5px;
+}
+
+.info-pago{
+    margin-top:12px;
+    padding:12px;
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    border-radius:10px;
+    font-size:13px;
+    line-height:1.6;
+}
+
+.tabla{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+    font-size:12px;
+}
+
+.tabla th,
+.tabla td{
+    padding:8px 5px;
+    border-bottom:1px solid #e5e7eb;
+    text-align:left;
+}
+
+.tabla th{
+    background:#f3f4f6;
+}
+
+.boton-generar-recibo{
+    width:100%;
+    margin-top:15px;
+    background:#166534;
+    color:#fff;
+}
+
+.boton-cerrar-liquidacion{
+    width:100%;
+    margin-top:8px;
+    background:#e5e7eb;
+    color:#111827;
 }
 
 .volver{
@@ -313,7 +486,7 @@ main{
     margin-top:5px;
 }
 
-@media(max-width:600px){
+@media(max-width:700px){
 
     main{
         padding:15px;
@@ -333,11 +506,31 @@ main{
     }
 
     .datos{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .acciones-empleado{
         grid-template-columns:1fr;
     }
 
-    .empleado-cabecera{
-        flex-direction:column;
+    .resumen{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .tabla{
+        font-size:10px;
+    }
+
+}
+
+@media(max-width:430px){
+
+    .datos{
+        grid-template-columns:1fr;
+    }
+
+    .filtros{
+        grid-template-columns:1fr;
     }
 
 }
@@ -375,17 +568,24 @@ class="mensaje exito"
 
 
 <!-- =====================================
-     CARGAR EMPLEADO
+     CARGAR / EDITAR EMPLEADO
 ===================================== -->
 
 <div class="tarjeta">
 
 <div class="titulo">
-👤 Cargar empleado
+👤 <span id="tituloFormulario">Cargar empleado</span>
 </div>
 
 <div class="descripcion">
-Completá los datos del empleado y, si corresponde, habilitá su acceso a GESBASE.
+Completá los datos del empleado y administrá su acceso, valor hora y liquidación interna.
+</div>
+
+<div
+id="modoEdicion"
+class="modo-edicion"
+>
+✏️ ESTÁS EDITANDO UN EMPLEADO
 </div>
 
 
@@ -518,10 +718,6 @@ placeholder="0"
 </div>
 
 
-<!-- =====================================
-     ACCESO
-===================================== -->
-
 <div class="acceso">
 
 <div class="acceso-titulo">
@@ -529,7 +725,7 @@ placeholder="0"
 </div>
 
 <div class="acceso-descripcion">
-Si habilitás el acceso, el empleado podrá ingresar a GESBASE con su correo y contraseña.
+El empleado puede ingresar a GESBASE mediante su correo y contraseña.
 </div>
 
 
@@ -568,7 +764,8 @@ minlength="6"
 >
 
 <div class="ayuda">
-La contraseña se utiliza para crear la cuenta de acceso y no se guarda en Firestore.
+La contraseña no se guarda en Firestore.
+En modo edición se deja vacía para no modificar la contraseña actual.
 </div>
 
 </div>
@@ -595,6 +792,13 @@ id="btnLimpiar"
 class="boton boton-limpiar"
 >
 LIMPIAR
+</button>
+
+<button
+id="btnCancelarEdicion"
+class="boton boton-cancelar"
+>
+CANCELAR EDICIÓN
 </button>
 
 </div>
@@ -668,21 +872,13 @@ import {
     query,
     where,
     addDoc,
+    updateDoc,
+    doc,
     serverTimestamp
 }
 from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
-/*
- * IMPORTANTE:
- *
- * Esta función se conectará con la función
- * administrativa segura de Firebase.
- *
- * No se crea la cuenta Authentication
- * directamente desde la sesión de la empresa.
- */
 
 import {
     getFunctions,
@@ -699,6 +895,10 @@ from
 let usuarioActual = null;
 
 let empresaId = "";
+
+let empleadoEditandoId = null;
+
+let empleadoLiquidacion = null;
 
 
 /* =====================================
@@ -737,6 +937,22 @@ function numero(valor){
     return Number.isFinite(n)
         ? n
         : 0;
+
+}
+
+
+function dinero(valor){
+
+    return new Intl.NumberFormat(
+        "es-AR",
+        {
+            style:"currency",
+            currency:"ARS",
+            maximumFractionDigits:0
+        }
+    ).format(
+        numero(valor)
+    );
 
 }
 
@@ -780,24 +996,8 @@ function limpiarMensajes(){
 }
 
 
-function dinero(valor){
-
-    return new Intl.NumberFormat(
-        "es-AR",
-        {
-            style:"currency",
-            currency:"ARS",
-            maximumFractionDigits:0
-        }
-    ).format(
-        numero(valor)
-    );
-
-}
-
-
 /* =====================================
-   OBTENER EMPRESA
+   EMPRESA
 ===================================== */
 
 async function obtenerEmpresa(){
@@ -863,11 +1063,6 @@ async function obtenerEmpresa(){
     }
 
 
-    /*
-     * Compatibilidad con el esquema
-     * actual de GESBASE.
-     */
-
     if(!empresaId){
 
         empresaId =
@@ -879,31 +1074,27 @@ async function obtenerEmpresa(){
 
 
 /* =====================================
-   MOSTRAR / OCULTAR CONTRASEÑA
+   ACCESO
 ===================================== */
 
 $("darAcceso").addEventListener(
     "change",
     function(){
 
-        const contenedor =
-        $("contrasenaContenedor");
-
-
         if(
             $("darAcceso").checked
         ){
 
-            contenedor.classList.add(
-                "visible"
-            );
+            $("contrasenaContenedor")
+                .classList
+                .add("visible");
 
         }
         else{
 
-            contenedor.classList.remove(
-                "visible"
-            );
+            $("contrasenaContenedor")
+                .classList
+                .remove("visible");
 
             $("contrasena").value =
             "";
@@ -915,7 +1106,148 @@ $("darAcceso").addEventListener(
 
 
 /* =====================================
-   GUARDAR EMPLEADO
+   LIMPIAR FORMULARIO
+===================================== */
+
+function limpiarFormulario(){
+
+    empleadoEditandoId = null;
+
+    $("tituloFormulario").textContent =
+    "Cargar empleado";
+
+    $("modoEdicion")
+        .classList
+        .remove("visible");
+
+    $("nombre").value = "";
+    $("apellido").value = "";
+    $("dni").value = "";
+    $("telefono").value = "";
+    $("email").value = "";
+    $("puesto").value = "";
+    $("fechaIngreso").value = "";
+    $("pagoHora").value = "";
+    $("contrasena").value = "";
+
+    $("darAcceso").checked =
+    true;
+
+    $("contrasenaContenedor")
+        .classList
+        .add("visible");
+
+    $("btnGuardar").textContent =
+    "💾 GUARDAR EMPLEADO";
+
+    $("btnCancelarEdicion")
+        .classList
+        .remove("visible");
+
+}
+
+
+/* =====================================
+   EDITAR EMPLEADO
+===================================== */
+
+function editarEmpleado(empleado){
+
+    limpiarMensajes();
+
+
+    empleadoEditandoId =
+    empleado.id;
+
+
+    $("tituloFormulario").textContent =
+    "Editar empleado";
+
+
+    $("modoEdicion")
+        .classList
+        .add("visible");
+
+
+    $("nombre").value =
+    texto(empleado.nombre);
+
+
+    $("apellido").value =
+    texto(empleado.apellido);
+
+
+    $("dni").value =
+    texto(empleado.dni);
+
+
+    $("telefono").value =
+    texto(empleado.telefono);
+
+
+    $("email").value =
+    texto(empleado.email);
+
+
+    $("puesto").value =
+    texto(empleado.puesto);
+
+
+    $("fechaIngreso").value =
+    texto(empleado.fechaIngreso);
+
+
+    $("pagoHora").value =
+    numero(empleado.pagoHora);
+
+
+    $("darAcceso").checked =
+    Boolean(
+        empleado.accesoHabilitado
+    );
+
+
+    $("contrasena").value =
+    "";
+
+
+    if(
+        empleado.accesoHabilitado
+    ){
+
+        $("contrasenaContenedor")
+            .classList
+            .add("visible");
+
+    }
+    else{
+
+        $("contrasenaContenedor")
+            .classList
+            .remove("visible");
+
+    }
+
+
+    $("btnGuardar").textContent =
+    "💾 GUARDAR CAMBIOS";
+
+
+    $("btnCancelarEdicion")
+        .classList
+        .add("visible");
+
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+
+/* =====================================
+   GUARDAR
 ===================================== */
 
 async function guardarEmpleado(){
@@ -924,51 +1256,36 @@ async function guardarEmpleado(){
 
 
     const nombre =
-    texto(
-        $("nombre").value
-    );
+    texto($("nombre").value);
 
 
     const apellido =
-    texto(
-        $("apellido").value
-    );
+    texto($("apellido").value);
 
 
     const dni =
-    texto(
-        $("dni").value
-    );
+    texto($("dni").value);
 
 
     const telefono =
-    texto(
-        $("telefono").value
-    );
+    texto($("telefono").value);
 
 
     const email =
-    texto(
-        $("email").value
-    ).toLowerCase();
+    texto($("email").value)
+    .toLowerCase();
 
 
     const puesto =
-    texto(
-        $("puesto").value
-    );
+    texto($("puesto").value);
 
 
     const fechaIngreso =
-    texto(
-        $("fechaIngreso").value
-    );
+    texto($("fechaIngreso").value);
 
 
     const pagoHora =
-    numero(
-        $("pagoHora").value
-    );
+    numero($("pagoHora").value);
 
 
     const darAcceso =
@@ -978,10 +1295,6 @@ async function guardarEmpleado(){
     const contrasena =
     $("contrasena").value;
 
-
-    /* =================================
-       VALIDACIONES
-    ================================= */
 
     if(!nombre){
 
@@ -1049,28 +1362,34 @@ async function guardarEmpleado(){
     }
 
 
-    if(darAcceso){
+    if(darAcceso && !email){
 
-        if(!email){
+        mostrarError(
+            "Ingresá el correo de acceso."
+        );
 
-            mostrarError(
-                "Ingresá el correo que utilizará el empleado para acceder."
-            );
+        return;
 
-            return;
-
-        }
+    }
 
 
-        if(contrasena.length < 6){
+    /*
+     * En creación se exige contraseña.
+     * En edición queda vacía porque no
+     * se modifica la contraseña existente.
+     */
 
-            mostrarError(
-                "La contraseña debe tener como mínimo 6 caracteres."
-            );
+    if(
+        darAcceso &&
+        !empleadoEditandoId &&
+        contrasena.length < 6
+    ){
 
-            return;
+        mostrarError(
+            "La contraseña debe tener como mínimo 6 caracteres."
+        );
 
-        }
+        return;
 
     }
 
@@ -1082,8 +1401,11 @@ async function guardarEmpleado(){
     boton.disabled =
     true;
 
+
     boton.textContent =
-    "GUARDANDO...";
+    empleadoEditandoId
+        ? "GUARDANDO CAMBIOS..."
+        : "GUARDANDO...";
 
 
     try{
@@ -1117,22 +1439,113 @@ async function guardarEmpleado(){
         );
 
 
-        if(!existentes.empty){
+        let dniDuplicado =
+        false;
+
+
+        existentes.forEach(
+            documento => {
+
+                if(
+                    documento.id !==
+                    empleadoEditandoId
+                ){
+
+                    dniDuplicado =
+                    true;
+
+                }
+
+            }
+        );
+
+
+        if(dniDuplicado){
 
             throw new Error(
-                "Ya existe un empleado con ese DNI."
+                "Ya existe otro empleado con ese DNI."
             );
 
         }
 
 
-        /*
-         * Primero guardamos el empleado.
-         *
-         * authUid queda vacío hasta que
-         * Firebase Authentication cree
-         * correctamente la cuenta.
-         */
+        /* =================================
+           EDICIÓN
+        ================================= */
+
+        if(empleadoEditandoId){
+
+            const referencia =
+            doc(
+                db,
+                "empleados",
+                empleadoEditandoId
+            );
+
+
+            await updateDoc(
+                referencia,
+                {
+
+                    nombre:
+                    nombre,
+
+                    apellido:
+                    apellido,
+
+                    dni:
+                    dni,
+
+                    telefono:
+                    telefono,
+
+                    email:
+                    email,
+
+                    puesto:
+                    puesto,
+
+                    fechaIngreso:
+                    fechaIngreso,
+
+                    pagoHora:
+                    pagoHora,
+
+                    accesoHabilitado:
+                    darAcceso,
+
+                    estado:
+                    darAcceso
+                        ? "Activo"
+                        : "Inactivo",
+
+                    actualizado:
+                    serverTimestamp(),
+
+                    actualizadoPor:
+                    usuarioActual.uid
+
+                }
+            );
+
+
+            mostrarExito(
+                "Empleado actualizado correctamente."
+            );
+
+
+            limpiarFormulario();
+
+            await cargarEmpleados();
+
+            return;
+
+        }
+
+
+        /* =================================
+           NUEVO EMPLEADO
+        ================================= */
 
         const documento =
         await addDoc(
@@ -1191,9 +1604,7 @@ async function guardarEmpleado(){
 
 
         /*
-         * Si la empresa dio acceso,
-         * solicitamos a la función segura
-         * de Firebase que cree la cuenta.
+         * Crear cuenta mediante Cloud Function.
          */
 
         if(darAcceso){
@@ -1246,13 +1657,12 @@ async function guardarEmpleado(){
             catch(error){
 
                 console.error(
-                    "Error creando acceso:",
                     error
                 );
 
 
                 mostrarError(
-                    "El empleado fue guardado, pero no se pudo crear su acceso: " +
+                    "El empleado fue guardado, pero no se pudo crear el acceso: " +
                     error.message
                 );
 
@@ -1276,7 +1686,6 @@ async function guardarEmpleado(){
     catch(error){
 
         console.error(
-            "Error guardando empleado:",
             error
         );
 
@@ -1292,53 +1701,22 @@ async function guardarEmpleado(){
         boton.disabled =
         false;
 
-        boton.textContent =
-        "💾 GUARDAR EMPLEADO";
+        if(
+            empleadoEditandoId
+        ){
+
+            boton.textContent =
+            "💾 GUARDAR CAMBIOS";
+
+        }
+        else{
+
+            boton.textContent =
+            "💾 GUARDAR EMPLEADO";
+
+        }
 
     }
-
-}
-
-
-/* =====================================
-   LIMPIAR FORMULARIO
-===================================== */
-
-function limpiarFormulario(){
-
-    $("nombre").value =
-    "";
-
-    $("apellido").value =
-    "";
-
-    $("dni").value =
-    "";
-
-    $("telefono").value =
-    "";
-
-    $("email").value =
-    "";
-
-    $("puesto").value =
-    "";
-
-    $("fechaIngreso").value =
-    "";
-
-    $("pagoHora").value =
-    "";
-
-    $("contrasena").value =
-    "";
-
-    $("darAcceso").checked =
-    true;
-
-    $("contrasenaContenedor")
-        .classList
-        .add("visible");
 
 }
 
@@ -1423,7 +1801,9 @@ async function cargarEmpleados(){
     }
     catch(error){
 
-        console.error(error);
+        console.error(
+            error
+        );
 
 
         $("listaEmpleados").innerHTML =
@@ -1442,9 +1822,7 @@ async function cargarEmpleados(){
    CREAR TARJETA
 ===================================== */
 
-function crearEmpleado(
-    empleado
-){
+function crearEmpleado(empleado){
 
     const tarjeta =
     document.createElement("div");
@@ -1472,13 +1850,9 @@ function crearEmpleado(
 
     nombre.textContent =
     (
-        texto(
-            empleado.nombre
-        ) +
+        texto(empleado.nombre) +
         " " +
-        texto(
-            empleado.apellido
-        )
+        texto(empleado.apellido)
     ).trim();
 
 
@@ -1511,9 +1885,7 @@ function crearEmpleado(
 
     if(
         empleado.accesoHabilitado &&
-        texto(
-            empleado.authUid
-        )
+        texto(empleado.authUid)
     ){
 
         estado.className =
@@ -1569,45 +1941,35 @@ function crearEmpleado(
     agregarDato(
         datos,
         "DNI",
-        texto(
-            empleado.dni
-        ) || "-"
+        texto(empleado.dni) || "-"
     );
 
 
     agregarDato(
         datos,
         "Correo",
-        texto(
-            empleado.email
-        ) || "-"
+        texto(empleado.email) || "-"
     );
 
 
     agregarDato(
         datos,
         "Teléfono",
-        texto(
-            empleado.telefono
-        ) || "-"
+        texto(empleado.telefono) || "-"
     );
 
 
     agregarDato(
         datos,
         "Ingreso",
-        texto(
-            empleado.fechaIngreso
-        ) || "-"
+        texto(empleado.fechaIngreso) || "-"
     );
 
 
     agregarDato(
         datos,
         "Valor hora",
-        dinero(
-            empleado.pagoHora
-        )
+        dinero(empleado.pagoHora)
     );
 
 
@@ -1625,9 +1987,7 @@ function crearEmpleado(
 
     if(
         empleado.accesoHabilitado &&
-        texto(
-            empleado.authUid
-        )
+        texto(empleado.authUid)
     ){
 
         acceso.innerHTML =
@@ -1652,6 +2012,130 @@ function crearEmpleado(
 
     tarjeta.appendChild(
         acceso
+    );
+
+
+    /*
+     * ACCIONES
+     */
+
+    const acciones =
+    document.createElement("div");
+
+    acciones.className =
+    "acciones-empleado";
+
+
+    const btnEditar =
+    document.createElement("button");
+
+    btnEditar.className =
+    "accion editar";
+
+    btnEditar.textContent =
+    "✏️ EDITAR";
+
+
+    btnEditar.addEventListener(
+        "click",
+        function(){
+
+            editarEmpleado(
+                empleado
+            );
+
+        }
+    );
+
+
+    acciones.appendChild(
+        btnEditar
+    );
+
+
+    const btnLiquidar =
+    document.createElement("button");
+
+    btnLiquidar.className =
+    "accion liquidar";
+
+    btnLiquidar.textContent =
+    "💰 LIQUIDACIÓN";
+
+
+    btnLiquidar.addEventListener(
+        "click",
+        function(){
+
+            abrirLiquidacion(
+                empleado
+            );
+
+        }
+    );
+
+
+    acciones.appendChild(
+        btnLiquidar
+    );
+
+
+    const btnRecibo =
+    document.createElement("button");
+
+    btnRecibo.className =
+    "accion recibo";
+
+    btnRecibo.textContent =
+    "🧾 RECIBO PDF";
+
+
+    btnRecibo.addEventListener(
+        "click",
+        function(){
+
+            abrirRecibo(
+                empleado,
+                null
+            );
+
+        }
+    );
+
+
+    acciones.appendChild(
+        btnRecibo
+    );
+
+
+    tarjeta.appendChild(
+        acciones
+    );
+
+
+    /*
+     * Panel de liquidación.
+     */
+
+    const panel =
+    document.createElement("div");
+
+    panel.className =
+    "liquidacion-panel";
+
+    panel.id =
+    "liquidacion-" +
+    empleado.id;
+
+
+    panel.innerHTML =
+    crearPanelLiquidacion(
+        empleado
+    );
+
+
+    tarjeta.appendChild(
+        panel
     );
 
 
@@ -1708,6 +2192,1329 @@ function agregarDato(
 
 
 /* =====================================
+   PANEL LIQUIDACIÓN
+===================================== */
+
+function crearPanelLiquidacion(empleado){
+
+    const hoy =
+    new Date();
+
+
+    const primerDia =
+    new Date(
+        hoy.getFullYear(),
+        hoy.getMonth(),
+        1
+    );
+
+
+    return `
+
+    <div class="liquidacion-titulo">
+        💰 Liquidación interna
+    </div>
+
+    <div class="liquidacion-empleado">
+        ${escapar(
+            (
+                texto(empleado.nombre) +
+                " " +
+                texto(empleado.apellido)
+            ).trim()
+        )}
+    </div>
+
+    <div class="filtros">
+
+        <div class="campo">
+
+            <label>
+                Desde
+            </label>
+
+            <input
+                type="date"
+                id="liq-desde-${empleado.id}"
+                value="${formatearFecha(primerDia)}"
+            >
+
+        </div>
+
+        <div class="campo">
+
+            <label>
+                Hasta
+            </label>
+
+            <input
+                type="date"
+                id="liq-hasta-${empleado.id}"
+                value="${formatearFecha(hoy)}"
+            >
+
+        </div>
+
+    </div>
+
+    <button
+        class="boton boton-guardar"
+        style="width:100%;margin-top:12px;"
+        id="liq-calcular-${empleado.id}"
+    >
+        🔄 CALCULAR
+    </button>
+
+    <div class="resumen">
+
+        <div class="resumen-item">
+
+            <div class="resumen-etiqueta">
+                Días trabajados
+            </div>
+
+            <div
+                class="resumen-valor"
+                id="liq-dias-${empleado.id}"
+            >
+                0
+            </div>
+
+        </div>
+
+        <div class="resumen-item">
+
+            <div class="resumen-etiqueta">
+                Días sin fichaje
+            </div>
+
+            <div
+                class="resumen-valor"
+                id="liq-ausencias-${empleado.id}"
+            >
+                0
+            </div>
+
+        </div>
+
+        <div class="resumen-item">
+
+            <div class="resumen-etiqueta">
+                Horas normales
+            </div>
+
+            <div
+                class="resumen-valor"
+                id="liq-horas-${empleado.id}"
+            >
+                0:00
+            </div>
+
+        </div>
+
+        <div class="resumen-item">
+
+            <div class="resumen-etiqueta">
+                Horas extras
+            </div>
+
+            <div
+                class="resumen-valor"
+                id="liq-extras-${empleado.id}"
+            >
+                0:00
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="info-pago">
+
+        <strong>Valor hora:</strong>
+        <span id="liq-valorhora-${empleado.id}">
+            ${dinero(empleado.pagoHora)}
+        </span>
+
+        <br>
+
+        <strong>Valor hora extra:</strong>
+        <span id="liq-valorhoraextra-${empleado.id}">
+            ${dinero(
+                numero(empleado.pagoHora) * 1.5
+            )}
+        </span>
+
+    </div>
+
+    <div class="total">
+
+        <small>
+            TOTAL A COBRAR
+        </small>
+
+        <strong id="liq-total-${empleado.id}">
+            $0
+        </strong>
+
+    </div>
+
+    <div
+        id="liq-detalle-${empleado.id}"
+        style="margin-top:12px;"
+    >
+        <div class="vacio">
+            Presioná calcular para obtener la liquidación.
+        </div>
+    </div>
+
+    <button
+        class="boton boton-generar-recibo"
+        id="liq-recibo-${empleado.id}"
+    >
+        🧾 GENERAR RECIBO PDF INTERNO
+    </button>
+
+    <button
+        class="boton boton-cerrar-liquidacion"
+        id="liq-cerrar-${empleado.id}"
+    >
+        CERRAR LIQUIDACIÓN
+    </button>
+
+    `;
+
+}
+
+
+/* =====================================
+   ESCAPAR HTML
+===================================== */
+
+function escapar(valor){
+
+    return texto(valor)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* =====================================
+   FECHA
+===================================== */
+
+function formatearFecha(fecha){
+
+    return (
+        fecha.getFullYear() +
+        "-" +
+        String(
+            fecha.getMonth()+1
+        ).padStart(2,"0") +
+        "-" +
+        String(
+            fecha.getDate()
+        ).padStart(2,"0")
+    );
+
+}
+
+
+/* =====================================
+   HORAS
+===================================== */
+
+function formatoHoras(horas){
+
+    const minutos =
+    Math.round(
+        numero(horas) * 60
+    );
+
+
+    const h =
+    Math.floor(
+        minutos / 60
+    );
+
+
+    const m =
+    minutos % 60;
+
+
+    return (
+        h +
+        ":" +
+        String(m).padStart(2,"0")
+    );
+
+}
+
+
+/* =====================================
+   OBTENER HORAS
+===================================== */
+
+function obtenerHoras(fichaje){
+
+    if(
+        numero(
+            fichaje.duracionSegundos
+        ) > 0
+    ){
+
+        return numero(
+            fichaje.duracionSegundos
+        ) / 3600;
+
+    }
+
+
+    const entrada =
+    texto(
+        fichaje.horaEntrada
+    );
+
+
+    const salida =
+    texto(
+        fichaje.horaSalida
+    );
+
+
+    if(
+        !entrada ||
+        !salida
+    ){
+
+        return 0;
+
+    }
+
+
+    const e =
+    entrada.split(":");
+
+
+    const s =
+    salida.split(":");
+
+
+    if(
+        e.length < 2 ||
+        s.length < 2
+    ){
+
+        return 0;
+
+    }
+
+
+    const entradaMin =
+    numero(e[0]) * 60 +
+    numero(e[1]);
+
+
+    const salidaMin =
+    numero(s[0]) * 60 +
+    numero(s[1]);
+
+
+    let diferencia =
+    salidaMin -
+    entradaMin;
+
+
+    if(
+        diferencia < 0
+    ){
+
+        diferencia += 1440;
+
+    }
+
+
+    return diferencia / 60;
+
+}
+
+
+/* =====================================
+   CARGAR FICHAJES
+===================================== */
+
+async function obtenerFichajesEmpleado(
+    empleado
+){
+
+    const fichajes = [];
+
+
+    /*
+     * Buscar por empleadoId.
+     */
+
+    try{
+
+        const consulta =
+        query(
+            collection(
+                db,
+                "fichajes"
+            ),
+            where(
+                "empleadoId",
+                "==",
+                empleado.id
+            )
+        );
+
+
+        const resultado =
+        await getDocs(
+            consulta
+        );
+
+
+        resultado.forEach(
+            documento => {
+
+                fichajes.push({
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+    }
+    catch(error){
+
+        console.warn(
+            "Error buscando fichajes por empleadoId",
+            error
+        );
+
+    }
+
+
+    /*
+     * Compatibilidad con authUid.
+     */
+
+    if(
+        fichajes.length === 0 &&
+        texto(empleado.authUid)
+    ){
+
+        try{
+
+            const consulta =
+            query(
+                collection(
+                    db,
+                    "fichajes"
+                ),
+                where(
+                    "authUid",
+                    "==",
+                    empleado.authUid
+                )
+            );
+
+
+            const resultado =
+            await getDocs(
+                consulta
+            );
+
+
+            resultado.forEach(
+                documento => {
+
+                    fichajes.push({
+
+                        id:
+                        documento.id,
+
+                        ...documento.data()
+
+                    });
+
+                }
+            );
+
+        }
+        catch(error){
+
+            console.warn(
+                "Error buscando fichajes por authUid",
+                error
+            );
+
+        }
+
+    }
+
+
+    return fichajes;
+
+}
+
+
+/* =====================================
+   ABRIR LIQUIDACIÓN
+===================================== */
+
+function abrirLiquidacion(empleado){
+
+    const panel =
+    document.getElementById(
+        "liquidacion-" +
+        empleado.id
+    );
+
+
+    if(!panel){
+
+        return;
+
+    }
+
+
+    panel.classList.toggle(
+        "visible"
+    );
+
+
+    if(
+        panel.classList.contains(
+            "visible"
+        )
+    ){
+
+        configurarEventosLiquidacion(
+            empleado
+        );
+
+        panel.scrollIntoView({
+            behavior:"smooth",
+            block:"center"
+        });
+
+    }
+
+}
+
+
+/* =====================================
+   EVENTOS LIQUIDACIÓN
+===================================== */
+
+function configurarEventosLiquidacion(
+    empleado
+){
+
+    const calcular =
+    document.getElementById(
+        "liq-calcular-" +
+        empleado.id
+    );
+
+
+    const recibo =
+    document.getElementById(
+        "liq-recibo-" +
+        empleado.id
+    );
+
+
+    const cerrar =
+    document.getElementById(
+        "liq-cerrar-" +
+        empleado.id
+    );
+
+
+    /*
+     * Evitar duplicar listeners.
+     */
+
+    calcular.onclick =
+    async function(){
+
+        await calcularLiquidacion(
+            empleado
+        );
+
+    };
+
+
+    recibo.onclick =
+    function(){
+
+        const datos =
+        obtenerLiquidacionGuardada(
+            empleado.id
+        );
+
+
+        abrirRecibo(
+            empleado,
+            datos
+        );
+
+    };
+
+
+    cerrar.onclick =
+    function(){
+
+        const panel =
+        document.getElementById(
+            "liquidacion-" +
+            empleado.id
+        );
+
+
+        panel.classList.remove(
+            "visible"
+        );
+
+    };
+
+}
+
+
+/* =====================================
+   CALCULAR LIQUIDACIÓN
+===================================== */
+
+async function calcularLiquidacion(
+    empleado
+){
+
+    try{
+
+        const desde =
+        document.getElementById(
+            "liq-desde-" +
+            empleado.id
+        ).value;
+
+
+        const hasta =
+        document.getElementById(
+            "liq-hasta-" +
+            empleado.id
+        ).value;
+
+
+        if(
+            !desde ||
+            !hasta
+        ){
+
+            mostrarError(
+                "Seleccioná el período de liquidación."
+            );
+
+            return;
+
+        }
+
+
+        if(
+            desde > hasta
+        ){
+
+            mostrarError(
+                "La fecha desde no puede ser posterior a la fecha hasta."
+            );
+
+            return;
+
+        }
+
+
+        const fichajes =
+        await obtenerFichajesEmpleado(
+            empleado
+        );
+
+
+        let horasNormales = 0;
+
+        let horasExtras = 0;
+
+        const fechasTrabajadas =
+        new Set();
+
+        const detalles = [];
+
+
+        fichajes.forEach(
+            fichaje => {
+
+                const fecha =
+                texto(
+                    fichaje.fecha
+                );
+
+
+                if(
+                    !fecha ||
+                    fecha < desde ||
+                    fecha > hasta
+                ){
+
+                    return;
+
+                }
+
+
+                const entrada =
+                texto(
+                    fichaje.horaEntrada
+                );
+
+
+                const salida =
+                texto(
+                    fichaje.horaSalida
+                );
+
+
+                /*
+                 * Sin entrada o salida completa:
+                 * no se paga.
+                 */
+
+                if(
+                    !entrada ||
+                    !salida
+                ){
+
+                    return;
+
+                }
+
+
+                const horas =
+                obtenerHoras(
+                    fichaje
+                );
+
+
+                if(
+                    horas <= 0
+                ){
+
+                    return;
+
+                }
+
+
+                fechasTrabajadas.add(
+                    fecha
+                );
+
+
+                /*
+                 * Máximo 8 horas normales
+                 * por jornada.
+                 */
+
+                const normales =
+                Math.min(
+                    horas,
+                    8
+                );
+
+
+                const extras =
+                Math.max(
+                    horas - 8,
+                    0
+                );
+
+
+                horasNormales +=
+                normales;
+
+
+                horasExtras +=
+                extras;
+
+
+                detalles.push({
+
+                    fecha:
+                    fecha,
+
+                    entrada:
+                    entrada,
+
+                    salida:
+                    salida,
+
+                    horas:
+                    horas,
+
+                    normales:
+                    normales,
+
+                    extras:
+                    extras
+
+                });
+
+            }
+        );
+
+
+        /*
+         * Contar días laborables
+         * sin fichaje.
+         *
+         * Domingo no se cuenta.
+         */
+
+        const inicio =
+        new Date(
+            desde +
+            "T00:00:00"
+        );
+
+
+        const fin =
+        new Date(
+            hasta +
+            "T00:00:00"
+        );
+
+
+        let diasPeriodo = 0;
+
+
+        for(
+            let d = new Date(inicio);
+            d <= fin;
+            d.setDate(
+                d.getDate() + 1
+            )
+        ){
+
+            if(
+                d.getDay() !== 0
+            ){
+
+                diasPeriodo++;
+
+            }
+
+        }
+
+
+        const diasTrabajados =
+        fechasTrabajadas.size;
+
+
+        const diasSinFichaje =
+        Math.max(
+            diasPeriodo -
+            diasTrabajados,
+            0
+        );
+
+
+        const valorHora =
+        numero(
+            empleado.pagoHora
+        );
+
+
+        const valorHoraExtra =
+        valorHora * 1.5;
+
+
+        const totalNormal =
+        horasNormales *
+        valorHora;
+
+
+        const totalExtra =
+        horasExtras *
+        valorHoraExtra;
+
+
+        const total =
+        totalNormal +
+        totalExtra;
+
+
+        const liquidacion = {
+
+            desde:
+            desde,
+
+            hasta:
+            hasta,
+
+            diasTrabajados:
+            diasTrabajados,
+
+            diasSinFichaje:
+            diasSinFichaje,
+
+            horasNormales:
+            horasNormales,
+
+            horasExtras:
+            horasExtras,
+
+            valorHora:
+            valorHora,
+
+            valorHoraExtra:
+            valorHoraExtra,
+
+            totalNormal:
+            totalNormal,
+
+            totalExtra:
+            totalExtra,
+
+            total:
+            total,
+
+            detalles:
+            detalles,
+
+            generado:
+            new Date().toISOString()
+
+        };
+
+
+        /*
+         * Guardamos temporalmente la liquidación
+         * para generar el recibo.
+         */
+
+        localStorage.setItem(
+            "gesbase_liquidacion_" +
+            empleado.id,
+            JSON.stringify(
+                liquidacion
+            )
+        );
+
+
+        mostrarResultadoLiquidacion(
+            empleado,
+            liquidacion
+        );
+
+
+    }
+    catch(error){
+
+        console.error(
+            error
+        );
+
+
+        mostrarError(
+            "No se pudo calcular la liquidación: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =====================================
+   MOSTRAR RESULTADO
+===================================== */
+
+function mostrarResultadoLiquidacion(
+    empleado,
+    liquidacion
+){
+
+    document.getElementById(
+        "liq-dias-" +
+        empleado.id
+    ).textContent =
+    liquidacion.diasTrabajados;
+
+
+    document.getElementById(
+        "liq-ausencias-" +
+        empleado.id
+    ).textContent =
+    liquidacion.diasSinFichaje;
+
+
+    document.getElementById(
+        "liq-horas-" +
+        empleado.id
+    ).textContent =
+    formatoHoras(
+        liquidacion.horasNormales
+    );
+
+
+    document.getElementById(
+        "liq-extras-" +
+        empleado.id
+    ).textContent =
+    formatoHoras(
+        liquidacion.horasExtras
+    );
+
+
+    document.getElementById(
+        "liq-valorhora-" +
+        empleado.id
+    ).textContent =
+    dinero(
+        liquidacion.valorHora
+    );
+
+
+    document.getElementById(
+        "liq-valorhoraextra-" +
+        empleado.id
+    ).textContent =
+    dinero(
+        liquidacion.valorHoraExtra
+    );
+
+
+    document.getElementById(
+        "liq-total-" +
+        empleado.id
+    ).textContent =
+    dinero(
+        liquidacion.total
+    );
+
+
+    const detalle =
+    document.getElementById(
+        "liq-detalle-" +
+        empleado.id
+    );
+
+
+    if(
+        liquidacion.detalles.length === 0
+    ){
+
+        detalle.innerHTML =
+        `
+        <div class="vacio">
+            No existen fichajes completos en este período.
+            <br><br>
+            <strong>Total a cobrar: $0</strong>
+        </div>
+        `;
+
+        return;
+
+    }
+
+
+    let html =
+    `
+    <table class="tabla">
+
+    <thead>
+
+    <tr>
+
+    <th>Fecha</th>
+    <th>Entrada</th>
+    <th>Salida</th>
+    <th>Horas</th>
+    <th>Estado</th>
+
+    </tr>
+
+    </thead>
+
+    <tbody>
+    `;
+
+
+    liquidacion.detalles.forEach(
+        detalle => {
+
+            const estado =
+            detalle.extras > 0
+                ? "Horas extra"
+                : "Normal";
+
+
+            html +=
+            `
+            <tr>
+
+            <td>
+                ${escapar(detalle.fecha)}
+            </td>
+
+            <td>
+                ${escapar(detalle.entrada)}
+            </td>
+
+            <td>
+                ${escapar(detalle.salida)}
+            </td>
+
+            <td>
+                ${formatoHoras(detalle.horas)}
+            </td>
+
+            <td>
+                ${estado}
+            </td>
+
+            </tr>
+            `;
+
+        }
+    );
+
+
+    html +=
+    `
+    </tbody>
+
+    </table>
+
+    <div class="info-pago">
+
+        <strong>Liquidación basada en fichajes reales.</strong>
+
+        <br>
+
+        Los días sin fichaje no generan horas ni pago.
+
+        <br>
+
+        Horas normales:
+        <strong>${dinero(
+            liquidacion.totalNormal
+        )}</strong>
+
+        <br>
+
+        Horas extras:
+        <strong>${dinero(
+            liquidacion.totalExtra
+        )}</strong>
+
+        <br>
+
+        Total:
+        <strong>${dinero(
+            liquidacion.total
+        )}</strong>
+
+    </div>
+    `;
+
+
+    detalle.innerHTML =
+    html;
+
+}
+
+
+/* =====================================
+   OBTENER LIQUIDACIÓN GUARDADA
+===================================== */
+
+function obtenerLiquidacionGuardada(
+    empleadoId
+){
+
+    const textoGuardado =
+    localStorage.getItem(
+        "gesbase_liquidacion_" +
+        empleadoId
+    );
+
+
+    if(!textoGuardado){
+
+        return null;
+
+    }
+
+
+    try{
+
+        return JSON.parse(
+            textoGuardado
+        );
+
+    }
+    catch(error){
+
+        return null;
+
+    }
+
+}
+
+
+/* =====================================
+   RECIBO PDF
+===================================== */
+
+function abrirRecibo(
+    empleado,
+    liquidacion
+){
+
+    /*
+     * Si no hay liquidación calculada,
+     * generamos un aviso.
+     */
+
+    if(!liquidacion){
+
+        mostrarError(
+            "Primero calculá la liquidación del empleado antes de generar el recibo."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * Datos de la empresa.
+     *
+     * Se utilizan los datos disponibles
+     * en el usuario actual.
+     */
+
+    const datosRecibo = {
+
+        empresa: {
+
+            empresaId:
+            empresaId,
+
+            nombre:
+            texto(
+                usuarioActual.empresa
+            ) ||
+            texto(
+                usuarioActual.nombre
+            ) ||
+            "GESBASE",
+
+            email:
+            texto(
+                usuarioActual.email
+            ),
+
+            uid:
+            usuarioActual.uid
+
+        },
+
+        empleado: {
+
+            id:
+            empleado.id,
+
+            nombre:
+            texto(
+                empleado.nombre
+            ),
+
+            apellido:
+            texto(
+                empleado.apellido
+            ),
+
+            nombreCompleto:
+            (
+                texto(empleado.nombre) +
+                " " +
+                texto(empleado.apellido)
+            ).trim(),
+
+            dni:
+            texto(
+                empleado.dni
+            ),
+
+            puesto:
+            texto(
+                empleado.puesto
+            ),
+
+            telefono:
+            texto(
+                empleado.telefono
+            ),
+
+            email:
+            texto(
+                empleado.email
+            ),
+
+            fechaIngreso:
+            texto(
+                empleado.fechaIngreso
+            )
+
+        },
+
+        liquidacion:
+        liquidacion,
+
+        tipo:
+        "LIQUIDACION_INTERNA",
+
+        generadoEn:
+        new Date().toISOString()
+
+    };
+
+
+    localStorage.setItem(
+        "gesbase_recibo_interno",
+        JSON.stringify(
+            datosRecibo
+        )
+    );
+
+
+    window.location.href =
+    "recibo-interno.html";
+
+}
+
+
+/* =====================================
    EVENTOS
 ===================================== */
 
@@ -1718,6 +3525,18 @@ $("btnGuardar").addEventListener(
 
 
 $("btnLimpiar").addEventListener(
+    "click",
+    function(){
+
+        limpiarMensajes();
+
+        limpiarFormulario();
+
+    }
+);
+
+
+$("btnCancelarEdicion").addEventListener(
     "click",
     function(){
 
@@ -1774,6 +3593,7 @@ onAuthStateChanged(
             console.error(
                 error
             );
+
 
             mostrarError(
                 "No se pudo cargar la sección de empleados: " +
