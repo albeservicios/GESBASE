@@ -1,2268 +1,1640 @@
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111827">
-
-<title>Panel de empleado - GESBASE</title>
-
-<style>
-
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-}
-
-body{
-    font-family:Arial,sans-serif;
-    background:#f3f4f6;
-    color:#111827;
-}
-
-.contenedor{
-    width:100%;
-    max-width:900px;
-    margin:auto;
-    min-height:100vh;
-    background:#fff;
-}
-
-header{
-    background:#111827;
-    color:#fff;
-    padding:22px 20px;
-    position:relative;
-}
-
-header h1{
-    font-size:25px;
-}
-
-header p{
-    margin-top:6px;
-    color:#d1d5db;
-    font-size:14px;
-}
-
-/* ==============================
-   ACCESOS
-============================== */
-
-.accesos-flotantes{
-    position:fixed;
-    top:14px;
-    right:14px;
-    z-index:9999;
-    display:flex;
-    gap:8px;
-}
-
-.acceso-flotante{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-    border:none;
-    border-radius:12px;
-    padding:11px 13px;
-    color:#fff;
-    font-size:13px;
-    font-weight:bold;
-    text-decoration:none;
-    box-shadow:0 4px 12px rgba(0,0,0,.25);
-    cursor:pointer;
-    white-space:nowrap;
-}
-
-.acceso-correo{
-    background:#2563eb;
-}
-
-.acceso-fichaje{
-    background:#16a34a;
-}
-
-.acceso-flotante:active{
-    transform:scale(.97);
-}
-
-/* ==============================
-   MAIN
-============================== */
-
-main{
-    padding:20px;
-}
-
-.tarjeta{
-    background:#fff;
-    border:1px solid #d1d5db;
-    border-radius:14px;
-    padding:20px;
-    margin-bottom:18px;
-}
-
-.titulo{
-    font-size:20px;
-    font-weight:bold;
-    margin-bottom:15px;
-}
-
-/* ==============================
-   PERFIL
-============================== */
-
-.empleado-nombre{
-    font-size:23px;
-    font-weight:bold;
-}
-
-.empleado-puesto{
-    color:#6b7280;
-    margin-top:5px;
-}
-
-.estado{
-    margin-top:15px;
-    padding:14px;
-    border-radius:12px;
-    background:#f0fdf4;
-    border:1px solid #bbf7d0;
-    color:#166534;
-}
-
-.estado-titulo{
-    font-size:13px;
-    color:#6b7280;
-    margin-bottom:5px;
-}
-
-.estado-texto{
-    font-size:17px;
-    font-weight:bold;
-}
-
-/* ==============================
-   MENU
-============================== */
-
-.menu{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-}
-
-.menu-boton{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    min-height:120px;
-    border-radius:14px;
-    text-decoration:none;
-    font-weight:bold;
-    color:#111827;
-    border:1px solid #d1d5db;
-    background:#fff;
-    transition:.2s;
-}
-
-.menu-boton:hover{
-    transform:translateY(-2px);
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
-}
-
-.menu-icono{
-    font-size:35px;
-    margin-bottom:10px;
-}
-
-.menu-texto{
-    font-size:16px;
-}
-
-.menu-descripcion{
-    font-size:12px;
-    color:#6b7280;
-    margin-top:5px;
-    text-align:center;
-}
-
-.correo{
-    background:#eff6ff;
-    border-color:#bfdbfe;
-}
-
-.fichaje{
-    background:#f0fdf4;
-    border-color:#bbf7d0;
-}
-
-/* ==============================
-   INFORMACION
-============================== */
-
-.informacion-linea{
-    line-height:1.9;
-    font-size:14px;
-    color:#374151;
-}
-
-/* ==============================
-   ASISTENCIA
-============================== */
-
-.asistencia-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    margin-bottom:15px;
-    flex-wrap:wrap;
-}
-
-.filtros{
-    display:grid;
-    grid-template-columns:1fr 1fr auto;
-    gap:10px;
-    margin-bottom:18px;
-}
-
-.campo{
-    display:flex;
-    flex-direction:column;
-    gap:5px;
-}
-
-.campo label{
-    font-size:12px;
-    font-weight:bold;
-    color:#4b5563;
-}
-
-.campo input{
-    width:100%;
-    padding:11px;
-    border:1px solid #d1d5db;
-    border-radius:9px;
-    font-size:14px;
-}
-
-.boton-filtrar{
-    align-self:end;
-    border:none;
-    border-radius:9px;
-    padding:11px 16px;
-    background:#111827;
-    color:#fff;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-/* ==============================
-   RESUMEN
-============================== */
-
-.resumen{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:10px;
-    margin-bottom:18px;
-}
-
-.resumen-card{
-    border:1px solid #e5e7eb;
-    border-radius:12px;
-    padding:15px;
-    background:#fafafa;
-}
-
-.resumen-label{
-    font-size:12px;
-    color:#6b7280;
-    margin-bottom:7px;
-}
-
-.resumen-valor{
-    font-size:22px;
-    font-weight:bold;
-}
-
-.resumen-normal .resumen-valor{
-    color:#166534;
-}
-
-.resumen-tarde .resumen-valor{
-    color:#b45309;
-}
-
-.resumen-extra .resumen-valor{
-    color:#2563eb;
-}
-
-.resumen-ausente .resumen-valor{
-    color:#dc2626;
-}
-
-/* ==============================
-   TABLA
-============================== */
-
-.tabla-contenedor{
-    width:100%;
-    overflow-x:auto;
-}
-
-.tabla{
-    width:100%;
-    border-collapse:collapse;
-    min-width:700px;
-}
-
-.tabla th{
-    background:#111827;
-    color:#fff;
-    padding:11px;
-    text-align:left;
-    font-size:12px;
-}
-
-.tabla td{
-    padding:11px;
-    border-bottom:1px solid #e5e7eb;
-    font-size:13px;
-}
-
-.tabla tr:hover{
-    background:#f9fafb;
-}
-
-.estado-badge{
-    display:inline-block;
-    padding:5px 8px;
-    border-radius:7px;
-    font-size:11px;
-    font-weight:bold;
-}
-
-.badge-normal{
-    background:#dcfce7;
-    color:#166534;
-}
-
-.badge-tarde{
-    background:#fef3c7;
-    color:#92400e;
-}
-
-.badge-extra{
-    background:#dbeafe;
-    color:#1d4ed8;
-}
-
-.badge-ausente{
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-.badge-curso{
-    background:#e0e7ff;
-    color:#3730a3;
-}
-
-/* ==============================
-   DETALLE
-============================== */
-
-.detalle-lista{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-}
-
-.detalle-item{
-    border:1px solid #e5e7eb;
-    border-radius:10px;
-    padding:14px;
-    background:#fafafa;
-}
-
-.detalle-fecha{
-    font-weight:bold;
-    margin-bottom:8px;
-}
-
-.detalle-linea{
-    font-size:13px;
-    padding:3px 0;
-}
-
-.detalle-linea strong{
-    color:#374151;
-}
-
-/* ==============================
-   MENSAJES
-============================== */
-
-.error{
-    background:#fee2e2;
-    color:#991b1b;
-    padding:14px;
-    border-radius:10px;
-    margin-bottom:15px;
-    display:none;
-}
-
-.exito{
-    background:#dcfce7;
-    color:#166534;
-    padding:14px;
-    border-radius:10px;
-    margin-bottom:15px;
-    display:none;
-}
-
-.cargando{
-    text-align:center;
-    padding:25px;
-    color:#6b7280;
-}
-
-.sin-registros{
-    text-align:center;
-    padding:25px;
-    color:#6b7280;
-}
-
-/* ==============================
-   BOTONES
-============================== */
-
-.boton{
-    width:100%;
-    border:none;
-    border-radius:12px;
-    padding:16px;
-    font-size:16px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-.boton-cerrar{
-    background:#111827;
-    color:#fff;
-    margin-top:5px;
-}
-
-.boton-volver{
-    background:#e5e7eb;
-    color:#111827;
-    margin-top:10px;
-}
-
-/* ==============================
-   RESPONSIVE
-============================== */
-
-@media(max-width:700px){
-
-    header{
-        padding-top:75px;
-    }
-
-    .accesos-flotantes{
-        top:10px;
-        right:10px;
-        left:10px;
-        justify-content:flex-end;
-    }
-
-    .acceso-flotante{
-        padding:10px 11px;
-        font-size:12px;
-    }
-
-    main{
-        padding:15px;
-    }
-
-    .resumen{
-        grid-template-columns:1fr 1fr;
-    }
-
-    .filtros{
-        grid-template-columns:1fr 1fr;
-    }
-
-    .boton-filtrar{
-        grid-column:1 / -1;
-    }
-
-}
-
-@media(max-width:380px){
-
-    .acceso-flotante{
-        padding:9px;
-    }
-
-    .acceso-flotante .texto-acceso{
-        display:none;
-    }
-
-    .menu{
-        grid-template-columns:1fr;
-    }
-
-}
-
-</style>
-
-</head>
-
-<body>
-
-<!-- ==============================
-     ACCESOS
-============================== -->
-
-<div class="accesos-flotantes">
-
-<a
-href="correo.html"
-class="acceso-flotante acceso-correo"
->
-✉️
-<span class="texto-acceso">
-Correo
-</span>
-</a>
-
-<a
-href="fichaje.html"
-class="acceso-flotante acceso-fichaje"
->
-⏱️
-<span class="texto-acceso">
-Fichaje
-</span>
-</a>
-
-</div>
-
-
-<div class="contenedor">
-
-<header>
-
-<h1>GESBASE</h1>
-
-<p>Panel de empleado</p>
-
-</header>
-
-
-<main>
-
-<div
-id="mensajeError"
-class="error"
-></div>
-
-<div
-id="mensajeExito"
-class="exito"
-></div>
-
-
-<!-- ==============================
-     PERFIL
-============================== -->
-
-<div class="tarjeta">
-
-<div class="titulo">
-👤 Mi perfil
-</div>
-
-<div
-id="empleadoNombre"
-class="empleado-nombre"
->
-Cargando...
-</div>
-
-<div
-id="empleadoPuesto"
-class="empleado-puesto"
->
-Verificando empleado...
-</div>
-
-<div class="estado">
-
-<div class="estado-titulo">
-Estado de cuenta
-</div>
-
-<div
-id="estadoEmpleado"
-class="estado-texto"
->
-VERIFICANDO...
-</div>
-
-</div>
-
-</div>
-
-
-<!-- ==============================
-     ACCESOS
-============================== -->
-
-<div class="tarjeta">
-
-<div class="titulo">
-Accesos de empleado
-</div>
-
-<div class="menu">
-
-<a
-href="correo.html"
-class="menu-boton correo"
->
-
-<div class="menu-icono">
-✉️
-</div>
-
-<div class="menu-texto">
-Correo interno
-</div>
-
-<div class="menu-descripcion">
-Enviar y recibir correos
-</div>
-
-</a>
-
-
-<a
-href="fichaje.html"
-class="menu-boton fichaje"
->
-
-<div class="menu-icono">
-⏱️
-</div>
-
-<div class="menu-texto">
-Fichaje
-</div>
-
-<div class="menu-descripcion">
-Entrada, salida y jornada
-</div>
-
-</a>
-
-</div>
-
-</div>
-
-
-<!-- ==============================
-     INFORMACION
-============================== -->
-
-<div class="tarjeta">
-
-<div class="titulo">
-📋 Información
-</div>
-
-<div class="informacion-linea">
-
-<div>
-<strong>Empresa:</strong>
-<span id="empresaNombre">
-Cargando...
-</span>
-</div>
-
-<div>
-<strong>Puesto:</strong>
-<span id="puestoInfo">
-Cargando...
-</span>
-</div>
-
-<div>
-<strong>Correo:</strong>
-<span id="correoUsuario">
-Cargando...
-</span>
-</div>
-
-</div>
-
-</div>
-
-
-<!-- ==============================
-     ASISTENCIA
-============================== -->
-
-<div class="tarjeta">
-
-<div class="asistencia-header">
-
-<div class="titulo" style="margin-bottom:0;">
-📊 Mi asistencia
-</div>
-
-</div>
-
-
-<div class="filtros">
-
-<div class="campo">
-
-<label for="fechaDesde">
-Desde
-</label>
-
-<input
+<!DOCTYPE html>  <html lang="es">  <head>  <meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<meta name="theme-color" content="#111827">  <title>Empleados - GESBASE</title>  <style>  
+  
+*{  
+    box-sizing:border-box;  
+    margin:0;  
+    padding:0;  
+}  
+  
+body{  
+    font-family:Arial,sans-serif;  
+    background:#f3f4f6;  
+    color:#111827;  
+}  
+  
+.app{  
+    width:100%;  
+    max-width:900px;  
+    margin:auto;  
+    min-height:100vh;  
+    background:#fff;  
+}  
+  
+header{  
+    background:#111827;  
+    color:#fff;  
+    padding:25px 20px;  
+}  
+  
+header h1{  
+    font-size:27px;  
+}  
+  
+header p{  
+    margin-top:6px;  
+    color:#d1d5db;  
+    font-size:14px;  
+}  
+  
+main{  
+    padding:20px;  
+}  
+  
+.tarjeta{  
+    background:#fff;  
+    border:1px solid #d1d5db;  
+    border-radius:14px;  
+    padding:20px;  
+    margin-bottom:18px;  
+}  
+  
+.titulo{  
+    font-size:21px;  
+    font-weight:bold;  
+    margin-bottom:8px;  
+}  
+  
+.descripcion{  
+    color:#6b7280;  
+    font-size:14px;  
+    line-height:1.5;  
+    margin-bottom:20px;  
+}  
+  
+.formulario{  
+    display:grid;  
+    grid-template-columns:1fr 1fr;  
+    gap:14px;  
+}  
+  
+.campo{  
+    display:flex;  
+    flex-direction:column;  
+}  
+  
+.campo-completo{  
+    grid-column:1/-1;  
+}  
+  
+.campo label{  
+    font-size:13px;  
+    font-weight:bold;  
+    margin-bottom:6px;  
+}  
+  
+.campo input,  
+.campo select{  
+    width:100%;  
+    padding:12px;  
+    border:1px solid #d1d5db;  
+    border-radius:9px;  
+    font-size:15px;  
+    background:#fff;  
+}  
+  
+.campo input:focus,  
+.campo select:focus{  
+    outline:none;  
+    border-color:#2563eb;  
+}  
+  
+.acceso{  
+    grid-column:1/-1;  
+    background:#eff6ff;  
+    border:1px solid #bfdbfe;  
+    border-radius:12px;  
+    padding:16px;  
+}  
+  
+.acceso-titulo{  
+    font-size:16px;  
+    font-weight:bold;  
+    color:#1e40af;  
+    margin-bottom:6px;  
+}  
+  
+.acceso-descripcion{  
+    font-size:13px;  
+    color:#374151;  
+    line-height:1.5;  
+    margin-bottom:14px;  
+}  
+  
+.checkbox{  
+    display:flex;  
+    align-items:center;  
+    gap:9px;  
+    font-size:14px;  
+    font-weight:bold;  
+    margin-bottom:14px;  
+}  
+  
+.checkbox input{  
+    width:18px;  
+    height:18px;  
+}  
+  
+.contrasena-contenedor{  
+    display:none;  
+}  
+  
+.contrasena-contenedor.visible{  
+    display:block;  
+}  
+  
+.ayuda{  
+    margin-top:6px;  
+    font-size:11px;  
+    color:#6b7280;  
+}  
+  
+.botones{  
+    display:flex;  
+    gap:10px;  
+    margin-top:20px;  
+}  
+  
+.boton{  
+    border:none;  
+    border-radius:10px;  
+    padding:14px 18px;  
+    font-size:15px;  
+    font-weight:bold;  
+    cursor:pointer;  
+}  
+  
+.boton-guardar{  
+    flex:1;  
+    background:#111827;  
+    color:#fff;  
+}  
+  
+.boton-limpiar{  
+    background:#e5e7eb;  
+    color:#111827;  
+}  
+  
+.boton:disabled{  
+    opacity:.6;  
+    cursor:not-allowed;  
+}  
+  
+.mensaje{  
+    display:none;  
+    padding:14px;  
+    border-radius:10px;  
+    margin-bottom:15px;  
+    font-size:14px;  
+    line-height:1.5;  
+}  
+  
+.error{  
+    background:#fee2e2;  
+    color:#991b1b;  
+}  
+  
+.exito{  
+    background:#dcfce7;  
+    color:#166534;  
+}  
+  
+.lista{  
+    display:flex;  
+    flex-direction:column;  
+    gap:12px;  
+}  
+  
+.empleado{  
+    border:1px solid #e5e7eb;  
+    border-radius:12px;  
+    padding:16px;  
+    background:#fafafa;  
+}  
+  
+.empleado-cabecera{  
+    display:flex;  
+    justify-content:space-between;  
+    align-items:flex-start;  
+    gap:10px;  
+}  
+  
+.nombre{  
+    font-size:18px;  
+    font-weight:bold;  
+}  
+  
+.puesto{  
+    color:#6b7280;  
+    font-size:13px;  
+    margin-top:4px;  
+}  
+  
+.estado{  
+    padding:6px 9px;  
+    border-radius:20px;  
+    font-size:11px;  
+    font-weight:bold;  
+    white-space:nowrap;  
+}  
+  
+.activo{  
+    background:#dcfce7;  
+    color:#166534;  
+}  
+  
+.inactivo{  
+    background:#fee2e2;  
+    color:#991b1b;  
+}  
+  
+.pendiente{  
+    background:#fef3c7;  
+    color:#92400e;  
+}  
+  
+.datos{  
+    display:grid;  
+    grid-template-columns:1fr 1fr;  
+    gap:9px;  
+    margin-top:14px;  
+}  
+  
+.dato{  
+    background:#fff;  
+    border:1px solid #e5e7eb;  
+    border-radius:8px;  
+    padding:9px;  
+}  
+  
+.dato small{  
+    display:block;  
+    color:#6b7280;  
+    font-size:11px;  
+    margin-bottom:3px;  
+}  
+  
+.dato strong{  
+    font-size:13px;  
+    word-break:break-word;  
+}  
+  
+.acceso-estado{  
+    margin-top:12px;  
+    padding:10px;  
+    border-radius:9px;  
+    background:#f3f4f6;  
+    font-size:13px;  
+}  
+  
+.vacio,  
+.cargando{  
+    text-align:center;  
+    padding:25px;  
+    color:#6b7280;  
+}  
+  
+.volver{  
+    width:100%;  
+    background:#e5e7eb;  
+    color:#111827;  
+    margin-top:5px;  
+}  
+  
+@media(max-width:600px){  
+  
+    main{  
+        padding:15px;  
+    }  
+  
+    .formulario{  
+        grid-template-columns:1fr;  
+    }  
+  
+    .campo-completo,  
+    .acceso{  
+        grid-column:auto;  
+    }  
+  
+    .botones{  
+        flex-direction:column;  
+    }  
+  
+    .datos{  
+        grid-template-columns:1fr;  
+    }  
+  
+    .empleado-cabecera{  
+        flex-direction:column;  
+    }  
+  
+}  
+  
+</style>  </head>  <body>  <div class="app">  <header>  <h1>GESBASE</h1>  <p>  
+Gestión de empleados  
+</p>  </header>  <main>  <div  
+id="mensajeError"  
+class="mensaje error"  
+></div>  <div  
+id="mensajeExito"  
+class="mensaje exito"  
+></div>  <!-- =====================================  
+     CARGAR EMPLEADO  
+===================================== -->  <div class="tarjeta">  <div class="titulo">  
+👤 Cargar empleado  
+</div>  <div class="descripcion">  
+Completá los datos del empleado y, si corresponde, habilitá su acceso a GESBASE.  
+</div>  <div class="formulario">  <div class="campo">  <label for="nombre">  
+Nombre  
+</label>  <input
+id="nombre"
+type="text"
+placeholder="Nombre"
+autocomplete="given-name"
+
+> 
+
+</div>  <div class="campo">  <label for="apellido">  
+Apellido  
+</label>  <input
+id="apellido"
+type="text"
+placeholder="Apellido"
+autocomplete="family-name"
+
+> 
+
+</div>  <div class="campo">  <label for="dni">  
+DNI  
+</label>  <input
+id="dni"
+type="text"
+placeholder="DNI"
+autocomplete="off"
+
+> 
+
+</div>  <div class="campo">  <label for="telefono">  
+Teléfono  
+</label>  <input
+id="telefono"
+type="tel"
+placeholder="Teléfono"
+autocomplete="tel"
+
+> 
+
+</div>  <div class="campo">  <label for="email">  
+Correo de acceso  
+</label>  <input
+id="email"
+type="email"
+placeholder="empleado@correo.com"
+autocomplete="email"
+
+> 
+
+</div>  <div class="campo">  <label for="puesto">  
+Puesto  
+</label>  <input
+id="puesto"
+type="text"
+placeholder="Ej.: Técnico"
+
+> 
+
+</div>  <div class="campo">  <label for="fechaIngreso">  
+Fecha de ingreso  
+</label>  <input
+id="fechaIngreso"
 type="date"
-id="fechaDesde"
->
 
-</div>
+> 
 
+</div>  <div class="campo">  <label for="pagoHora">  
+Valor hora  
+</label>  <input
+id="pagoHora"
+type="number"
+min="0"
+step="0.01"
+placeholder="0"
 
-<div class="campo">
+> 
 
-<label for="fechaHasta">
-Hasta
-</label>
+</div>  <!-- =====================================  
+     ACCESO  
+===================================== -->  <div class="acceso">  <div class="acceso-titulo">  
+🔐 Acceso del empleado  
+</div>  <div class="acceso-descripcion">  
+Si habilitás el acceso, el empleado podrá ingresar a GESBASE con su correo y contraseña.  
+</div>  <label class="checkbox">  <input
+id="darAcceso"
+type="checkbox"
+checked
 
-<input
-type="date"
-id="fechaHasta"
->
+> 
 
-</div>
+<span>  
+Dar acceso al empleado  
+</span>  </label>  <div  
+id="contrasenaContenedor"  
+class="contrasena-contenedor visible"  
+>  <div class="campo">  <label for="contrasena">  
+Contraseña inicial  
+</label>  <input
+id="contrasena"
+type="password"
+placeholder="Mínimo 6 caracteres"
+autocomplete="new-password"
+minlength="6"
 
+> 
 
-<button
-id="btnFiltrar"
-class="boton-filtrar"
->
-🔎 Consultar
+<div class="ayuda">  
+La contraseña se utiliza para crear la cuenta de acceso y no se guarda en Firestore.  
+</div>  </div>  </div>  </div>  </div>  <div class="botones">  <button
+id="btnGuardar"
+class="boton boton-guardar"
+
+> 
+
+💾 GUARDAR EMPLEADO
 </button>
 
-</div>
-
-
-<!-- RESUMEN -->
-
-<div class="resumen">
-
-<div class="resumen-card resumen-normal">
-
-<div class="resumen-label">
-Jornadas normales
-</div>
-
-<div
-id="totalNormales"
-class="resumen-valor"
->
-0
-</div>
-
-</div>
-
-
-<div class="resumen-card resumen-tarde">
-
-<div class="resumen-label">
-Llegadas tarde
-</div>
-
-<div
-id="totalTardanzas"
-class="resumen-valor"
->
-0
-</div>
-
-</div>
-
-
-<div class="resumen-card resumen-extra">
-
-<div class="resumen-label">
-Horas extra
-</div>
-
-<div
-id="totalExtras"
-class="resumen-valor"
->
-0.00 h
-</div>
-
-</div>
-
-
-<div class="resumen-card resumen-ausente">
-
-<div class="resumen-label">
-Ausencias
-</div>
-
-<div
-id="totalAusencias"
-class="resumen-valor"
->
-0
-</div>
-
-</div>
-
-</div>
-
-
-<!-- TABLA -->
-
-<div class="tabla-contenedor">
-
-<table class="tabla">
-
-<thead>
-
-<tr>
-
-<th>
-Fecha
-</th>
-
-<th>
-Entrada
-</th>
-
-<th>
-Salida
-</th>
-
-<th>
-Horas trabajadas
-</th>
-
-<th>
-Estado
-</th>
-
-</tr>
-
-</thead>
-
-<tbody
-id="tablaAsistencia"
->
-
-<tr>
-
-<td colspan="5">
-<div class="cargando">
-Cargando asistencia...
-</div>
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-
-<!-- ==============================
-     REPORTES DETALLADOS
-============================== -->
-
-<div class="tarjeta">
-
-<div class="titulo">
-📋 Reportes detallados
-</div>
-
-<div
-id="reportesDetalle"
-class="detalle-lista"
->
-
-<div class="cargando">
-Cargando reportes...
-</div>
-
-</div>
-
-</div>
-
-
-<!-- ==============================
-     CERRAR
-============================== -->
-
 <button
-id="btnCerrarSesion"
-class="boton boton-cerrar"
->
-CERRAR SESIÓN
+id="btnLimpiar"
+class="boton boton-limpiar"
+
+> 
+
+LIMPIAR
 </button>
 
-
-<button
+</div>  </div>  <!-- =====================================  
+     LISTADO  
+===================================== -->  <div class="tarjeta">  <div class="titulo">  
+👥 Empleados  
+</div>  <div class="descripcion">  
+Empleados cargados en esta empresa.  
+</div>  <div  
+id="listaEmpleados"  
+class="lista"  
+>  <div class="cargando">  
+Cargando empleados...  
+</div>  </div>  </div>  <button
 id="btnVolver"
-class="boton boton-volver"
->
+class="boton volver"
+
+> 
+
 ⬅️ VOLVER
 </button>
 
-
-</main>
-
-</div>
-
-
-<script type="module">
-
-/* ==============================
-   FIREBASE
-============================== */
-
-import {
-    auth,
-    db
-} from "./Js/firebase.js";
-
-
-import {
-    onAuthStateChanged,
-    signOut
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
-
-import {
-    collection,
-    getDocs,
-    query,
-    where,
-    limit
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-
-/* ==============================
-   ELEMENTOS
-============================== */
-
-const empleadoNombre =
-document.getElementById(
-    "empleadoNombre"
-);
-
-const empleadoPuesto =
-document.getElementById(
-    "empleadoPuesto"
-);
-
-const estadoEmpleado =
-document.getElementById(
-    "estadoEmpleado"
-);
-
-const empresaNombre =
-document.getElementById(
-    "empresaNombre"
-);
-
-const puestoInfo =
-document.getElementById(
-    "puestoInfo"
-);
-
-const correoUsuario =
-document.getElementById(
-    "correoUsuario"
-);
-
-const mensajeError =
-document.getElementById(
-    "mensajeError"
-);
-
-const mensajeExito =
-document.getElementById(
-    "mensajeExito"
-);
-
-const fechaDesde =
-document.getElementById(
-    "fechaDesde"
-);
-
-const fechaHasta =
-document.getElementById(
-    "fechaHasta"
-);
-
-const btnFiltrar =
-document.getElementById(
-    "btnFiltrar"
-);
-
-const tablaAsistencia =
-document.getElementById(
-    "tablaAsistencia"
-);
-
-const reportesDetalle =
-document.getElementById(
-    "reportesDetalle"
-);
-
-const totalNormales =
-document.getElementById(
-    "totalNormales"
-);
-
-const totalTardanzas =
-document.getElementById(
-    "totalTardanzas"
-);
-
-const totalExtras =
-document.getElementById(
-    "totalExtras"
-);
-
-const totalAusencias =
-document.getElementById(
-    "totalAusencias"
-);
-
-const btnCerrarSesion =
-document.getElementById(
-    "btnCerrarSesion"
-);
-
-const btnVolver =
-document.getElementById(
-    "btnVolver"
-);
-
-
-/* ==============================
-   VARIABLES
-============================== */
-
-let usuarioActual = null;
-
-let empleado = null;
-
-let empleadoId = "";
-
-let fichajes = [];
-
-
-/* ==============================
-   UTILIDADES
-============================== */
-
-function texto(valor){
-
-    if(
-        valor === undefined ||
-        valor === null
-    ){
-
-        return "";
-
-    }
-
-    return String(valor);
-
-}
-
-
-function numero(valor){
-
-    const n =
-    Number(valor);
-
-    return Number.isFinite(n)
-        ? n
-        : 0;
-
-}
-
-
-function mostrarError(mensaje){
-
-    mensajeError.textContent =
-    mensaje;
-
-    mensajeError.style.display =
-    "block";
-
-    mensajeExito.style.display =
-    "none";
-
-}
-
-
-function mostrarExito(mensaje){
-
-    mensajeExito.textContent =
-    mensaje;
-
-    mensajeExito.style.display =
-    "block";
-
-    mensajeError.style.display =
-    "none";
-
-}
-
-
-function limpiarMensajes(){
-
-    mensajeError.style.display =
-    "none";
-
-    mensajeExito.style.display =
-    "none";
-
-}
-
-
-function fechaActual(){
-
-    const fecha =
-    new Date();
-
-    return (
-        fecha.getFullYear() +
-        "-" +
-        String(
-            fecha.getMonth() + 1
-        ).padStart(2,"0") +
-        "-" +
-        String(
-            fecha.getDate()
-        ).padStart(2,"0")
-    );
-
-}
-
-
-function formatearHoras(segundos){
-
-    const total =
-    Math.max(
-        0,
-        Math.floor(
-            numero(segundos)
-        )
-    );
-
-    const horas =
-    Math.floor(
-        total / 3600
-    );
-
-    const minutos =
-    Math.floor(
-        (total % 3600) / 60
-    );
-
-    return (
-        String(horas).padStart(2,"0") +
-        ":" +
-        String(minutos).padStart(2,"0")
-    );
-
-}
-
-
-function horasDecimal(segundos){
-
-    return (
-        numero(segundos) /
-        3600
-    );
-
-}
-
-
-/* ==============================
-   ESTADO DEL FICHAJE
-============================== */
-
-function calcularEstado(registro){
-
-    /*
-       Jornada normal:
-       hasta 08:10.
-
-       Llegada tarde:
-       después de 08:10.
-
-       Hora normal de jornada:
-       8 horas.
-
-       Horas extra:
-       todo lo trabajado por encima
-       de 8 horas.
-    */
-
-    if(
-        !texto(
-            registro.horaEntrada
-        )
-    ){
-
-        return "Ausente";
-
-    }
-
-
-    const hora =
-    texto(
-        registro.horaEntrada
-    );
-
-    const partes =
-    hora.split(":");
-
-    const horas =
-    Number(partes[0]);
-
-    const minutos =
-    Number(partes[1]);
-
-
-    if(
-        horas > 8 ||
-        (
-            horas === 8 &&
-            minutos > 10
-        )
-    ){
-
-        return "Llegada tarde";
-
-    }
-
-
-    const segundos =
-    numero(
-        registro.duracionSegundos
-    );
-
-
-    if(
-        segundos >
-        8 * 3600
-    ){
-
-        return "Horas extra";
-
-    }
-
-
-    return "Normal";
-
-}
-
-
-/* ==============================
-   BADGE
-============================== */
-
-function crearBadge(estado){
-
-    const span =
-    document.createElement(
-        "span"
-    );
-
-    span.className =
-    "estado-badge";
-
-
-    if(
-        estado === "Normal"
-    ){
-
-        span.classList.add(
-            "badge-normal"
-        );
-
-    }
-    else if(
-        estado === "Llegada tarde"
-    ){
-
-        span.classList.add(
-            "badge-tarde"
-        );
-
-    }
-    else if(
-        estado === "Horas extra"
-    ){
-
-        span.classList.add(
-            "badge-extra"
-        );
-
-    }
-    else if(
-        estado === "Ausente"
-    ){
-
-        span.classList.add(
-            "badge-ausente"
-        );
-
-    }
-    else{
-
-        span.classList.add(
-            "badge-curso"
-        );
-
-    }
-
-
-    span.textContent =
-    estado;
-
-    return span;
-
-}
-
-
-/* ==============================
-   CARGAR EMPLEADO
-============================== */
-
-async function cargarEmpleado(){
-
-    if(!usuarioActual){
-
-        throw new Error(
-            "No hay una sesión activa."
-        );
-
-    }
-
-
-    const consulta =
-    query(
-        collection(
-            db,
-            "empleados"
-        ),
-        where(
-            "authUid",
-            "==",
-            usuarioActual.uid
-        ),
-        limit(1)
-    );
-
-
-    const resultados =
-    await getDocs(
-        consulta
-    );
-
-
-    if(
-        resultados.empty
-    ){
-
-        throw new Error(
-            "No encontramos el perfil del empleado."
-        );
-
-    }
-
-
-    const documento =
-    resultados.docs[0];
-
-
-    empleadoId =
-    documento.id;
-
-
-    empleado =
-    {
-        id:documento.id,
-        ...documento.data()
-    };
-
-
-    if(
-        empleado.estado &&
-        empleado.estado !== "Activo"
-    ){
-
-        throw new Error(
-            "El acceso de este empleado está inactivo."
-        );
-
-    }
-
-
-    const nombre =
-    (
-        texto(
-            empleado.nombre
-        ) +
-        " " +
-        texto(
-            empleado.apellido
-        )
-    ).trim();
-
-
-    empleadoNombre.textContent =
-    nombre ||
-    "Empleado";
-
-
-    empleadoPuesto.textContent =
-    texto(
-        empleado.puesto
-    ) ||
-    "Empleado";
-
-
-    puestoInfo.textContent =
-    texto(
-        empleado.puesto
-    ) ||
-    "Empleado";
-
-
-    correoUsuario.textContent =
-    texto(
-        empleado.email
-    ) ||
-    texto(
-        usuarioActual.email
-    ) ||
-    "Sin correo";
-
-
-    empresaNombre.textContent =
-    texto(
-        empleado.empresa
-    ) ||
-    texto(
-        empleado.empresaNombre
-    ) ||
-    "ALBE GENERALES";
-
-
-    estadoEmpleado.textContent =
-    "ACTIVO";
-
-}
-
-
-/* ==============================
-   FECHAS POR DEFECTO
-============================== */
-
-function configurarFechas(){
-
-    const hoy =
-    fechaActual();
-
-    const fecha =
-    new Date();
-
-    fecha.setDate(
-        fecha.getDate() - 6
-    );
-
-
-    const desde =
-    fecha.getFullYear() +
-    "-" +
-    String(
-        fecha.getMonth() + 1
-    ).padStart(2,"0") +
-    "-" +
-    String(
-        fecha.getDate()
-    ).padStart(2,"0");
-
-
-    fechaDesde.value =
-    desde;
-
-    fechaHasta.value =
-    hoy;
-
-}
-
-
-/* ==============================
-   CARGAR FICHAJES
-============================== */
-
-async function cargarFichajes(){
-
-    tablaAsistencia.innerHTML = `
-        <tr>
-            <td colspan="5">
-                <div class="cargando">
-                    Cargando asistencia...
-                </div>
-            </td>
-        </tr>
-    `;
-
-
-    try{
-
-        const consulta =
-        query(
-            collection(
-                db,
-                "fichajes"
-            ),
-            where(
-                "empleadoId",
-                "==",
-                empleadoId
-            )
-        );
-
-
-        const resultados =
-        await getDocs(
-            consulta
-        );
-
-
-        fichajes = [];
-
-
-        resultados.forEach(
-            documento => {
-
-                fichajes.push({
-
-                    id:
-                    documento.id,
-
-                    ...documento.data()
-
-                });
-
-            }
-        );
-
-
-        fichajes.sort(
-            (a,b) => {
-
-                const fechaA =
-                texto(a.fecha) +
-                " " +
-                texto(a.horaEntrada);
-
-                const fechaB =
-                texto(b.fecha) +
-                " " +
-                texto(b.horaEntrada);
-
-                return fechaB.localeCompare(
-                    fechaA
-                );
-
-            }
-        );
-
-
-        mostrarAsistencia();
-
-
-    }
-    catch(error){
-
-        console.error(
-            "Error cargando fichajes:",
-            error
-        );
-
-
-        tablaAsistencia.innerHTML = `
-            <tr>
-                <td colspan="5">
-                    <div class="sin-registros">
-                        No se pudo cargar la asistencia.
-                    </div>
-                </td>
-            </tr>
-        `;
-
-
-        reportesDetalle.innerHTML = `
-            <div class="sin-registros">
-                No se pudieron cargar los reportes.
-            </div>
-        `;
-
-
-        mostrarError(
-            "No se pudo cargar la asistencia: " +
-            error.message
-        );
-
-    }
-
-}
-
-
-/* ==============================
-   FILTRAR
-============================== */
-
-function obtenerFichajesFiltrados(){
-
-    const desde =
-    texto(
-        fechaDesde.value
-    );
-
-    const hasta =
-    texto(
-        fechaHasta.value
-    );
-
-
-    return fichajes.filter(
-        registro => {
-
-            const fecha =
-            texto(
-                registro.fecha
-            );
-
-
-            if(
-                desde &&
-                fecha < desde
-            ){
-
-                return false;
-
-            }
-
-
-            if(
-                hasta &&
-                fecha > hasta
-            ){
-
-                return false;
-
-            }
-
-
-            return true;
-
-        }
-    );
-
-}
-
-
-/* ==============================
-   MOSTRAR ASISTENCIA
-============================== */
-
-function mostrarAsistencia(){
-
-    const registros =
-    obtenerFichajesFiltrados();
-
-
-    totalNormales.textContent =
-    "0";
-
-    totalTardanzas.textContent =
-    "0";
-
-    totalExtras.textContent =
-    "0.00 h";
-
-    totalAusencias.textContent =
-    "0";
-
-
-    if(!registros.length){
-
-        tablaAsistencia.innerHTML = `
-            <tr>
-                <td colspan="5">
-                    <div class="sin-registros">
-                        No hay registros en el período seleccionado.
-                    </div>
-                </td>
-            </tr>
-        `;
-
-
-        reportesDetalle.innerHTML = `
-            <div class="sin-registros">
-                No hay reportes para mostrar.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    let normales = 0;
-
-    let tardanzas = 0;
-
-    let extrasSegundos = 0;
-
-    let ausencias = 0;
-
-
-    tablaAsistencia.innerHTML =
-    "";
-
-
-    reportesDetalle.innerHTML =
-    "";
-
-
-    registros.forEach(
-        registro => {
-
-            const estado =
-            calcularEstado(
-                registro
-            );
-
-
-            if(
-                estado === "Normal"
-            ){
-
-                normales++;
-
-            }
-
-
-            if(
-                estado === "Llegada tarde"
-            ){
-
-                tardanzas++;
-
-            }
-
-
-            if(
-                estado === "Ausente"
-            ){
-
-                ausencias++;
-
-            }
-
-
-            const segundos =
-            numero(
-                registro.duracionSegundos
-            );
-
-
-            if(
-                segundos >
-                8 * 3600
-            ){
-
-                extrasSegundos +=
-                segundos -
-                (8 * 3600);
-
-            }
-
-
-            /* ======================
-               TABLA
-            ====================== */
-
-            const fila =
-            document.createElement(
-                "tr"
-            );
-
-
-            const tdFecha =
-            document.createElement(
-                "td"
-            );
-
-            tdFecha.textContent =
-            texto(
-                registro.fecha
-            ) ||
-            "-";
-
-
-            const tdEntrada =
-            document.createElement(
-                "td"
-            );
-
-            tdEntrada.textContent =
-            texto(
-                registro.horaEntrada
-            ) ||
-            "-";
-
-
-            const tdSalida =
-            document.createElement(
-                "td"
-            );
-
-            tdSalida.textContent =
-            texto(
-                registro.horaSalida
-            ) ||
-            (
-                registro.estado === "abierto"
-                ? "En curso"
-                : "-"
-            );
-
-
-            const tdHoras =
-            document.createElement(
-                "td"
-            );
-
-            tdHoras.textContent =
-            segundos
-            ? (
-                horasDecimal(
-                    segundos
-                ).toFixed(2) +
-                " h"
-            )
-            : "-";
-
-
-            const tdEstado =
-            document.createElement(
-                "td"
-            );
-
-            tdEstado.appendChild(
-                crearBadge(
-                    estado
-                )
-            );
-
-
-            fila.appendChild(tdFecha);
-            fila.appendChild(tdEntrada);
-            fila.appendChild(tdSalida);
-            fila.appendChild(tdHoras);
-            fila.appendChild(tdEstado);
-
-
-            tablaAsistencia.appendChild(
-                fila
-            );
-
-
-            /* ======================
-               REPORTE DETALLADO
-            ====================== */
-
-            const detalle =
-            document.createElement(
-                "div"
-            );
-
-            detalle.className =
-            "detalle-item";
-
-
-            const titulo =
-            document.createElement(
-                "div"
-            );
-
-            titulo.className =
-            "detalle-fecha";
-
-            titulo.textContent =
-            texto(
-                registro.fecha
-            ) ||
-            "Fecha no disponible";
-
-
-            const entrada =
-            document.createElement(
-                "div"
-            );
-
-            entrada.className =
-            "detalle-linea";
-
-            entrada.innerHTML =
-            "<strong>Entrada:</strong> " +
-            (
-                texto(
-                    registro.horaEntrada
-                ) ||
-                "-"
-            );
-
-
-            const salida =
-            document.createElement(
-                "div"
-            );
-
-            salida.className =
-            "detalle-linea";
-
-            salida.innerHTML =
-            "<strong>Salida:</strong> " +
-            (
-                texto(
-                    registro.horaSalida
-                ) ||
-                (
-                    registro.estado === "abierto"
-                    ? "Jornada en curso"
-                    : "-"
-                )
-            );
-
-
-            const horas =
-            document.createElement(
-                "div"
-            );
-
-            horas.className =
-            "detalle-linea";
-
-            horas.innerHTML =
-            "<strong>Horas trabajadas:</strong> " +
-            (
-                segundos
-                ? (
-                    horasDecimal(
-                        segundos
-                    ).toFixed(2) +
-                    " h"
-                )
-                : "-"
-            );
-
-
-            const estadoLinea =
-            document.createElement(
-                "div"
-            );
-
-            estadoLinea.className =
-            "detalle-linea";
-
-            estadoLinea.innerHTML =
-            "<strong>Estado:</strong> ";
-
-
-            estadoLinea.appendChild(
-                crearBadge(
-                    estado
-                )
-            );
-
-
-            const ubicacion =
-            document.createElement(
-                "div"
-            );
-
-            ubicacion.className =
-            "detalle-linea";
-
-
-            const tieneEntrada =
-            !!registro.entradaUbicacion;
-
-            const tieneSalida =
-            !!registro.salidaUbicacion;
-
-
-            ubicacion.innerHTML =
-            "<strong>Ubicación:</strong> " +
-            (
-                tieneEntrada &&
-                tieneSalida
-                ? "Entrada y salida registradas"
-                : tieneEntrada
-                ? "Entrada registrada"
-                : "No disponible"
-            );
-
-
-            detalle.appendChild(
-                titulo
-            );
-
-            detalle.appendChild(
-                entrada
-            );
-
-            detalle.appendChild(
-                salida
-            );
-
-            detalle.appendChild(
-                horas
-            );
-
-            detalle.appendChild(
-                estadoLinea
-            );
-
-            detalle.appendChild(
-                ubicacion
-            );
-
-
-            reportesDetalle.appendChild(
-                detalle
-            );
-
-        }
-    );
-
-
-    totalNormales.textContent =
-    normales;
-
-
-    totalTardanzas.textContent =
-    tardanzas;
-
-
-    totalExtras.textContent =
-    (
-        extrasSegundos / 3600
-    ).toFixed(2) +
-    " h";
-
-
-    totalAusencias.textContent =
-    ausencias;
-
-}
-
-
-/* ==============================
-   FILTRO
-============================== */
-
-btnFiltrar.addEventListener(
-    "click",
-    function(){
-
-        limpiarMensajes();
-
-        if(
-            fechaDesde.value &&
-            fechaHasta.value &&
-            fechaDesde.value >
-            fechaHasta.value
-        ){
-
-            mostrarError(
-                "La fecha desde no puede ser posterior a la fecha hasta."
-            );
-
-            return;
-
-        }
-
-
-        mostrarAsistencia();
-
-    }
-);
-
-
-/* ==============================
-   CERRAR SESIÓN
-============================== */
-
-btnCerrarSesion.addEventListener(
-    "click",
-    async function(){
-
-        if(
-            !confirm(
-                "¿Querés cerrar la sesión?"
-            )
-        ){
-
-            return;
-
-        }
-
-
-        try{
-
-            await signOut(
-                auth
-            );
-
-
-            window.location.href =
-            "empleado-login.html";
-
-
-        }
-        catch(error){
-
-            mostrarError(
-                "No se pudo cerrar la sesión: " +
-                error.message
-            );
-
-        }
-
-    }
-);
-
-
-/* ==============================
-   VOLVER
-============================== */
-
-btnVolver.addEventListener(
-    "click",
-    function(){
-
-        window.history.back();
-
-    }
-);
-
-
-/* ==============================
-   AUTENTICACIÓN
-============================== */
-
-onAuthStateChanged(
-    auth,
-    async function(usuario){
-
-        if(!usuario){
-
-            window.location.href =
-            "empleado-login.html";
-
-            return;
-
-        }
-
-
-        usuarioActual =
-        usuario;
-
-
-        try{
-
-            limpiarMensajes();
-
-            configurarFechas();
-
-            await cargarEmpleado();
-
-            await cargarFichajes();
-
-        }
-        catch(error){
-
-            console.error(
-                "Error iniciando panel:",
-                error
-            );
-
-
-            empleadoNombre.textContent =
-            "No disponible";
-
-
-            empleadoPuesto.textContent =
-            "No se pudo cargar el perfil";
-
-
-            estadoEmpleado.textContent =
-            "ERROR";
-
-
-            mostrarError(
-                error.message
-            );
-
-        }
-
-    }
-);
-
-</script>
-
-</body>
-
-</html>
+</main>  </div>  <script type="module">  
+  
+/* =====================================  
+   FIREBASE  
+===================================== */  
+  
+import {  
+    auth,  
+    db  
+}  
+from "./Js/firebase.js";  
+  
+  
+import {  
+    onAuthStateChanged  
+}  
+from  
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";  
+  
+  
+import {  
+    collection,  
+    getDocs,  
+    query,  
+    where,  
+    addDoc,  
+    serverTimestamp  
+}  
+from  
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";  
+  
+  
+/*  
+ * IMPORTANTE:  
+ *  
+ * Esta función se conectará con la función  
+ * administrativa segura de Firebase.  
+ *  
+ * No se crea la cuenta Authentication  
+ * directamente desde la sesión de la empresa.  
+ */  
+  
+import {  
+    getFunctions,  
+    httpsCallable  
+}  
+from  
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";  
+  
+  
+/* =====================================  
+   VARIABLES  
+===================================== */  
+  
+let usuarioActual = null;  
+  
+let empresaId = "";  
+  
+  
+/* =====================================  
+   ELEMENTOS  
+===================================== */  
+  
+const $ =  
+id => document.getElementById(id);  
+  
+  
+/* =====================================  
+   UTILIDADES  
+===================================== */  
+  
+function texto(valor){  
+  
+    if(  
+        valor === undefined ||  
+        valor === null  
+    ){  
+  
+        return "";  
+  
+    }  
+  
+    return String(valor).trim();  
+  
+}  
+  
+  
+function numero(valor){  
+  
+    const n =  
+    Number(valor);  
+  
+    return Number.isFinite(n)  
+        ? n  
+        : 0;  
+  
+}  
+  
+  
+function mostrarError(mensaje){  
+  
+    $("mensajeError").textContent =  
+    mensaje;  
+  
+    $("mensajeError").style.display =  
+    "block";  
+  
+    $("mensajeExito").style.display =  
+    "none";  
+  
+}  
+  
+  
+function mostrarExito(mensaje){  
+  
+    $("mensajeExito").textContent =  
+    mensaje;  
+  
+    $("mensajeExito").style.display =  
+    "block";  
+  
+    $("mensajeError").style.display =  
+    "none";  
+  
+}  
+  
+  
+function limpiarMensajes(){  
+  
+    $("mensajeError").style.display =  
+    "none";  
+  
+    $("mensajeExito").style.display =  
+    "none";  
+  
+}  
+  
+  
+function dinero(valor){  
+  
+    return new Intl.NumberFormat(  
+        "es-AR",  
+        {  
+            style:"currency",  
+            currency:"ARS",  
+            maximumFractionDigits:0  
+        }  
+    ).format(  
+        numero(valor)  
+    );  
+  
+}  
+  
+  
+/* =====================================  
+   OBTENER EMPRESA  
+===================================== */  
+  
+async function obtenerEmpresa(){  
+  
+    empresaId = "";  
+  
+  
+    try{  
+  
+        const consulta =  
+        query(  
+            collection(  
+                db,  
+                "usuarios"  
+            ),  
+            where(  
+                "__name__",  
+                "==",  
+                usuarioActual.uid  
+            )  
+        );  
+  
+  
+        const resultado =  
+        await getDocs(  
+            consulta  
+        );  
+  
+  
+        if(  
+            !resultado.empty  
+        ){  
+  
+            const datos =  
+            resultado.docs[0].data();  
+  
+  
+            empresaId =  
+            texto(  
+                datos.empresaId  
+            );  
+  
+  
+            if(!empresaId){  
+  
+                empresaId =  
+                texto(  
+                    datos.empresa  
+                );  
+  
+            }  
+  
+        }  
+  
+    }  
+    catch(error){  
+  
+        console.warn(  
+            "No se pudo obtener empresa:",  
+            error  
+        );  
+  
+    }  
+  
+  
+    /*  
+     * Compatibilidad con el esquema  
+     * actual de GESBASE.  
+     */  
+  
+    if(!empresaId){  
+  
+        empresaId =  
+        usuarioActual.uid;  
+  
+    }  
+  
+}  
+  
+  
+/* =====================================  
+   MOSTRAR / OCULTAR CONTRASEÑA  
+===================================== */  
+  
+$("darAcceso").addEventListener(  
+    "change",  
+    function(){  
+  
+        const contenedor =  
+        $("contrasenaContenedor");  
+  
+  
+        if(  
+            $("darAcceso").checked  
+        ){  
+  
+            contenedor.classList.add(  
+                "visible"  
+            );  
+  
+        }  
+        else{  
+  
+            contenedor.classList.remove(  
+                "visible"  
+            );  
+  
+            $("contrasena").value =  
+            "";  
+  
+        }  
+  
+    }  
+);  
+  
+  
+/* =====================================  
+   GUARDAR EMPLEADO  
+===================================== */  
+  
+async function guardarEmpleado(){  
+  
+    limpiarMensajes();  
+  
+  
+    const nombre =  
+    texto(  
+        $("nombre").value  
+    );  
+  
+  
+    const apellido =  
+    texto(  
+        $("apellido").value  
+    );  
+  
+  
+    const dni =  
+    texto(  
+        $("dni").value  
+    );  
+  
+  
+    const telefono =  
+    texto(  
+        $("telefono").value  
+    );  
+  
+  
+    const email =  
+    texto(  
+        $("email").value  
+    ).toLowerCase();  
+  
+  
+    const puesto =  
+    texto(  
+        $("puesto").value  
+    );  
+  
+  
+    const fechaIngreso =  
+    texto(  
+        $("fechaIngreso").value  
+    );  
+  
+  
+    const pagoHora =  
+    numero(  
+        $("pagoHora").value  
+    );  
+  
+  
+    const darAcceso =  
+    $("darAcceso").checked;  
+  
+  
+    const contrasena =  
+    $("contrasena").value;  
+  
+  
+    /* =================================  
+       VALIDACIONES  
+    ================================= */  
+  
+    if(!nombre){  
+  
+        mostrarError(  
+            "Ingresá el nombre del empleado."  
+        );  
+  
+        return;  
+  
+    }  
+  
+  
+    if(!apellido){  
+  
+        mostrarError(  
+            "Ingresá el apellido del empleado."  
+        );  
+  
+        return;  
+  
+    }  
+  
+  
+    if(!dni){  
+  
+        mostrarError(  
+            "Ingresá el DNI del empleado."  
+        );  
+  
+        return;  
+  
+    }  
+  
+  
+    if(!puesto){  
+  
+        mostrarError(  
+            "Ingresá el puesto del empleado."  
+        );  
+  
+        return;  
+  
+    }  
+  
+  
+    if(!fechaIngreso){  
+  
+        mostrarError(  
+            "Seleccioná la fecha de ingreso."  
+        );  
+  
+        return;  
+  
+    }  
+  
+  
+    if(pagoHora < 0){  
+  
+        mostrarError(  
+            "El valor hora no puede ser negativo."  
+        );  
+  
+        return;  
+  
+    }  
+  
+  
+    if(darAcceso){  
+  
+        if(!email){  
+  
+            mostrarError(  
+                "Ingresá el correo que utilizará el empleado para acceder."  
+            );  
+  
+            return;  
+  
+        }  
+  
+  
+        if(contrasena.length < 6){  
+  
+            mostrarError(  
+                "La contraseña debe tener como mínimo 6 caracteres."  
+            );  
+  
+            return;  
+  
+        }  
+  
+    }  
+  
+  
+    const boton =  
+    $("btnGuardar");  
+  
+  
+    boton.disabled =  
+    true;  
+  
+    boton.textContent =  
+    "GUARDANDO...";  
+  
+  
+    try{  
+  
+        /*  
+         * Comprobar DNI duplicado.  
+         */  
+  
+        const consulta =  
+        query(  
+            collection(  
+                db,  
+                "empleados"  
+            ),  
+            where(  
+                "empresaId",  
+                "==",  
+                empresaId  
+            ),  
+            where(  
+                "dni",  
+                "==",  
+                dni  
+            )  
+        );  
+  
+  
+        const existentes =  
+        await getDocs(  
+            consulta  
+        );  
+  
+  
+        if(!existentes.empty){  
+  
+            throw new Error(  
+                "Ya existe un empleado con ese DNI."  
+            );  
+  
+        }  
+  
+  
+        /*  
+         * Primero guardamos el empleado.  
+         *  
+         * authUid queda vacío hasta que  
+         * Firebase Authentication cree  
+         * correctamente la cuenta.  
+         */  
+  
+        const documento =  
+        await addDoc(  
+            collection(  
+                db,  
+                "empleados"  
+            ),  
+            {  
+  
+                empresaId:  
+                empresaId,  
+  
+                authUid:  
+                "",  
+  
+                nombre:  
+                nombre,  
+  
+                apellido:  
+                apellido,  
+  
+                dni:  
+                dni,  
+  
+                telefono:  
+                telefono,  
+  
+                email:  
+                email,  
+  
+                puesto:  
+                puesto,  
+  
+                fechaIngreso:  
+                fechaIngreso,  
+  
+                pagoHora:  
+                pagoHora,  
+  
+                accesoHabilitado:  
+                darAcceso,  
+  
+                estado:  
+                darAcceso  
+                    ? "Activo"  
+                    : "Inactivo",  
+  
+                creado:  
+                serverTimestamp(),  
+  
+                creadoPor:  
+                usuarioActual.uid  
+  
+            }  
+        );  
+  
+  
+        /*  
+         * Si la empresa dio acceso,  
+         * solicitamos a la función segura  
+         * de Firebase que cree la cuenta.  
+         */  
+  
+        if(darAcceso){  
+  
+            try{  
+  
+                const functions =  
+                getFunctions(  
+                    undefined,  
+                    "us-central1"  
+                );  
+  
+  
+                const crearCuenta =  
+                httpsCallable(  
+                    functions,  
+                    "crearCuentaEmpleado"  
+                );  
+  
+  
+                const respuesta =  
+                await crearCuenta({  
+  
+                    empleadoId:  
+                    documento.id,  
+  
+                    empresaId:  
+                    empresaId,  
+  
+                    email:  
+                    email,  
+  
+                    password:  
+                    contrasena  
+  
+                });  
+  
+  
+                console.log(  
+                    "Cuenta creada:",  
+                    respuesta.data  
+                );  
+  
+  
+                mostrarExito(  
+                    "Empleado guardado y acceso creado correctamente."  
+                );  
+  
+            }  
+            catch(error){  
+  
+                console.error(  
+                    "Error creando acceso:",  
+                    error  
+                );  
+  
+  
+                mostrarError(  
+                    "El empleado fue guardado, pero no se pudo crear su acceso: " +  
+                    error.message  
+                );  
+  
+            }  
+  
+        }  
+        else{  
+  
+            mostrarExito(  
+                "Empleado guardado sin acceso."  
+            );  
+  
+        }  
+  
+  
+        limpiarFormulario();  
+  
+        await cargarEmpleados();  
+  
+    }  
+    catch(error){  
+  
+        console.error(  
+            "Error guardando empleado:",  
+            error  
+        );  
+  
+  
+        mostrarError(  
+            "No se pudo guardar el empleado: " +  
+            error.message  
+        );  
+  
+    }  
+    finally{  
+  
+        boton.disabled =  
+        false;  
+  
+        boton.textContent =  
+        "💾 GUARDAR EMPLEADO";  
+  
+    }  
+  
+}  
+  
+  
+/* =====================================  
+   LIMPIAR FORMULARIO  
+===================================== */  
+  
+function limpiarFormulario(){  
+  
+    $("nombre").value =  
+    "";  
+  
+    $("apellido").value =  
+    "";  
+  
+    $("dni").value =  
+    "";  
+  
+    $("telefono").value =  
+    "";  
+  
+    $("email").value =  
+    "";  
+  
+    $("puesto").value =  
+    "";  
+  
+    $("fechaIngreso").value =  
+    "";  
+  
+    $("pagoHora").value =  
+    "";  
+  
+    $("contrasena").value =  
+    "";  
+  
+    $("darAcceso").checked =  
+    true;  
+  
+    $("contrasenaContenedor")  
+        .classList  
+        .add("visible");  
+  
+}  
+  
+  
+/* =====================================  
+   CARGAR EMPLEADOS  
+===================================== */  
+  
+async function cargarEmpleados(){  
+  
+    $("listaEmpleados").innerHTML =  
+    `  
+    <div class="cargando">  
+        Cargando empleados...  
+    </div>  
+    `;  
+  
+  
+    try{  
+  
+        const consulta =  
+        query(  
+            collection(  
+                db,  
+                "empleados"  
+            ),  
+            where(  
+                "empresaId",  
+                "==",  
+                empresaId  
+            )  
+        );  
+  
+  
+        const resultado =  
+        await getDocs(  
+            consulta  
+        );  
+  
+  
+        if(resultado.empty){  
+  
+            $("listaEmpleados").innerHTML =  
+            `  
+            <div class="vacio">  
+                Todavía no hay empleados cargados.  
+            </div>  
+            `;  
+  
+            return;  
+  
+        }  
+  
+  
+        $("listaEmpleados").innerHTML =  
+        "";  
+  
+  
+        resultado.forEach(  
+            documento => {  
+  
+                const empleado = {  
+  
+                    id:  
+                    documento.id,  
+  
+                    ...documento.data()  
+  
+                };  
+  
+  
+                $("listaEmpleados")  
+                    .appendChild(  
+                        crearEmpleado(  
+                            empleado  
+                        )  
+                    );  
+  
+            }  
+        );  
+  
+    }  
+    catch(error){  
+  
+        console.error(error);  
+  
+  
+        $("listaEmpleados").innerHTML =  
+        `  
+        <div class="vacio">  
+            No se pudieron cargar los empleados.  
+        </div>  
+        `;  
+  
+    }  
+  
+}  
+  
+  
+/* =====================================  
+   CREAR TARJETA  
+===================================== */  
+  
+function crearEmpleado(  
+    empleado  
+){  
+  
+    const tarjeta =  
+    document.createElement("div");  
+  
+    tarjeta.className =  
+    "empleado";  
+  
+  
+    const cabecera =  
+    document.createElement("div");  
+  
+    cabecera.className =  
+    "empleado-cabecera";  
+  
+  
+    const izquierda =  
+    document.createElement("div");  
+  
+  
+    const nombre =  
+    document.createElement("div");  
+  
+    nombre.className =  
+    "nombre";  
+  
+    nombre.textContent =  
+    (  
+        texto(  
+            empleado.nombre  
+        ) +  
+        " " +  
+        texto(  
+            empleado.apellido  
+        )  
+    ).trim();  
+  
+  
+    izquierda.appendChild(  
+        nombre  
+    );  
+  
+  
+    const puesto =  
+    document.createElement("div");  
+  
+    puesto.className =  
+    "puesto";  
+  
+    puesto.textContent =  
+    texto(  
+        empleado.puesto  
+    ) ||  
+    "Sin puesto";  
+  
+  
+    izquierda.appendChild(  
+        puesto  
+    );  
+  
+  
+    const estado =  
+    document.createElement("span");  
+  
+  
+    if(  
+        empleado.accesoHabilitado &&  
+        texto(  
+            empleado.authUid  
+        )  
+    ){  
+  
+        estado.className =  
+        "estado activo";  
+  
+        estado.textContent =  
+        "ACCESO ACTIVO";  
+  
+    }  
+    else if(  
+        empleado.accesoHabilitado  
+    ){  
+  
+        estado.className =  
+        "estado pendiente";  
+  
+        estado.textContent =  
+        "ACCESO PENDIENTE";  
+  
+    }  
+    else{  
+  
+        estado.className =  
+        "estado inactivo";  
+  
+        estado.textContent =  
+        "SIN ACCESO";  
+  
+    }  
+  
+  
+    cabecera.appendChild(  
+        izquierda  
+    );  
+  
+    cabecera.appendChild(  
+        estado  
+    );  
+  
+  
+    tarjeta.appendChild(  
+        cabecera  
+    );  
+  
+  
+    const datos =  
+    document.createElement("div");  
+  
+    datos.className =  
+    "datos";  
+  
+  
+    agregarDato(  
+        datos,  
+        "DNI",  
+        texto(  
+            empleado.dni  
+        ) || "-"  
+    );  
+  
+  
+    agregarDato(  
+        datos,  
+        "Correo",  
+        texto(  
+            empleado.email  
+        ) || "-"  
+    );  
+  
+  
+    agregarDato(  
+        datos,  
+        "Teléfono",  
+        texto(  
+            empleado.telefono  
+        ) || "-"  
+    );  
+  
+  
+    agregarDato(  
+        datos,  
+        "Ingreso",  
+        texto(  
+            empleado.fechaIngreso  
+        ) || "-"  
+    );  
+  
+  
+    agregarDato(  
+        datos,  
+        "Valor hora",  
+        dinero(  
+            empleado.pagoHora  
+        )  
+    );  
+  
+  
+    tarjeta.appendChild(  
+        datos  
+    );  
+  
+  
+    const acceso =  
+    document.createElement("div");  
+  
+    acceso.className =  
+    "acceso-estado";  
+  
+  
+    if(  
+        empleado.accesoHabilitado &&  
+        texto(  
+            empleado.authUid  
+        )  
+    ){  
+  
+        acceso.innerHTML =  
+        "🔐 <strong>Acceso habilitado.</strong> El empleado ya tiene una cuenta.";  
+  
+    }  
+    else if(  
+        empleado.accesoHabilitado  
+    ){  
+  
+        acceso.innerHTML =  
+        "🟡 <strong>Acceso habilitado.</strong> Esperando creación de la cuenta.";  
+  
+    }  
+    else{  
+  
+        acceso.innerHTML =  
+        "🔒 <strong>Acceso deshabilitado.</strong>";  
+  
+    }  
+  
+  
+    tarjeta.appendChild(  
+        acceso  
+    );  
+  
+  
+    return tarjeta;  
+  
+}  
+  
+  
+/* =====================================  
+   AGREGAR DATO  
+===================================== */  
+  
+function agregarDato(  
+    contenedor,  
+    etiqueta,  
+    valor  
+){  
+  
+    const dato =  
+    document.createElement("div");  
+  
+    dato.className =  
+    "dato";  
+  
+  
+    const small =  
+    document.createElement("small");  
+  
+    small.textContent =  
+    etiqueta;  
+  
+  
+    const strong =  
+    document.createElement("strong");  
+  
+    strong.textContent =  
+    valor;  
+  
+  
+    dato.appendChild(  
+        small  
+    );  
+  
+    dato.appendChild(  
+        strong  
+    );  
+  
+  
+    contenedor.appendChild(  
+        dato  
+    );  
+  
+}  
+  
+  
+/* =====================================  
+   EVENTOS  
+===================================== */  
+  
+$("btnGuardar").addEventListener(  
+    "click",  
+    guardarEmpleado  
+);  
+  
+  
+$("btnLimpiar").addEventListener(  
+    "click",  
+    function(){  
+  
+        limpiarMensajes();  
+  
+        limpiarFormulario();  
+  
+    }  
+);  
+  
+  
+$("btnVolver").addEventListener(  
+    "click",  
+    function(){  
+  
+        window.history.back();  
+  
+    }  
+);  
+  
+  
+/* =====================================  
+   AUTENTICACIÓN  
+===================================== */  
+  
+onAuthStateChanged(  
+    auth,  
+    async function(usuario){  
+  
+        if(!usuario){  
+  
+            window.location.replace(  
+                "login.html"  
+            );  
+  
+            return;  
+  
+        }  
+  
+  
+        usuarioActual =  
+        usuario;  
+  
+  
+        try{  
+  
+            await obtenerEmpresa();  
+  
+            await cargarEmpleados();  
+  
+        }  
+        catch(error){  
+  
+            console.error(  
+                error  
+            );  
+  
+            mostrarError(  
+                "No se pudo cargar la sección de empleados: " +  
+                error.message  
+            );  
+  
+        }  
+  
+    }  
+);  
+  
+</script>  </body>  </html>
