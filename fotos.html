@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<meta
+    name="description"
+    content="GESBASE - Fotos"
+>
+
+<title>GESBASE - Fotos</title>
+
+<style>
+
+/* ==========================================
+   RESET
+========================================== */
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+
+/* ==========================================
+   BODY
+========================================== */
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+    min-height:100vh;
+}
+
+
+/* ==========================================
+   APP
+========================================== */
+
+.app{
+    width:100%;
+    max-width:700px;
+    min-height:100vh;
+    margin:auto;
+    background:#ffffff;
+}
+
+
+/* ==========================================
+   HEADER
+========================================== */
+
+header{
+    background:#111827;
+    color:white;
+    padding:22px 20px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.btn-volver{
+    border:none;
+    background:#374151;
+    color:white;
+    width:42px;
+    height:42px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:20px;
+}
+
+.btn-volver:hover{
+    background:#4b5563;
+}
+
+.header-text{
+    flex:1;
+}
+
+.logo{
+    font-size:25px;
+    font-weight:bold;
+    letter-spacing:1px;
+}
+
+.subtitulo{
+    margin-top:4px;
+    font-size:13px;
+    color:#d1d5db;
+}
+
+
+/* ==========================================
+   MAIN
+========================================== */
+
+main{
+    padding:20px;
+}
+
+
+/* ==========================================
+   TITULO
+========================================== */
+
+.titulo{
+    margin-bottom:6px;
+    font-size:25px;
+}
+
+.descripcion{
+    color:#6b7280;
+    font-size:14px;
+    line-height:1.5;
+    margin-bottom:20px;
+}
+
+
+/* ==========================================
+   BOTON SUBIR
+========================================== */
+
+.btn-subir{
+    width:100%;
+    border:none;
+    background:#111827;
+    color:white;
+    padding:17px;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-bottom:10px;
+}
+
+.btn-subir:hover{
+    background:#1f2937;
+}
+
+.btn-subir:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+
+/* ==========================================
+   INPUT ARCHIVO
+========================================== */
+
+#inputFotos{
+    display:none;
+}
+
+
+/* ==========================================
+   ESTADO
+========================================== */
+
+.estado{
+    padding:13px;
+    border-radius:10px;
+    background:#f3f4f6;
+    color:#6b7280;
+    font-size:14px;
+    margin-bottom:20px;
+    display:none;
+}
+
+.estado.visible{
+    display:block;
+}
+
+.estado.exito{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado.error{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+
+/* ==========================================
+   CABECERA GALERIA
+========================================== */
+
+.cabecera-galeria{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+}
+
+.cabecera-galeria h2{
+    font-size:18px;
+}
+
+.contador{
+    font-size:13px;
+    color:#6b7280;
+}
+
+
+/* ==========================================
+   GALERIA
+========================================== */
+
+.galeria{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+
+
+/* ==========================================
+   FOTO
+========================================== */
+
+.tarjeta-foto{
+    background:#f9fafb;
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.contenedor-imagen{
+    width:100%;
+    aspect-ratio:1 / 1;
+    background:#e5e7eb;
+    overflow:hidden;
+}
+
+.contenedor-imagen img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    cursor:pointer;
+}
+
+.info-foto{
+    padding:11px;
+}
+
+.nombre-foto{
+    font-size:14px;
+    font-weight:bold;
+    word-break:break-word;
+    margin-bottom:5px;
+}
+
+.fecha-foto{
+    font-size:12px;
+    color:#6b7280;
+    margin-bottom:10px;
+}
+
+.btn-eliminar{
+    width:100%;
+    border:none;
+    background:#fee2e2;
+    color:#991b1b;
+    padding:9px;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.btn-eliminar:hover{
+    background:#fecaca;
+}
+
+
+/* ==========================================
+   SIN FOTOS
+========================================== */
+
+.sin-fotos{
+    text-align:center;
+    padding:40px 20px;
+    color:#6b7280;
+    background:#f9fafb;
+    border-radius:14px;
+}
+
+.sin-fotos-icono{
+    font-size:45px;
+    margin-bottom:10px;
+}
+
+.sin-fotos strong{
+    display:block;
+    color:#111827;
+    margin-bottom:6px;
+}
+
+
+/* ==========================================
+   CARGANDO
+========================================== */
+
+.cargando{
+    text-align:center;
+    padding:30px;
+    color:#6b7280;
+}
+
+
+/* ==========================================
+   MODAL
+========================================== */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.85);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:9999;
+}
+
+.modal.activo{
+    display:flex;
+}
+
+.modal-contenido{
+    max-width:95vw;
+    max-height:90vh;
+    position:relative;
+}
+
+.modal-contenido img{
+    max-width:100%;
+    max-height:85vh;
+    display:block;
+    border-radius:10px;
+}
+
+.btn-cerrar-modal{
+    position:absolute;
+    top:-45px;
+    right:0;
+    width:38px;
+    height:38px;
+    border:none;
+    border-radius:50%;
+    background:white;
+    color:#111827;
+    font-size:20px;
+    cursor:pointer;
+}
+
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media(max-width:500px){
+
+    main{
+        padding:16px;
+    }
+
+    .galeria{
+        grid-template-columns:repeat(2,1fr);
+        gap:10px;
+    }
+
+    .titulo{
+        font-size:23px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+<!-- ==========================================
+     HEADER
+========================================== -->
+
+<header>
+
+<button
+    class="btn-volver"
+    type="button"
+    id="btnVolver"
+>
+←
+</button>
+
+<div class="header-text">
+
+<div class="logo">
+GESBASE
+</div>
+
+<div class="subtitulo">
+Tu empresa. Todo organizado.
+</div>
+
+</div>
+
+</header>
+
+
+<!-- ==========================================
+     CONTENIDO
+========================================== -->
+
+<main>
+
+
+<h1 class="titulo">
+📸 Fotos
+</h1>
+
+<p class="descripcion">
+Guardá y organizá las fotos relacionadas con tus trabajos y tu empresa.
+</p>
+
+
+<!-- ==========================================
+     SUBIR FOTO
+========================================== -->
+
+<input
+    type="file"
+    id="inputFotos"
+    accept="image/*"
+    multiple
+>
+
+
+<button
+    id="btnSubir"
+    class="btn-subir"
+    type="button"
+>
+
+📷 Seleccionar fotos
+
+</button>
+
+
+<!-- ==========================================
+     ESTADO
+========================================== -->
+
+<div
+    id="estado"
+    class="estado"
+>
+</div>
+
+
+<!-- ==========================================
+     GALERIA
+========================================== -->
+
+<div class="cabecera-galeria">
+
+<h2>
+Mis fotos
+</h2>
+
+<span
+    id="contador"
+    class="contador"
+>
+0 fotos
+</span>
+
+</div>
+
+
+<div
+    id="cargandoFotos"
+    class="cargando"
+>
+
+Cargando fotos...
+
+</div>
+
+
+<div
+    id="galeria"
+    class="galeria"
+    style="display:none;"
+>
+</div>
+
+
+<div
+    id="sinFotos"
+    class="sin-fotos"
+    style="display:none;"
+>
+
+<div class="sin-fotos-icono">
+📸
+</div>
+
+<strong>
+Todavía no tenés fotos
+</strong>
+
+<span>
+Seleccioná una o varias fotos para comenzar.
+</span>
+
+</div>
+
+
+</main>
+
+
+</div>
+
+
+<!-- ==========================================
+     MODAL IMAGEN
+========================================== -->
+
+<div
+    id="modal"
+    class="modal"
+>
+
+<div class="modal-contenido">
+
+<button
+    id="btnCerrarModal"
+    class="btn-cerrar-modal"
+    type="button"
+>
+✕
+</button>
+
+<img
+    id="imagenModal"
+    src=""
+    alt="Foto"
+>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db,
+    storage
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    query,
+    where,
+    orderBy,
+    getDocs,
+    addDoc,
+    deleteDoc,
+    doc,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+import {
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    deleteObject
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const btnVolver =
+document.getElementById(
+    "btnVolver"
+);
+
+
+const btnSubir =
+document.getElementById(
+    "btnSubir"
+);
+
+
+const inputFotos =
+document.getElementById(
+    "inputFotos"
+);
+
+
+const estado =
+document.getElementById(
+    "estado"
+);
+
+
+const galeria =
+document.getElementById(
+    "galeria"
+);
+
+
+const cargandoFotos =
+document.getElementById(
+    "cargandoFotos"
+);
+
+
+const sinFotos =
+document.getElementById(
+    "sinFotos"
+);
+
+
+const contador =
+document.getElementById(
+    "contador"
+);
+
+
+const modal =
+document.getElementById(
+    "modal"
+);
+
+
+const imagenModal =
+document.getElementById(
+    "imagenModal"
+);
+
+
+const btnCerrarModal =
+document.getElementById(
+    "btnCerrarModal"
+);
+
+
+// ==========================================
+// USUARIO ACTUAL
+// ==========================================
+
+let usuarioActual = null;
+
+
+// ==========================================
+// VOLVER
+// ==========================================
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "index.html";
+
+    }
+);
+
+
+// ==========================================
+// MOSTRAR ESTADO
+// ==========================================
+
+function mostrarEstado(
+    mensaje,
+    tipo = ""
+){
+
+    estado.textContent =
+    mensaje;
+
+    estado.className =
+    "estado visible";
+
+    if(tipo){
+
+        estado.classList.add(
+            tipo
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// OCULTAR ESTADO
+// ==========================================
+
+function ocultarEstado(){
+
+    estado.className =
+    "estado";
+
+    estado.textContent =
+    "";
+
+}
+
+
+// ==========================================
+// FORMATEAR FECHA
+// ==========================================
+
+function formatearFecha(
+    fecha
+){
+
+    if(!fecha){
+        return "Sin fecha";
+    }
+
+
+    try{
+
+        const fechaJS =
+        fecha.toDate
+        ? fecha.toDate()
+        : new Date(fecha);
+
+
+        return fechaJS.toLocaleDateString(
+            "es-AR",
+            {
+                day:"2-digit",
+                month:"2-digit",
+                year:"numeric"
+            }
+        );
+
+    }
+    catch(error){
+
+        return "Sin fecha";
+
+    }
+
+}
+
+
+// ==========================================
+// CARGAR FOTOS
+// ==========================================
+
+async function cargarFotos(){
+
+    if(!usuarioActual){
+        return;
+    }
+
+
+    cargandoFotos.style.display =
+    "block";
+
+    galeria.style.display =
+    "none";
+
+    sinFotos.style.display =
+    "none";
+
+
+    try{
+
+        const referenciaFotos =
+        collection(
+            db,
+            "fotos"
+        );
+
+
+        const consulta =
+        query(
+            referenciaFotos,
+            where(
+                "usuarioId",
+                "==",
+                usuarioActual.uid
+            ),
+            orderBy(
+                "fecha",
+                "desc"
+            )
+        );
+
+
+        const resultado =
+        await getDocs(
+            consulta
+        );
+
+
+        galeria.innerHTML =
+        "";
+
+
+        contador.textContent =
+        resultado.size +
+        (
+            resultado.size === 1
+            ? " foto"
+            : " fotos"
+        );
+
+
+        cargandoFotos.style.display =
+        "none";
+
+
+        if(
+            resultado.empty
+        ){
+
+            sinFotos.style.display =
+            "block";
+
+            return;
+
+        }
+
+
+        galeria.style.display =
+        "grid";
+
+
+        resultado.forEach(
+            function(documento){
+
+                const datos =
+                documento.data();
+
+
+                crearTarjetaFoto(
+                    documento.id,
+                    datos
+                );
+
+            }
+        );
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando fotos:",
+            error
+        );
+
+
+        cargandoFotos.style.display =
+        "none";
+
+
+        mostrarEstado(
+            "No se pudieron cargar las fotos. " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// CREAR TARJETA
+// ==========================================
+
+function crearTarjetaFoto(
+    id,
+    datos
+){
+
+    const tarjeta =
+    document.createElement(
+        "div"
+    );
+
+    tarjeta.className =
+    "tarjeta-foto";
+
+
+    const contenedor =
+    document.createElement(
+        "div"
+    );
+
+    contenedor.className =
+    "contenedor-imagen";
+
+
+    const imagen =
+    document.createElement(
+        "img"
+    );
+
+
+    imagen.src =
+    datos.url;
+
+
+    imagen.alt =
+    datos.nombre ||
+    "Foto GESBASE";
+
+
+    imagen.loading =
+    "lazy";
+
+
+    imagen.addEventListener(
+        "click",
+        function(){
+
+            abrirModal(
+                datos.url
+            );
+
+        }
+    );
+
+
+    contenedor.appendChild(
+        imagen
+    );
+
+
+    const info =
+    document.createElement(
+        "div"
+    );
+
+    info.className =
+    "info-foto";
+
+
+    const nombre =
+    document.createElement(
+        "div"
+    );
+
+    nombre.className =
+    "nombre-foto";
+
+
+    nombre.textContent =
+    datos.nombre ||
+    "Foto";
+
+
+    const fecha =
+    document.createElement(
+        "div"
+    );
+
+    fecha.className =
+    "fecha-foto";
+
+
+    fecha.textContent =
+    formatearFecha(
+        datos.fecha
+    );
+
+
+    const botonEliminar =
+    document.createElement(
+        "button"
+    );
+
+    botonEliminar.type =
+    "button";
+
+
+    botonEliminar.className =
+    "btn-eliminar";
+
+
+    botonEliminar.textContent =
+    "Eliminar";
+
+
+    botonEliminar.addEventListener(
+        "click",
+        function(){
+
+            eliminarFoto(
+                id,
+                datos.storagePath
+            );
+
+        }
+    );
+
+
+    info.appendChild(
+        nombre
+    );
+
+    info.appendChild(
+        fecha
+    );
+
+    info.appendChild(
+        botonEliminar
+    );
+
+
+    tarjeta.appendChild(
+        contenedor
+    );
+
+    tarjeta.appendChild(
+        info
+    );
+
+
+    galeria.appendChild(
+        tarjeta
+    );
+
+}
+
+
+// ==========================================
+// SELECCIONAR FOTOS
+// ==========================================
+
+btnSubir.addEventListener(
+    "click",
+    function(){
+
+        inputFotos.click();
+
+    }
+);
+
+
+// ==========================================
+// CAMBIO DE ARCHIVOS
+// ==========================================
+
+inputFotos.addEventListener(
+    "change",
+    async function(){
+
+        const archivos =
+        Array.from(
+            inputFotos.files
+        );
+
+
+        if(
+            archivos.length === 0
+        ){
+
+            return;
+
+        }
+
+
+        if(!usuarioActual){
+
+            mostrarEstado(
+                "La sesión no está disponible.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        btnSubir.disabled =
+        true;
+
+
+        ocultarEstado();
+
+
+        try{
+
+            for(
+                let i = 0;
+                i < archivos.length;
+                i++
+            ){
+
+                const archivo =
+                archivos[i];
+
+
+                // ==============================
+                // VALIDAR IMAGEN
+                // ==============================
+
+                if(
+                    !archivo.type.startsWith(
+                        "image/"
+                    )
+                ){
+
+                    continue;
+
+                }
+
+
+                // ==============================
+                // VALIDAR TAMAÑO
+                // Máximo 10 MB
+                // ==============================
+
+                const maximo =
+                10 * 1024 * 1024;
+
+
+                if(
+                    archivo.size > maximo
+                ){
+
+                    mostrarEstado(
+                        "La imagen " +
+                        archivo.name +
+                        " supera los 10 MB.",
+                        "error"
+                    );
+
+                    continue;
+
+                }
+
+
+                mostrarEstado(
+                    "Subiendo foto " +
+                    (i + 1) +
+                    " de " +
+                    archivos.length +
+                    "..."
+                );
+
+
+                // ==============================
+                // NOMBRE ÚNICO
+                // ==============================
+
+                const nombreSeguro =
+                archivo.name
+                .replace(
+                    /[^a-zA-Z0-9._-]/g,
+                    "_"
+                );
+
+
+                const nombreArchivo =
+                Date.now() +
+                "_" +
+                Math.random()
+                .toString(36)
+                .substring(2,10) +
+                "_" +
+                nombreSeguro;
+
+
+                // ==============================
+                // RUTA STORAGE
+                // ==============================
+
+                const ruta =
+                "fotos/" +
+                usuarioActual.uid +
+                "/" +
+                nombreArchivo;
+
+
+                const referenciaStorage =
+                ref(
+                    storage,
+                    ruta
+                );
+
+
+                // ==============================
+                // SUBIR ARCHIVO
+                // ==============================
+
+                await uploadBytes(
+                    referenciaStorage,
+                    archivo
+                );
+
+
+                // ==============================
+                // URL
+                // ==============================
+
+                const url =
+                await getDownloadURL(
+                    referenciaStorage
+                );
+
+
+                // ==============================
+                // FIRESTORE
+                // ==============================
+
+                await addDoc(
+                    collection(
+                        db,
+                        "fotos"
+                    ),
+                    {
+
+                        usuarioId:
+                        usuarioActual.uid,
+
+                        nombre:
+                        archivo.name,
+
+                        url:
+                        url,
+
+                        storagePath:
+                        ruta,
+
+                        tipo:
+                        archivo.type,
+
+                        tamaño:
+                        archivo.size,
+
+                        fecha:
+                        serverTimestamp()
+
+                    }
+                );
+
+            }
+
+
+            inputFotos.value =
+            "";
+
+
+            mostrarEstado(
+                "Fotos cargadas correctamente.",
+                "exito"
+            );
+
+
+            await cargarFotos();
+
+
+        }
+        catch(error){
+
+            console.error(
+                "Error subiendo fotos:",
+                error
+            );
+
+
+            mostrarEstado(
+                "No se pudieron subir las fotos. " +
+                error.message,
+                "error"
+            );
+
+        }
+        finally{
+
+            btnSubir.disabled =
+            false;
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// ELIMINAR FOTO
+// ==========================================
+
+async function eliminarFoto(
+    id,
+    storagePath
+){
+
+    const confirmar =
+    confirm(
+        "¿Querés eliminar esta foto?"
+    );
+
+
+    if(!confirmar){
+
+        return;
+
+    }
+
+
+    try{
+
+        mostrarEstado(
+            "Eliminando foto..."
+        );
+
+
+        // ==================================
+        // ELIMINAR STORAGE
+        // ==================================
+
+        if(storagePath){
+
+            try{
+
+                const referenciaStorage =
+                ref(
+                    storage,
+                    storagePath
+                );
+
+
+                await deleteObject(
+                    referenciaStorage
+                );
+
+            }
+            catch(errorStorage){
+
+                console.warn(
+                    "No se pudo eliminar Storage:",
+                    errorStorage
+                );
+
+            }
+
+        }
+
+
+        // ==================================
+        // ELIMINAR FIRESTORE
+        // ==================================
+
+        await deleteDoc(
+            doc(
+                db,
+                "fotos",
+                id
+            )
+        );
+
+
+        mostrarEstado(
+            "Foto eliminada correctamente.",
+            "exito"
+        );
+
+
+        await cargarFotos();
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Error eliminando foto:",
+            error
+        );
+
+
+        mostrarEstado(
+            "No se pudo eliminar la foto. " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// MODAL
+// ==========================================
+
+function abrirModal(
+    url
+){
+
+    imagenModal.src =
+    url;
+
+    modal.classList.add(
+        "activo"
+    );
+
+}
+
+
+function cerrarModal(){
+
+    modal.classList.remove(
+        "activo"
+    );
+
+    imagenModal.src =
+    "";
+
+}
+
+
+btnCerrarModal.addEventListener(
+    "click",
+    cerrarModal
+);
+
+
+modal.addEventListener(
+    "click",
+    function(event){
+
+        if(
+            event.target === modal
+        ){
+
+            cerrarModal();
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// ESCAPE
+// ==========================================
+
+document.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.key === "Escape"
+        ){
+
+            cerrarModal();
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// AUTENTICACIÓN
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+        usuario;
+
+
+        await cargarFotos();
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
