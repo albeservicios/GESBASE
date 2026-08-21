@@ -206,7 +206,8 @@ main{
     transition:
         transform .15s ease,
         box-shadow .15s ease,
-        background .15s ease;
+        background .15s ease,
+        opacity .15s ease;
 }
 
 .boton:hover{
@@ -216,6 +217,22 @@ main{
 
 .boton:active{
     transform:scale(.98);
+}
+
+
+/* ==========================================
+   BOTÓN BLOQUEADO
+========================================== */
+
+.boton.bloqueado{
+    opacity:.45;
+    cursor:not-allowed;
+    filter:grayscale(.5);
+}
+
+.boton.bloqueado:hover{
+    transform:none;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
 
 
@@ -248,7 +265,6 @@ main{
 
 /* ==========================================
    PANEL ADMINISTRADOR
-   SIN CORONA
 ========================================== */
 
 .panel-admin{
@@ -280,6 +296,43 @@ main{
 
 
 /* ==========================================
+   AVISO SUSCRIPCIÓN
+========================================== */
+
+.aviso-suscripcion{
+    display:none;
+    background:#fff7ed;
+    color:#9a3412;
+    border:1px solid #fed7aa;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:20px;
+    line-height:1.5;
+}
+
+.aviso-suscripcion strong{
+    display:block;
+    margin-bottom:5px;
+}
+
+
+/* ==========================================
+   BOTÓN SUSCRIPCIÓN AVISO
+========================================== */
+
+.btn-ir-suscripcion{
+    border:none;
+    background:#ea580c;
+    color:white;
+    padding:10px 14px;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+
+/* ==========================================
    ESTADO
 ========================================== */
 
@@ -293,6 +346,18 @@ main{
 
 #estadoCuenta{
     text-transform:uppercase;
+}
+
+.estado-activo{
+    color:#166534;
+}
+
+.estado-prueba{
+    color:#1d4ed8;
+}
+
+.estado-bloqueado{
+    color:#991b1b;
 }
 
 
@@ -383,7 +448,7 @@ Tu empresa. Todo organizado.
 ========================================== -->
 
 <div id="cargando">
-Verificando sesión...
+Verificando sesión y suscripción...
 </div>
 
 
@@ -413,6 +478,36 @@ Gestioná tu empresa desde un solo lugar.
 </p>
 
 </section>
+
+
+<!-- ==========================================
+     AVISO SUSCRIPCIÓN
+========================================== -->
+
+<div
+    id="avisoSuscripcion"
+    class="aviso-suscripcion"
+>
+
+<strong>
+🔒 Acceso limitado
+</strong>
+
+Tu suscripción no está activa.
+Los módulos de GESBASE se encuentran
+bloqueados hasta activar o renovar tu plan.
+
+<br>
+
+<button
+    type="button"
+    class="btn-ir-suscripcion"
+    id="btnIrSuscripcion"
+>
+⭐ Ir a Suscripción
+</button>
+
+</div>
 
 
 <!-- ==========================================
@@ -584,7 +679,7 @@ Gestión
 <section class="menu">
 
 
-<!-- ADMINISTRACIÓN DE EMPLEADOS -->
+<!-- EMPLEADOS -->
 
 <button
     class="boton"
@@ -730,25 +825,6 @@ Preparada
 </button>
 
 
-<!-- ==========================================
-     CONFORMIDAD DE TRABAJO
-========================================== -->
-
-<button
-    class="boton"
-    type="button"
-    onclick="window.location.href='conformidad.html'"
->
-
-<span class="icono">
-📝
-</span>
-
-Conformidad de trabajo
-
-</button>
-
-
 <!-- MI EMPRESA -->
 
 <button
@@ -766,7 +842,7 @@ Mi empresa
 </button>
 
 
-<!-- COMUNICACIÓN INTERNA -->
+<!-- COMUNICACIÓN -->
 
 <button
     class="boton"
@@ -788,6 +864,7 @@ Comunicación interna
 <button
     class="boton"
     type="button"
+    id="btnSuscripcion"
     onclick="window.location.href='suscripcion.html'"
 >
 
@@ -822,7 +899,6 @@ Asistencia
 
 <!-- ==========================================
      PANEL ADMINISTRADOR
-     SIN CORONA
 ========================================== -->
 
 <section
@@ -845,7 +921,7 @@ Administración
 >
 
 <span class="icono">
-⚙️
+🛠️
 </span>
 
 Panel de Administrador
@@ -859,7 +935,7 @@ Panel de Administrador
 
 
 <!-- ==========================================
-     PANEL DE ATENCIÓN
+     PANEL ATENCIÓN
 ========================================== -->
 
 <section
@@ -904,7 +980,7 @@ Panel de Atención
 Estado de cuenta:
 
 <strong id="estadoCuenta">
-ACTIVO
+VERIFICANDO
 </strong>
 
 </div>
@@ -965,85 +1041,122 @@ document.getElementById(
     "cargando"
 );
 
-
 const contenido =
 document.getElementById(
     "contenido"
 );
-
 
 const nombreUsuario =
 document.getElementById(
     "nombreUsuario"
 );
 
-
 const empresaUsuario =
 document.getElementById(
     "empresaUsuario"
 );
-
 
 const razonSocialUsuario =
 document.getElementById(
     "razonSocialUsuario"
 );
 
-
 const emailUsuario =
 document.getElementById(
     "emailUsuario"
 );
-
 
 const rolUsuario =
 document.getElementById(
     "rolUsuario"
 );
 
-
 const estadoCuenta =
 document.getElementById(
     "estadoCuenta"
 );
-
 
 const botonCerrarSesion =
 document.getElementById(
     "btnCerrarSesion"
 );
 
-
 const btnPanelAdministrador =
 document.getElementById(
     "btnPanelAdministrador"
 );
-
 
 const btnPanelAtencion =
 document.getElementById(
     "btnPanelAtencion"
 );
 
-
 const seccionAdministrador =
 document.getElementById(
     "seccionAdministrador"
 );
-
 
 const seccionAtencion =
 document.getElementById(
     "seccionAtencion"
 );
 
+const avisoSuscripcion =
+document.getElementById(
+    "avisoSuscripcion"
+);
+
+const btnIrSuscripcion =
+document.getElementById(
+    "btnIrSuscripcion"
+);
+
 
 // ==========================================
-// ADMINISTRADOR GESBASE
+// ADMINISTRADOR PRINCIPAL
 // ==========================================
 
 const EMAIL_ADMIN =
 "julianbattauz006@gmail.com";
+
+
+// ==========================================
+// RUTAS QUE SE BLOQUEAN
+// ==========================================
+
+const rutasBloqueables = [
+
+    "presupuesto.html",
+    "clientes.html",
+    "trabajos.html",
+    "gastos.html",
+    "empleados.html",
+    "fichajes.html",
+    "facturas.html",
+    "fotos.html",
+    "cobros.html",
+    "cuentas-por-cobrar.html",
+    "rentabilidad.html",
+    "agenda.html",
+    "empresa.html",
+    "correo.html"
+
+];
+
+
+// ==========================================
+// VOLVER A SUSCRIPCIÓN
+// ==========================================
+
+btnIrSuscripcion.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "suscripcion.html";
+
+    }
+);
 
 
 // ==========================================
@@ -1077,7 +1190,370 @@ btnPanelAtencion.addEventListener(
 
 
 // ==========================================
-// COMPROBAR SESIÓN
+// CONVERTIR FECHA
+// ==========================================
+
+function convertirFecha(valor){
+
+    try{
+
+        if(
+            valor &&
+            typeof valor.toDate === "function"
+        ){
+
+            return valor.toDate();
+
+        }
+
+
+        if(
+            valor instanceof Date
+        ){
+
+            return valor;
+
+        }
+
+
+        const fecha =
+        new Date(valor);
+
+
+        if(
+            isNaN(
+                fecha.getTime()
+            )
+        ){
+
+            return null;
+
+        }
+
+
+        return fecha;
+
+    }
+    catch(error){
+
+        console.warn(
+            "Error interpretando fecha:",
+            error
+        );
+
+        return null;
+
+    }
+
+}
+
+
+// ==========================================
+// COMPROBAR SUSCRIPCIÓN
+// ==========================================
+
+function comprobarSuscripcion(
+    datosUsuario
+){
+
+    const estado =
+    String(
+        datosUsuario.estadoSuscripcion ||
+        datosUsuario.estado ||
+        ""
+    )
+    .trim()
+    .toLowerCase();
+
+
+    // ======================================
+    // ESTADOS PERMITIDOS
+    // ======================================
+
+    const estadosActivos = [
+
+        "activo",
+        "activa",
+        "authorized",
+        "aprobado",
+        "aprobada",
+        "prueba",
+        "trial"
+
+    ];
+
+
+    if(
+        !estadosActivos.includes(
+            estado
+        )
+    ){
+
+        return false;
+
+    }
+
+
+    // ======================================
+    // COMPROBAR FECHA DE VENCIMIENTO
+    // ======================================
+
+    const fechaValor =
+    datosUsuario.fechaVencimiento;
+
+
+    if(
+        fechaValor
+    ){
+
+        const fechaVencimiento =
+        convertirFecha(
+            fechaValor
+        );
+
+
+        if(
+            fechaVencimiento &&
+            fechaVencimiento < new Date()
+        ){
+
+            return false;
+
+        }
+
+    }
+
+
+    return true;
+
+}
+
+
+// ==========================================
+// BLOQUEAR MÓDULOS
+// ==========================================
+
+function bloquearModulos(){
+
+    const botones =
+    document.querySelectorAll(
+        "button.boton"
+    );
+
+
+    botones.forEach(
+        function(boton){
+
+            // ==================================
+            // NO BLOQUEAR ESTOS BOTONES
+            // ==================================
+
+            if(
+                boton.id ===
+                "btnSuscripcion"
+            ){
+
+                return;
+
+            }
+
+
+            if(
+                boton.id ===
+                "btnPanelAdministrador"
+            ){
+
+                return;
+
+            }
+
+
+            if(
+                boton.id ===
+                "btnPanelAtencion"
+            ){
+
+                return;
+
+            }
+
+
+            // ==================================
+            // BUSCAR ONCLICK
+            // ==================================
+
+            const onclick =
+            boton.getAttribute(
+                "onclick"
+            );
+
+
+            if(
+                !onclick
+            ){
+
+                return;
+
+            }
+
+
+            const pertenece =
+            rutasBloqueables.some(
+                function(ruta){
+
+                    return onclick.includes(
+                        ruta
+                    );
+
+                }
+            );
+
+
+            if(
+                !pertenece
+            ){
+
+                return;
+
+            }
+
+
+            // ==================================
+            // MARCAR BLOQUEADO
+            // ==================================
+
+            boton.classList.add(
+                "bloqueado"
+            );
+
+
+            boton.dataset.bloqueado =
+            "true";
+
+
+            boton.removeAttribute(
+                "onclick"
+            );
+
+
+            // ==================================
+            // CLICK BLOQUEADO
+            // ==================================
+
+            boton.addEventListener(
+                "click",
+                function(){
+
+                    alert(
+                        "🔒 Tu suscripción no está activa.\n\n" +
+                        "Para utilizar este módulo, " +
+                        "activá o renová tu suscripción."
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// ESTADO VISUAL
+// ==========================================
+
+function mostrarEstado(
+    datosUsuario,
+    activa
+){
+
+    if(
+        activa
+    ){
+
+        const estado =
+        String(
+            datosUsuario.estadoSuscripcion ||
+            datosUsuario.estado ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+        if(
+            estado === "prueba" ||
+            estado === "trial"
+        ){
+
+            estadoCuenta.textContent =
+            "PRUEBA ACTIVA";
+
+            estadoCuenta.className =
+            "estado-prueba";
+
+        }
+        else{
+
+            estadoCuenta.textContent =
+            "ACTIVO";
+
+            estadoCuenta.className =
+            "estado-activo";
+
+        }
+
+
+        return;
+
+    }
+
+
+    const estado =
+    String(
+        datosUsuario.estadoSuscripcion ||
+        datosUsuario.estado ||
+        ""
+    )
+    .trim()
+    .toLowerCase();
+
+
+    if(
+        estado === "vencido" ||
+        estado === "vencida"
+    ){
+
+        estadoCuenta.textContent =
+        "VENCIDO";
+
+    }
+    else if(
+        estado === "cancelado" ||
+        estado === "cancelada"
+    ){
+
+        estadoCuenta.textContent =
+        "CANCELADO";
+
+    }
+    else{
+
+        estadoCuenta.textContent =
+        "SIN SUSCRIPCIÓN";
+
+    }
+
+
+    estadoCuenta.className =
+    "estado-bloqueado";
+
+}
+
+
+// ==========================================
+// SESIÓN
 // ==========================================
 
 onAuthStateChanged(
@@ -1088,7 +1564,9 @@ onAuthStateChanged(
         // SIN SESIÓN
         // ======================================
 
-        if(!usuario){
+        if(
+            !usuario
+        ){
 
             window.location.replace(
                 "login.html"
@@ -1101,9 +1579,8 @@ onAuthStateChanged(
 
         try{
 
-
             // ==================================
-            // PERFIL
+            // DATOS USUARIO
             // ==================================
 
             const referenciaUsuario =
@@ -1134,7 +1611,7 @@ onAuthStateChanged(
 
 
             // ==================================
-            // EMPRESA
+            // DATOS EMPRESA
             // ==================================
 
             const referenciaEmpresa =
@@ -1226,8 +1703,7 @@ onAuthStateChanged(
 
 
             // ==================================
-            // PANEL ADMINISTRADOR
-            // SIN CORONA
+            // PANEL ADMIN
             // ==================================
 
             if(
@@ -1248,17 +1724,21 @@ onAuthStateChanged(
 
 
             // ==================================
-            // PANEL ATENCIÓN
-            // SOLO CUENTA AUTORIZADA
+            // EMAIL ACTUAL
             // ==================================
 
             const emailActual =
             String(
-                usuario.email || ""
+                usuario.email ||
+                ""
             )
             .trim()
             .toLowerCase();
 
+
+            // ==================================
+            // PANEL ATENCIÓN
+            // ==================================
 
             if(
                 emailActual ===
@@ -1278,17 +1758,66 @@ onAuthStateChanged(
 
 
             // ==================================
-            // ESTADO DE CUENTA
+            // COMPROBAR SUSCRIPCIÓN
             // ==================================
 
-            estadoCuenta.textContent =
-            datosUsuario.estadoSuscripcion ||
-            datosUsuario.estado ||
-            "ACTIVO";
+            let suscripcionActiva =
+            comprobarSuscripcion(
+                datosUsuario
+            );
 
 
             // ==================================
-            // MOSTRAR CONTENIDO
+            // ADMINISTRADOR PRINCIPAL
+            // SIEMPRE ACTIVO
+            // ==================================
+
+            if(
+                emailActual ===
+                EMAIL_ADMIN.toLowerCase()
+            ){
+
+                suscripcionActiva =
+                true;
+
+            }
+
+
+            // ==================================
+            // MOSTRAR ESTADO
+            // ==================================
+
+            mostrarEstado(
+                datosUsuario,
+                suscripcionActiva
+            );
+
+
+            // ==================================
+            // BLOQUEAR SI NO ESTÁ ACTIVA
+            // ==================================
+
+            if(
+                !suscripcionActiva
+            ){
+
+                avisoSuscripcion.style.display =
+                "block";
+
+
+                bloquearModulos();
+
+            }
+            else{
+
+                avisoSuscripcion.style.display =
+                "none";
+
+            }
+
+
+            // ==================================
+            // MOSTRAR PANEL
             // ==================================
 
             cargando.style.display =
@@ -1303,7 +1832,7 @@ onAuthStateChanged(
         catch(error){
 
             console.error(
-                "Error leyendo datos:",
+                "ERROR GESBASE:",
                 error
             );
 
