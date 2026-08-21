@@ -79,6 +79,57 @@ main{
     line-height:1.5;
 }
 
+.info-admin{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    color:#1e40af;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:18px;
+    font-size:13px;
+    line-height:1.5;
+}
+
+.botones{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:18px;
+}
+
+.boton{
+    border:none;
+    border-radius:9px;
+    padding:11px 15px;
+    font-size:13px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.boton:hover{
+    opacity:.9;
+}
+
+.boton-actualizar{
+    background:#2563eb;
+    color:#fff;
+}
+
+.boton-volver{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.boton-habilitar{
+    background:#16a34a;
+    color:#fff;
+}
+
+.boton-bloquear{
+    background:#dc2626;
+    color:#fff;
+}
+
 .resumen{
     display:grid;
     grid-template-columns:repeat(3,1fr);
@@ -134,21 +185,33 @@ tr:hover{
     background:#f9fafb;
 }
 
-.usuario{
+.empresa{
     font-weight:bold;
+    font-size:14px;
 }
 
-.email{
+.razon{
     color:#6b7280;
     font-size:12px;
     margin-top:3px;
+}
+
+.email{
+    color:#374151;
+    font-size:13px;
+}
+
+.id-empresa{
+    color:#9ca3af;
+    font-size:10px;
+    margin-top:4px;
 }
 
 .estado{
     display:inline-block;
     padding:6px 10px;
     border-radius:20px;
-    font-size:11px;
+    font-size:10px;
     font-weight:bold;
 }
 
@@ -165,47 +228,6 @@ tr:hover{
 .estado-pendiente{
     background:#fef3c7;
     color:#92400e;
-}
-
-.boton{
-    border:none;
-    border-radius:9px;
-    padding:9px 12px;
-    font-size:12px;
-    font-weight:bold;
-    cursor:pointer;
-    margin:2px;
-}
-
-.boton-habilitar{
-    background:#16a34a;
-    color:#fff;
-}
-
-.boton-bloquear{
-    background:#dc2626;
-    color:#fff;
-}
-
-.boton-actualizar{
-    background:#2563eb;
-    color:#fff;
-}
-
-.boton-volver{
-    background:#e5e7eb;
-    color:#111827;
-}
-
-.boton:hover{
-    opacity:.9;
-}
-
-.botones{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-top:18px;
 }
 
 .alerta{
@@ -238,14 +260,20 @@ tr:hover{
     color:#6b7280;
 }
 
-.info-admin{
-    background:#eff6ff;
-    border:1px solid #bfdbfe;
-    color:#1e40af;
-    padding:14px;
-    border-radius:10px;
-    margin-bottom:18px;
-    font-size:13px;
+.acceso-denegado{
+    max-width:600px;
+    margin:80px auto;
+    padding:30px 20px;
+    text-align:center;
+}
+
+.acceso-denegado h1{
+    font-size:25px;
+}
+
+.acceso-denegado p{
+    margin-top:12px;
+    color:#6b7280;
     line-height:1.5;
 }
 
@@ -279,7 +307,7 @@ GESBASE
 </h1>
 
 <p>
-Control de accesos de clientes
+Control de accesos de empresas
 </p>
 
 </header>
@@ -296,16 +324,19 @@ class="alerta"
 
 <div class="info-admin">
 
-<strong>🔐 Panel exclusivo del administrador GESBASE</strong>
+<strong>
+🔐 Panel exclusivo del administrador GESBASE
+</strong>
 
 <br><br>
 
-Desde este panel podés habilitar o bloquear manualmente
-el acceso de cada cliente a GESBASE.
+Desde acá administrás el acceso de las
+<strong>empresas clientes de GESBASE</strong>.
 
-<br>
+<br><br>
 
-El estado se guarda en Firebase Firestore.
+Los empleados y usuarios internos
+<strong>no aparecen en este panel</strong>.
 
 </div>
 
@@ -313,13 +344,13 @@ El estado se guarda en Firebase Firestore.
 <div class="tarjeta">
 
 <div class="titulo">
-👥 Control de accesos
+🏢 Control de accesos de empresas
 </div>
 
 <div class="descripcion">
 
-Habilitá el acceso cuando el cliente haya realizado
-el pago y bloquealo cuando corresponda.
+Habilitá el acceso cuando la empresa haya
+realizado el pago y bloquealo cuando corresponda.
 
 </div>
 
@@ -348,20 +379,24 @@ type="button"
 </div>
 
 
+<!-- ==========================================
+     RESUMEN
+========================================== -->
+
 <div class="resumen">
 
 
 <div class="resumen-item">
 
 <div
-id="usuariosRegistrados"
+id="empresasRegistradas"
 class="numero"
 >
 0
 </div>
 
 <div class="texto">
-Usuarios registrados
+Empresas registradas
 </div>
 
 </div>
@@ -402,10 +437,14 @@ Accesos bloqueados
 </div>
 
 
+<!-- ==========================================
+     TABLA
+========================================== -->
+
 <div class="tarjeta">
 
 <div class="titulo">
-📋 Clientes registrados
+📋 Empresas clientes
 </div>
 
 
@@ -415,7 +454,7 @@ class="tabla-contenedor"
 >
 
 <div class="cargando">
-Cargando usuarios...
+Cargando empresas...
 </div>
 
 </div>
@@ -458,7 +497,7 @@ import {
 
 
 // ==================================================
-// CONFIGURACIÓN
+// ADMINISTRADOR GESBASE
 // ==================================================
 
 const EMAIL_ADMIN =
@@ -479,9 +518,9 @@ document.getElementById(
     "tablaContenedor"
 );
 
-const usuariosRegistrados =
+const empresasRegistradas =
 document.getElementById(
-    "usuariosRegistrados"
+    "empresasRegistradas"
 );
 
 const accesosHabilitados =
@@ -511,16 +550,16 @@ document.getElementById(
 
 let usuarioActual = null;
 
-let usuarios = [];
+let empresas = [];
 
 
 // ==================================================
-// MENSAJES
+// MENSAJE
 // ==================================================
 
 function mostrarMensaje(
     texto,
-    tipo
+    tipo="ok"
 ){
 
     mensaje.textContent =
@@ -578,19 +617,20 @@ function escapar(valor){
 
 
 // ==================================================
-// OBTENER ESTADO DE ACCESO
+// ESTADO DE ACCESO
 // ==================================================
 
-function obtenerAcceso(
-    datos
+function obtenerEstadoAcceso(
+    empresa
 ){
 
-    const acceso =
-    datos.accesoHabilitado;
-
+    /*
+     * Campo principal:
+     * accesoHabilitado
+     */
 
     if(
-        acceso === true
+        empresa.accesoHabilitado === true
     ){
 
         return "habilitado";
@@ -599,7 +639,7 @@ function obtenerAcceso(
 
 
     if(
-        acceso === false
+        empresa.accesoHabilitado === false
     ){
 
         return "bloqueado";
@@ -607,11 +647,15 @@ function obtenerAcceso(
     }
 
 
+    /*
+     * Compatibilidad con datos anteriores
+     */
+
     const estado =
     String(
-        datos.estadoAcceso ||
-        datos.estadoSuscripcion ||
-        datos.estado ||
+        empresa.estadoAcceso ||
+        empresa.estadoSuscripcion ||
+        empresa.estado ||
         ""
     )
     .trim()
@@ -636,29 +680,41 @@ function obtenerAcceso(
 
 
 // ==================================================
-// CARGAR USUARIOS
+// CARGAR EMPRESAS
 // ==================================================
 
-async function cargarUsuarios(){
+async function cargarEmpresas(){
 
     tablaContenedor.innerHTML =
     `
     <div class="cargando">
-        Cargando usuarios...
+        Cargando empresas...
     </div>
     `;
 
 
-    usuarios = [];
+    empresas = [];
 
 
     try{
+
+        /*
+         * IMPORTANTE:
+         *
+         * SOLO se consulta:
+         *
+         * empresas
+         *
+         * No se consulta usuarios.
+         * No se consulta empleados.
+         * No se consulta fichajes.
+         */
 
         const resultado =
         await getDocs(
             collection(
                 db,
-                "usuarios"
+                "empresas"
             )
         );
 
@@ -666,7 +722,7 @@ async function cargarUsuarios(){
         resultado.forEach(
             documento => {
 
-                usuarios.push({
+                empresas.push({
 
                     id:
                     documento.id,
@@ -679,13 +735,13 @@ async function cargarUsuarios(){
         );
 
 
-        mostrarUsuarios();
+        mostrarEmpresas();
 
     }
     catch(error){
 
         console.error(
-            "Error cargando usuarios:",
+            "Error cargando empresas:",
             error
         );
 
@@ -693,13 +749,16 @@ async function cargarUsuarios(){
         tablaContenedor.innerHTML =
         `
         <div class="sin-datos">
-            No se pudieron cargar los usuarios.
+
+            No se pudieron cargar
+            las empresas.
+
         </div>
         `;
 
 
         mostrarMensaje(
-            "Error al cargar usuarios: " +
+            "Error al cargar empresas: " +
             error.message,
             "error"
         );
@@ -710,34 +769,39 @@ async function cargarUsuarios(){
 
 
 // ==================================================
-// MOSTRAR USUARIOS
+// MOSTRAR EMPRESAS
 // ==================================================
 
-function mostrarUsuarios(){
+function mostrarEmpresas(){
 
-    usuariosRegistrados.textContent =
-    usuarios.length;
-
-
-    let habilitados = 0;
-
-    let bloqueados = 0;
+    empresasRegistradas.textContent =
+    empresas.length;
 
 
-    usuarios.forEach(
-        usuario => {
+    let habilitadas = 0;
+
+    let bloqueadas = 0;
+
+
+    empresas.forEach(
+        empresa => {
+
+            const estado =
+            obtenerEstadoAcceso(
+                empresa
+            );
+
 
             if(
-                obtenerAcceso(usuario)
-                === "habilitado"
+                estado === "habilitado"
             ){
 
-                habilitados++;
+                habilitadas++;
 
             }
             else{
 
-                bloqueados++;
+                bloqueadas++;
 
             }
 
@@ -746,23 +810,23 @@ function mostrarUsuarios(){
 
 
     accesosHabilitados.textContent =
-    habilitados;
+    habilitadas;
 
 
     accesosBloqueados.textContent =
-    bloqueados;
+    bloqueadas;
 
 
     if(
-        usuarios.length === 0
+        empresas.length === 0
     ){
 
         tablaContenedor.innerHTML =
         `
         <div class="sin-datos">
 
-            No hay usuarios registrados
-            en la colección "usuarios".
+            No hay empresas registradas
+            en la colección "empresas".
 
         </div>
         `;
@@ -784,11 +848,11 @@ function mostrarUsuarios(){
     <tr>
 
     <th>
-    Usuario
+    Empresa
     </th>
 
     <th>
-    Empresa
+    Razón social
     </th>
 
     <th>
@@ -812,44 +876,33 @@ function mostrarUsuarios(){
     `;
 
 
-    usuarios.forEach(
-        usuario => {
+    empresas.forEach(
+        empresa => {
 
-            const nombre =
-            usuario.nombreCompleto ||
-            (
-                String(
-                    usuario.nombre ||
-                    ""
-                ) +
-                " " +
-                String(
-                    usuario.apellido ||
-                    ""
-                )
-            ).trim() ||
+            const nombreEmpresa =
+            empresa.nombreEmpresa ||
+            empresa.nombre ||
             "Sin nombre";
 
 
+            const razonSocial =
+            empresa.razonSocial ||
+            "Sin informar";
+
+
             const email =
-            usuario.email ||
+            empresa.email ||
             "Sin email";
 
 
-            const empresa =
-            usuario.nombreEmpresa ||
-            usuario.empresa ||
-            "Sin empresa";
-
-
-            const acceso =
-            obtenerAcceso(
-                usuario
+            const estado =
+            obtenerEstadoAcceso(
+                empresa
             );
 
 
             const habilitado =
-            acceso === "habilitado";
+            estado === "habilitado";
 
 
             html += `
@@ -858,31 +911,48 @@ function mostrarUsuarios(){
 
             <td>
 
-                <div class="usuario">
+                <div class="empresa">
 
-                    ${escapar(nombre)}
+                    ${escapar(
+                        nombreEmpresa
+                    )}
 
                 </div>
+
+                <div class="id-empresa">
+
+                    ID:
+                    ${escapar(
+                        empresa.id
+                    )}
+
+                </div>
+
+            </td>
+
+
+            <td>
+
+                <div class="razon">
+
+                    ${escapar(
+                        razonSocial
+                    )}
+
+                </div>
+
+            </td>
+
+
+            <td>
 
                 <div class="email">
 
-                    ID: ${escapar(usuario.id)}
+                    ${escapar(
+                        email
+                    )}
 
                 </div>
-
-            </td>
-
-
-            <td>
-
-                ${escapar(empresa)}
-
-            </td>
-
-
-            <td>
-
-                ${escapar(email)}
 
             </td>
 
@@ -918,9 +988,9 @@ function mostrarUsuarios(){
                     `
                     <button
                     class="boton boton-bloquear"
-                    data-id="${escapar(usuario.id)}"
-                    data-accion="bloquear"
                     type="button"
+                    data-id="${escapar(empresa.id)}"
+                    data-accion="bloquear"
                     >
                     🔒 Bloquear
                     </button>
@@ -931,11 +1001,11 @@ function mostrarUsuarios(){
                     `
                     <button
                     class="boton boton-habilitar"
-                    data-id="${escapar(usuario.id)}"
-                    data-accion="habilitar"
                     type="button"
+                    data-id="${escapar(empresa.id)}"
+                    data-accion="habilitar"
                     >
-                    ✓ Habilitar
+                    🔓 Habilitar
                     </button>
                     `
                 }
@@ -963,6 +1033,10 @@ function mostrarUsuarios(){
     html;
 
 
+    /*
+     * Eventos de botones
+     */
+
     document
     .querySelectorAll(
         "[data-accion]"
@@ -974,15 +1048,16 @@ function mostrarUsuarios(){
                 "click",
                 async function(){
 
-                    const id =
+                    const empresaId =
                     this.dataset.id;
+
 
                     const accion =
                     this.dataset.accion;
 
 
                     await cambiarAcceso(
-                        id,
+                        empresaId,
                         accion
                     );
 
@@ -996,11 +1071,11 @@ function mostrarUsuarios(){
 
 
 // ==================================================
-// CAMBIAR ACCESO
+// CAMBIAR ACCESO DE EMPRESA
 // ==================================================
 
 async function cambiarAcceso(
-    usuarioId,
+    empresaId,
     accion
 ){
 
@@ -1017,21 +1092,21 @@ async function cambiarAcceso(
     accion === "habilitar";
 
 
-    const mensajeConfirmacion =
+    const confirmacion =
     habilitar
 
     ?
 
-    "¿Querés HABILITAR el acceso de este cliente?"
+    "¿Querés HABILITAR el acceso de esta empresa?"
 
     :
 
-    "¿Querés BLOQUEAR el acceso de este cliente?";
+    "¿Querés BLOQUEAR el acceso de esta empresa?";
 
 
     if(
         !confirm(
-            mensajeConfirmacion
+            confirmacion
         )
     ){
 
@@ -1042,16 +1117,24 @@ async function cambiarAcceso(
 
     try{
 
-        const referencia =
+        /*
+         * IMPORTANTE:
+         *
+         * Se modifica exclusivamente
+         * el documento de la colección
+         * empresas.
+         */
+
+        const referenciaEmpresa =
         doc(
             db,
-            "usuarios",
-            usuarioId
+            "empresas",
+            empresaId
         );
 
 
         await updateDoc(
-            referencia,
+            referenciaEmpresa,
             {
 
                 accesoHabilitado:
@@ -1063,10 +1146,7 @@ async function cambiarAcceso(
                 : "bloqueado",
 
                 actualizadoPor:
-                usuarioActual.email || "",
-
-                fechaActualizacion:
-                new Date()
+                usuarioActual.email || ""
 
             }
         );
@@ -1074,19 +1154,18 @@ async function cambiarAcceso(
 
         mostrarMensaje(
             habilitar
-            ? "✓ Acceso habilitado correctamente."
-            : "🔒 Acceso bloqueado correctamente.",
-            "ok"
+            ? "✓ Acceso de la empresa habilitado."
+            : "🔒 Acceso de la empresa bloqueado."
         );
 
 
-        await cargarUsuarios();
+        await cargarEmpresas();
 
     }
     catch(error){
 
         console.error(
-            "Error modificando acceso:",
+            "Error modificando empresa:",
             error
         );
 
@@ -1110,7 +1189,7 @@ btnActualizar.addEventListener(
     "click",
     async function(){
 
-        await cargarUsuarios();
+        await cargarEmpresas();
 
     }
 );
@@ -1139,6 +1218,10 @@ onAuthStateChanged(
     auth,
     async function(usuario){
 
+        /*
+         * Sin sesión
+         */
+
         if(
             !usuario
         ){
@@ -1156,7 +1239,7 @@ onAuthStateChanged(
         usuario;
 
 
-        const email =
+        const emailActual =
         String(
             usuario.email || ""
         )
@@ -1164,56 +1247,38 @@ onAuthStateChanged(
         .toLowerCase();
 
 
-        // ==========================================
-        // SOLO ADMINISTRADOR GESBASE
-        // ==========================================
+        /*
+         * SOLO EL ADMINISTRADOR GESBASE
+         */
 
         if(
-            email !==
+            emailActual !==
             EMAIL_ADMIN.toLowerCase()
         ){
 
             document.body.innerHTML = `
 
-            <div
-            style="
-                font-family:Arial,sans-serif;
-                padding:40px 20px;
-                text-align:center;
-            "
-            >
+            <div class="acceso-denegado">
 
                 <h1>
-                🔒 Acceso denegado
+                    🔒 Acceso denegado
                 </h1>
 
-                <p
-                style="
-                    margin-top:15px;
-                    color:#6b7280;
-                "
-                >
+                <p>
 
-                Esta sección es exclusiva
-                del administrador de GESBASE.
+                    Esta sección es exclusiva
+                    del administrador de GESBASE.
 
                 </p>
 
                 <button
+                class="boton boton-volver"
+                type="button"
                 onclick="location.href='index.html'"
-                style="
-                    margin-top:25px;
-                    border:none;
-                    background:#111827;
-                    color:white;
-                    padding:13px 18px;
-                    border-radius:10px;
-                    font-weight:bold;
-                    cursor:pointer;
-                "
+                style="margin-top:25px;"
                 >
 
-                Volver a GESBASE
+                    ← Volver a GESBASE
 
                 </button>
 
@@ -1226,11 +1291,11 @@ onAuthStateChanged(
         }
 
 
-        // ==========================================
-        // CARGAR CLIENTES
-        // ==========================================
+        /*
+         * ADMINISTRADOR AUTORIZADO
+         */
 
-        await cargarUsuarios();
+        await cargarEmpresas();
 
     }
 );
