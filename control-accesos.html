@@ -1,0 +1,2971 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Control de Accesos - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.app{
+    width:100%;
+    max-width:1100px;
+    margin:auto;
+    min-height:100vh;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:#fff;
+    padding:24px 20px;
+}
+
+header h1{
+    font-size:25px;
+}
+
+header p{
+    margin-top:6px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+.tarjeta{
+    background:#fff;
+    border:1px solid #d1d5db;
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:18px;
+}
+
+.titulo{
+    font-size:21px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.descripcion{
+    color:#6b7280;
+    font-size:14px;
+    line-height:1.5;
+    margin-bottom:18px;
+}
+
+.barra{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.barra input{
+    flex:1;
+    min-width:220px;
+    padding:13px;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    font-size:15px;
+}
+
+.boton{
+    border:none;
+    border-radius:9px;
+    padding:12px 16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.boton-principal{
+    background:#111827;
+    color:#fff;
+}
+
+.boton-volver{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.resumen{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.resumen-item{
+    background:#f3f4f6;
+    border-radius:12px;
+    padding:17px;
+    text-align:center;
+}
+
+.numero{
+    font-size:25px;
+    font-weight:bold;
+}
+
+.texto{
+    margin-top:5px;
+    font-size:12px;
+    color:#6b7280;
+}
+
+.tabla-contenedor{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:850px;
+}
+
+th{
+    background:#111827;
+    color:#fff;
+    padding:12px;
+    text-align:left;
+    font-size:12px;
+}
+
+td{
+    padding:13px 12px;
+    border-bottom:1px solid #e5e7eb;
+    font-size:13px;
+}
+
+tr:hover{
+    background:#f9fafb;
+}
+
+.nombre{
+    font-weight:bold;
+}
+
+.email{
+    color:#6b7280;
+    font-size:12px;
+    margin-top:3px;
+}
+
+.estado{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.estado-activo{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado-bloqueado{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.estado-pendiente{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.acciones{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+}
+
+.btn-habilitar{
+    background:#16a34a;
+    color:#fff;
+}
+
+.btn-bloquear{
+    background:#dc2626;
+    color:#fff;
+}
+
+.btn-habilitar:hover{
+    background:#15803d;
+}
+
+.btn-bloquear:hover{
+    background:#b91c1c;
+}
+
+.alerta{
+    display:none;
+    padding:13px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.alerta-error{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.alerta-exito{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.alerta-info{
+    background:#eff6ff;
+    color:#1e40af;
+}
+
+.cargando{
+    text-align:center;
+    padding:35px;
+    color:#6b7280;
+}
+
+.vacio{
+    text-align:center;
+    padding:35px;
+    color:#6b7280;
+}
+
+.seguridad{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    color:#1e40af;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:18px;
+    font-size:13px;
+    line-height:1.5;
+}
+
+@media(max-width:700px){
+
+    main{
+        padding:14px;
+    }
+
+    .resumen{
+        grid-template-columns:1fr;
+    }
+
+    .barra{
+        flex-direction:column;
+    }
+
+    .barra input{
+        width:100%;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+<header>
+
+<h1>
+GESBASE
+</h1>
+
+<p>
+Control de accesos de clientes
+</p>
+
+</header>
+
+
+<main>
+
+
+<div
+id="mensaje"
+class="alerta"
+>
+</div>
+
+
+<div class="seguridad">
+
+<strong>🔐 Panel exclusivo del administrador GESBASE</strong>
+
+<br><br>
+
+Desde este panel podés habilitar o bloquear manualmente
+el acceso de cada cliente a GESBASE.
+
+<br><br>
+
+El estado se guarda en Firebase Firestore.
+
+</div>
+
+
+<div class="tarjeta">
+
+
+<div class="titulo">
+👥 Control de accesos
+</div>
+
+
+<div class="descripcion">
+
+Habilitá el acceso cuando el cliente haya realizado
+el pago y bloquealo cuando corresponda.
+
+</div>
+
+
+<div class="barra">
+
+
+<input
+type="text"
+id="buscar"
+placeholder="Buscar por nombre, empresa o email..."
+>
+
+
+<button
+type="button"
+class="boton boton-principal"
+id="btnActualizar"
+>
+🔄 Actualizar
+</button>
+
+
+<button
+type="button"
+class="boton boton-volver"
+id="btnVolver"
+>
+← Volver
+</button>
+
+
+</div>
+
+
+</div>
+
+
+<div class="resumen">
+
+
+<div class="resumen-item">
+
+<div
+class="numero"
+id="totalUsuarios"
+>
+0
+</div>
+
+<div class="texto">
+Usuarios registrados
+</div>
+
+</div>
+
+
+<div class="resumen-item">
+
+<div
+class="numero"
+id="totalActivos"
+>
+0
+</div>
+
+<div class="texto">
+Accesos habilitados
+</div>
+
+</div>
+
+
+<div class="resumen-item">
+
+<div
+class="numero"
+id="totalBloqueados"
+>
+0
+</div>
+
+<div class="texto">
+Accesos bloqueados
+</div>
+
+</div>
+
+
+</div>
+
+
+<div class="tarjeta">
+
+
+<div class="titulo">
+📋 Clientes registrados
+</div>
+
+
+<div
+id="tablaContenedor"
+class="tabla-contenedor"
+>
+
+<div class="cargando">
+Cargando usuarios...
+</div>
+
+</div>
+
+
+</div>
+
+
+</main>
+
+
+</div>
+
+
+
+<script type="module">
+
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    getDocs,
+    doc,
+    updateDoc,
+    setDoc
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// ADMINISTRADOR GESBASE
+// ==========================================
+
+const EMAIL_ADMIN =
+"julianbattauz006@gmail.com";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const mensaje =
+document.getElementById(
+    "mensaje"
+);
+
+const buscar =
+document.getElementById(
+    "buscar"
+);
+
+const btnActualizar =
+document.getElementById(
+    "btnActualizar"
+);
+
+const btnVolver =
+document.getElementById(
+    "btnVolver"
+);
+
+const tablaContenedor =
+document.getElementById(
+    "tablaContenedor"
+);
+
+const totalUsuarios =
+document.getElementById(
+    "totalUsuarios"
+);
+
+const totalActivos =
+document.getElementById(
+    "totalActivos"
+);
+
+const totalBloqueados =
+document.getElementById(
+    "totalBloqueados"
+);
+
+
+// ==========================================
+// VARIABLES
+// ==========================================
+
+let usuarioActual = null;
+
+let usuarios = [];
+
+
+// ==========================================
+// UTILIDADES
+// ==========================================
+
+function texto(valor){
+
+    if(
+        valor === undefined ||
+        valor === null
+    ){
+
+        return "";
+
+    }
+
+    return String(valor);
+
+}
+
+
+function escapar(valor){
+
+    return texto(valor)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+
+}
+
+
+function mostrarMensaje(
+    textoMensaje,
+    tipo="info"
+){
+
+    mensaje.textContent =
+    textoMensaje;
+
+    mensaje.className =
+    "alerta alerta-" + tipo;
+
+    mensaje.style.display =
+    "block";
+
+}
+
+
+function ocultarMensaje(){
+
+    mensaje.style.display =
+    "none";
+
+}
+
+
+// ==========================================
+// CARGAR USUARIOS
+// ==========================================
+
+async function cargarUsuarios(){
+
+    tablaContenedor.innerHTML = `
+        <div class="cargando">
+            Cargando usuarios...
+        </div>
+    `;
+
+
+    try{
+
+        const resultado =
+        await getDocs(
+            collection(
+                db,
+                "usuarios"
+            )
+        );
+
+
+        usuarios = [];
+
+
+        resultado.forEach(
+            documento => {
+
+                usuarios.push({
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+
+        // ==================================
+        // ORDENAR
+        // ==================================
+
+        usuarios.sort(
+            (a,b) => {
+
+                const nombreA =
+                texto(
+                    a.nombre ||
+                    a.email
+                ).toLowerCase();
+
+
+                const nombreB =
+                texto(
+                    b.nombre ||
+                    b.email
+                ).toLowerCase();
+
+
+                return nombreA.localeCompare(
+                    nombreB
+                );
+
+            }
+        );
+
+
+        mostrarUsuarios();
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando usuarios:",
+            error
+        );
+
+
+        tablaContenedor.innerHTML = `
+            <div class="vacio">
+                No se pudieron cargar los usuarios.
+            </div>
+        `;
+
+
+        mostrarMensaje(
+            "Error al cargar usuarios: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// ESTADO DE ACCESO
+// ==========================================
+
+function accesoHabilitado(
+    usuario
+){
+
+    /*
+     * Compatibilidad con distintos
+     * nombres de campos.
+     */
+
+    if(
+        usuario.accesoHabilitado === true
+    ){
+
+        return true;
+
+    }
+
+
+    if(
+        usuario.acceso === true
+    ){
+
+        return true;
+
+    }
+
+
+    if(
+        usuario.estadoAcceso === "habilitado"
+    ){
+
+        return true;
+
+    }
+
+
+    return false;
+
+}
+
+
+// ==========================================
+// ESTADO VISUAL
+// ==========================================
+
+function obtenerEstado(
+    usuario
+){
+
+    const habilitado =
+    accesoHabilitado(
+        usuario
+    );
+
+
+    if(habilitado){
+
+        return {
+
+            texto:"HABILITADO",
+
+            clase:"estado-activo"
+
+        };
+
+    }
+
+
+    const estado =
+    texto(
+        usuario.estadoSuscripcion ||
+        usuario.estado
+    ).toLowerCase();
+
+
+    if(
+        estado === "pendiente" ||
+        estado === "trial"
+    ){
+
+        return {
+
+            texto:"PENDIENTE",
+
+            clase:"estado-pendiente"
+
+        };
+
+    }
+
+
+    return {
+
+        texto:"BLOQUEADO",
+
+        clase:"estado-bloqueado"
+
+    };
+
+}
+
+
+// ==========================================
+// MOSTRAR USUARIOS
+// ==========================================
+
+function mostrarUsuarios(){
+
+    const filtro =
+    texto(
+        buscar.value
+    )
+    .trim()
+    .toLowerCase();
+
+
+    const filtrados =
+    usuarios.filter(
+        usuario => {
+
+            if(!filtro){
+
+                return true;
+
+            }
+
+
+            const nombre =
+            texto(
+                usuario.nombre
+            ).toLowerCase();
+
+
+            const apellido =
+            texto(
+                usuario.apellido
+            ).toLowerCase();
+
+
+            const email =
+            texto(
+                usuario.email
+            ).toLowerCase();
+
+
+            const empresa =
+            texto(
+                usuario.nombreEmpresa ||
+                usuario.empresa
+            ).toLowerCase();
+
+
+            return (
+                nombre.includes(filtro) ||
+                apellido.includes(filtro) ||
+                email.includes(filtro) ||
+                empresa.includes(filtro)
+            );
+
+        }
+    );
+
+
+    actualizarResumen();
+
+
+    if(
+        filtrados.length === 0
+    ){
+
+        tablaContenedor.innerHTML = `
+            <div class="vacio">
+                No se encontraron usuarios.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    let html = `
+
+    <table>
+
+    <thead>
+
+    <tr>
+
+    <th>Cliente</th>
+
+    <th>Empresa</th>
+
+    <th>Email</th>
+
+    <th>Estado</th>
+
+    <th>Acción</th>
+
+    </tr>
+
+    </thead>
+
+    <tbody>
+
+    `;
+
+
+    filtrados.forEach(
+        usuario => {
+
+            const nombre =
+            (
+                texto(
+                    usuario.nombre
+                ) +
+                " " +
+                texto(
+                    usuario.apellido
+                )
+            ).trim()
+            ||
+            "Usuario";
+
+
+            const empresa =
+            texto(
+                usuario.nombreEmpresa ||
+                usuario.empresa
+            )
+            ||
+            "Sin empresa";
+
+
+            const email =
+            texto(
+                usuario.email
+            )
+            ||
+            "-";
+
+
+            const estado =
+            obtenerEstado(
+                usuario
+            );
+
+
+            const habilitado =
+            accesoHabilitado(
+                usuario
+            );
+
+
+            html += `
+
+            <tr>
+
+            <td>
+
+                <div class="nombre">
+                    ${escapar(nombre)}
+                </div>
+
+                <div class="email">
+                    ID: ${escapar(usuario.id)}
+                </div>
+
+            </td>
+
+
+            <td>
+                ${escapar(empresa)}
+            </td>
+
+
+            <td>
+                ${escapar(email)}
+            </td>
+
+
+            <td>
+
+                <span
+                    class="estado ${estado.clase}"
+                >
+                    ${estado.texto}
+                </span>
+
+            </td>
+
+
+            <td>
+
+                <div class="acciones">
+
+                    ${
+                        habilitado
+
+                        ?
+
+                        `
+                        <button
+                            class="boton btn-bloquear"
+                            data-id="${escapar(usuario.id)}"
+                            data-accion="bloquear"
+                        >
+                            🔴 Bloquear
+                        </button>
+                        `
+
+                        :
+
+                        `
+                        <button
+                            class="boton btn-habilitar"
+                            data-id="${escapar(usuario.id)}"
+                            data-accion="habilitar"
+                        >
+                            🟢 Habilitar
+                        </button>
+                        `
+                    }
+
+                </div>
+
+            </td>
+
+            </tr>
+
+            `;
+
+        }
+    );
+
+
+    html += `
+
+    </tbody>
+
+    </table>
+
+    `;
+
+
+    tablaContenedor.innerHTML =
+    html;
+
+
+    // ==================================
+    // BOTONES
+    // ==================================
+
+    document
+    .querySelectorAll(
+        "[data-accion]"
+    )
+    .forEach(
+        boton => {
+
+            boton.addEventListener(
+                "click",
+                async function(){
+
+                    const id =
+                    this.dataset.id;
+
+                    const accion =
+                    this.dataset.accion;
+
+
+                    await cambiarAcceso(
+                        id,
+                        accion
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// RESUMEN
+// ==========================================
+
+function actualizarResumen(){
+
+    const activos =
+    usuarios.filter(
+        usuario =>
+        accesoHabilitado(
+            usuario
+        )
+    ).length;
+
+
+    const bloqueados =
+    usuarios.length -
+    activos;
+
+
+    totalUsuarios.textContent =
+    usuarios.length;
+
+
+    totalActivos.textContent =
+    activos;
+
+
+    totalBloqueados.textContent =
+    bloqueados;
+
+}
+
+
+// ==========================================
+// CAMBIAR ACCESO
+// ==========================================
+
+async function cambiarAcceso(
+    id,
+    accion
+){
+
+    const usuario =
+    usuarios.find(
+        elemento =>
+        elemento.id === id
+    );
+
+
+    if(!usuario){
+
+        mostrarMensaje(
+            "Usuario no encontrado.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const habilitar =
+    accion === "habilitar";
+
+
+    const nombre =
+    (
+        texto(
+            usuario.nombre
+        ) +
+        " " +
+        texto(
+            usuario.apellido
+        )
+    ).trim()
+    ||
+    texto(
+        usuario.email
+    );
+
+
+    const confirmacion =
+    confirm(
+
+        habilitar
+
+        ?
+
+        "¿Querés HABILITAR el acceso de " +
+        nombre +
+        "?"
+
+        :
+
+        "¿Querés BLOQUEAR el acceso de " +
+        nombre +
+        "?"
+
+    );
+
+
+    if(!confirmacion){
+
+        return;
+
+    }
+
+
+    try{
+
+        const referencia =
+        doc(
+            db,
+            "usuarios",
+            id
+        );
+
+
+        await updateDoc(
+            referencia,
+            {
+
+                accesoHabilitado:
+                habilitar,
+
+                estadoAcceso:
+                habilitar
+                    ? "habilitado"
+                    : "bloqueado",
+
+                fechaCambioAcceso:
+                new Date(),
+
+                modificadoPor:
+                usuarioActual.uid
+
+            }
+        );
+
+
+        // ==================================
+        // ACTUALIZAR DATOS LOCALES
+        // ==================================
+
+        usuario.accesoHabilitado =
+        habilitar;
+
+        usuario.estadoAcceso =
+        habilitar
+            ? "habilitado"
+            : "bloqueado";
+
+
+        mostrarUsuarios();
+
+
+        mostrarMensaje(
+
+            habilitar
+
+            ?
+
+            "🟢 Acceso habilitado correctamente."
+
+            :
+
+            "🔴 Acceso bloqueado correctamente.",
+
+            "exito"
+
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cambiando acceso:",
+            error
+        );
+
+
+        mostrarMensaje(
+            "No se pudo cambiar el acceso: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// BUSCADOR
+// ==========================================
+
+buscar.addEventListener(
+    "input",
+    function(){
+
+        mostrarUsuarios();
+
+    }
+);
+
+
+// ==========================================
+// ACTUALIZAR
+// ==========================================
+
+btnActualizar.addEventListener(
+    "click",
+    async function(){
+
+        ocultarMensaje();
+
+        await cargarUsuarios();
+
+    }
+);
+
+
+// ==========================================
+// VOLVER
+// ==========================================
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "index.html";
+
+    }
+);
+
+
+// ==========================================
+// AUTENTICACIÓN
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+        usuario;
+
+
+        // ==================================
+        // VERIFICAR ADMINISTRADOR
+        // ==================================
+
+        const email =
+        texto(
+            usuario.email
+        )
+        .trim()
+        .toLowerCase();
+
+
+        if(
+            email !==
+            EMAIL_ADMIN.toLowerCase()
+        ){
+
+            document.body.innerHTML = `
+
+            <div
+                style="
+                    min-height:100vh;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    padding:20px;
+                    background:#f3f4f6;
+                    font-family:Arial,sans-serif;
+                "
+            >
+
+                <div
+                    style="
+                        max-width:450px;
+                        width:100%;
+                        background:#fff;
+                        border-radius:16px;
+                        padding:30px;
+                        text-align:center;
+                        box-shadow:0 4px 20px rgba(0,0,0,.10);
+                    "
+                >
+
+                    <div
+                        style="
+                            font-size:50px;
+                            margin-bottom:15px;
+                        "
+                    >
+                        🔒
+                    </div>
+
+                    <h2>
+                        Acceso restringido
+                    </h2>
+
+                    <p
+                        style="
+                            margin-top:10px;
+                            color:#6b7280;
+                            line-height:1.5;
+                        "
+                    >
+                        Este panel solamente puede
+                        ser utilizado por el administrador
+                        de GESBASE.
+                    </p>
+
+                    <button
+                        onclick="location.href='index.html'"
+                        style="
+                            margin-top:20px;
+                            border:none;
+                            background:#111827;
+                            color:white;
+                            padding:13px 20px;
+                            border-radius:9px;
+                            font-weight:bold;
+                            cursor:pointer;
+                        "
+                    >
+                        Volver
+                    </button>
+
+                </div>
+
+            </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        // ==================================
+        // CARGAR
+        // ==================================
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Control de Accesos - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.app{
+    width:100%;
+    max-width:1100px;
+    margin:auto;
+    min-height:100vh;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:#fff;
+    padding:24px 20px;
+}
+
+header h1{
+    font-size:25px;
+}
+
+header p{
+    margin-top:6px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+.tarjeta{
+    background:#fff;
+    border:1px solid #d1d5db;
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:18px;
+}
+
+.titulo{
+    font-size:21px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.descripcion{
+    color:#6b7280;
+    font-size:14px;
+    line-height:1.5;
+    margin-bottom:18px;
+}
+
+.barra{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.barra input{
+    flex:1;
+    min-width:220px;
+    padding:13px;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    font-size:15px;
+}
+
+.boton{
+    border:none;
+    border-radius:9px;
+    padding:12px 16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.boton-principal{
+    background:#111827;
+    color:#fff;
+}
+
+.boton-volver{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.resumen{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.resumen-item{
+    background:#f3f4f6;
+    border-radius:12px;
+    padding:17px;
+    text-align:center;
+}
+
+.numero{
+    font-size:25px;
+    font-weight:bold;
+}
+
+.texto{
+    margin-top:5px;
+    font-size:12px;
+    color:#6b7280;
+}
+
+.tabla-contenedor{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:850px;
+}
+
+th{
+    background:#111827;
+    color:#fff;
+    padding:12px;
+    text-align:left;
+    font-size:12px;
+}
+
+td{
+    padding:13px 12px;
+    border-bottom:1px solid #e5e7eb;
+    font-size:13px;
+}
+
+tr:hover{
+    background:#f9fafb;
+}
+
+.nombre{
+    font-weight:bold;
+}
+
+.email{
+    color:#6b7280;
+    font-size:12px;
+    margin-top:3px;
+}
+
+.estado{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.estado-activo{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado-bloqueado{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.estado-pendiente{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.acciones{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+}
+
+.btn-habilitar{
+    background:#16a34a;
+    color:#fff;
+}
+
+.btn-bloquear{
+    background:#dc2626;
+    color:#fff;
+}
+
+.btn-habilitar:hover{
+    background:#15803d;
+}
+
+.btn-bloquear:hover{
+    background:#b91c1c;
+}
+
+.alerta{
+    display:none;
+    padding:13px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.alerta-error{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.alerta-exito{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.alerta-info{
+    background:#eff6ff;
+    color:#1e40af;
+}
+
+.cargando{
+    text-align:center;
+    padding:35px;
+    color:#6b7280;
+}
+
+.vacio{
+    text-align:center;
+    padding:35px;
+    color:#6b7280;
+}
+
+.seguridad{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    color:#1e40af;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:18px;
+    font-size:13px;
+    line-height:1.5;
+}
+
+@media(max-width:700px){
+
+    main{
+        padding:14px;
+    }
+
+    .resumen{
+        grid-template-columns:1fr;
+    }
+
+    .barra{
+        flex-direction:column;
+    }
+
+    .barra input{
+        width:100%;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+<header>
+
+<h1>
+GESBASE
+</h1>
+
+<p>
+Control de accesos de clientes
+</p>
+
+</header>
+
+
+<main>
+
+
+<div
+id="mensaje"
+class="alerta"
+>
+</div>
+
+
+<div class="seguridad">
+
+<strong>🔐 Panel exclusivo del administrador GESBASE</strong>
+
+<br><br>
+
+Desde este panel podés habilitar o bloquear manualmente
+el acceso de cada cliente a GESBASE.
+
+<br><br>
+
+El estado se guarda en Firebase Firestore.
+
+</div>
+
+
+<div class="tarjeta">
+
+
+<div class="titulo">
+👥 Control de accesos
+</div>
+
+
+<div class="descripcion">
+
+Habilitá el acceso cuando el cliente haya realizado
+el pago y bloquealo cuando corresponda.
+
+</div>
+
+
+<div class="barra">
+
+
+<input
+type="text"
+id="buscar"
+placeholder="Buscar por nombre, empresa o email..."
+>
+
+
+<button
+type="button"
+class="boton boton-principal"
+id="btnActualizar"
+>
+🔄 Actualizar
+</button>
+
+
+<button
+type="button"
+class="boton boton-volver"
+id="btnVolver"
+>
+← Volver
+</button>
+
+
+</div>
+
+
+</div>
+
+
+<div class="resumen">
+
+
+<div class="resumen-item">
+
+<div
+class="numero"
+id="totalUsuarios"
+>
+0
+</div>
+
+<div class="texto">
+Usuarios registrados
+</div>
+
+</div>
+
+
+<div class="resumen-item">
+
+<div
+class="numero"
+id="totalActivos"
+>
+0
+</div>
+
+<div class="texto">
+Accesos habilitados
+</div>
+
+</div>
+
+
+<div class="resumen-item">
+
+<div
+class="numero"
+id="totalBloqueados"
+>
+0
+</div>
+
+<div class="texto">
+Accesos bloqueados
+</div>
+
+</div>
+
+
+</div>
+
+
+<div class="tarjeta">
+
+
+<div class="titulo">
+📋 Clientes registrados
+</div>
+
+
+<div
+id="tablaContenedor"
+class="tabla-contenedor"
+>
+
+<div class="cargando">
+Cargando usuarios...
+</div>
+
+</div>
+
+
+</div>
+
+
+</main>
+
+
+</div>
+
+
+
+<script type="module">
+
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    getDocs,
+    doc,
+    updateDoc,
+    setDoc
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// ADMINISTRADOR GESBASE
+// ==========================================
+
+const EMAIL_ADMIN =
+"julianbattauz006@gmail.com";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const mensaje =
+document.getElementById(
+    "mensaje"
+);
+
+const buscar =
+document.getElementById(
+    "buscar"
+);
+
+const btnActualizar =
+document.getElementById(
+    "btnActualizar"
+);
+
+const btnVolver =
+document.getElementById(
+    "btnVolver"
+);
+
+const tablaContenedor =
+document.getElementById(
+    "tablaContenedor"
+);
+
+const totalUsuarios =
+document.getElementById(
+    "totalUsuarios"
+);
+
+const totalActivos =
+document.getElementById(
+    "totalActivos"
+);
+
+const totalBloqueados =
+document.getElementById(
+    "totalBloqueados"
+);
+
+
+// ==========================================
+// VARIABLES
+// ==========================================
+
+let usuarioActual = null;
+
+let usuarios = [];
+
+
+// ==========================================
+// UTILIDADES
+// ==========================================
+
+function texto(valor){
+
+    if(
+        valor === undefined ||
+        valor === null
+    ){
+
+        return "";
+
+    }
+
+    return String(valor);
+
+}
+
+
+function escapar(valor){
+
+    return texto(valor)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+
+}
+
+
+function mostrarMensaje(
+    textoMensaje,
+    tipo="info"
+){
+
+    mensaje.textContent =
+    textoMensaje;
+
+    mensaje.className =
+    "alerta alerta-" + tipo;
+
+    mensaje.style.display =
+    "block";
+
+}
+
+
+function ocultarMensaje(){
+
+    mensaje.style.display =
+    "none";
+
+}
+
+
+// ==========================================
+// CARGAR USUARIOS
+// ==========================================
+
+async function cargarUsuarios(){
+
+    tablaContenedor.innerHTML = `
+        <div class="cargando">
+            Cargando usuarios...
+        </div>
+    `;
+
+
+    try{
+
+        const resultado =
+        await getDocs(
+            collection(
+                db,
+                "usuarios"
+            )
+        );
+
+
+        usuarios = [];
+
+
+        resultado.forEach(
+            documento => {
+
+                usuarios.push({
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+
+        // ==================================
+        // ORDENAR
+        // ==================================
+
+        usuarios.sort(
+            (a,b) => {
+
+                const nombreA =
+                texto(
+                    a.nombre ||
+                    a.email
+                ).toLowerCase();
+
+
+                const nombreB =
+                texto(
+                    b.nombre ||
+                    b.email
+                ).toLowerCase();
+
+
+                return nombreA.localeCompare(
+                    nombreB
+                );
+
+            }
+        );
+
+
+        mostrarUsuarios();
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando usuarios:",
+            error
+        );
+
+
+        tablaContenedor.innerHTML = `
+            <div class="vacio">
+                No se pudieron cargar los usuarios.
+            </div>
+        `;
+
+
+        mostrarMensaje(
+            "Error al cargar usuarios: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// ESTADO DE ACCESO
+// ==========================================
+
+function accesoHabilitado(
+    usuario
+){
+
+    /*
+     * Compatibilidad con distintos
+     * nombres de campos.
+     */
+
+    if(
+        usuario.accesoHabilitado === true
+    ){
+
+        return true;
+
+    }
+
+
+    if(
+        usuario.acceso === true
+    ){
+
+        return true;
+
+    }
+
+
+    if(
+        usuario.estadoAcceso === "habilitado"
+    ){
+
+        return true;
+
+    }
+
+
+    return false;
+
+}
+
+
+// ==========================================
+// ESTADO VISUAL
+// ==========================================
+
+function obtenerEstado(
+    usuario
+){
+
+    const habilitado =
+    accesoHabilitado(
+        usuario
+    );
+
+
+    if(habilitado){
+
+        return {
+
+            texto:"HABILITADO",
+
+            clase:"estado-activo"
+
+        };
+
+    }
+
+
+    const estado =
+    texto(
+        usuario.estadoSuscripcion ||
+        usuario.estado
+    ).toLowerCase();
+
+
+    if(
+        estado === "pendiente" ||
+        estado === "trial"
+    ){
+
+        return {
+
+            texto:"PENDIENTE",
+
+            clase:"estado-pendiente"
+
+        };
+
+    }
+
+
+    return {
+
+        texto:"BLOQUEADO",
+
+        clase:"estado-bloqueado"
+
+    };
+
+}
+
+
+// ==========================================
+// MOSTRAR USUARIOS
+// ==========================================
+
+function mostrarUsuarios(){
+
+    const filtro =
+    texto(
+        buscar.value
+    )
+    .trim()
+    .toLowerCase();
+
+
+    const filtrados =
+    usuarios.filter(
+        usuario => {
+
+            if(!filtro){
+
+                return true;
+
+            }
+
+
+            const nombre =
+            texto(
+                usuario.nombre
+            ).toLowerCase();
+
+
+            const apellido =
+            texto(
+                usuario.apellido
+            ).toLowerCase();
+
+
+            const email =
+            texto(
+                usuario.email
+            ).toLowerCase();
+
+
+            const empresa =
+            texto(
+                usuario.nombreEmpresa ||
+                usuario.empresa
+            ).toLowerCase();
+
+
+            return (
+                nombre.includes(filtro) ||
+                apellido.includes(filtro) ||
+                email.includes(filtro) ||
+                empresa.includes(filtro)
+            );
+
+        }
+    );
+
+
+    actualizarResumen();
+
+
+    if(
+        filtrados.length === 0
+    ){
+
+        tablaContenedor.innerHTML = `
+            <div class="vacio">
+                No se encontraron usuarios.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    let html = `
+
+    <table>
+
+    <thead>
+
+    <tr>
+
+    <th>Cliente</th>
+
+    <th>Empresa</th>
+
+    <th>Email</th>
+
+    <th>Estado</th>
+
+    <th>Acción</th>
+
+    </tr>
+
+    </thead>
+
+    <tbody>
+
+    `;
+
+
+    filtrados.forEach(
+        usuario => {
+
+            const nombre =
+            (
+                texto(
+                    usuario.nombre
+                ) +
+                " " +
+                texto(
+                    usuario.apellido
+                )
+            ).trim()
+            ||
+            "Usuario";
+
+
+            const empresa =
+            texto(
+                usuario.nombreEmpresa ||
+                usuario.empresa
+            )
+            ||
+            "Sin empresa";
+
+
+            const email =
+            texto(
+                usuario.email
+            )
+            ||
+            "-";
+
+
+            const estado =
+            obtenerEstado(
+                usuario
+            );
+
+
+            const habilitado =
+            accesoHabilitado(
+                usuario
+            );
+
+
+            html += `
+
+            <tr>
+
+            <td>
+
+                <div class="nombre">
+                    ${escapar(nombre)}
+                </div>
+
+                <div class="email">
+                    ID: ${escapar(usuario.id)}
+                </div>
+
+            </td>
+
+
+            <td>
+                ${escapar(empresa)}
+            </td>
+
+
+            <td>
+                ${escapar(email)}
+            </td>
+
+
+            <td>
+
+                <span
+                    class="estado ${estado.clase}"
+                >
+                    ${estado.texto}
+                </span>
+
+            </td>
+
+
+            <td>
+
+                <div class="acciones">
+
+                    ${
+                        habilitado
+
+                        ?
+
+                        `
+                        <button
+                            class="boton btn-bloquear"
+                            data-id="${escapar(usuario.id)}"
+                            data-accion="bloquear"
+                        >
+                            🔴 Bloquear
+                        </button>
+                        `
+
+                        :
+
+                        `
+                        <button
+                            class="boton btn-habilitar"
+                            data-id="${escapar(usuario.id)}"
+                            data-accion="habilitar"
+                        >
+                            🟢 Habilitar
+                        </button>
+                        `
+                    }
+
+                </div>
+
+            </td>
+
+            </tr>
+
+            `;
+
+        }
+    );
+
+
+    html += `
+
+    </tbody>
+
+    </table>
+
+    `;
+
+
+    tablaContenedor.innerHTML =
+    html;
+
+
+    // ==================================
+    // BOTONES
+    // ==================================
+
+    document
+    .querySelectorAll(
+        "[data-accion]"
+    )
+    .forEach(
+        boton => {
+
+            boton.addEventListener(
+                "click",
+                async function(){
+
+                    const id =
+                    this.dataset.id;
+
+                    const accion =
+                    this.dataset.accion;
+
+
+                    await cambiarAcceso(
+                        id,
+                        accion
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// RESUMEN
+// ==========================================
+
+function actualizarResumen(){
+
+    const activos =
+    usuarios.filter(
+        usuario =>
+        accesoHabilitado(
+            usuario
+        )
+    ).length;
+
+
+    const bloqueados =
+    usuarios.length -
+    activos;
+
+
+    totalUsuarios.textContent =
+    usuarios.length;
+
+
+    totalActivos.textContent =
+    activos;
+
+
+    totalBloqueados.textContent =
+    bloqueados;
+
+}
+
+
+// ==========================================
+// CAMBIAR ACCESO
+// ==========================================
+
+async function cambiarAcceso(
+    id,
+    accion
+){
+
+    const usuario =
+    usuarios.find(
+        elemento =>
+        elemento.id === id
+    );
+
+
+    if(!usuario){
+
+        mostrarMensaje(
+            "Usuario no encontrado.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const habilitar =
+    accion === "habilitar";
+
+
+    const nombre =
+    (
+        texto(
+            usuario.nombre
+        ) +
+        " " +
+        texto(
+            usuario.apellido
+        )
+    ).trim()
+    ||
+    texto(
+        usuario.email
+    );
+
+
+    const confirmacion =
+    confirm(
+
+        habilitar
+
+        ?
+
+        "¿Querés HABILITAR el acceso de " +
+        nombre +
+        "?"
+
+        :
+
+        "¿Querés BLOQUEAR el acceso de " +
+        nombre +
+        "?"
+
+    );
+
+
+    if(!confirmacion){
+
+        return;
+
+    }
+
+
+    try{
+
+        const referencia =
+        doc(
+            db,
+            "usuarios",
+            id
+        );
+
+
+        await updateDoc(
+            referencia,
+            {
+
+                accesoHabilitado:
+                habilitar,
+
+                estadoAcceso:
+                habilitar
+                    ? "habilitado"
+                    : "bloqueado",
+
+                fechaCambioAcceso:
+                new Date(),
+
+                modificadoPor:
+                usuarioActual.uid
+
+            }
+        );
+
+
+        // ==================================
+        // ACTUALIZAR DATOS LOCALES
+        // ==================================
+
+        usuario.accesoHabilitado =
+        habilitar;
+
+        usuario.estadoAcceso =
+        habilitar
+            ? "habilitado"
+            : "bloqueado";
+
+
+        mostrarUsuarios();
+
+
+        mostrarMensaje(
+
+            habilitar
+
+            ?
+
+            "🟢 Acceso habilitado correctamente."
+
+            :
+
+            "🔴 Acceso bloqueado correctamente.",
+
+            "exito"
+
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cambiando acceso:",
+            error
+        );
+
+
+        mostrarMensaje(
+            "No se pudo cambiar el acceso: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// BUSCADOR
+// ==========================================
+
+buscar.addEventListener(
+    "input",
+    function(){
+
+        mostrarUsuarios();
+
+    }
+);
+
+
+// ==========================================
+// ACTUALIZAR
+// ==========================================
+
+btnActualizar.addEventListener(
+    "click",
+    async function(){
+
+        ocultarMensaje();
+
+        await cargarUsuarios();
+
+    }
+);
+
+
+// ==========================================
+// VOLVER
+// ==========================================
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "index.html";
+
+    }
+);
+
+
+// ==========================================
+// AUTENTICACIÓN
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+        usuario;
+
+
+        // ==================================
+        // VERIFICAR ADMINISTRADOR
+        // ==================================
+
+        const email =
+        texto(
+            usuario.email
+        )
+        .trim()
+        .toLowerCase();
+
+
+        if(
+            email !==
+            EMAIL_ADMIN.toLowerCase()
+        ){
+
+            document.body.innerHTML = `
+
+            <div
+                style="
+                    min-height:100vh;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    padding:20px;
+                    background:#f3f4f6;
+                    font-family:Arial,sans-serif;
+                "
+            >
+
+                <div
+                    style="
+                        max-width:450px;
+                        width:100%;
+                        background:#fff;
+                        border-radius:16px;
+                        padding:30px;
+                        text-align:center;
+                        box-shadow:0 4px 20px rgba(0,0,0,.10);
+                    "
+                >
+
+                    <div
+                        style="
+                            font-size:50px;
+                            margin-bottom:15px;
+                        "
+                    >
+                        🔒
+                    </div>
+
+                    <h2>
+                        Acceso restringido
+                    </h2>
+
+                    <p
+                        style="
+                            margin-top:10px;
+                            color:#6b7280;
+                            line-height:1.5;
+                        "
+                    >
+                        Este panel solamente puede
+                        ser utilizado por el administrador
+                        de GESBASE.
+                    </p>
+
+                    <button
+                        onclick="location.href='index.html'"
+                        style="
+                            margin-top:20px;
+                            border:none;
+                            background:#111827;
+                            color:white;
+                            padding:13px 20px;
+                            border-radius:9px;
+                            font-weight:bold;
+                            cursor:pointer;
+                        "
+                    >
+                        Volver
+                    </button>
+
+                </div>
+
+            </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        // ==================================
+        // CARGAR
+        // ==================================
+
+        await cargarUsuarios();
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
+        await cargarUsuarios();
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
