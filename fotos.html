@@ -159,7 +159,7 @@ main{
 
 
 /* ==========================================
-   INPUT
+   INPUT FOTOS
 ========================================== */
 
 #inputFotos{
@@ -415,11 +415,13 @@ main{
 ←
 </button>
 
+
 <div class="header-text">
 
 <div class="logo">
 GESBASE
 </div>
+
 
 <div class="subtitulo">
 Tu empresa. Todo organizado.
@@ -448,7 +450,7 @@ Guardá y organizá las fotos relacionadas con tus trabajos y tu empresa.
 
 
 <!-- ==========================================
-     INPUT DE FOTOS
+     INPUT
 ========================================== -->
 
 <input
@@ -460,7 +462,7 @@ Guardá y organizá las fotos relacionadas con tus trabajos y tu empresa.
 
 
 <!-- ==========================================
-     BOTON SUBIR
+     BOTON
 ========================================== -->
 
 <button
@@ -486,7 +488,7 @@ Guardá y organizá las fotos relacionadas con tus trabajos y tu empresa.
 
 
 <!-- ==========================================
-     CABECERA GALERIA
+     CABECERA
 ========================================== -->
 
 <div class="cabecera-galeria">
@@ -494,6 +496,7 @@ Guardá y organizá las fotos relacionadas con tus trabajos y tu empresa.
 <h2>
 Mis fotos
 </h2>
+
 
 <span
     id="contador"
@@ -545,9 +548,11 @@ Cargando fotos...
 📸
 </div>
 
+
 <strong>
 Todavía no tenés fotos
 </strong>
+
 
 <span>
 Seleccioná una o varias fotos para comenzar.
@@ -557,7 +562,6 @@ Seleccioná una o varias fotos para comenzar.
 
 
 </main>
-
 
 </div>
 
@@ -573,6 +577,7 @@ Seleccioná una o varias fotos para comenzar.
 
 <div class="modal-contenido">
 
+
 <button
     id="btnCerrarModal"
     class="btn-cerrar-modal"
@@ -581,11 +586,13 @@ Seleccioná una o varias fotos para comenzar.
 ✕
 </button>
 
+
 <img
     id="imagenModal"
     src=""
     alt="Foto GESBASE"
 >
+
 
 </div>
 
@@ -616,7 +623,6 @@ import {
     collection,
     query,
     where,
-    orderBy,
     getDocs,
     addDoc,
     deleteDoc,
@@ -644,50 +650,60 @@ document.getElementById(
     "btnVolver"
 );
 
+
 const btnSubir =
 document.getElementById(
     "btnSubir"
 );
+
 
 const inputFotos =
 document.getElementById(
     "inputFotos"
 );
 
+
 const estado =
 document.getElementById(
     "estado"
 );
+
 
 const galeria =
 document.getElementById(
     "galeria"
 );
 
+
 const cargandoFotos =
 document.getElementById(
     "cargandoFotos"
 );
+
 
 const sinFotos =
 document.getElementById(
     "sinFotos"
 );
 
+
 const contador =
 document.getElementById(
     "contador"
 );
+
 
 const modal =
 document.getElementById(
     "modal"
 );
 
+
 const imagenModal =
 document.getElementById(
     "imagenModal"
 );
+
 
 const btnCerrarModal =
 document.getElementById(
@@ -696,14 +712,14 @@ document.getElementById(
 
 
 // ==========================================
-// USUARIO
+// USUARIO ACTUAL
 // ==========================================
 
 let usuarioActual = null;
 
 
 // ==========================================
-// VOLVER
+// VOLVER AL INDEX
 // ==========================================
 
 btnVolver.addEventListener(
@@ -729,8 +745,10 @@ function mostrarEstado(
     estado.textContent =
     mensaje;
 
+
     estado.className =
     "estado visible";
+
 
     if(tipo){
 
@@ -752,6 +770,7 @@ function ocultarEstado(){
     estado.textContent =
     "";
 
+
     estado.className =
     "estado";
 
@@ -759,14 +778,77 @@ function ocultarEstado(){
 
 
 // ==========================================
-// FORMATEAR FECHA
+// FECHA
+// ==========================================
+
+function obtenerFecha(
+    fecha
+){
+
+    if(!fecha){
+
+        return 0;
+
+    }
+
+
+    try{
+
+        if(
+            typeof fecha.toMillis ===
+            "function"
+        ){
+
+            return fecha.toMillis();
+
+        }
+
+
+        if(
+            typeof fecha.toDate ===
+            "function"
+        ){
+
+            return fecha.toDate()
+            .getTime();
+
+        }
+
+
+        const fechaNormal =
+        new Date(fecha)
+        .getTime();
+
+
+        return isNaN(fechaNormal)
+            ? 0
+            : fechaNormal;
+
+    }
+    catch(error){
+
+        return 0;
+
+    }
+
+}
+
+
+// ==========================================
+// MOSTRAR FECHA
 // ==========================================
 
 function formatearFecha(
     fecha
 ){
 
-    if(!fecha){
+    const tiempo =
+    obtenerFecha(
+        fecha
+    );
+
+
+    if(!tiempo){
 
         return "Sin fecha";
 
@@ -775,13 +857,9 @@ function formatearFecha(
 
     try{
 
-        const fechaJS =
-        fecha.toDate
-        ? fecha.toDate()
-        : new Date(fecha);
-
-
-        return fechaJS.toLocaleDateString(
+        return new Date(
+            tiempo
+        ).toLocaleDateString(
             "es-AR",
             {
                 day:"2-digit",
@@ -802,6 +880,7 @@ function formatearFecha(
 
 // ==========================================
 // CARGAR FOTOS
+// SIN ORDERBY
 // ==========================================
 
 async function cargarFotos(){
@@ -816,8 +895,10 @@ async function cargarFotos(){
     cargandoFotos.style.display =
     "block";
 
+
     galeria.style.display =
     "none";
+
 
     sinFotos.style.display =
     "none";
@@ -832,6 +913,15 @@ async function cargarFotos(){
         );
 
 
+        /*
+         * IMPORTANTE:
+         *
+         * No utilizamos orderBy().
+         *
+         * Esto evita necesitar el índice
+         * compuesto usuarioId + fecha.
+         */
+
         const consulta =
         query(
             referenciaFotos,
@@ -840,11 +930,6 @@ async function cargarFotos(){
                 "usuarioId",
                 "==",
                 usuarioActual.uid
-            ),
-
-            orderBy(
-                "fecha",
-                "desc"
             )
         );
 
@@ -859,10 +944,37 @@ async function cargarFotos(){
         "";
 
 
+        /*
+         * Ordenamos las fotos directamente
+         * en el navegador.
+         */
+
+        const documentos =
+        resultado.docs.sort(
+            function(a,b){
+
+                const fechaA =
+                obtenerFecha(
+                    a.data().fecha
+                );
+
+
+                const fechaB =
+                obtenerFecha(
+                    b.data().fecha
+                );
+
+
+                return fechaB - fechaA;
+
+            }
+        );
+
+
         contador.textContent =
-        resultado.size +
+        documentos.length +
         (
-            resultado.size === 1
+            documentos.length === 1
             ? " foto"
             : " fotos"
         );
@@ -873,7 +985,7 @@ async function cargarFotos(){
 
 
         if(
-            resultado.empty
+            documentos.length === 0
         ){
 
             sinFotos.style.display =
@@ -888,7 +1000,7 @@ async function cargarFotos(){
         "grid";
 
 
-        resultado.forEach(
+        documentos.forEach(
             function(documento){
 
                 const datos =
@@ -903,7 +1015,6 @@ async function cargarFotos(){
             }
         );
 
-
     }
     catch(error){
 
@@ -914,6 +1025,10 @@ async function cargarFotos(){
 
 
         cargandoFotos.style.display =
+        "none";
+
+
+        galeria.style.display =
         "none";
 
 
@@ -929,7 +1044,7 @@ async function cargarFotos(){
 
 
 // ==========================================
-// CREAR TARJETA
+// CREAR TARJETA DE FOTO
 // ==========================================
 
 function crearTarjetaFoto(
@@ -942,6 +1057,7 @@ function crearTarjetaFoto(
         "div"
     );
 
+
     tarjeta.className =
     "tarjeta-foto";
 
@@ -950,6 +1066,7 @@ function crearTarjetaFoto(
     document.createElement(
         "div"
     );
+
 
     contenedor.className =
     "contenedor-imagen";
@@ -962,7 +1079,7 @@ function crearTarjetaFoto(
 
 
     imagen.src =
-    datos.url;
+    datos.url || "";
 
 
     imagen.alt =
@@ -978,9 +1095,15 @@ function crearTarjetaFoto(
         "click",
         function(){
 
-            abrirModal(
+            if(
                 datos.url
-            );
+            ){
+
+                abrirModal(
+                    datos.url
+                );
+
+            }
 
         }
     );
@@ -996,6 +1119,7 @@ function crearTarjetaFoto(
         "div"
     );
 
+
     info.className =
     "info-foto";
 
@@ -1004,6 +1128,7 @@ function crearTarjetaFoto(
     document.createElement(
         "div"
     );
+
 
     nombre.className =
     "nombre-foto";
@@ -1019,6 +1144,7 @@ function crearTarjetaFoto(
         "div"
     );
 
+
     fecha.className =
     "fecha-foto";
 
@@ -1033,6 +1159,7 @@ function crearTarjetaFoto(
     document.createElement(
         "button"
     );
+
 
     botonEliminar.type =
     "button";
@@ -1063,9 +1190,11 @@ function crearTarjetaFoto(
         nombre
     );
 
+
     info.appendChild(
         fecha
     );
+
 
     info.appendChild(
         botonEliminar
@@ -1075,6 +1204,7 @@ function crearTarjetaFoto(
     tarjeta.appendChild(
         contenedor
     );
+
 
     tarjeta.appendChild(
         info
@@ -1103,7 +1233,7 @@ btnSubir.addEventListener(
 
 
 // ==========================================
-// SELECCIONAR FOTOS
+// SELECCIÓN DE FOTOS
 // ==========================================
 
 inputFotos.addEventListener(
@@ -1143,6 +1273,9 @@ inputFotos.addEventListener(
 
         try{
 
+            let fotosSubidas = 0;
+
+
             for(
                 let i = 0;
                 i < archivos.length;
@@ -1153,9 +1286,9 @@ inputFotos.addEventListener(
                 archivos[i];
 
 
-                // ==============================
-                // VALIDAR TIPO
-                // ==============================
+                // ==================================
+                // VALIDAR IMAGEN
+                // ==================================
 
                 if(
                     !archivo.type.startsWith(
@@ -1168,9 +1301,9 @@ inputFotos.addEventListener(
                 }
 
 
-                // ==============================
-                // MAXIMO 10 MB
-                // ==============================
+                // ==================================
+                // LIMITE 10 MB
+                // ==================================
 
                 const maximo =
                 10 * 1024 * 1024;
@@ -1201,13 +1334,12 @@ inputFotos.addEventListener(
                 );
 
 
-                // ==============================
+                // ==================================
                 // NOMBRE SEGURO
-                // ==============================
+                // ==================================
 
                 const nombreSeguro =
-                archivo.name
-                .replace(
+                archivo.name.replace(
                     /[^a-zA-Z0-9._-]/g,
                     "_"
                 );
@@ -1223,9 +1355,9 @@ inputFotos.addEventListener(
                 nombreSeguro;
 
 
-                // ==============================
+                // ==================================
                 // RUTA STORAGE
-                // ==============================
+                // ==================================
 
                 const ruta =
                 "fotos/" +
@@ -1241,9 +1373,9 @@ inputFotos.addEventListener(
                 );
 
 
-                // ==============================
-                // SUBIR FOTO
-                // ==============================
+                // ==================================
+                // SUBIR
+                // ==================================
 
                 await uploadBytes(
                     referenciaStorage,
@@ -1251,9 +1383,9 @@ inputFotos.addEventListener(
                 );
 
 
-                // ==============================
-                // OBTENER URL
-                // ==============================
+                // ==================================
+                // URL
+                // ==================================
 
                 const url =
                 await getDownloadURL(
@@ -1261,9 +1393,9 @@ inputFotos.addEventListener(
                 );
 
 
-                // ==============================
-                // GUARDAR FIRESTORE
-                // ==============================
+                // ==================================
+                // FIRESTORE
+                // ==================================
 
                 await addDoc(
                     collection(
@@ -1296,6 +1428,9 @@ inputFotos.addEventListener(
                     }
                 );
 
+
+                fotosSubidas++;
+
             }
 
 
@@ -1303,14 +1438,22 @@ inputFotos.addEventListener(
             "";
 
 
-            mostrarEstado(
-                "Fotos cargadas correctamente.",
-                "exito"
-            );
+            if(
+                fotosSubidas > 0
+            ){
+
+                mostrarEstado(
+                    fotosSubidas === 1
+                    ? "Foto cargada correctamente."
+                    : fotosSubidas +
+                      " fotos cargadas correctamente.",
+                    "exito"
+                );
+
+            }
 
 
             await cargarFotos();
-
 
         }
         catch(error){
@@ -1369,10 +1512,12 @@ async function eliminarFoto(
 
 
         // ==================================
-        // STORAGE
+        // ELIMINAR STORAGE
         // ==================================
 
-        if(storagePath){
+        if(
+            storagePath
+        ){
 
             try{
 
@@ -1401,7 +1546,7 @@ async function eliminarFoto(
 
 
         // ==================================
-        // FIRESTORE
+        // ELIMINAR FIRESTORE
         // ==================================
 
         await deleteDoc(
@@ -1420,7 +1565,6 @@ async function eliminarFoto(
 
 
         await cargarFotos();
-
 
     }
     catch(error){
@@ -1453,6 +1597,7 @@ function abrirModal(
     imagenModal.src =
     url;
 
+
     modal.classList.add(
         "activo"
     );
@@ -1465,6 +1610,7 @@ function cerrarModal(){
     modal.classList.remove(
         "activo"
     );
+
 
     imagenModal.src =
     "";
