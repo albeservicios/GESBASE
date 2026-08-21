@@ -5,9 +5,15 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-<meta name="theme-color" content="#111827">
+<meta
+    name="theme-color"
+    content="#111827"
+>
 
 <meta
     name="description"
@@ -263,6 +269,22 @@ main{
 
 
 /* ==========================================
+   CONTROL DE ACCESOS
+========================================== */
+
+.control-accesos{
+    grid-column:span 2;
+    background:#059669;
+    color:white;
+    box-shadow:0 3px 10px rgba(5,150,105,.25);
+}
+
+.control-accesos:hover{
+    background:#047857;
+}
+
+
+/* ==========================================
    PANEL ATENCIÓN
 ========================================== */
 
@@ -331,6 +353,28 @@ main{
 
 .aviso-suscripcion button:hover{
     background:#b91c1c;
+}
+
+
+/* ==========================================
+   AVISO ACCESO BLOQUEADO
+========================================== */
+
+.aviso-acceso{
+    display:none;
+    background:#fff7ed;
+    color:#9a3412;
+    padding:18px;
+    border-radius:12px;
+    margin-bottom:20px;
+    line-height:1.5;
+    border:1px solid #fed7aa;
+}
+
+.aviso-acceso strong{
+    display:block;
+    font-size:17px;
+    margin-bottom:6px;
 }
 
 
@@ -541,15 +585,33 @@ Cargando...
 
 Tu suscripción no se encuentra activa.
 
-Los accesos de gestión están temporalmente
-bloqueados.
-
 <button
     type="button"
     id="btnIrSuscripcion"
 >
 ⭐ Ver planes y activar suscripción
 </button>
+
+</div>
+
+
+<!-- ==========================================
+     AVISO DE ACCESO BLOQUEADO
+========================================== -->
+
+<div
+    id="avisoAcceso"
+    class="aviso-acceso"
+>
+
+<strong>
+⛔ Acceso bloqueado
+</strong>
+
+Tu cuenta se encuentra bloqueada actualmente.
+
+Si realizaste el pago de GESBASE, el administrador
+debe habilitar nuevamente tu acceso.
 
 </div>
 
@@ -829,7 +891,7 @@ Asistencia
 
 
 <!-- ==========================================
-     ADMINISTRACIÓN
+     ADMINISTRACIÓN GESBASE
 ========================================== -->
 
 <section
@@ -838,7 +900,7 @@ Asistencia
 >
 
 <div class="titulo-seccion">
-Administración
+Administración GESBASE
 </div>
 
 
@@ -856,6 +918,21 @@ Administración
 </span>
 
 Panel de Administrador
+
+</button>
+
+
+<button
+    id="btnControlAccesos"
+    class="boton control-accesos"
+    type="button"
+>
+
+<span class="icono">
+🔐
+</span>
+
+Control de accesos
 
 </button>
 
@@ -1009,6 +1086,11 @@ document.getElementById(
     "btnPanelAdministrador"
 );
 
+const btnControlAccesos =
+document.getElementById(
+    "btnControlAccesos"
+);
+
 const btnPanelAtencion =
 document.getElementById(
     "btnPanelAtencion"
@@ -1029,6 +1111,11 @@ document.getElementById(
     "avisoSuscripcion"
 );
 
+const avisoAcceso =
+document.getElementById(
+    "avisoAcceso"
+);
+
 const btnIrSuscripcion =
 document.getElementById(
     "btnIrSuscripcion"
@@ -1044,7 +1131,7 @@ const EMAIL_ADMIN =
 
 
 // ==========================================
-// ESTADO DE SUSCRIPCIÓN
+// ESTADO DE ACCESO
 // ==========================================
 
 let accesoPermitido =
@@ -1100,8 +1187,8 @@ accesos.forEach(
 
 
                 alert(
-                    "🔒 Tu suscripción no está activa.\n\n" +
-                    "Para utilizar GESBASE, activá o renová tu suscripción."
+                    "🔒 Tu acceso a GESBASE está bloqueado.\n\n" +
+                    "Si ya realizaste el pago, el administrador debe habilitar tu cuenta."
                 );
 
             }
@@ -1112,12 +1199,10 @@ accesos.forEach(
 
 
 // ==========================================
-// OTROS BOTONES
+// PANEL ADMINISTRADOR
 // ==========================================
 
-document
-.getElementById("btnPanelAdministrador")
-.addEventListener(
+btnPanelAdministrador.addEventListener(
     "click",
     function(){
 
@@ -1128,9 +1213,26 @@ document
 );
 
 
-document
-.getElementById("btnPanelAtencion")
-.addEventListener(
+// ==========================================
+// CONTROL DE ACCESOS
+// ==========================================
+
+btnControlAccesos.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "control-accesos.html";
+
+    }
+);
+
+
+// ==========================================
+// PANEL ATENCIÓN
+// ==========================================
+
+btnPanelAtencion.addEventListener(
     "click",
     function(){
 
@@ -1163,7 +1265,7 @@ onAuthStateChanged(
         try{
 
             // ==================================
-            // PERFIL
+            // PERFIL USUARIO
             // ==================================
 
             const referenciaUsuario =
@@ -1299,7 +1401,6 @@ onAuthStateChanged(
 
             // ==================================
             // ADMINISTRADOR GESBASE
-            // SIEMPRE TIENE ACCESO
             // ==================================
 
             const esAdministradorGesbase =
@@ -1308,7 +1409,15 @@ onAuthStateChanged(
 
 
             // ==================================
-            // SUSCRIPCIÓN
+            // ACCESO MANUAL
+            // ==================================
+
+            const accesoManual =
+            datosUsuario.accesoHabilitado === true;
+
+
+            // ==================================
+            // ESTADO DE SUSCRIPCIÓN
             // ==================================
 
             const estadoSuscripcion =
@@ -1322,7 +1431,7 @@ onAuthStateChanged(
 
 
             // ==================================
-            // ESTADOS VÁLIDOS
+            // SUSCRIPCIÓN
             // ==================================
 
             const suscripcionActiva =
@@ -1338,16 +1447,21 @@ onAuthStateChanged(
 
             // ==================================
             // DECISIÓN FINAL
+            //
+            // EL ADMINISTRADOR GESBASE
+            // SIEMPRE TIENE ACCESO.
+            //
+            // LOS CLIENTES NECESITAN:
+            // accesoHabilitado = true
             // ==================================
 
             accesoPermitido =
                 esAdministradorGesbase ||
-                suscripcionActiva ||
-                pruebaActiva;
+                accesoManual;
 
 
             // ==================================
-            // MOSTRAR ESTADO
+            // ESTADO VISUAL
             // ==================================
 
             if(
@@ -1355,68 +1469,112 @@ onAuthStateChanged(
             ){
 
                 estadoCuenta.textContent =
-                "ADMINISTRADOR";
+                "ADMINISTRADOR GESBASE";
+
+            }
+            else if(
+                accesoManual
+            ){
+
+                estadoCuenta.textContent =
+                "ACCESO HABILITADO";
+
+            }
+            else if(
+                pruebaActiva
+            ){
+
+                estadoCuenta.textContent =
+                "PRUEBA - ACCESO BLOQUEADO";
+
+            }
+            else if(
+                suscripcionActiva
+            ){
+
+                estadoCuenta.textContent =
+                "SUSCRIPCIÓN ACTIVA - ACCESO PENDIENTE";
 
             }
             else{
 
                 estadoCuenta.textContent =
-                datosUsuario.estadoSuscripcion ||
-                datosUsuario.estado ||
-                "SIN SUSCRIPCIÓN";
+                "ACCESO BLOQUEADO";
 
             }
 
 
             // ==================================
-            // BLOQUEAR / DESBLOQUEAR
+            // AVISOS
             // ==================================
 
             if(
-                accesoPermitido
+                esAdministradorGesbase
             ){
 
                 avisoSuscripcion.style.display =
                 "none";
 
+                avisoAcceso.style.display =
+                "none";
 
-                accesos.forEach(
-                    function(boton){
+            }
+            else if(
+                accesoManual
+            ){
+
+                avisoSuscripcion.style.display =
+                "none";
+
+                avisoAcceso.style.display =
+                "none";
+
+            }
+            else{
+
+                avisoSuscripcion.style.display =
+                "none";
+
+                avisoAcceso.style.display =
+                "block";
+
+            }
+
+
+            // ==================================
+            // BLOQUEAR / DESBLOQUEAR MENÚ
+            // ==================================
+
+            accesos.forEach(
+                function(boton){
+
+                    if(
+                        accesoPermitido
+                    ){
 
                         boton.classList.remove(
                             "bloqueado"
                         );
 
                     }
-                );
-
-            }
-            else{
-
-                avisoSuscripcion.style.display =
-                "block";
-
-
-                accesos.forEach(
-                    function(boton){
+                    else{
 
                         boton.classList.add(
                             "bloqueado"
                         );
 
                     }
-                );
 
-            }
+                }
+            );
 
 
             // ==================================
             // PANEL ADMINISTRADOR
+            // SOLO TU CUENTA
             // ==================================
 
             if(
-                rol === "administrador" ||
-                rol === "admin" ||
                 esAdministradorGesbase
             ){
 
@@ -1434,12 +1592,11 @@ onAuthStateChanged(
 
             // ==================================
             // PANEL ATENCIÓN
-            // SOLO CUENTA AUTORIZADA
+            // SOLO TU CUENTA
             // ==================================
 
             if(
-                emailActual ===
-                EMAIL_ADMIN.toLowerCase()
+                esAdministradorGesbase
             ){
 
                 seccionAtencion.style.display =
