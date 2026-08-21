@@ -159,7 +159,7 @@ main{
 
 
 /* ==========================================
-   INPUT ARCHIVO
+   INPUT
 ========================================== */
 
 #inputFotos{
@@ -229,7 +229,7 @@ main{
 
 
 /* ==========================================
-   FOTO
+   TARJETA FOTO
 ========================================== */
 
 .tarjeta-foto{
@@ -441,13 +441,14 @@ Tu empresa. Todo organizado.
 📸 Fotos
 </h1>
 
+
 <p class="descripcion">
 Guardá y organizá las fotos relacionadas con tus trabajos y tu empresa.
 </p>
 
 
 <!-- ==========================================
-     SUBIR FOTO
+     INPUT DE FOTOS
 ========================================== -->
 
 <input
@@ -457,6 +458,10 @@ Guardá y organizá las fotos relacionadas con tus trabajos y tu empresa.
     multiple
 >
 
+
+<!-- ==========================================
+     BOTON SUBIR
+========================================== -->
 
 <button
     id="btnSubir"
@@ -481,7 +486,7 @@ Guardá y organizá las fotos relacionadas con tus trabajos y tu empresa.
 
 
 <!-- ==========================================
-     GALERIA
+     CABECERA GALERIA
 ========================================== -->
 
 <div class="cabecera-galeria">
@@ -500,6 +505,10 @@ Mis fotos
 </div>
 
 
+<!-- ==========================================
+     CARGANDO
+========================================== -->
+
 <div
     id="cargandoFotos"
     class="cargando"
@@ -510,6 +519,10 @@ Cargando fotos...
 </div>
 
 
+<!-- ==========================================
+     GALERIA
+========================================== -->
+
 <div
     id="galeria"
     class="galeria"
@@ -517,6 +530,10 @@ Cargando fotos...
 >
 </div>
 
+
+<!-- ==========================================
+     SIN FOTOS
+========================================== -->
 
 <div
     id="sinFotos"
@@ -546,7 +563,7 @@ Seleccioná una o varias fotos para comenzar.
 
 
 <!-- ==========================================
-     MODAL IMAGEN
+     MODAL
 ========================================== -->
 
 <div
@@ -567,7 +584,7 @@ Seleccioná una o varias fotos para comenzar.
 <img
     id="imagenModal"
     src=""
-    alt="Foto"
+    alt="Foto GESBASE"
 >
 
 </div>
@@ -585,7 +602,7 @@ Seleccioná una o varias fotos para comenzar.
 import {
     auth,
     db,
-    storage
+    almacenamiento
 } from "./Js/firebase.js";
 
 
@@ -627,60 +644,50 @@ document.getElementById(
     "btnVolver"
 );
 
-
 const btnSubir =
 document.getElementById(
     "btnSubir"
 );
-
 
 const inputFotos =
 document.getElementById(
     "inputFotos"
 );
 
-
 const estado =
 document.getElementById(
     "estado"
 );
-
 
 const galeria =
 document.getElementById(
     "galeria"
 );
 
-
 const cargandoFotos =
 document.getElementById(
     "cargandoFotos"
 );
-
 
 const sinFotos =
 document.getElementById(
     "sinFotos"
 );
 
-
 const contador =
 document.getElementById(
     "contador"
 );
-
 
 const modal =
 document.getElementById(
     "modal"
 );
 
-
 const imagenModal =
 document.getElementById(
     "imagenModal"
 );
-
 
 const btnCerrarModal =
 document.getElementById(
@@ -689,7 +696,7 @@ document.getElementById(
 
 
 // ==========================================
-// USUARIO ACTUAL
+// USUARIO
 // ==========================================
 
 let usuarioActual = null;
@@ -742,11 +749,11 @@ function mostrarEstado(
 
 function ocultarEstado(){
 
-    estado.className =
-    "estado";
-
     estado.textContent =
     "";
+
+    estado.className =
+    "estado";
 
 }
 
@@ -760,7 +767,9 @@ function formatearFecha(
 ){
 
     if(!fecha){
+
         return "Sin fecha";
+
     }
 
 
@@ -798,7 +807,9 @@ function formatearFecha(
 async function cargarFotos(){
 
     if(!usuarioActual){
+
         return;
+
     }
 
 
@@ -824,11 +835,13 @@ async function cargarFotos(){
         const consulta =
         query(
             referenciaFotos,
+
             where(
                 "usuarioId",
                 "==",
                 usuarioActual.uid
             ),
+
             orderBy(
                 "fecha",
                 "desc"
@@ -1076,7 +1089,7 @@ function crearTarjetaFoto(
 
 
 // ==========================================
-// SELECCIONAR FOTOS
+// ABRIR SELECTOR
 // ==========================================
 
 btnSubir.addEventListener(
@@ -1090,7 +1103,7 @@ btnSubir.addEventListener(
 
 
 // ==========================================
-// CAMBIO DE ARCHIVOS
+// SELECCIONAR FOTOS
 // ==========================================
 
 inputFotos.addEventListener(
@@ -1128,9 +1141,6 @@ inputFotos.addEventListener(
         true;
 
 
-        ocultarEstado();
-
-
         try{
 
             for(
@@ -1144,7 +1154,7 @@ inputFotos.addEventListener(
 
 
                 // ==============================
-                // VALIDAR IMAGEN
+                // VALIDAR TIPO
                 // ==============================
 
                 if(
@@ -1159,8 +1169,7 @@ inputFotos.addEventListener(
 
 
                 // ==============================
-                // VALIDAR TAMAÑO
-                // Máximo 10 MB
+                // MAXIMO 10 MB
                 // ==============================
 
                 const maximo =
@@ -1193,7 +1202,7 @@ inputFotos.addEventListener(
 
 
                 // ==============================
-                // NOMBRE ÚNICO
+                // NOMBRE SEGURO
                 // ==============================
 
                 const nombreSeguro =
@@ -1227,13 +1236,13 @@ inputFotos.addEventListener(
 
                 const referenciaStorage =
                 ref(
-                    storage,
+                    almacenamiento,
                     ruta
                 );
 
 
                 // ==============================
-                // SUBIR ARCHIVO
+                // SUBIR FOTO
                 // ==============================
 
                 await uploadBytes(
@@ -1243,7 +1252,7 @@ inputFotos.addEventListener(
 
 
                 // ==============================
-                // URL
+                // OBTENER URL
                 // ==============================
 
                 const url =
@@ -1253,7 +1262,7 @@ inputFotos.addEventListener(
 
 
                 // ==============================
-                // FIRESTORE
+                // GUARDAR FIRESTORE
                 // ==============================
 
                 await addDoc(
@@ -1360,7 +1369,7 @@ async function eliminarFoto(
 
 
         // ==================================
-        // ELIMINAR STORAGE
+        // STORAGE
         // ==================================
 
         if(storagePath){
@@ -1369,7 +1378,7 @@ async function eliminarFoto(
 
                 const referenciaStorage =
                 ref(
-                    storage,
+                    almacenamiento,
                     storagePath
                 );
 
@@ -1382,7 +1391,7 @@ async function eliminarFoto(
             catch(errorStorage){
 
                 console.warn(
-                    "No se pudo eliminar Storage:",
+                    "No se pudo eliminar el archivo de Storage:",
                     errorStorage
                 );
 
@@ -1392,7 +1401,7 @@ async function eliminarFoto(
 
 
         // ==================================
-        // ELIMINAR FIRESTORE
+        // FIRESTORE
         // ==================================
 
         await deleteDoc(
