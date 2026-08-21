@@ -17,7 +17,6 @@
 
 <title>GESBASE - Cobros</title>
 
-
 <style>
 
 *{
@@ -347,7 +346,6 @@ main{
 
 <div class="app">
 
-
 <header>
 
 <button
@@ -375,7 +373,6 @@ Tu empresa. Todo organizado.
 
 <main>
 
-
 <h1 class="titulo">
 💵 Cobros
 </h1>
@@ -385,7 +382,9 @@ Registrá los pagos recibidos de tus clientes y llevá el control de tus ingreso
 </p>
 
 
-<!-- RESUMEN -->
+<!-- ==========================================
+     RESUMEN
+========================================== -->
 
 <section class="resumen">
 
@@ -423,7 +422,9 @@ Cantidad de cobros
 </section>
 
 
-<!-- ESTADO -->
+<!-- ==========================================
+     ESTADO
+========================================== -->
 
 <div
     id="estado"
@@ -432,7 +433,9 @@ Cantidad de cobros
 </div>
 
 
-<!-- FORMULARIO -->
+<!-- ==========================================
+     FORMULARIO
+========================================== -->
 
 <section class="formulario">
 
@@ -447,9 +450,7 @@ Registrar cobro
 Cliente
 </label>
 
-<select
-    id="cliente"
->
+<select id="cliente">
 
 <option value="">
 Cargando clientes...
@@ -466,9 +467,7 @@ Cargando clientes...
 Trabajo relacionado
 </label>
 
-<select
-    id="trabajo"
->
+<select id="trabajo">
 
 <option value="">
 Sin trabajo relacionado
@@ -576,7 +575,9 @@ Observaciones
 </section>
 
 
-<!-- LISTADO -->
+<!-- ==========================================
+     LISTADO
+========================================== -->
 
 <section>
 
@@ -633,7 +634,6 @@ Registrá el primer cobro de tu empresa.
 </div>
 
 </section>
-
 
 </main>
 
@@ -732,12 +732,13 @@ let trabajos = [];
 
 
 // ==========================================
-// FECHA
+// FECHA ACTUAL
 // ==========================================
 
 function colocarFechaActual(){
 
-    const ahora = new Date();
+    const ahora =
+    new Date();
 
     const año =
     ahora.getFullYear();
@@ -776,7 +777,7 @@ btnVolver.addEventListener(
 
 
 // ==========================================
-// MENSAJES
+// MENSAJE
 // ==========================================
 
 function mostrarEstado(
@@ -816,310 +817,224 @@ function formatoMoneda(
 
 
 // ==========================================
-// OBTENER IDENTIFICADOR DEL CLIENTE
-// ==========================================
-
-function perteneceAlUsuario(
-    datos
-){
-
-    const ids = [
-
-        datos.usuarioId,
-
-        datos.uid,
-
-        datos.userId
-
-    ];
-
-
-    return ids.some(
-        function(id){
-
-            return String(id || "") ===
-            String(usuarioActual.uid);
-
-        }
-    );
-
-}
-
-
-// ==========================================
-// NOMBRE DEL CLIENTE
-// ==========================================
-
-function obtenerNombreCliente(
-    datos
-){
-
-    return (
-
-        datos.nombreCompleto ||
-
-        datos.nombre ||
-
-        datos.razonSocial ||
-
-        datos.empresa ||
-
-        datos.nombreCliente ||
-
-        (
-            datos.apellido
-            ? (
-                (datos.nombre || "") +
-                " " +
-                datos.apellido
-            ).trim()
-            : ""
-        ) ||
-
-        "Cliente sin nombre"
-
-    );
-
-}
-
-
-// ==========================================
 // CARGAR CLIENTES
-// SIN WHERE
-// SIN ORDERBY
-// SIN ÍNDICES
+// MISMA LÓGICA QUE TRABAJOS.JS
 // ==========================================
 
 async function cargarClientes(){
 
-    cliente.innerHTML =
-    `<option value="">
-    Cargando clientes...
-    </option>`;
+    cliente.innerHTML = `
+        <option value="">
+            Cargando clientes...
+        </option>
+    `;
 
 
-    try{
-
-        const referencia =
-        collection(
-            db,
-            "clientes"
-        );
+    const clientesRef =
+    collection(
+        db,
+        "clientes"
+    );
 
 
-        const resultado =
-        await getDocs(
-            referencia
-        );
+    const snapshot =
+    await getDocs(
+        clientesRef
+    );
 
 
-        clientes = [];
+    cliente.innerHTML = `
+        <option value="">
+            Seleccionar cliente
+        </option>
+    `;
 
 
-        cliente.innerHTML =
-        `<option value="">
-        Seleccionar cliente
-        </option>`;
+    snapshot.forEach(
+        (documento) => {
+
+            const datos =
+            documento.data();
 
 
-        resultado.forEach(
-            function(documento){
+            // EXACTAMENTE IGUAL QUE TRABAJOS.JS
 
-                const datos =
-                documento.data();
+            if(
+                datos.uid !==
+                usuarioActual.uid
+                &&
+                datos.empresaId !==
+                usuarioActual.uid
+            ){
 
-
-                /*
-                 * Aceptamos varias formas
-                 * de identificar al usuario.
-                 */
-
-                if(
-                    perteneceAlUsuario(
-                        datos
-                    )
-                ){
-
-                    const nombre =
-                    obtenerNombreCliente(
-                        datos
-                    );
-
-
-                    clientes.push({
-
-                        id:
-                        documento.id,
-
-                        nombre:
-                        nombre,
-
-                        ...datos
-
-                    });
-
-
-                    const opcion =
-                    document.createElement(
-                        "option"
-                    );
-
-
-                    opcion.value =
-                    documento.id;
-
-
-                    opcion.textContent =
-                    nombre;
-
-
-                    cliente.appendChild(
-                        opcion
-                    );
-
-                }
+                return;
 
             }
-        );
 
 
-        if(
-            clientes.length === 0
-        ){
-
-            cliente.innerHTML =
-            `<option value="">
-            No hay clientes disponibles
-            </option>`;
-
-
-            mostrarEstado(
-                "No se encontraron clientes asociados a esta cuenta. Revisá que los clientes tengan usuarioId.",
-                "info"
+            const opcion =
+            document.createElement(
+                "option"
             );
 
+
+            opcion.value =
+            documento.id;
+
+
+            const nombre =
+            [
+                datos.nombre,
+                datos.apellido
+            ]
+            .filter(Boolean)
+            .join(" ");
+
+
+            opcion.textContent =
+            nombre ||
+            datos.empresa ||
+            datos.razonSocial ||
+            datos.razon_social ||
+            "Cliente";
+
+
+            cliente.appendChild(
+                opcion
+            );
+
+            clientes.push({
+
+                id:
+                documento.id,
+
+                nombre:
+                opcion.textContent
+
+            });
+
         }
-
-    }
-    catch(error){
-
-        console.error(
-            "Error cargando clientes:",
-            error
-        );
-
-
-        cliente.innerHTML =
-        `<option value="">
-        Error al cargar clientes
-        </option>`;
-
-
-        mostrarEstado(
-            "No se pudieron cargar los clientes. " +
-            error.message,
-            "error"
-        );
-
-    }
+    );
 
 }
 
 
 // ==========================================
 // CARGAR TRABAJOS
-// SIN WHERE
+// MISMA LÓGICA QUE TRABAJOS.JS
 // ==========================================
 
 async function cargarTrabajos(){
 
-    try{
-
-        const referencia =
-        collection(
-            db,
-            "trabajos"
-        );
+    trabajo.innerHTML = `
+        <option value="">
+            Cargando trabajos...
+        </option>
+    `;
 
 
-        const resultado =
-        await getDocs(
-            referencia
-        );
+    const trabajosRef =
+    collection(
+        db,
+        "trabajos"
+    );
 
 
-        trabajos = [];
+    const snapshot =
+    await getDocs(
+        trabajosRef
+    );
 
 
-        trabajo.innerHTML =
-        `<option value="">
-        Sin trabajo relacionado
-        </option>`;
+    trabajo.innerHTML = `
+        <option value="">
+            Sin trabajo relacionado
+        </option>
+    `;
 
 
-        resultado.forEach(
-            function(documento){
-
-                const datos =
-                documento.data();
+    trabajos = [];
 
 
-                if(
-                    perteneceAlUsuario(
-                        datos
-                    )
-                ){
+    snapshot.forEach(
+        (documento) => {
 
-                    const titulo =
-                    datos.titulo ||
-                    datos.nombre ||
-                    datos.descripcion ||
-                    "Trabajo";
+            const datos =
+            documento.data();
 
 
-                    trabajos.push({
+            // IMPORTANTE:
+            // LOS TRABAJOS USAN empresaId
 
-                        id:
-                        documento.id,
+            if(
+                datos.empresaId !==
+                usuarioActual.uid
+            ){
 
-                        nombre:
-                        titulo,
-
-                        ...datos
-
-                    });
-
-
-                    const opcion =
-                    document.createElement(
-                        "option"
-                    );
-
-
-                    opcion.value =
-                    documento.id;
-
-
-                    opcion.textContent =
-                    titulo;
-
-
-                    trabajo.appendChild(
-                        opcion
-                    );
-
-                }
+                return;
 
             }
-        );
 
-    }
-    catch(error){
 
-        console.error(
-            "Error cargando trabajos:",
-            error
-        );
+            const descripcionTrabajo =
+            datos.descripcion ||
+            "Trabajo";
+
+
+            trabajos.push({
+
+                id:
+                documento.id,
+
+                descripcion:
+                descripcionTrabajo,
+
+                clienteId:
+                datos.clienteId || "",
+
+                estado:
+                datos.estado || "Pendiente",
+
+                lugar:
+                datos.lugar || "",
+
+                fechaInicio:
+                datos.fechaInicio || ""
+
+            });
+
+
+            const opcion =
+            document.createElement(
+                "option"
+            );
+
+
+            opcion.value =
+            documento.id;
+
+
+            opcion.textContent =
+            descripcionTrabajo;
+
+
+            trabajo.appendChild(
+                opcion
+            );
+
+        }
+    );
+
+
+    if(
+        trabajos.length === 0
+    ){
+
+        trabajo.innerHTML = `
+            <option value="">
+                No hay trabajos disponibles
+            </option>
+        `;
 
     }
 
@@ -1127,7 +1042,7 @@ async function cargarTrabajos(){
 
 
 // ==========================================
-// NOMBRE CLIENTE POR ID
+// CLIENTE POR ID
 // ==========================================
 
 function nombreCliente(
@@ -1152,7 +1067,7 @@ function nombreCliente(
 
 
 // ==========================================
-// NOMBRE TRABAJO
+// TRABAJO POR ID
 // ==========================================
 
 function nombreTrabajo(
@@ -1170,7 +1085,7 @@ function nombreTrabajo(
 
 
     return encontrado
-    ? encontrado.nombre
+    ? encontrado.descripcion
     : "Trabajo";
 
 }
@@ -1209,7 +1124,7 @@ async function cargarCobros(){
         );
 
 
-        let cobros = [];
+        const cobros = [];
 
 
         resultado.forEach(
@@ -1220,21 +1135,29 @@ async function cargarCobros(){
 
 
                 if(
-                    perteneceAlUsuario(
-                        datos
-                    )
+                    datos.usuarioId !==
+                    usuarioActual.uid
+                    &&
+                    datos.empresaId !==
+                    usuarioActual.uid
+                    &&
+                    datos.uid !==
+                    usuarioActual.uid
                 ){
 
-                    cobros.push({
-
-                        id:
-                        documento.id,
-
-                        ...datos
-
-                    });
+                    return;
 
                 }
+
+
+                cobros.push({
+
+                    id:
+                    documento.id,
+
+                    ...datos
+
+                });
 
             }
         );
@@ -1348,7 +1271,7 @@ async function cargarCobros(){
 
 
 // ==========================================
-// CREAR TARJETA
+// CREAR COBRO VISUAL
 // ==========================================
 
 function crearCobro(
@@ -1360,6 +1283,7 @@ function crearCobro(
         "div"
     );
 
+
     tarjeta.className =
     "cobro";
 
@@ -1369,6 +1293,7 @@ function crearCobro(
         "div"
     );
 
+
     cabecera.className =
     "cobro-cabecera";
 
@@ -1377,6 +1302,7 @@ function crearCobro(
     document.createElement(
         "div"
     );
+
 
     nombre.className =
     "cobro-cliente";
@@ -1393,6 +1319,7 @@ function crearCobro(
         "div"
     );
 
+
     monto.className =
     "cobro-importe";
 
@@ -1407,6 +1334,7 @@ function crearCobro(
         nombre
     );
 
+
     cabecera.appendChild(
         monto
     );
@@ -1417,6 +1345,7 @@ function crearCobro(
         "div"
     );
 
+
     datos.className =
     "cobro-datos";
 
@@ -1426,14 +1355,15 @@ function crearCobro(
         "div"
     );
 
+
     fechaDato.className =
     "cobro-dato";
 
-    fechaDato.innerHTML =
-    `
+
+    fechaDato.innerHTML = `
         Fecha
         <strong>
-        ${cobro.fecha || "Sin fecha"}
+            ${cobro.fecha || "Sin fecha"}
         </strong>
     `;
 
@@ -1443,14 +1373,15 @@ function crearCobro(
         "div"
     );
 
+
     medioDato.className =
     "cobro-dato";
 
-    medioDato.innerHTML =
-    `
+
+    medioDato.innerHTML = `
         Medio de pago
         <strong>
-        ${cobro.medioPago || "No informado"}
+            ${cobro.medioPago || "No informado"}
         </strong>
     `;
 
@@ -1458,6 +1389,7 @@ function crearCobro(
     datos.appendChild(
         fechaDato
     );
+
 
     datos.appendChild(
         medioDato
@@ -1473,18 +1405,20 @@ function crearCobro(
             "div"
         );
 
+
         trabajoDato.className =
         "cobro-dato";
 
-        trabajoDato.innerHTML =
-        `
+
+        trabajoDato.innerHTML = `
             Trabajo
             <strong>
-            ${nombreTrabajo(
-                cobro.trabajoId
-            )}
+                ${nombreTrabajo(
+                    cobro.trabajoId
+                )}
             </strong>
         `;
+
 
         datos.appendChild(
             trabajoDato
@@ -1496,6 +1430,7 @@ function crearCobro(
     tarjeta.appendChild(
         cabecera
     );
+
 
     tarjeta.appendChild(
         datos
@@ -1511,11 +1446,14 @@ function crearCobro(
             "div"
         );
 
+
         observacion.className =
         "cobro-observaciones";
 
+
         observacion.textContent =
         cobro.observaciones;
+
 
         tarjeta.appendChild(
             observacion
@@ -1529,11 +1467,14 @@ function crearCobro(
         "button"
     );
 
+
     eliminar.type =
     "button";
 
+
     eliminar.className =
     "btn-eliminar";
+
 
     eliminar.textContent =
     "Eliminar cobro";
@@ -1635,6 +1576,7 @@ btnGuardar.addEventListener(
         btnGuardar.disabled =
         true;
 
+
         btnGuardar.textContent =
         "Guardando...";
 
@@ -1649,6 +1591,9 @@ btnGuardar.addEventListener(
                 {
 
                     usuarioId:
+                    usuarioActual.uid,
+
+                    empresaId:
                     usuarioActual.uid,
 
                     clienteId:
@@ -1721,6 +1666,7 @@ btnGuardar.addEventListener(
             btnGuardar.disabled =
             false;
 
+
             btnGuardar.textContent =
             "💵 Registrar cobro";
 
@@ -1731,7 +1677,7 @@ btnGuardar.addEventListener(
 
 
 // ==========================================
-// ELIMINAR
+// ELIMINAR COBRO
 // ==========================================
 
 async function eliminarCobro(
@@ -1817,11 +1763,30 @@ onAuthStateChanged(
         usuario;
 
 
-        await cargarClientes();
+        try{
 
-        await cargarTrabajos();
+            await cargarClientes();
 
-        await cargarCobros();
+            await cargarTrabajos();
+
+            await cargarCobros();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error inicializando Cobros:",
+                error
+            );
+
+
+            mostrarEstado(
+                "No se pudo cargar el módulo Cobros. " +
+                error.message,
+                "error"
+            );
+
+        }
 
     }
 );
