@@ -1,0 +1,2446 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+
+<title>Rentabilidad - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+    min-height:100vh;
+}
+
+.app{
+    width:100%;
+    max-width:1100px;
+    margin:auto;
+    min-height:100vh;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:20px;
+}
+
+.header-content{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.btn-volver{
+    border:none;
+    background:#374151;
+    color:white;
+    width:42px;
+    height:42px;
+    border-radius:10px;
+    font-size:21px;
+    cursor:pointer;
+}
+
+.logo{
+    font-size:24px;
+    font-weight:bold;
+}
+
+.subtitulo{
+    color:#d1d5db;
+    font-size:13px;
+    margin-top:4px;
+}
+
+main{
+    padding:20px;
+}
+
+.titulo{
+    font-size:28px;
+    margin-bottom:6px;
+}
+
+.descripcion{
+    color:#6b7280;
+    font-size:14px;
+    margin-bottom:20px;
+}
+
+.card{
+    background:white;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:18px;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.card h2{
+    font-size:19px;
+    margin-bottom:15px;
+}
+
+.filtros{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:12px;
+}
+
+.campo label{
+    display:block;
+    font-size:13px;
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+input,
+select{
+    width:100%;
+    padding:12px;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    background:white;
+    font-size:15px;
+    color:#111827;
+}
+
+.btn{
+    border:none;
+    border-radius:9px;
+    padding:12px 16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.btn-negro{
+    background:#111827;
+    color:white;
+}
+
+.btn-gris{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.resumen{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.resumen-card{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:18px;
+}
+
+.resumen-label{
+    color:#6b7280;
+    font-size:12px;
+    margin-bottom:8px;
+}
+
+.resumen-valor{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.verde{
+    color:#15803d;
+}
+
+.rojo{
+    color:#b91c1c;
+}
+
+.azul{
+    color:#1d4ed8;
+}
+
+.gris{
+    color:#111827;
+}
+
+.estado{
+    display:none;
+    padding:13px;
+    border-radius:10px;
+    margin-bottom:18px;
+    font-size:14px;
+}
+
+.estado.visible{
+    display:block;
+}
+
+.estado.error{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.estado.exito{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado.info{
+    background:#dbeafe;
+    color:#1e40af;
+}
+
+.grafico-barras{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.barra-item{
+    display:grid;
+    grid-template-columns:150px 1fr 120px;
+    align-items:center;
+    gap:10px;
+}
+
+.barra-nombre{
+    font-size:13px;
+    font-weight:bold;
+}
+
+.barra-fondo{
+    height:22px;
+    background:#e5e7eb;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.barra{
+    height:100%;
+    background:#111827;
+    border-radius:20px;
+    min-width:2px;
+}
+
+.barra-valor{
+    text-align:right;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.tabla-contenedor{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:700px;
+}
+
+th{
+    background:#111827;
+    color:white;
+    padding:12px;
+    text-align:left;
+    font-size:12px;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #e5e7eb;
+    font-size:13px;
+}
+
+.badge{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.badge-ganancia{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.badge-perdida{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.badge-neutro{
+    background:#e5e7eb;
+    color:#374151;
+}
+
+.cargando{
+    text-align:center;
+    padding:30px;
+    color:#6b7280;
+}
+
+.sin-datos{
+    text-align:center;
+    padding:30px;
+    color:#6b7280;
+    background:#f9fafb;
+    border-radius:10px;
+}
+
+.detalle-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.detalle-box{
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:15px;
+}
+
+.detalle-box h3{
+    font-size:15px;
+    margin-bottom:10px;
+}
+
+.lista-detalle{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.linea{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 0;
+    border-bottom:1px solid #f3f4f6;
+    font-size:13px;
+}
+
+.linea:last-child{
+    border-bottom:none;
+}
+
+.pie{
+    text-align:center;
+    color:#6b7280;
+    font-size:12px;
+    margin:25px 0;
+}
+
+@media(max-width:800px){
+
+    .resumen{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .filtros{
+        grid-template-columns:1fr 1fr;
+    }
+
+}
+
+@media(max-width:600px){
+
+    main{
+        padding:15px;
+    }
+
+    .titulo{
+        font-size:24px;
+    }
+
+    .resumen{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .filtros{
+        grid-template-columns:1fr;
+    }
+
+    .detalle-grid{
+        grid-template-columns:1fr;
+    }
+
+    .barra-item{
+        grid-template-columns:1fr;
+        gap:5px;
+    }
+
+    .barra-valor{
+        text-align:left;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+<header>
+
+<div class="header-content">
+
+<button
+    id="btnVolver"
+    class="btn-volver"
+    type="button"
+>
+←
+</button>
+
+<div>
+
+<div class="logo">
+GESBASE
+</div>
+
+<div class="subtitulo">
+Tu empresa. Todo organizado.
+</div>
+
+</div>
+
+</div>
+
+</header>
+
+
+<main>
+
+
+<h1 class="titulo">
+📈 Rentabilidad
+</h1>
+
+<p class="descripcion">
+Analizá cuánto cobrás, cuánto gastás y cuánto realmente ganás.
+</p>
+
+
+<div
+    id="estado"
+    class="estado"
+></div>
+
+
+<!-- ======================================
+     FILTROS
+====================================== -->
+
+<section class="card">
+
+<h2>
+Período de análisis
+</h2>
+
+<div class="filtros">
+
+<div class="campo">
+
+<label for="periodo">
+Período
+</label>
+
+<select id="periodo">
+
+<option value="mes_actual">
+Este mes
+</option>
+
+<option value="mes_anterior">
+Mes anterior
+</option>
+
+<option value="tres_meses">
+Últimos 3 meses
+</option>
+
+<option value="anio">
+Este año
+</option>
+
+<option value="todo">
+Todo
+</option>
+
+<option value="personalizado">
+Personalizado
+</option>
+
+</select>
+
+</div>
+
+
+<div
+    class="campo"
+    id="campoDesde"
+    style="display:none;"
+>
+
+<label for="desde">
+Desde
+</label>
+
+<input
+    type="date"
+    id="desde"
+>
+
+</div>
+
+
+<div
+    class="campo"
+    id="campoHasta"
+    style="display:none;"
+>
+
+<label for="hasta">
+Hasta
+</label>
+
+<input
+    type="date"
+    id="hasta"
+>
+
+</div>
+
+</div>
+
+<br>
+
+<button
+    id="btnActualizar"
+    class="btn btn-negro"
+    type="button"
+>
+🔄 Actualizar rentabilidad
+</button>
+
+</section>
+
+
+<!-- ======================================
+     RESUMEN
+====================================== -->
+
+<section class="resumen">
+
+<div class="resumen-card">
+
+<div class="resumen-label">
+💰 Total cobrado
+</div>
+
+<div
+    id="totalCobrado"
+    class="resumen-valor verde"
+>
+$0,00
+</div>
+
+</div>
+
+
+<div class="resumen-card">
+
+<div class="resumen-label">
+💸 Total gastado
+</div>
+
+<div
+    id="totalGastado"
+    class="resumen-valor rojo"
+>
+$0,00
+</div>
+
+</div>
+
+
+<div class="resumen-card">
+
+<div class="resumen-label">
+📈 Rentabilidad
+</div>
+
+<div
+    id="rentabilidad"
+    class="resumen-valor azul"
+>
+$0,00
+</div>
+
+</div>
+
+
+<div class="resumen-card">
+
+<div class="resumen-label">
+📊 Margen
+</div>
+
+<div
+    id="margen"
+    class="resumen-valor gris"
+>
+0%
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ======================================
+     CANTIDADES
+====================================== -->
+
+<section class="card">
+
+<h2>
+Resumen de actividad
+</h2>
+
+<div class="detalle-grid">
+
+<div class="detalle-box">
+
+<h3>
+Ingresos
+</h3>
+
+<div class="linea">
+
+<span>
+Cantidad de cobros
+</span>
+
+<strong id="cantidadCobros">
+0
+</strong>
+
+</div>
+
+<div class="linea">
+
+<span>
+Promedio por cobro
+</span>
+
+<strong id="promedioCobro">
+$0,00
+</strong>
+
+</div>
+
+</div>
+
+
+<div class="detalle-box">
+
+<h3>
+Gastos
+</h3>
+
+<div class="linea">
+
+<span>
+Cantidad de gastos
+</span>
+
+<strong id="cantidadGastos">
+0
+</strong>
+
+</div>
+
+<div class="linea">
+
+<span>
+Promedio por gasto
+</span>
+
+<strong id="promedioGasto">
+$0,00
+</strong>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ======================================
+     GASTOS POR CATEGORÍA
+====================================== -->
+
+<section class="card">
+
+<h2>
+💸 Gastos por categoría
+</h2>
+
+<div
+    id="graficoCategorias"
+    class="grafico-barras"
+>
+
+<div class="cargando">
+Cargando...
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ======================================
+     RENTABILIDAD POR TRABAJO
+====================================== -->
+
+<section class="card">
+
+<h2>
+🔧 Rentabilidad por trabajo
+</h2>
+
+<div class="tabla-contenedor">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>
+Trabajo
+</th>
+
+<th>
+Cliente
+</th>
+
+<th>
+Cobrado
+</th>
+
+<th>
+Gastado
+</th>
+
+<th>
+Rentabilidad
+</th>
+
+<th>
+Margen
+</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tablaTrabajos">
+
+<tr>
+
+<td
+    colspan="6"
+    class="cargando"
+>
+Cargando...
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<!-- ======================================
+     DETALLE
+====================================== -->
+
+<section class="card">
+
+<h2>
+📋 Detalle económico
+</h2>
+
+<div class="detalle-grid">
+
+<div class="detalle-box">
+
+<h3>
+Ingresos registrados
+</h3>
+
+<div
+    id="listaIngresos"
+    class="lista-detalle"
+>
+
+<div class="cargando">
+Cargando...
+</div>
+
+</div>
+
+</div>
+
+
+<div class="detalle-box">
+
+<h3>
+Gastos registrados
+</h3>
+
+<div
+    id="listaGastos"
+    class="lista-detalle"
+>
+
+<div class="cargando">
+Cargando...
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<div class="pie">
+GESBASE — Del presupuesto a la rentabilidad.
+</div>
+
+
+</main>
+
+</div>
+
+
+<script type="module">
+
+
+// ==========================================
+// FIREBASE
+// ==========================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+import {
+    collection,
+    getDocs
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const btnVolver =
+document.getElementById("btnVolver");
+
+const btnActualizar =
+document.getElementById("btnActualizar");
+
+const periodo =
+document.getElementById("periodo");
+
+const desde =
+document.getElementById("desde");
+
+const hasta =
+document.getElementById("hasta");
+
+const campoDesde =
+document.getElementById("campoDesde");
+
+const campoHasta =
+document.getElementById("campoHasta");
+
+const estado =
+document.getElementById("estado");
+
+
+// ==========================================
+// VARIABLES
+// ==========================================
+
+let usuarioActual = null;
+
+let cobros = [];
+
+let gastos = [];
+
+let trabajos = [];
+
+let clientes = [];
+
+
+// ==========================================
+// VOLVER
+// ==========================================
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "index.html";
+
+    }
+);
+
+
+// ==========================================
+// MENSAJE
+// ==========================================
+
+function mostrarEstado(
+    texto,
+    tipo
+){
+
+    estado.textContent =
+    texto;
+
+    estado.className =
+    "estado visible " +
+    tipo;
+
+}
+
+
+// ==========================================
+// MONEDA
+// ==========================================
+
+function moneda(valor){
+
+    return Number(
+        valor || 0
+    ).toLocaleString(
+        "es-AR",
+        {
+            style:"currency",
+            currency:"ARS"
+        }
+    );
+
+}
+
+
+// ==========================================
+// FECHA LOCAL
+// ==========================================
+
+function fechaLocal(){
+
+    const ahora =
+    new Date();
+
+    const año =
+    ahora.getFullYear();
+
+    const mes =
+    String(
+        ahora.getMonth()+1
+    ).padStart(2,"0");
+
+    const dia =
+    String(
+        ahora.getDate()
+    ).padStart(2,"0");
+
+    return `${año}-${mes}-${dia}`;
+
+}
+
+
+// ==========================================
+// FECHA INICIO / FIN
+// ==========================================
+
+function obtenerPeriodo(){
+
+    const hoy =
+    new Date();
+
+    let inicio = "";
+    let fin = fechaLocal();
+
+
+    if(
+        periodo.value ===
+        "todo"
+    ){
+
+        return {
+            inicio:"",
+            fin:""
+        };
+
+    }
+
+
+    if(
+        periodo.value ===
+        "personalizado"
+    ){
+
+        return {
+            inicio:
+            desde.value,
+
+            fin:
+            hasta.value
+        };
+
+    }
+
+
+    const año =
+    hoy.getFullYear();
+
+    const mes =
+    hoy.getMonth();
+
+
+    if(
+        periodo.value ===
+        "mes_actual"
+    ){
+
+        inicio =
+        `${año}-${String(mes+1).padStart(2,"0")}-01`;
+
+    }
+
+
+    if(
+        periodo.value ===
+        "mes_anterior"
+    ){
+
+        const fecha =
+        new Date(
+            año,
+            mes-1,
+            1
+        );
+
+        const añoAnterior =
+        fecha.getFullYear();
+
+        const mesAnterior =
+        fecha.getMonth()+1;
+
+        inicio =
+        `${añoAnterior}-${String(mesAnterior).padStart(2,"0")}-01`;
+
+
+        const ultimoDia =
+        new Date(
+            año,
+            mes,
+            0
+        ).getDate();
+
+        fin =
+        `${añoAnterior}-${String(mesAnterior).padStart(2,"0")}-${String(ultimoDia).padStart(2,"0")}`;
+
+    }
+
+
+    if(
+        periodo.value ===
+        "tres_meses"
+    ){
+
+        const fecha =
+        new Date(
+            año,
+            mes-2,
+            1
+        );
+
+        inicio =
+        `${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2,"0")}-01`;
+
+    }
+
+
+    if(
+        periodo.value ===
+        "anio"
+    ){
+
+        inicio =
+        `${año}-01-01`;
+
+    }
+
+
+    return {
+        inicio,
+        fin
+    };
+
+}
+
+
+// ==========================================
+// CAMBIO DE PERÍODO
+// ==========================================
+
+periodo.addEventListener(
+    "change",
+    function(){
+
+        const personalizado =
+        periodo.value ===
+        "personalizado";
+
+
+        campoDesde.style.display =
+        personalizado
+        ? "block"
+        : "none";
+
+
+        campoHasta.style.display =
+        personalizado
+        ? "block"
+        : "none";
+
+    }
+);
+
+
+// ==========================================
+// FILTRAR FECHA
+// ==========================================
+
+function estaEnPeriodo(
+    fechaDato
+){
+
+    if(!fechaDato){
+        return false;
+    }
+
+
+    const periodoActual =
+    obtenerPeriodo();
+
+
+    if(
+        periodoActual.inicio &&
+        fechaDato <
+        periodoActual.inicio
+    ){
+
+        return false;
+
+    }
+
+
+    if(
+        periodoActual.fin &&
+        fechaDato >
+        periodoActual.fin
+    ){
+
+        return false;
+
+    }
+
+
+    return true;
+
+}
+
+
+// ==========================================
+// CARGAR COLECCIONES
+// ==========================================
+
+async function cargarDatos(){
+
+    const [
+        snapCobros,
+        snapGastos,
+        snapTrabajos,
+        snapClientes
+    ] = await Promise.all([
+
+        getDocs(
+            collection(
+                db,
+                "cobros"
+            )
+        ),
+
+        getDocs(
+            collection(
+                db,
+                "gastos"
+            )
+        ),
+
+        getDocs(
+            collection(
+                db,
+                "trabajos"
+            )
+        ),
+
+        getDocs(
+            collection(
+                db,
+                "clientes"
+            )
+        )
+
+    ]);
+
+
+    cobros = [];
+
+    gastos = [];
+
+    trabajos = [];
+
+    clientes = [];
+
+
+    snapCobros.forEach(
+        documento => {
+
+            const datos =
+            documento.data();
+
+
+            if(
+                datos.usuarioId !==
+                usuarioActual.uid
+                &&
+                datos.empresaId !==
+                usuarioActual.uid
+                &&
+                datos.uid !==
+                usuarioActual.uid
+            ){
+
+                return;
+
+            }
+
+
+            cobros.push({
+
+                id:
+                documento.id,
+
+                ...datos
+
+            });
+
+        }
+    );
+
+
+    snapGastos.forEach(
+        documento => {
+
+            const datos =
+            documento.data();
+
+
+            if(
+                datos.usuarioId !==
+                usuarioActual.uid
+                &&
+                datos.empresaId !==
+                usuarioActual.uid
+                &&
+                datos.uid !==
+                usuarioActual.uid
+            ){
+
+                return;
+
+            }
+
+
+            gastos.push({
+
+                id:
+                documento.id,
+
+                ...datos
+
+            });
+
+        }
+    );
+
+
+    snapTrabajos.forEach(
+        documento => {
+
+            const datos =
+            documento.data();
+
+
+            if(
+                datos.empresaId !==
+                usuarioActual.uid
+            ){
+
+                return;
+
+            }
+
+
+            trabajos.push({
+
+                id:
+                documento.id,
+
+                ...datos
+
+            });
+
+        }
+    );
+
+
+    snapClientes.forEach(
+        documento => {
+
+            const datos =
+            documento.data();
+
+
+            if(
+                datos.uid !==
+                usuarioActual.uid
+                &&
+                datos.empresaId !==
+                usuarioActual.uid
+            ){
+
+                return;
+
+            }
+
+
+            clientes.push({
+
+                id:
+                documento.id,
+
+                ...datos
+
+            });
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// NOMBRE CLIENTE
+// ==========================================
+
+function nombreCliente(
+    id
+){
+
+    const cliente =
+    clientes.find(
+        item =>
+        item.id === id
+    );
+
+
+    if(!cliente){
+
+        return "Cliente";
+
+    }
+
+
+    const nombre = [
+
+        cliente.nombre,
+        cliente.apellido
+
+    ]
+    .filter(Boolean)
+    .join(" ");
+
+
+    return (
+        nombre ||
+        cliente.empresa ||
+        cliente.razonSocial ||
+        cliente.razon_social ||
+        "Cliente"
+    );
+
+}
+
+
+// ==========================================
+// NOMBRE TRABAJO
+// ==========================================
+
+function nombreTrabajo(
+    id
+){
+
+    const trabajo =
+    trabajos.find(
+        item =>
+        item.id === id
+    );
+
+
+    if(!trabajo){
+
+        return "Sin trabajo";
+
+    }
+
+
+    return (
+        trabajo.descripcion ||
+        trabajo.nombre ||
+        "Trabajo"
+    );
+
+}
+
+
+// ==========================================
+// DATOS FILTRADOS
+// ==========================================
+
+function obtenerDatos(){
+
+    const cobrosFiltrados =
+    cobros.filter(
+        item =>
+        estaEnPeriodo(
+            item.fecha
+        )
+    );
+
+
+    const gastosFiltrados =
+    gastos.filter(
+        item =>
+        estaEnPeriodo(
+            item.fecha
+        )
+    );
+
+
+    return {
+        cobrosFiltrados,
+        gastosFiltrados
+    };
+
+}
+
+
+// ==========================================
+// RESUMEN
+// ==========================================
+
+function mostrarResumen(
+    cobrosFiltrados,
+    gastosFiltrados
+){
+
+    let totalCobrado = 0;
+    let totalGastado = 0;
+
+
+    cobrosFiltrados.forEach(
+        item => {
+
+            totalCobrado +=
+            Number(
+                item.importe || 0
+            );
+
+        }
+    );
+
+
+    gastosFiltrados.forEach(
+        item => {
+
+            totalGastado +=
+            Number(
+                item.importe || 0
+            );
+
+        }
+    );
+
+
+    const resultado =
+    totalCobrado -
+    totalGastado;
+
+
+    const margen =
+    totalCobrado > 0
+    ? (
+        resultado /
+        totalCobrado
+    ) * 100
+    : 0;
+
+
+    document.getElementById(
+        "totalCobrado"
+    ).textContent =
+    moneda(
+        totalCobrado
+    );
+
+
+    document.getElementById(
+        "totalGastado"
+    ).textContent =
+    moneda(
+        totalGastado
+    );
+
+
+    const rentabilidad =
+    document.getElementById(
+        "rentabilidad"
+    );
+
+
+    rentabilidad.textContent =
+    moneda(
+        resultado
+    );
+
+
+    rentabilidad.className =
+    "resumen-valor " +
+    (
+        resultado >= 0
+        ? "verde"
+        : "rojo"
+    );
+
+
+    const margenElemento =
+    document.getElementById(
+        "margen"
+    );
+
+
+    margenElemento.textContent =
+    margen.toFixed(1) +
+    "%";
+
+
+    margenElemento.className =
+    "resumen-valor " +
+    (
+        margen >= 0
+        ? "verde"
+        : "rojo"
+    );
+
+
+    document.getElementById(
+        "cantidadCobros"
+    ).textContent =
+    cobrosFiltrados.length;
+
+
+    document.getElementById(
+        "cantidadGastos"
+    ).textContent =
+    gastosFiltrados.length;
+
+
+    document.getElementById(
+        "promedioCobro"
+    ).textContent =
+    moneda(
+        cobrosFiltrados.length
+        ? totalCobrado /
+          cobrosFiltrados.length
+        : 0
+    );
+
+
+    document.getElementById(
+        "promedioGasto"
+    ).textContent =
+    moneda(
+        gastosFiltrados.length
+        ? totalGastado /
+          gastosFiltrados.length
+        : 0
+    );
+
+}
+
+
+// ==========================================
+// GASTOS POR CATEGORÍA
+// ==========================================
+
+function mostrarCategorias(
+    gastosFiltrados
+){
+
+    const contenedor =
+    document.getElementById(
+        "graficoCategorias"
+    );
+
+
+    const categorias = {};
+
+
+    gastosFiltrados.forEach(
+        gasto => {
+
+            const categoria =
+            gasto.categoria ||
+            "otros";
+
+
+            if(
+                !categorias[categoria]
+            ){
+
+                categorias[categoria] =
+                0;
+
+            }
+
+
+            categorias[categoria] +=
+            Number(
+                gasto.importe || 0
+            );
+
+        }
+    );
+
+
+    const nombres = {
+
+        empleados:
+        "Empleados",
+
+        materiales:
+        "Materiales",
+
+        viaticos:
+        "Viáticos",
+
+        herramientas:
+        "Herramientas",
+
+        hospedaje:
+        "Hospedaje",
+
+        fletes:
+        "Fletes",
+
+        servicios_externos:
+        "Servicios externos",
+
+        otros:
+        "Otros"
+
+    };
+
+
+    const lista =
+    Object.entries(
+        categorias
+    )
+    .sort(
+        (a,b) =>
+        b[1] - a[1]
+    );
+
+
+    if(
+        lista.length === 0
+    ){
+
+        contenedor.innerHTML = `
+            <div class="sin-datos">
+                No hay gastos en el período seleccionado.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    const maximo =
+    Math.max(
+        ...lista.map(
+            item => item[1]
+        )
+    );
+
+
+    contenedor.innerHTML =
+    "";
+
+
+    lista.forEach(
+        ([categoria,valor]) => {
+
+            const porcentaje =
+            maximo > 0
+            ? (
+                valor /
+                maximo
+            ) * 100
+            : 0;
+
+
+            const item =
+            document.createElement(
+                "div"
+            );
+
+
+            item.className =
+            "barra-item";
+
+
+            item.innerHTML = `
+
+                <div class="barra-nombre">
+                    ${
+                        nombres[categoria]
+                        ||
+                        categoria
+                    }
+                </div>
+
+                <div class="barra-fondo">
+
+                    <div
+                        class="barra"
+                        style="width:${porcentaje}%"
+                    ></div>
+
+                </div>
+
+                <div class="barra-valor">
+                    ${moneda(valor)}
+                </div>
+
+            `;
+
+
+            contenedor.appendChild(
+                item
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// RENTABILIDAD POR TRABAJO
+// ==========================================
+
+function mostrarTrabajos(
+    cobrosFiltrados,
+    gastosFiltrados
+){
+
+    const tabla =
+    document.getElementById(
+        "tablaTrabajos"
+    );
+
+
+    const datos = {};
+
+
+    trabajos.forEach(
+        trabajo => {
+
+            datos[trabajo.id] = {
+
+                id:
+                trabajo.id,
+
+                nombre:
+                trabajo.descripcion ||
+                trabajo.nombre ||
+                "Trabajo",
+
+                clienteId:
+                trabajo.clienteId ||
+                "",
+
+                cobrado:0,
+
+                gastado:0
+
+            };
+
+        }
+    );
+
+
+    cobrosFiltrados.forEach(
+        cobro => {
+
+            const id =
+            cobro.trabajoId;
+
+
+            if(!id){
+
+                return;
+
+            }
+
+
+            if(!datos[id]){
+
+                datos[id] = {
+
+                    id:id,
+
+                    nombre:
+                    nombreTrabajo(id),
+
+                    clienteId:
+                    cobro.clienteId ||
+                    "",
+
+                    cobrado:0,
+
+                    gastado:0
+
+                };
+
+            }
+
+
+            datos[id].cobrado +=
+            Number(
+                cobro.importe || 0
+            );
+
+        }
+    );
+
+
+    gastosFiltrados.forEach(
+        gasto => {
+
+            const id =
+            gasto.trabajoId ||
+            gasto.trabajo ||
+            "";
+
+
+            if(!id){
+
+                return;
+
+            }
+
+
+            if(!datos[id]){
+
+                datos[id] = {
+
+                    id:id,
+
+                    nombre:
+                    nombreTrabajo(id),
+
+                    clienteId:
+                    "",
+
+                    cobrado:0,
+
+                    gastado:0
+
+                };
+
+            }
+
+
+            datos[id].gastado +=
+            Number(
+                gasto.importe || 0
+            );
+
+        }
+    );
+
+
+    const lista =
+    Object.values(
+        datos
+    )
+    .filter(
+        item =>
+        item.cobrado > 0 ||
+        item.gastado > 0
+    )
+    .sort(
+        (a,b) =>
+        (
+            b.cobrado -
+            b.gastado
+        )
+        -
+        (
+            a.cobrado -
+            a.gastado
+        )
+    );
+
+
+    tabla.innerHTML =
+    "";
+
+
+    if(
+        lista.length === 0
+    ){
+
+        tabla.innerHTML = `
+            <tr>
+                <td colspan="6">
+                    <div class="sin-datos">
+                        No hay datos de trabajos para el período seleccionado.
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    lista.forEach(
+        item => {
+
+            const resultado =
+            item.cobrado -
+            item.gastado;
+
+
+            const margen =
+            item.cobrado > 0
+            ? (
+                resultado /
+                item.cobrado
+            ) * 100
+            : 0;
+
+
+            const tr =
+            document.createElement(
+                "tr"
+            );
+
+
+            tr.innerHTML = `
+
+                <td>
+                    <strong>
+                        ${escapar(
+                            item.nombre
+                        )}
+                    </strong>
+                </td>
+
+                <td>
+                    ${escapar(
+                        nombreCliente(
+                            item.clienteId
+                        )
+                    )}
+                </td>
+
+                <td>
+                    ${moneda(
+                        item.cobrado
+                    )}
+                </td>
+
+                <td>
+                    ${moneda(
+                        item.gastado
+                    )}
+                </td>
+
+                <td>
+
+                    <span class="badge ${
+                        resultado >= 0
+                        ? "badge-ganancia"
+                        : "badge-perdida"
+                    }">
+
+                        ${moneda(
+                            resultado
+                        )}
+
+                    </span>
+
+                </td>
+
+                <td>
+
+                    <span class="badge ${
+                        margen >= 0
+                        ? "badge-ganancia"
+                        : "badge-perdida"
+                    }">
+
+                        ${margen.toFixed(1)}%
+
+                    </span>
+
+                </td>
+
+            `;
+
+
+            tabla.appendChild(
+                tr
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// ESCAPAR
+// ==========================================
+
+function escapar(
+    valor
+){
+
+    return String(
+        valor ?? ""
+    )
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+// ==========================================
+// DETALLE INGRESOS
+// ==========================================
+
+function mostrarIngresos(
+    cobrosFiltrados
+){
+
+    const contenedor =
+    document.getElementById(
+        "listaIngresos"
+    );
+
+
+    if(
+        cobrosFiltrados.length === 0
+    ){
+
+        contenedor.innerHTML = `
+            <div class="sin-datos">
+                No hay cobros en este período.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    const ordenados =
+    [...cobrosFiltrados]
+    .sort(
+        (a,b) =>
+        String(
+            b.fecha || ""
+        )
+        .localeCompare(
+            String(
+                a.fecha || ""
+            )
+        )
+    )
+    .slice(
+        0,
+        15
+    );
+
+
+    contenedor.innerHTML =
+    "";
+
+
+    ordenados.forEach(
+        cobro => {
+
+            const linea =
+            document.createElement(
+                "div"
+            );
+
+
+            linea.className =
+            "linea";
+
+
+            linea.innerHTML = `
+
+                <span>
+
+                    ${escapar(
+                        nombreCliente(
+                            cobro.clienteId
+                        )
+                    )}
+
+                    <small>
+                        ${escapar(
+                            cobro.fecha ||
+                            ""
+                        )}
+                    </small>
+
+                </span>
+
+                <strong>
+                    ${moneda(
+                        cobro.importe
+                    )}
+                </strong>
+
+            `;
+
+
+            contenedor.appendChild(
+                linea
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// DETALLE GASTOS
+// ==========================================
+
+function mostrarGastos(
+    gastosFiltrados
+){
+
+    const contenedor =
+    document.getElementById(
+        "listaGastos"
+    );
+
+
+    if(
+        gastosFiltrados.length === 0
+    ){
+
+        contenedor.innerHTML = `
+            <div class="sin-datos">
+                No hay gastos en este período.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    const ordenados =
+    [...gastosFiltrados]
+    .sort(
+        (a,b) =>
+        String(
+            b.fecha || ""
+        )
+        .localeCompare(
+            String(
+                a.fecha || ""
+            )
+        )
+    )
+    .slice(
+        0,
+        15
+    );
+
+
+    contenedor.innerHTML =
+    "";
+
+
+    ordenados.forEach(
+        gasto => {
+
+            const linea =
+            document.createElement(
+                "div"
+            );
+
+
+            linea.className =
+            "linea";
+
+
+            linea.innerHTML = `
+
+                <span>
+
+                    ${escapar(
+                        gasto.descripcion ||
+                        gasto.categoria ||
+                        "Gasto"
+                    )}
+
+                    <small>
+                        ${escapar(
+                            gasto.fecha ||
+                            ""
+                        )}
+                    </small>
+
+                </span>
+
+                <strong>
+                    ${moneda(
+                        gasto.importe
+                    )}
+                </strong>
+
+            `;
+
+
+            contenedor.appendChild(
+                linea
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// ACTUALIZAR TODO
+// ==========================================
+
+async function actualizar(){
+
+    if(!usuarioActual){
+
+        return;
+
+    }
+
+
+    try{
+
+        mostrarEstado(
+            "Actualizando información...",
+            "info"
+        );
+
+
+        await cargarDatos();
+
+
+        const datos =
+        obtenerDatos();
+
+
+        mostrarResumen(
+            datos.cobrosFiltrados,
+            datos.gastosFiltrados
+        );
+
+
+        mostrarCategorias(
+            datos.gastosFiltrados
+        );
+
+
+        mostrarTrabajos(
+            datos.cobrosFiltrados,
+            datos.gastosFiltrados
+        );
+
+
+        mostrarIngresos(
+            datos.cobrosFiltrados
+        );
+
+
+        mostrarGastos(
+            datos.gastosFiltrados
+        );
+
+
+        estado.className =
+        "estado";
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Error en Rentabilidad:",
+            error
+        );
+
+
+        mostrarEstado(
+            "No se pudo cargar Rentabilidad. " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// BOTÓN ACTUALIZAR
+// ==========================================
+
+btnActualizar.addEventListener(
+    "click",
+    actualizar
+);
+
+
+// ==========================================
+// INICIO
+// ==========================================
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+        usuario;
+
+
+        await actualizar();
+
+    }
+);
+
+</script>
+
+</body>
+
+  </html>
