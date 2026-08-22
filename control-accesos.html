@@ -26,7 +26,7 @@ body{
 }
 
 .app{
-    max-width:1200px;
+    max-width:1100px;
     margin:auto;
     background:#fff;
     min-height:100vh;
@@ -35,7 +35,7 @@ body{
 header{
     background:#111827;
     color:#fff;
-    padding:24px;
+    padding:24px 20px;
 }
 
 header h1{
@@ -45,6 +45,7 @@ header h1{
 header p{
     color:#d1d5db;
     margin-top:6px;
+    font-size:14px;
 }
 
 main{
@@ -137,22 +138,22 @@ button{
 table{
     width:100%;
     border-collapse:collapse;
-    min-width:1450px;
+    min-width:1050px;
 }
 
 th{
     background:#111827;
     color:#fff;
-    padding:12px;
+    padding:12px 10px;
     font-size:12px;
     text-align:left;
     white-space:nowrap;
 }
 
 td{
-    padding:12px;
+    padding:13px 10px;
     border-bottom:1px solid #e5e7eb;
-    vertical-align:top;
+    vertical-align:middle;
     font-size:13px;
 }
 
@@ -160,29 +161,14 @@ tr:hover{
     background:#f9fafb;
 }
 
-.dato-principal{
+.empresa{
     font-weight:bold;
     font-size:14px;
 }
 
-.dato-secundario{
-    color:#6b7280;
-    font-size:12px;
-    margin-top:4px;
-}
-
-.selector-plan{
+.selector{
     width:150px;
-    padding:8px;
-    border:1px solid #d1d5db;
-    border-radius:8px;
-    font-weight:bold;
-    background:#fff;
-}
-
-.selector-acceso{
-    width:150px;
-    padding:8px;
+    padding:9px;
     border:1px solid #d1d5db;
     border-radius:8px;
     font-weight:bold;
@@ -210,8 +196,8 @@ tr:hover{
 
 .mensaje{
     display:none;
-    padding:12px;
-    border-radius:8px;
+    padding:13px;
+    border-radius:9px;
     margin-bottom:15px;
     font-size:14px;
 }
@@ -232,47 +218,6 @@ tr:hover{
     text-align:center;
     padding:30px;
     color:#6b7280;
-}
-
-.empresa-id{
-    font-family:monospace;
-    font-size:11px;
-    color:#6b7280;
-    word-break:break-all;
-    max-width:180px;
-}
-
-.logo-preview{
-    width:45px;
-    height:45px;
-    object-fit:contain;
-    border-radius:8px;
-    border:1px solid #e5e7eb;
-    background:#fff;
-}
-
-.sin-logo{
-    width:45px;
-    height:45px;
-    border-radius:8px;
-    background:#f3f4f6;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:20px;
-}
-
-.acciones{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-}
-
-.info-extra{
-    display:block;
-    margin-top:4px;
-    color:#6b7280;
-    font-size:11px;
 }
 
 @media(max-width:700px){
@@ -334,7 +279,7 @@ class="mensaje"
 
 Desde este panel podés consultar los datos de cada
 empresa, habilitar o bloquear su acceso y seleccionar
-el tipo de plan habilitado.
+el tipo de acceso disponible.
 
 </div>
 
@@ -342,8 +287,8 @@ el tipo de plan habilitado.
 <div class="botones">
 
 <button
-class="btn"
 id="btnActualizar"
+class="btn"
 type="button"
 >
 🔄 Actualizar
@@ -351,8 +296,8 @@ type="button"
 
 
 <button
-class="btn-gris"
 id="btnVolver"
+class="btn-gris"
 type="button"
 >
 ← Volver
@@ -413,19 +358,19 @@ Accesos bloqueados
 
 
 <!-- ==========================================
-     TABLA
+     EMPRESAS
 ========================================== -->
 
 <div class="tarjeta">
 
 <div class="titulo">
-📋 Datos completos de empresas
+📋 Empresas registradas
 </div>
 
 <div class="descripcion">
 
-La información se obtiene directamente de la colección
-<strong>empresas</strong> de Firebase.
+Información administrativa de las empresas
+registradas en GESBASE.
 
 </div>
 
@@ -437,14 +382,6 @@ La información se obtiene directamente de la colección
 <thead>
 
 <tr>
-
-<th>
-ID
-</th>
-
-<th>
-Logo
-</th>
 
 <th>
 Empresa
@@ -464,18 +401,6 @@ Teléfono
 
 <th>
 Email
-</th>
-
-<th>
-Dirección
-</th>
-
-<th>
-Localidad
-</th>
-
-<th>
-Provincia
 </th>
 
 <th>
@@ -504,7 +429,7 @@ Acción
 <tr>
 
 <td
-colspan="14"
+colspan="9"
 class="cargando"
 >
 Cargando empresas...
@@ -591,19 +516,9 @@ document.getElementById(
     "cantBloqueadas"
 );
 
-const btnActualizar =
-document.getElementById(
-    "btnActualizar"
-);
-
-const btnVolver =
-document.getElementById(
-    "btnVolver"
-);
-
 
 // =====================================================
-// UTILIDAD
+// UTILIDADES
 // =====================================================
 
 function texto(valor){
@@ -636,20 +551,24 @@ function escapar(valor){
 
 function obtenerCampo(
     empresa,
-    nombres
+    campos
 ){
 
     for(
-        const nombre of nombres
+        const campo of campos
     ){
 
         if(
-            empresa[nombre] !== undefined &&
-            empresa[nombre] !== null &&
-            texto(empresa[nombre]).trim() !== ""
+            empresa[campo] !== undefined &&
+            empresa[campo] !== null &&
+            texto(
+                empresa[campo]
+            ).trim() !== ""
         ){
 
-            return empresa[nombre];
+            return texto(
+                empresa[campo]
+            );
 
         }
 
@@ -661,7 +580,7 @@ function obtenerCampo(
 
 
 // =====================================================
-// MENSAJES
+// MENSAJE
 // =====================================================
 
 function avisar(
@@ -674,6 +593,10 @@ function avisar(
 
     mensaje.textContent =
     textoMensaje;
+
+    mensaje.style.display =
+    "block";
+
 
     setTimeout(
         function(){
@@ -689,31 +612,6 @@ function avisar(
 
 
 // =====================================================
-// BOTONES
-// =====================================================
-
-btnActualizar.addEventListener(
-    "click",
-    async function(){
-
-        await cargarEmpresas();
-
-    }
-);
-
-
-btnVolver.addEventListener(
-    "click",
-    function(){
-
-        location.href =
-        "index.html";
-
-    }
-);
-
-
-// =====================================================
 // CARGAR EMPRESAS
 // =====================================================
 
@@ -724,7 +622,7 @@ async function cargarEmpresas(){
         tabla.innerHTML = `
         <tr>
             <td
-                colspan="14"
+                colspan="9"
                 class="cargando"
             >
                 Cargando empresas...
@@ -733,7 +631,7 @@ async function cargarEmpresas(){
         `;
 
 
-        const snap =
+        const resultado =
         await getDocs(
             collection(
                 db,
@@ -751,11 +649,11 @@ async function cargarEmpresas(){
         let bloqueadas = 0;
 
 
-        snap.forEach(
-            function(docu){
+        resultado.forEach(
+            function(documento){
 
                 const empresa =
-                docu.data();
+                documento.data();
 
 
                 total++;
@@ -839,38 +737,6 @@ async function cargarEmpresas(){
                 );
 
 
-                const direccion =
-                obtenerCampo(
-                    empresa,
-                    [
-                        "direccion",
-                        "domicilio",
-                        "direccionEmpresa"
-                    ]
-                );
-
-
-                const localidad =
-                obtenerCampo(
-                    empresa,
-                    [
-                        "localidad",
-                        "ciudad",
-                        "localidadEmpresa"
-                    ]
-                );
-
-
-                const provincia =
-                obtenerCampo(
-                    empresa,
-                    [
-                        "provincia",
-                        "provinciaEmpresa"
-                    ]
-                );
-
-
                 const plan =
                 texto(
                     empresa.plan
@@ -881,54 +747,12 @@ async function cargarEmpresas(){
                 const tipoAcceso =
                 texto(
                     empresa.tipoAcceso
-                ) ||
+                ).toLowerCase() ||
                 (
                     accesoHabilitado
                     ? "completo"
                     : "bloqueado"
                 );
-
-
-                // ======================================
-                // LOGO
-                // ======================================
-
-                const logo =
-                obtenerCampo(
-                    empresa,
-                    [
-                        "logoUrl",
-                        "logo",
-                        "logoURL",
-                        "imagenLogo"
-                    ]
-                );
-
-
-                let logoHTML =
-                `
-                <div class="sin-logo">
-                    🏢
-                </div>
-                `;
-
-
-                if(
-                    logo !== "-" &&
-                    texto(logo).startsWith("http")
-                ){
-
-                    logoHTML =
-                    `
-                    <img
-                        class="logo-preview"
-                        src="${escapar(logo)}"
-                        alt="Logo"
-                        onerror="this.style.display='none'"
-                    >
-                    `;
-
-                }
 
 
                 // ======================================
@@ -939,103 +763,43 @@ async function cargarEmpresas(){
 
                 <tr>
 
+
                     <td>
 
-                        <div class="empresa-id">
-                            ${escapar(docu.id)}
+                        <div class="empresa">
+                            ${escapar(nombreEmpresa)}
                         </div>
 
                     </td>
 
 
                     <td>
-
-                        ${logoHTML}
-
+                        ${escapar(razonSocial)}
                     </td>
 
 
                     <td>
-
-                        <div class="dato-principal">
-
-                            ${escapar(
-                                nombreEmpresa
-                            )}
-
-                        </div>
-
+                        ${escapar(cuit)}
                     </td>
 
 
                     <td>
-
-                        ${escapar(
-                            razonSocial
-                        )}
-
+                        ${escapar(telefono)}
                     </td>
 
 
                     <td>
-
-                        ${escapar(
-                            cuit
-                        )}
-
+                        ${escapar(email)}
                     </td>
 
 
-                    <td>
-
-                        ${escapar(
-                            telefono
-                        )}
-
-                    </td>
-
-
-                    <td>
-
-                        ${escapar(
-                            email
-                        )}
-
-                    </td>
-
-
-                    <td>
-
-                        ${escapar(
-                            direccion
-                        )}
-
-                    </td>
-
-
-                    <td>
-
-                        ${escapar(
-                            localidad
-                        )}
-
-                    </td>
-
-
-                    <td>
-
-                        ${escapar(
-                            provincia
-                        )}
-
-                    </td>
-
+                    <!-- PLAN -->
 
                     <td>
 
                         <select
-                            class="selector-plan"
-                            data-id="${escapar(docu.id)}"
+                            class="selector selector-plan"
+                            data-id="${escapar(documento.id)}"
                         >
 
                             <option
@@ -1078,11 +842,13 @@ async function cargarEmpresas(){
                     </td>
 
 
+                    <!-- TIPO DE ACCESO -->
+
                     <td>
 
                         <select
-                            class="selector-acceso"
-                            data-id="${escapar(docu.id)}"
+                            class="selector selector-acceso"
+                            data-id="${escapar(documento.id)}"
                         >
 
                             <option
@@ -1125,6 +891,8 @@ async function cargarEmpresas(){
                     </td>
 
 
+                    <!-- ESTADO -->
+
                     <td>
 
                         <span
@@ -1146,32 +914,31 @@ async function cargarEmpresas(){
                     </td>
 
 
+                    <!-- ACCIÓN -->
+
                     <td>
 
-                        <div class="acciones">
+                        <button
+                            type="button"
+                            class="${
+                                accesoHabilitado
+                                ? "btn-rojo"
+                                : "btn-verde"
+                            }"
+                            data-estado="${accesoHabilitado ? "false" : "true"}"
+                            data-id="${escapar(documento.id)}"
+                        >
 
-                            <button
-                                class="${
-                                    accesoHabilitado
-                                    ? "btn-rojo"
-                                    : "btn-verde"
-                                }"
-                                type="button"
-                                data-accion-estado="${escapar(docu.id)}"
-                                data-estado="${accesoHabilitado ? "false" : "true"}"
-                            >
+                            ${
+                                accesoHabilitado
+                                ? "🔒 Bloquear"
+                                : "🔓 Habilitar"
+                            }
 
-                                ${
-                                    accesoHabilitado
-                                    ? "🔒 Bloquear"
-                                    : "🔓 Habilitar"
-                                }
-
-                            </button>
-
-                        </div>
+                        </button>
 
                     </td>
+
 
                 </tr>
 
@@ -1187,10 +954,11 @@ async function cargarEmpresas(){
         <tr>
 
             <td
-                colspan="14"
+                colspan="9"
                 style="
                     text-align:center;
                     padding:30px;
+                    color:#6b7280;
                 "
             >
 
@@ -1213,7 +981,7 @@ async function cargarEmpresas(){
 
 
         // =================================================
-        // PLAN
+        // CAMBIAR PLAN
         // =================================================
 
         document
@@ -1227,25 +995,17 @@ async function cargarEmpresas(){
                     "change",
                     async function(){
 
-                        const id =
-                        selector.dataset.id;
-
-
-                        const nuevoPlan =
-                        selector.value;
-
-
                         try{
 
                             await updateDoc(
                                 doc(
                                     db,
                                     "empresas",
-                                    id
+                                    selector.dataset.id
                                 ),
                                 {
                                     plan:
-                                    nuevoPlan
+                                    selector.value
                                 }
                             );
 
@@ -1260,7 +1020,6 @@ async function cargarEmpresas(){
                             console.error(
                                 error
                             );
-
 
                             avisar(
                                 "No se pudo actualizar el plan.",
@@ -1277,7 +1036,7 @@ async function cargarEmpresas(){
 
 
         // =================================================
-        // TIPO DE ACCESO
+        // CAMBIAR TIPO DE ACCESO
         // =================================================
 
         document
@@ -1291,34 +1050,29 @@ async function cargarEmpresas(){
                     "change",
                     async function(){
 
-                        const id =
-                        selector.dataset.id;
-
-
-                        const nuevoTipo =
-                        selector.value;
-
-
                         try{
 
-                            const nuevoEstado =
-                            nuevoTipo !==
-                            "bloqueado";
+                            const tipo =
+                            selector.value;
+
+
+                            const habilitado =
+                            tipo !== "bloqueado";
 
 
                             await updateDoc(
                                 doc(
                                     db,
                                     "empresas",
-                                    id
+                                    selector.dataset.id
                                 ),
                                 {
 
                                     tipoAcceso:
-                                    nuevoTipo,
+                                    tipo,
 
                                     accesoHabilitado:
-                                    nuevoEstado
+                                    habilitado
 
                                 }
                             );
@@ -1338,9 +1092,8 @@ async function cargarEmpresas(){
                                 error
                             );
 
-
                             avisar(
-                                "No se pudo actualizar el acceso.",
+                                "No se pudo actualizar el tipo de acceso.",
                                 "error"
                             );
 
@@ -1354,12 +1107,12 @@ async function cargarEmpresas(){
 
 
         // =================================================
-        // BOTONES HABILITAR / BLOQUEAR
+        // HABILITAR / BLOQUEAR
         // =================================================
 
         document
         .querySelectorAll(
-            "[data-accion-estado]"
+            "[data-estado]"
         )
         .forEach(
             function(boton){
@@ -1368,16 +1121,16 @@ async function cargarEmpresas(){
                     "click",
                     async function(){
 
-                        const id =
-                        boton.dataset.accionEstado;
-
-
-                        const nuevoEstado =
-                        boton.dataset.estado ===
-                        "true";
-
-
                         try{
+
+                            const id =
+                            boton.dataset.id;
+
+
+                            const nuevoEstado =
+                            boton.dataset.estado ===
+                            "true";
+
 
                             await updateDoc(
                                 doc(
@@ -1415,7 +1168,6 @@ async function cargarEmpresas(){
                                 error
                             );
 
-
                             avisar(
                                 "No se pudo modificar el acceso.",
                                 "error"
@@ -1442,7 +1194,7 @@ async function cargarEmpresas(){
         <tr>
 
             <td
-                colspan="14"
+                colspan="9"
                 style="
                     text-align:center;
                     padding:30px;
@@ -1450,8 +1202,7 @@ async function cargarEmpresas(){
                 "
             >
 
-                Error al cargar empresas:
-                ${escapar(error.message)}
+                Error al cargar empresas.
 
             </td>
 
@@ -1467,6 +1218,31 @@ async function cargarEmpresas(){
     }
 
 }
+
+
+// =====================================================
+// BOTONES
+// =====================================================
+
+document
+.getElementById("btnActualizar")
+.addEventListener(
+    "click",
+    cargarEmpresas
+);
+
+
+document
+.getElementById("btnVolver")
+.addEventListener(
+    "click",
+    function(){
+
+        location.href =
+        "index.html";
+
+    }
+);
 
 
 // =====================================================
@@ -1494,6 +1270,10 @@ onAuthStateChanged(
         .trim()
         .toLowerCase();
 
+
+        // ==============================================
+        // SOLO ADMINISTRADOR GESBASE
+        // ==============================================
 
         if(
             email !==
@@ -1534,6 +1314,7 @@ onAuthStateChanged(
 );
 
 </script>
+
 
 </body>
 
