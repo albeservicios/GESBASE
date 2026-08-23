@@ -157,34 +157,6 @@
             padding-left: 30px;
         }
 
-        /* TRABAJO */
-
-        .estado-trabajos {
-            margin-top: 7px;
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .trabajo-info {
-            display: none;
-            margin-top: 10px;
-            padding: 12px;
-            border-radius: 10px;
-            background: #f3f4f6;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .trabajo-info.visible {
-            display: block;
-        }
-
-        .trabajo-info strong {
-            color: #111827;
-        }
-
-        /* FOTO */
-
         .foto-area {
             border: 2px dashed #d1d5db;
             border-radius: 13px;
@@ -274,8 +246,6 @@
             cursor: pointer;
         }
 
-        /* BOTONES */
-
         .boton-principal {
             width: 100%;
             border: none;
@@ -318,17 +288,17 @@
             color: #166534;
         }
 
-        .mensaje.info {
-            display: block;
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
         .nota {
             color: #6b7280;
             font-size: 12px;
             line-height: 1.5;
             margin-top: 10px;
+        }
+
+        .cargando-trabajos {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 6px;
         }
 
         @media (max-width: 500px) {
@@ -357,10 +327,6 @@
 
 <div class="contenedor">
 
-
-    <!-- ==============================
-         ENCABEZADO
-         ============================== -->
 
     <header>
 
@@ -391,19 +357,11 @@
     <main>
 
 
-        <!-- ==============================
-             MENSAJE
-             ============================== -->
-
         <div
             id="mensaje"
             class="mensaje"
         ></div>
 
-
-        <!-- ==============================
-             DATOS DEL GASTO
-             ============================== -->
 
         <section class="tarjeta">
 
@@ -411,8 +369,6 @@
                 Nuevo gasto
             </div>
 
-
-            <!-- TRABAJO -->
 
             <div class="campo">
 
@@ -438,45 +394,14 @@
                 </select>
 
                 <div
-                    id="estadoTrabajos"
-                    class="estado-trabajos"
+                    id="cargandoTrabajos"
+                    class="cargando-trabajos"
                 >
-                    Buscando trabajos de tu empresa...
-                </div>
-
-
-                <div
-                    id="trabajoInfo"
-                    class="trabajo-info"
-                >
-
-                    <div>
-                        <strong>Cliente:</strong>
-                        <span id="clienteTrabajo">
-                            -
-                        </span>
-                    </div>
-
-                    <div>
-                        <strong>Estado:</strong>
-                        <span id="estadoTrabajo">
-                            -
-                        </span>
-                    </div>
-
-                    <div>
-                        <strong>Lugar:</strong>
-                        <span id="lugarTrabajo">
-                            -
-                        </span>
-                    </div>
-
+                    Cargando trabajos de tu empresa...
                 </div>
 
             </div>
 
-
-            <!-- FECHA + CATEGORIA -->
 
             <div class="fila">
 
@@ -561,8 +486,6 @@
             </div>
 
 
-            <!-- DESCRIPCION -->
-
             <div class="campo">
 
                 <label for="descripcion">
@@ -583,8 +506,6 @@
 
             </div>
 
-
-            <!-- IMPORTE -->
 
             <div class="campo">
 
@@ -619,8 +540,6 @@
             </div>
 
 
-            <!-- PROVEEDOR -->
-
             <div class="campo">
 
                 <label for="proveedor">
@@ -637,9 +556,7 @@
             </div>
 
         </section>
-
-
-        <!-- ==============================
+                <!-- ==============================
              COMPROBANTE FOTOGRÁFICO
              ============================== -->
 
@@ -648,7 +565,6 @@
             <div class="titulo-seccion">
                 Comprobante
             </div>
-
 
             <div class="foto-area">
 
@@ -665,7 +581,6 @@
                     o seleccionar una imagen de la galería.
                 </div>
 
-
                 <div class="botones-foto">
 
                     <button
@@ -675,7 +590,6 @@
                     >
                         📷 Tomar foto
                     </button>
-
 
                     <button
                         type="button"
@@ -687,7 +601,6 @@
 
                 </div>
 
-
                 <input
                     type="file"
                     id="fotoCamara"
@@ -696,14 +609,12 @@
                     capture="environment"
                 >
 
-
                 <input
                     type="file"
                     id="fotoGaleria"
                     class="input-archivo"
                     accept="image/*"
                 >
-
 
                 <div
                     id="vistaPrevia"
@@ -732,13 +643,11 @@
 
             </div>
 
-
             <div class="nota">
 
-                En esta primera versión la fotografía
-                queda preparada para asociarse al gasto.
-                La subida a Firebase Storage y el OCR
-                se conectarán posteriormente.
+                El comprobante queda asociado al gasto.
+                La integración con Firebase Storage
+                podrá incorporarse posteriormente.
 
             </div>
 
@@ -767,12 +676,11 @@
 </div>
 
 
-<script type="module">
+<!-- ==========================================
+     FIREBASE + GASTOS
+========================================== -->
 
-// ==========================================
-// GESBASE - GASTOS
-// FIREBASE + TRABAJOS RELACIONADOS
-// ==========================================
+<script type="module">
 
 import {
     auth,
@@ -788,12 +696,10 @@ import {
 
 import {
     collection,
+    addDoc,
+    getDocs,
     query,
     where,
-    getDocs,
-    getDoc,
-    doc,
-    addDoc,
     serverTimestamp
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -803,118 +709,120 @@ import {
 // ELEMENTOS
 // ==========================================
 
+const trabajo =
+document.getElementById(
+    "trabajo"
+);
+
 const fecha =
-    document.getElementById(
-        "fecha"
-    );
+document.getElementById(
+    "fecha"
+);
+
+const categoria =
+document.getElementById(
+    "categoria"
+);
+
+const descripcion =
+document.getElementById(
+    "descripcion"
+);
+
+const importe =
+document.getElementById(
+    "importe"
+);
+
+const proveedor =
+document.getElementById(
+    "proveedor"
+);
 
 const mensaje =
-    document.getElementById(
-        "mensaje"
-    );
-
-const trabajoSelect =
-    document.getElementById(
-        "trabajo"
-    );
-
-const estadoTrabajos =
-    document.getElementById(
-        "estadoTrabajos"
-    );
-
-const trabajoInfo =
-    document.getElementById(
-        "trabajoInfo"
-    );
-
-const clienteTrabajo =
-    document.getElementById(
-        "clienteTrabajo"
-    );
-
-const estadoTrabajo =
-    document.getElementById(
-        "estadoTrabajo"
-    );
-
-const lugarTrabajo =
-    document.getElementById(
-        "lugarTrabajo"
-    );
-
-const fotoCamara =
-    document.getElementById(
-        "fotoCamara"
-    );
-
-const fotoGaleria =
-    document.getElementById(
-        "fotoGaleria"
-    );
-
-const vistaPrevia =
-    document.getElementById(
-        "vistaPrevia"
-    );
-
-const imagenPrevia =
-    document.getElementById(
-        "imagenPrevia"
-    );
-
-const nombreArchivo =
-    document.getElementById(
-        "nombreArchivo"
-    );
+document.getElementById(
+    "mensaje"
+);
 
 const btnGuardar =
-    document.getElementById(
-        "btnGuardar"
-    );
+document.getElementById(
+    "btnGuardar"
+);
+
+const cargandoTrabajos =
+document.getElementById(
+    "cargandoTrabajos"
+);
+
+const fotoCamara =
+document.getElementById(
+    "fotoCamara"
+);
+
+const fotoGaleria =
+document.getElementById(
+    "fotoGaleria"
+);
+
+const vistaPrevia =
+document.getElementById(
+    "vistaPrevia"
+);
+
+const imagenPrevia =
+document.getElementById(
+    "imagenPrevia"
+);
+
+const nombreArchivo =
+document.getElementById(
+    "nombreArchivo"
+);
 
 
-let archivoComprobante = null;
+let usuarioActual =
+null;
 
-let usuarioActual = null;
+let datosUsuarioActual =
+{};
 
-let datosUsuarioActual = {};
+let empresaIdActual =
+"";
 
-let empresaIdActual = "";
-
-let trabajosDisponibles = [];
+let archivoComprobante =
+null;
 
 
 // ==========================================
 // FECHA ACTUAL
 // ==========================================
 
-function establecerFechaActual() {
+function establecerFechaActual(){
 
     const ahora =
-        new Date();
+    new Date();
 
     const anio =
-        ahora.getFullYear();
+    ahora.getFullYear();
 
     const mes =
-        String(
-            ahora.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        );
+    String(
+        ahora.getMonth() + 1
+    ).padStart(
+        2,
+        "0"
+    );
 
     const dia =
-        String(
-            ahora.getDate()
-        ).padStart(
-            2,
-            "0"
-        );
+    String(
+        ahora.getDate()
+    ).padStart(
+        2,
+        "0"
+    );
 
     fecha.value =
-        `${anio}-${mes}-${dia}`;
+    `${anio}-${mes}-${dia}`;
 
 }
 
@@ -923,88 +831,19 @@ establecerFechaActual();
 
 
 // ==========================================
-// MENSAJE
+// MENSAJES
 // ==========================================
 
 function mostrarMensaje(
     texto,
     tipo
-) {
+){
 
     mensaje.textContent =
-        texto;
+    texto;
 
     mensaje.className =
-        "mensaje " +
-        tipo;
-
-}
-
-
-// ==========================================
-// OBTENER EMPRESA DEL USUARIO
-// ==========================================
-
-async function obtenerEmpresaId(
-    usuario
-) {
-
-    try {
-
-        const usuarioRef =
-            doc(
-                db,
-                "usuarios",
-                usuario.uid
-            );
-
-        const usuarioSnap =
-            await getDoc(
-                usuarioRef
-            );
-
-
-        if (
-            usuarioSnap.exists()
-        ) {
-
-            datosUsuarioActual =
-                usuarioSnap.data();
-
-
-            const empresaId =
-                String(
-                    datosUsuarioActual.empresaId ||
-                    datosUsuarioActual.empresa ||
-                    ""
-                ).trim();
-
-
-            if (empresaId) {
-
-                return empresaId;
-
-            }
-
-        }
-
-    }
-    catch(error) {
-
-        console.error(
-            "Error obteniendo usuario:",
-            error
-        );
-
-    }
-
-
-    /*
-     * Compatibilidad con la estructura
-     * actual de GESBASE.
-     */
-
-    return usuario.uid;
+    "mensaje " + tipo;
 
 }
 
@@ -1013,290 +852,194 @@ async function obtenerEmpresaId(
 // CARGAR TRABAJOS
 // ==========================================
 
-async function cargarTrabajos() {
+async function cargarTrabajos(){
 
-    if (!empresaIdActual) {
+    trabajo.innerHTML =
+    `
+        <option value="">
+            Cargando trabajos...
+        </option>
+    `;
 
-        estadoTrabajos.textContent =
-            "No se encontró la empresa.";
-
-        return;
-
-    }
+    cargandoTrabajos.textContent =
+    "Cargando trabajos de tu empresa...";
 
 
-    trabajoSelect.innerHTML = "";
+    try{
 
-    const opcionInicial =
-        document.createElement(
-            "option"
+        /*
+         * Los trabajos de GESBASE
+         * se relacionan mediante empresaId.
+         *
+         * En la estructura actual de GESBASE,
+         * el empresaId puede coincidir con
+         * el UID del usuario administrador.
+         */
+
+        let consulta;
+
+
+        if(empresaIdActual){
+
+            consulta =
+            query(
+                collection(
+                    db,
+                    "trabajos"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaIdActual
+                )
+            );
+
+        }
+        else{
+
+            consulta =
+            collection(
+                db,
+                "trabajos"
+            );
+
+        }
+
+
+        const snapshot =
+        await getDocs(
+            consulta
         );
 
-    opcionInicial.value = "";
 
-    opcionInicial.textContent =
-        "Cargando trabajos...";
-
-    trabajoSelect.appendChild(
-        opcionInicial
-    );
-
-
-    try {
-
-        let trabajos = [];
+        trabajo.innerHTML =
+        `
+            <option value="">
+                Seleccionar trabajo
+            </option>
+        `;
 
 
-        // ======================================
-        // PRIMERA OPCIÓN:
-        // trabajos con empresaId
-        // ======================================
+        if(
+            snapshot.empty
+        ){
 
-        try {
+            cargandoTrabajos.textContent =
+            "No hay trabajos registrados para esta empresa.";
 
-            const consulta =
-                query(
-                    collection(
-                        db,
-                        "trabajos"
-                    ),
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
-                );
+            return;
+
+        }
 
 
-            const resultado =
-                await getDocs(
-                    consulta
-                );
+        let cantidad =
+        0;
 
 
-            resultado.forEach(
-                documento => {
+        snapshot.forEach(
+            function(documento){
 
-                    trabajos.push({
-                        id: documento.id,
-                        ...documento.data()
-                    });
+                const datos =
+                documento.data();
+
+
+                const descripcionTrabajo =
+                datos.descripcion ||
+                datos.titulo ||
+                datos.nombre ||
+                "Trabajo sin descripción";
+
+
+                const lugar =
+                datos.lugar ||
+                datos.direccion ||
+                "";
+
+
+                const clienteNombre =
+                datos.clienteNombre ||
+                datos.nombreCliente ||
+                "";
+
+
+                let texto =
+                descripcionTrabajo;
+
+
+                if(clienteNombre){
+
+                    texto +=
+                    " — " +
+                    clienteNombre;
 
                 }
-            );
-
-        }
-        catch(error) {
-
-            console.warn(
-                "Consulta por empresaId no disponible:",
-                error
-            );
-
-        }
 
 
-        // ======================================
-        // COMPATIBILIDAD
-        // ======================================
+                if(lugar){
 
-        if (
-            trabajos.length === 0
-        ) {
+                    texto +=
+                    " — " +
+                    lugar;
 
-            try {
-
-                const resultado =
-                    await getDocs(
-                        collection(
-                            db,
-                            "trabajos"
-                        )
-                    );
+                }
 
 
-                resultado.forEach(
-                    documento => {
-
-                        const datos =
-                            documento.data();
-
-
-                        const idEmpresa =
-                            String(
-                                datos.empresaId ||
-                                datos.empresa ||
-                                ""
-                            ).trim();
-
-
-                        if (
-                            idEmpresa ===
-                            empresaIdActual
-                        ) {
-
-                            trabajos.push({
-                                id: documento.id,
-                                ...datos
-                            });
-
-                        }
-
-                    }
+                const opcion =
+                document.createElement(
+                    "option"
                 );
 
-            }
-            catch(error) {
 
-                console.error(
-                    "Error cargando trabajos:",
-                    error
+                /*
+                 * IMPORTANTE:
+                 * value = ID REAL DEL TRABAJO
+                 */
+
+                opcion.value =
+                documento.id;
+
+
+                opcion.textContent =
+                texto;
+
+
+                /*
+                 * Guardamos información
+                 * adicional para utilizarla
+                 * al guardar el gasto.
+                 */
+
+                opcion.dataset.descripcion =
+                descripcionTrabajo;
+
+
+                opcion.dataset.clienteId =
+                datos.clienteId ||
+                "";
+
+
+                trabajo.appendChild(
+                    opcion
                 );
 
-                throw error;
 
-            }
-
-        }
-
-
-        // ======================================
-        // ELIMINAR DUPLICADOS
-        // ======================================
-
-        const mapa =
-            new Map();
-
-
-        trabajos.forEach(
-            trabajo => {
-
-                mapa.set(
-                    trabajo.id,
-                    trabajo
-                );
+                cantidad++;
 
             }
         );
 
 
-        trabajos =
-            Array.from(
-                mapa.values()
-            );
-
-
-        trabajosDisponibles =
-            trabajos;
-
-
-        // ======================================
-        // ORDENAR
-        // ======================================
-
-        trabajos.sort(
-            (a,b) => {
-
-                const nombreA =
-                    obtenerNombreTrabajo(
-                        a
-                    ).toLowerCase();
-
-                const nombreB =
-                    obtenerNombreTrabajo(
-                        b
-                    ).toLowerCase();
-
-                return nombreA.localeCompare(
-                    nombreB
-                );
-
-            }
+        cargandoTrabajos.textContent =
+        cantidad +
+        (
+            cantidad === 1
+            ? " trabajo disponible."
+            : " trabajos disponibles."
         );
 
-
-        trabajoSelect.innerHTML = "";
-
-
-        const opcion =
-            document.createElement(
-                "option"
-            );
-
-        opcion.value = "";
-
-        opcion.textContent =
-            trabajos.length
-                ? "Seleccionar trabajo"
-                : "No hay trabajos registrados";
-
-        trabajoSelect.appendChild(
-            opcion
-        );
-
-
-        // ======================================
-        // MOSTRAR TRABAJOS
-        // ======================================
-
-        trabajos.forEach(
-            trabajo => {
-
-                const option =
-                    document.createElement(
-                        "option"
-                    );
-
-
-                option.value =
-                    trabajo.id;
-
-
-                option.textContent =
-                    obtenerNombreTrabajo(
-                        trabajo
-                    );
-
-
-                option.dataset.nombre =
-                    obtenerNombreTrabajo(
-                        trabajo
-                    );
-
-
-                option.dataset.clienteId =
-                    String(
-                        trabajo.clienteId ||
-                        trabajo.cliente ||
-                        ""
-                    );
-
-
-                trabajoSelect.appendChild(
-                    option
-                );
-
-            }
-        );
-
-
-        if (
-            trabajos.length
-        ) {
-
-            estadoTrabajos.textContent =
-                `${trabajos.length} trabajo(s) disponible(s).`;
-
-        }
-        else {
-
-            estadoTrabajos.textContent =
-                "No hay trabajos asociados a esta empresa.";
-
-        }
 
     }
-    catch(error) {
+    catch(error){
 
         console.error(
             "Error cargando trabajos:",
@@ -1304,29 +1047,20 @@ async function cargarTrabajos() {
         );
 
 
-        trabajoSelect.innerHTML = "";
-
-        const opcion =
-            document.createElement(
-                "option"
-            );
-
-        opcion.value = "";
-
-        opcion.textContent =
-            "No se pudieron cargar los trabajos";
-
-        trabajoSelect.appendChild(
-            opcion
-        );
+        trabajo.innerHTML =
+        `
+            <option value="">
+                No se pudieron cargar
+            </option>
+        `;
 
 
-        estadoTrabajos.textContent =
-            "Error al cargar los trabajos.";
+        cargandoTrabajos.textContent =
+        "Error al cargar los trabajos.";
+
 
         mostrarMensaje(
-            "No se pudieron cargar los trabajos: " +
-            error.message,
+            "No se pudieron cargar los trabajos. Verificá tu conexión y los permisos de Firebase.",
             "error"
         );
 
@@ -1336,107 +1070,22 @@ async function cargarTrabajos() {
 
 
 // ==========================================
-// NOMBRE DEL TRABAJO
-// ==========================================
-
-function obtenerNombreTrabajo(
-    trabajo
-) {
-
-    return (
-        trabajo.descripcion ||
-        trabajo.nombre ||
-        trabajo.titulo ||
-        trabajo.descripcionTrabajo ||
-        trabajo.nombreTrabajo ||
-        "Trabajo sin descripción"
-    );
-
-}
-
-
-// ==========================================
-// SELECCIONAR TRABAJO
-// ==========================================
-
-trabajoSelect.addEventListener(
-    "change",
-    function() {
-
-        const trabajoId =
-            this.value;
-
-
-        if (!trabajoId) {
-
-            trabajoInfo.classList.remove(
-                "visible"
-            );
-
-            return;
-
-        }
-
-
-        const trabajo =
-            trabajosDisponibles.find(
-                item =>
-                    item.id === trabajoId
-            );
-
-
-        if (!trabajo) {
-
-            trabajoInfo.classList.remove(
-                "visible"
-            );
-
-            return;
-
-        }
-
-
-        clienteTrabajo.textContent =
-            trabajo.clienteNombre ||
-            trabajo.nombreCliente ||
-            trabajo.cliente ||
-            trabajo.clienteId ||
-            "Sin cliente";
-
-
-        estadoTrabajo.textContent =
-            trabajo.estado ||
-            "Sin estado";
-
-
-        lugarTrabajo.textContent =
-            trabajo.lugar ||
-            trabajo.direccion ||
-            trabajo.domicilio ||
-            "Sin informar";
-
-
-        trabajoInfo.classList.add(
-            "visible"
-        );
-
-    }
-);
-
-
-// ==========================================
 // AUTENTICACIÓN
 // ==========================================
 
 onAuthStateChanged(
     auth,
-    async function(usuario) {
+    async function(usuario){
 
-        if (!usuario) {
+        if(!usuario){
 
-            window.location.replace(
-                "login.html"
+            mostrarMensaje(
+                "Tu sesión no está iniciada. Volvé a iniciar sesión.",
+                "error"
             );
+
+            btnGuardar.disabled =
+            true;
 
             return;
 
@@ -1444,77 +1093,121 @@ onAuthStateChanged(
 
 
         usuarioActual =
-            usuario;
+        usuario;
 
 
-        try {
+        /*
+         * Compatibilidad con la estructura
+         * actual de GESBASE:
+         *
+         * empresaId del usuario
+         * o UID del usuario.
+         */
 
-            empresaIdActual =
-                await obtenerEmpresaId(
-                    usuario
-                );
+        try{
 
-
-            console.log(
-                "GESBASE empresaId:",
-                empresaIdActual
+            const usuariosSnapshot =
+            await getDocs(
+                query(
+                    collection(
+                        db,
+                        "usuarios"
+                    ),
+                    where(
+                        "uid",
+                        "==",
+                        usuario.uid
+                    )
+                )
             );
 
 
-            await cargarTrabajos();
+            if(
+                !usuariosSnapshot.empty
+            ){
+
+                usuariosSnapshot.forEach(
+                    function(documento){
+
+                        datosUsuarioActual =
+                        documento.data();
+
+                    }
+                );
+
+            }
 
         }
-        catch(error) {
+        catch(error){
 
-            console.error(
+            console.warn(
+                "No se pudo consultar usuario:",
                 error
             );
 
-            mostrarMensaje(
-                "No se pudo inicializar la página.",
-                "error"
-            );
-
         }
+
+
+        empresaIdActual =
+        String(
+            datosUsuarioActual.empresaId ||
+            datosUsuarioActual.empresa ||
+            usuario.uid
+        ).trim();
+
+
+        console.log(
+            "Usuario actual:",
+            usuario.uid
+        );
+
+
+        console.log(
+            "Empresa actual:",
+            empresaIdActual
+        );
+
+
+        await cargarTrabajos();
 
     }
 );
 
 
 // ==========================================
-// CÁMARA
+// FOTO - CÁMARA
 // ==========================================
 
 document
-    .getElementById(
-        "btnCamara"
-    )
-    .addEventListener(
-        "click",
-        function() {
+.getElementById(
+    "btnCamara"
+)
+.addEventListener(
+    "click",
+    function(){
 
-            fotoCamara.click();
+        fotoCamara.click();
 
-        }
-    );
+    }
+);
 
 
 // ==========================================
-// GALERÍA
+// FOTO - GALERÍA
 // ==========================================
 
 document
-    .getElementById(
-        "btnGaleria"
-    )
-    .addEventListener(
-        "click",
-        function() {
+.getElementById(
+    "btnGaleria"
+)
+.addEventListener(
+    "click",
+    function(){
 
-            fotoGaleria.click();
+        fotoGaleria.click();
 
-        }
-    );
+    }
+);
 
 
 // ==========================================
@@ -1523,20 +1216,20 @@ document
 
 function procesarFoto(
     archivo
-) {
+){
 
-    if (!archivo) {
+    if(!archivo){
 
         return;
 
     }
 
 
-    if (
+    if(
         !archivo.type.startsWith(
             "image/"
         )
-    ) {
+    ){
 
         mostrarMensaje(
             "El archivo seleccionado no es una imagen.",
@@ -1549,26 +1242,28 @@ function procesarFoto(
 
 
     archivoComprobante =
-        archivo;
+    archivo;
 
 
     const lector =
-        new FileReader();
+    new FileReader();
 
 
     lector.onload =
-        function(evento) {
+    function(evento){
 
-            imagenPrevia.src =
-                evento.target.result;
+        imagenPrevia.src =
+        evento.target.result;
 
-            nombreArchivo.textContent =
-                archivo.name;
 
-            vistaPrevia.style.display =
-                "block";
+        nombreArchivo.textContent =
+        archivo.name;
 
-        };
+
+        vistaPrevia.style.display =
+        "block";
+
+    };
 
 
     lector.readAsDataURL(
@@ -1578,13 +1273,9 @@ function procesarFoto(
 }
 
 
-// ==========================================
-// EVENTO CÁMARA
-// ==========================================
-
 fotoCamara.addEventListener(
     "change",
-    function() {
+    function(){
 
         procesarFoto(
             this.files &&
@@ -1595,13 +1286,9 @@ fotoCamara.addEventListener(
 );
 
 
-// ==========================================
-// EVENTO GALERÍA
-// ==========================================
-
 fotoGaleria.addEventListener(
     "change",
-    function() {
+    function(){
 
         procesarFoto(
             this.files &&
@@ -1617,140 +1304,185 @@ fotoGaleria.addEventListener(
 // ==========================================
 
 document
-    .getElementById(
-        "btnQuitarFoto"
-    )
-    .addEventListener(
-        "click",
-        function() {
+.getElementById(
+    "btnQuitarFoto"
+)
+.addEventListener(
+    "click",
+    function(){
 
-            archivoComprobante =
-                null;
-
-            fotoCamara.value =
-                "";
-
-            fotoGaleria.value =
-                "";
-
-            imagenPrevia.src =
-                "";
-
-            nombreArchivo.textContent =
-                "";
-
-            vistaPrevia.style.display =
-                "none";
-
-        }
-    );
+        archivoComprobante =
+        null;
 
 
-// ==========================================
-// GUARDAR GASTO
+        fotoCamara.value =
+        "";
+
+
+        fotoGaleria.value =
+        "";
+
+
+        imagenPrevia.src =
+        "";
+
+
+        nombreArchivo.textContent =
+        "";
+
+
+        vistaPrevia.style.display =
+        "none";
+
+    }
+);
+    // ==========================================
+// GUARDAR GASTO EN FIRESTORE
 // ==========================================
 
 btnGuardar.addEventListener(
     "click",
-    async function() {
+    async function(){
+
+        // --------------------------------------
+        // VERIFICAR SESIÓN
+        // --------------------------------------
+
+        if(!usuarioActual){
+
+            mostrarMensaje(
+                "La sesión no está disponible. Volvé a iniciar sesión.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        // --------------------------------------
+        // DATOS DEL FORMULARIO
+        // --------------------------------------
 
         const trabajoId =
-            trabajoSelect.value;
+        trabajo.value;
 
 
-        const categoria =
-            document
-                .getElementById(
-                    "categoria"
-                )
-                .value;
+        const opcionTrabajo =
+        trabajo.options[
+            trabajo.selectedIndex
+        ];
 
 
-        const descripcion =
-            document
-                .getElementById(
-                    "descripcion"
-                )
-                .value
-                .trim();
+        const trabajoDescripcion =
+        opcionTrabajo?.dataset?.descripcion ||
+        opcionTrabajo?.textContent ||
+        "";
 
 
-        const importe =
-            document
-                .getElementById(
-                    "importe"
-                )
-                .value;
+        const categoriaValor =
+        categoria.value;
 
 
-        const proveedor =
-            document
-                .getElementById(
-                    "proveedor"
-                )
-                .value
-                .trim();
+        const descripcionValor =
+        descripcion.value.trim();
 
 
-        // ======================================
+        const importeValor =
+        Number(
+            importe.value
+        );
+
+
+        const proveedorValor =
+        proveedor.value.trim();
+
+
+        const fechaValor =
+        fecha.value;
+
+
+        // --------------------------------------
         // VALIDACIONES
-        // ======================================
+        // --------------------------------------
 
-        if (!trabajoId) {
+        if(!trabajoId){
 
             mostrarMensaje(
                 "Seleccioná el trabajo asociado.",
                 "error"
             );
 
+            trabajo.focus();
+
             return;
 
         }
 
 
-        if (!categoria) {
+        if(!fechaValor){
+
+            mostrarMensaje(
+                "Seleccioná la fecha del gasto.",
+                "error"
+            );
+
+            fecha.focus();
+
+            return;
+
+        }
+
+
+        if(!categoriaValor){
 
             mostrarMensaje(
                 "Seleccioná una categoría.",
                 "error"
             );
 
+            categoria.focus();
+
             return;
 
         }
 
 
-        if (!descripcion) {
+        if(!descripcionValor){
 
             mostrarMensaje(
                 "Ingresá una descripción.",
                 "error"
             );
 
+            descripcion.focus();
+
             return;
 
         }
 
 
-        if (
-            !importe ||
-            Number(importe) <= 0
-        ) {
+        if(
+            !importeValor ||
+            importeValor <= 0
+        ){
 
             mostrarMensaje(
                 "Ingresá un importe válido.",
                 "error"
             );
 
+            importe.focus();
+
             return;
 
         }
 
 
-        if (!usuarioActual) {
+        if(!empresaIdActual){
 
             mostrarMensaje(
-                "Tu sesión expiró. Volvé a iniciar sesión.",
+                "No se pudo identificar la empresa del usuario.",
                 "error"
             );
 
@@ -1759,65 +1491,24 @@ btnGuardar.addEventListener(
         }
 
 
-        // ======================================
-        // TRABAJO SELECCIONADO
-        // ======================================
-
-        const trabajo =
-            trabajosDisponibles.find(
-                item =>
-                    item.id === trabajoId
-            );
-
-
-        if (!trabajo) {
-
-            mostrarMensaje(
-                "No se encontró el trabajo seleccionado.",
-                "error"
-            );
-
-            return;
-
-        }
-
-
-        // ======================================
-        // DATOS RELACIONADOS
-        // ======================================
-
-        const trabajoNombre =
-            obtenerNombreTrabajo(
-                trabajo
-            );
-
-
-        const clienteId =
-            trabajo.clienteId ||
-            trabajo.cliente ||
-            "";
-
-
-        const clienteNombre =
-            trabajo.clienteNombre ||
-            trabajo.nombreCliente ||
-            "";
-
-
-        // ======================================
-        // GUARDAR
-        // ======================================
+        // --------------------------------------
+        // DESHABILITAR BOTÓN
+        // --------------------------------------
 
         btnGuardar.disabled =
-            true;
+        true;
 
         btnGuardar.textContent =
-            "Guardando gasto...";
+        "💾 Guardando gasto...";
 
 
-        try {
+        try{
 
-            const gasto = {
+            // ----------------------------------
+            // DATOS DEL GASTO
+            // ----------------------------------
+
+            const datosGasto = {
 
                 empresaId:
                     empresaIdActual,
@@ -1828,139 +1519,121 @@ btnGuardar.addEventListener(
                 trabajoId:
                     trabajoId,
 
-                trabajoNombre:
-                    trabajoNombre,
-
-                clienteId:
-                    clienteId,
-
-                clienteNombre:
-                    clienteNombre,
+                trabajoDescripcion:
+                    trabajoDescripcion,
 
                 fecha:
-                    fecha.value,
+                    fechaValor,
 
                 categoria:
-                    categoria,
+                    categoriaValor,
 
                 descripcion:
-                    descripcion,
+                    descripcionValor,
 
                 importe:
-                    Number(importe),
+                    importeValor,
 
                 proveedor:
-                    proveedor,
+                    proveedorValor,
 
                 comprobanteNombre:
                     archivoComprobante
-                        ? archivoComprobante.name
-                        : "",
+                    ? archivoComprobante.name
+                    : "",
 
                 comprobantePendiente:
                     archivoComprobante
-                        ? true
-                        : false,
-
-                estado:
-                    "registrado",
+                    ? true
+                    : false,
 
                 creadoEn:
-                    serverTimestamp(),
-
-                actualizadoEn:
                     serverTimestamp()
 
             };
 
 
-            const referencia =
-                await addDoc(
-                    collection(
-                        db,
-                        "gastos"
-                    ),
-                    gasto
-                );
+            // ----------------------------------
+            // GUARDAR FIRESTORE
+            // ----------------------------------
 
-
-            console.log(
-                "Gasto creado:",
-                referencia.id
+            const referenciaGasto =
+            await addDoc(
+                collection(
+                    db,
+                    "gastos"
+                ),
+                datosGasto
             );
 
 
+            console.log(
+                "Gasto guardado:",
+                referenciaGasto.id
+            );
+
+
+            // ----------------------------------
+            // ÉXITO
+            // ----------------------------------
+
             mostrarMensaje(
-                "✅ Gasto guardado correctamente y asociado al trabajo.",
+                "✅ Gasto guardado correctamente.",
                 "exito"
             );
 
 
-            // ==================================
-            // LIMPIAR
-            // ==================================
+            // ----------------------------------
+            // LIMPIAR FORMULARIO
+            // ----------------------------------
 
-            document
-                .getElementById(
-                    "descripcion"
-                )
-                .value = "";
+            descripcion.value =
+            "";
 
+            importe.value =
+            "";
 
-            document
-                .getElementById(
-                    "importe"
-                )
-                .value = "";
+            proveedor.value =
+            "";
 
+            categoria.value =
+            "";
 
-            document
-                .getElementById(
-                    "proveedor"
-                )
-                .value = "";
-
-
-            document
-                .getElementById(
-                    "categoria"
-                )
-                .value = "";
-
-
-            trabajoSelect.value =
-                "";
-
-
-            trabajoInfo.classList.remove(
-                "visible"
-            );
-
+            trabajo.value =
+            "";
 
             archivoComprobante =
-                null;
+            null;
 
 
             fotoCamara.value =
-                "";
+            "";
 
             fotoGaleria.value =
-                "";
+            "";
 
             imagenPrevia.src =
-                "";
+            "";
 
             nombreArchivo.textContent =
-                "";
+            "";
 
             vistaPrevia.style.display =
-                "none";
+            "none";
 
 
             establecerFechaActual();
 
+
+            // ----------------------------------
+            // VOLVER A CARGAR TRABAJOS
+            // ----------------------------------
+
+            await cargarTrabajos();
+
+
         }
-        catch(error) {
+        catch(error){
 
             console.error(
                 "Error guardando gasto:",
@@ -1968,20 +1641,52 @@ btnGuardar.addEventListener(
             );
 
 
+            let textoError =
+            "No se pudo guardar el gasto.";
+
+
+            if(
+                error.code ===
+                "permission-denied"
+            ){
+
+                textoError =
+                "Firebase rechazó el guardado. Revisá las reglas de Firestore para la colección gastos.";
+
+            }
+            else if(
+                error.code ===
+                "failed-precondition"
+            ){
+
+                textoError =
+                "Firebase requiere una configuración adicional para realizar esta operación.";
+
+            }
+            else if(
+                error.message
+            ){
+
+                textoError +=
+                " " +
+                error.message;
+
+            }
+
+
             mostrarMensaje(
-                "No se pudo guardar el gasto: " +
-                error.message,
+                textoError,
                 "error"
             );
 
         }
-        finally {
+        finally{
 
             btnGuardar.disabled =
-                false;
+            false;
 
             btnGuardar.textContent =
-                "💾 Guardar gasto";
+            "💾 Guardar gasto";
 
         }
 
@@ -1994,29 +1699,34 @@ btnGuardar.addEventListener(
 // ==========================================
 
 document
-    .getElementById(
-        "btnVolver"
-    )
-    .addEventListener(
-        "click",
-        function() {
+.getElementById(
+    "btnVolver"
+)
+.addEventListener(
+    "click",
+    function(){
 
-            if (
-                history.length > 1
-            ) {
+        if(
+            history.length > 1
+        ){
 
-                history.back();
-
-            }
-            else {
-
-                window.location.href =
-                    "index.html";
-
-            }
+            history.back();
 
         }
-    );
+        else{
+
+            window.location.href =
+            "index.html";
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// FIN GESBASE - GASTOS
+// ==========================================
 
 </script>
 
