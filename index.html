@@ -127,6 +127,87 @@ main{
     margin-top:0;
 }
 
+
+/* ==========================================
+   BALANCE
+========================================== */
+
+.balance{
+    margin-bottom:25px;
+}
+
+.balance-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+.balance-card{
+    border-radius:14px;
+    padding:17px;
+    min-height:125px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+    border:1px solid #e5e7eb;
+}
+
+.balance-icono{
+    font-size:28px;
+    margin-bottom:8px;
+}
+
+.balance-label{
+    font-size:13px;
+    color:#6b7280;
+    margin-bottom:5px;
+}
+
+.balance-valor{
+    font-size:21px;
+    font-weight:bold;
+    word-break:break-word;
+}
+
+.balance-card.ingreso{
+    background:#ecfdf5;
+    border-color:#a7f3d0;
+}
+
+.balance-card.ingreso .balance-valor{
+    color:#047857;
+}
+
+.balance-card.gasto{
+    background:#fef2f2;
+    border-color:#fecaca;
+}
+
+.balance-card.gasto .balance-valor{
+    color:#dc2626;
+}
+
+.balance-card.resultado{
+    background:#eff6ff;
+    border-color:#bfdbfe;
+}
+
+.balance-card.resultado .balance-valor{
+    color:#1d4ed8;
+}
+
+.balance-card.fichajes{
+    background:#f5f3ff;
+    border-color:#ddd6fe;
+}
+
+.balance-card.fichajes .balance-valor{
+    color:#7c3aed;
+}
+
+
+/* ==========================================
+   MENU
+========================================== */
+
 .menu{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -307,6 +388,24 @@ main{
 
 }
 
+@media(max-width:500px){
+
+    .balance-grid{
+        grid-template-columns:1fr 1fr;
+        gap:10px;
+    }
+
+    .balance-card{
+        padding:14px;
+        min-height:115px;
+    }
+
+    .balance-valor{
+        font-size:18px;
+    }
+
+}
+
 </style>
 
 </head>
@@ -421,6 +520,104 @@ Cargando...
 
 
 <!-- ==========================================
+     BALANCE
+========================================== -->
+
+<section class="balance">
+
+<div class="titulo-seccion">
+Balance
+</div>
+
+<div class="balance-grid">
+
+
+<div class="balance-card ingreso">
+
+<div class="balance-icono">
+💰
+</div>
+
+<div class="balance-label">
+Ingresos
+</div>
+
+<div
+    class="balance-valor"
+    id="balanceIngresos"
+>
+$ 0,00
+</div>
+
+</div>
+
+
+<div class="balance-card gasto">
+
+<div class="balance-icono">
+💸
+</div>
+
+<div class="balance-label">
+Gastos
+</div>
+
+<div
+    class="balance-valor"
+    id="balanceGastos"
+>
+$ 0,00
+</div>
+
+</div>
+
+
+<div class="balance-card resultado">
+
+<div class="balance-icono">
+📊
+</div>
+
+<div class="balance-label">
+Resultado
+</div>
+
+<div
+    class="balance-valor"
+    id="balanceResultado"
+>
+$ 0,00
+</div>
+
+</div>
+
+
+<div class="balance-card fichajes">
+
+<div class="balance-icono">
+👷
+</div>
+
+<div class="balance-label">
+Fichajes
+</div>
+
+<div
+    class="balance-valor"
+    id="balanceFichajes"
+>
+0
+</div>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+<!-- ==========================================
      AVISO DE ACCESO
 ========================================== -->
 
@@ -521,7 +718,6 @@ Gestión
 
 <section class="menu">
 
-
 <button
     class="boton acceso-protegido"
     type="button"
@@ -597,10 +793,6 @@ Cobros
 </button>
 
 
-<!-- ==========================================
-     CONFORMIDAD
-========================================== -->
-
 <button
     class="boton acceso-protegido"
     type="button"
@@ -660,8 +852,6 @@ Comunicación interna
 
 </button>
 
-
-<!-- SUSCRIPCIÓN -->
 
 <button
     class="boton"
@@ -731,7 +921,6 @@ Panel de Administrador
 
 <!-- ==========================================
      CONTROL DE ACCESOS
-     SOLO ADMINISTRADOR GESBASE
 ========================================== -->
 
 <section
@@ -844,7 +1033,11 @@ import {
 
 import {
     doc,
-    getDoc
+    getDoc,
+    collection,
+    getDocs,
+    query,
+    where
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -894,7 +1087,32 @@ document.getElementById("avisoSuscripcion");
 
 
 // ==========================================
-// ADMINISTRADOR GESBASE
+// BALANCE
+// ==========================================
+
+const balanceIngresos =
+document.getElementById(
+    "balanceIngresos"
+);
+
+const balanceGastos =
+document.getElementById(
+    "balanceGastos"
+);
+
+const balanceResultado =
+document.getElementById(
+    "balanceResultado"
+);
+
+const balanceFichajes =
+document.getElementById(
+    "balanceFichajes"
+);
+
+
+// ==========================================
+// ADMINISTRADOR
 // ==========================================
 
 const EMAIL_ADMIN =
@@ -909,7 +1127,209 @@ let accesoPermitido = false;
 
 
 // ==========================================
-// BOTONES
+// FORMATO MONEDA
+// ==========================================
+
+function formatearPesos(
+    valor
+){
+
+    const numero =
+    Number(valor) || 0;
+
+    return numero.toLocaleString(
+        "es-AR",
+        {
+            style:"currency",
+            currency:"ARS",
+            minimumFractionDigits:2
+        }
+    );
+
+}
+
+
+// ==========================================
+// CARGAR GASTOS
+// ==========================================
+
+async function cargarBalanceGastos(
+    empresaId
+){
+
+    if(!empresaId){
+
+        balanceGastos.textContent =
+        "$ 0,00";
+
+        return;
+
+    }
+
+
+    try{
+
+        const consulta =
+        query(
+            collection(
+                db,
+                "gastos"
+            ),
+            where(
+                "empresaId",
+                "==",
+                empresaId
+            )
+        );
+
+
+        const snapshot =
+        await getDocs(
+            consulta
+        );
+
+
+        let totalGastos =
+        0;
+
+
+        snapshot.forEach(
+            function(documento){
+
+                const datos =
+                documento.data();
+
+
+                const importe =
+                Number(
+                    datos.importe
+                ) || 0;
+
+
+                totalGastos +=
+                importe;
+
+            }
+        );
+
+
+        balanceGastos.textContent =
+        formatearPesos(
+            totalGastos
+        );
+
+
+        return totalGastos;
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando gastos:",
+            error
+        );
+
+
+        balanceGastos.textContent =
+        "Error";
+
+
+        return 0;
+
+    }
+
+}
+
+
+// ==========================================
+// CARGAR INGRESOS
+// ==========================================
+
+async function cargarBalanceIngresos(
+    empresaId
+){
+
+    /*
+     * Los ingresos se conectarán
+     * con la colección "cobros".
+     *
+     * Mientras no tengamos confirmada
+     * la estructura exacta de cobros,
+     * no modificamos ni inventamos campos.
+     */
+
+    balanceIngresos.textContent =
+    formatearPesos(0);
+
+
+    return 0;
+
+}
+
+
+// ==========================================
+// CARGAR FICHAJES
+// ==========================================
+
+async function cargarCantidadFichajes(
+    empresaId
+){
+
+    /*
+     * La estructura de fichajes se conectará
+     * cuando utilicemos el esquema exacto
+     * de fichaje.html.
+     */
+
+    balanceFichajes.textContent =
+    "0";
+
+
+    return 0;
+
+}
+
+
+// ==========================================
+// ACTUALIZAR BALANCE
+// ==========================================
+
+async function actualizarBalance(
+    empresaId
+){
+
+    const gastos =
+    await cargarBalanceGastos(
+        empresaId
+    );
+
+
+    const ingresos =
+    await cargarBalanceIngresos(
+        empresaId
+    );
+
+
+    await cargarCantidadFichajes(
+        empresaId
+    );
+
+
+    const resultado =
+    ingresos -
+    gastos;
+
+
+    balanceResultado.textContent =
+    formatearPesos(
+        resultado
+    );
+
+}
+
+
+// ==========================================
+// BOTONES ADMIN
 // ==========================================
 
 document
@@ -959,6 +1379,7 @@ const botonSuscripcion =
 document.querySelector(
     '[data-url="suscripcion.html"]'
 );
+
 
 if(botonSuscripcion){
 
@@ -1036,10 +1457,6 @@ async function comprobarAccesoEmpresa(
     .toLowerCase();
 
 
-    // --------------------------------------
-    // ADMINISTRADOR GESBASE
-    // --------------------------------------
-
     if(
         emailActual ===
         EMAIL_ADMIN.toLowerCase()
@@ -1050,10 +1467,6 @@ async function comprobarAccesoEmpresa(
     }
 
 
-    // --------------------------------------
-    // ID EMPRESA
-    // --------------------------------------
-
     let empresaId =
     String(
         datosUsuario.empresaId ||
@@ -1062,12 +1475,6 @@ async function comprobarAccesoEmpresa(
     ).trim();
 
 
-    /*
-     * Si el usuario no tiene empresaId,
-     * se utiliza su UID como compatibilidad
-     * con la estructura actual.
-     */
-
     if(!empresaId){
 
         empresaId =
@@ -1075,16 +1482,6 @@ async function comprobarAccesoEmpresa(
 
     }
 
-
-    console.log(
-        "ID empresa:",
-        empresaId
-    );
-
-
-    // --------------------------------------
-    // DOCUMENTO EMPRESA
-    // --------------------------------------
 
     const referenciaEmpresa =
     doc(
@@ -1104,11 +1501,6 @@ async function comprobarAccesoEmpresa(
         !documentoEmpresa.exists()
     ){
 
-        console.warn(
-            "No existe empresa:",
-            empresaId
-        );
-
         return false;
 
     }
@@ -1117,16 +1509,6 @@ async function comprobarAccesoEmpresa(
     const datosEmpresa =
     documentoEmpresa.data();
 
-
-    console.log(
-        "Datos empresa:",
-        datosEmpresa
-    );
-
-
-    // --------------------------------------
-    // ACCESO MANUAL
-    // --------------------------------------
 
     return (
         datosEmpresa.accesoHabilitado === true
@@ -1205,7 +1587,7 @@ onAuthStateChanged(
 
 
             // ==================================
-            // EMPRESA ID
+            // EMPRESA
             // ==================================
 
             let empresaId =
@@ -1223,10 +1605,6 @@ onAuthStateChanged(
 
             }
 
-
-            // ==================================
-            // EMPRESA
-            // ==================================
 
             const referenciaEmpresa =
             doc(
@@ -1312,6 +1690,15 @@ onAuthStateChanged(
             await comprobarAccesoEmpresa(
                 usuario,
                 datosUsuario
+            );
+
+
+            // ==================================
+            // ACTUALIZAR BALANCE
+            // ==================================
+
+            await actualizarBalance(
+                empresaId
             );
 
 
@@ -1409,7 +1796,6 @@ onAuthStateChanged(
 
             // ==================================
             // CONTROL DE ACCESOS
-            // SOLO VOS
             // ==================================
 
             if(
@@ -1430,7 +1816,6 @@ onAuthStateChanged(
 
             // ==================================
             // PANEL ATENCIÓN
-            // SOLO VOS
             // ==================================
 
             if(
@@ -1501,6 +1886,7 @@ botonCerrarSesion.addEventListener(
 
             await signOut(auth);
 
+
             window.location.replace(
                 "login.html"
             );
@@ -1508,13 +1894,17 @@ botonCerrarSesion.addEventListener(
         }
         catch(error){
 
-            console.error(error);
+            console.error(
+                error
+            );
+
 
             botonCerrarSesion.disabled =
             false;
 
             botonCerrarSesion.textContent =
             "Cerrar sesión";
+
 
             alert(
                 "No se pudo cerrar la sesión."
