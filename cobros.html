@@ -28,10 +28,10 @@ body{
 
 .app{
     width:100%;
-    max-width:750px;
+    max-width:800px;
     min-height:100vh;
     margin:auto;
-    background:white;
+    background:#fff;
 }
 
 header{
@@ -86,9 +86,13 @@ main{
     margin-bottom:20px;
 }
 
+/* ==============================
+   RESUMEN
+============================== */
+
 .resumen{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:repeat(2,1fr);
     gap:12px;
     margin-bottom:20px;
 }
@@ -98,6 +102,7 @@ main{
     border-radius:14px;
     padding:16px;
     box-shadow:0 2px 8px rgba(0,0,0,.06);
+    border:1px solid #e5e7eb;
 }
 
 .resumen-label{
@@ -107,9 +112,31 @@ main{
 }
 
 .resumen-valor{
-    font-size:22px;
+    font-size:21px;
     font-weight:bold;
 }
+
+.resumen-card.pendiente{
+    background:#fff7ed;
+    border-color:#fed7aa;
+}
+
+.resumen-card.pendiente .resumen-valor{
+    color:#c2410c;
+}
+
+.resumen-card.cobrado{
+    background:#ecfdf5;
+    border-color:#a7f3d0;
+}
+
+.resumen-card.cobrado .resumen-valor{
+    color:#047857;
+}
+
+/* ==============================
+   FORMULARIO
+============================== */
 
 .formulario{
     background:#f9fafb;
@@ -159,6 +186,13 @@ main{
     resize:vertical;
 }
 
+.fecha-calculada{
+    background:#eff6ff !important;
+    border-color:#bfdbfe !important;
+    color:#1d4ed8 !important;
+    font-weight:bold;
+}
+
 .btn-guardar{
     width:100%;
     border:none;
@@ -176,12 +210,17 @@ main{
     cursor:not-allowed;
 }
 
+/* ==============================
+   ESTADOS
+============================== */
+
 .estado{
     display:none;
     padding:13px;
     border-radius:10px;
     margin-bottom:18px;
     font-size:14px;
+    line-height:1.4;
 }
 
 .estado.visible{
@@ -203,10 +242,15 @@ main{
     color:#1e40af;
 }
 
+/* ==============================
+   LISTADO
+============================== */
+
 .cabecera-listado{
     display:flex;
     justify-content:space-between;
     align-items:center;
+    gap:10px;
     margin-bottom:14px;
 }
 
@@ -233,6 +277,14 @@ main{
     box-shadow:0 2px 8px rgba(0,0,0,.05);
 }
 
+.cobro.pendiente{
+    border-left:5px solid #f97316;
+}
+
+.cobro.cobrado{
+    border-left:5px solid #16a34a;
+}
+
 .cobro-cabecera{
     display:flex;
     justify-content:space-between;
@@ -254,7 +306,7 @@ main{
 
 .cobro-datos{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:repeat(2,1fr);
     gap:8px;
     margin-bottom:12px;
 }
@@ -270,6 +322,25 @@ main{
     margin-top:3px;
 }
 
+.estado-cobro{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+    margin-bottom:12px;
+}
+
+.estado-cobro.pendiente{
+    background:#ffedd5;
+    color:#c2410c;
+}
+
+.estado-cobro.cobrado{
+    background:#dcfce7;
+    color:#166534;
+}
+
 .cobro-observaciones{
     background:#f9fafb;
     padding:10px;
@@ -283,6 +354,25 @@ main{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:8px;
+}
+
+.btn-cobrado{
+    border:none;
+    background:#16a34a;
+    color:white;
+    padding:11px;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.btn-cobrado:hover{
+    background:#15803d;
+}
+
+.btn-cobrado:disabled{
+    opacity:.6;
+    cursor:not-allowed;
 }
 
 .btn-recibo{
@@ -303,6 +393,10 @@ main{
     border-radius:8px;
     font-weight:bold;
     cursor:pointer;
+}
+
+.btn-eliminar:hover{
+    background:#fecaca;
 }
 
 .sin-cobros{
@@ -330,10 +424,9 @@ main{
     color:#6b7280;
 }
 
-
-/* ==========================================
+/* ==============================
    RECIBO
-========================================== */
+============================== */
 
 .recibo-overlay{
     position:fixed;
@@ -518,19 +611,35 @@ main{
     color:#111827;
 }
 
+/* ==============================
+   RESPONSIVE
+============================== */
 
-@media(max-width:500px){
+@media(max-width:600px){
 
     main{
         padding:16px;
     }
 
     .resumen{
+        grid-template-columns:1fr 1fr;
         gap:10px;
     }
 
+    .resumen-card{
+        padding:13px;
+    }
+
     .resumen-valor{
-        font-size:19px;
+        font-size:18px;
+    }
+
+    .cobro-datos{
+        grid-template-columns:1fr;
+    }
+
+    .botones-cobro{
+        grid-template-columns:1fr;
     }
 
     .recibo-overlay{
@@ -553,12 +662,7 @@ main{
         grid-template-columns:1fr;
     }
 
-    .botones-cobro{
-        grid-template-columns:1fr;
-    }
-
 }
-
 
 @media print{
 
@@ -604,7 +708,6 @@ main{
 
 </head>
 
-
 <body>
 
 <div class="app">
@@ -641,13 +744,45 @@ Tu empresa. Todo organizado.
 </h1>
 
 <p class="descripcion">
-Registrá los pagos recibidos de tus clientes y llevá el control de tus ingresos.
+Registrá los importes a cobrar y controlá cuándo fueron cobrados.
 </p>
 
 
 <section class="resumen">
 
 <div class="resumen-card">
+
+<div class="resumen-label">
+Total registrado
+</div>
+
+<div
+    id="totalRegistrado"
+    class="resumen-valor"
+>
+$0,00
+</div>
+
+</div>
+
+
+<div class="resumen-card pendiente">
+
+<div class="resumen-label">
+Pendiente de cobro
+</div>
+
+<div
+    id="totalPendiente"
+    class="resumen-valor"
+>
+$0,00
+</div>
+
+</div>
+
+
+<div class="resumen-card cobrado">
 
 <div class="resumen-label">
 Total cobrado
@@ -666,7 +801,7 @@ $0,00
 <div class="resumen-card">
 
 <div class="resumen-label">
-Cantidad de cobros
+Cantidad de registros
 </div>
 
 <div
@@ -732,7 +867,7 @@ Sin trabajo relacionado
 <div class="campo">
 
 <label for="importe">
-Importe cobrado
+Importe
 </label>
 
 <input
@@ -749,12 +884,69 @@ Importe cobrado
 <div class="campo">
 
 <label for="fecha">
-Fecha del cobro
+Fecha de registro
 </label>
 
 <input
     type="date"
     id="fecha"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="diasACobrar">
+Días a cobrar
+</label>
+
+<select id="diasACobrar">
+
+<option value="1">
+1 día
+</option>
+
+<option value="15">
+15 días
+</option>
+
+<option value="30">
+30 días
+</option>
+
+<option value="45">
+45 días
+</option>
+
+<option value="60">
+60 días
+</option>
+
+<option value="75">
+75 días
+</option>
+
+<option value="90">
+90 días
+</option>
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label for="fechaPrevista">
+Fecha prevista de cobro
+</label>
+
+<input
+    type="date"
+    id="fechaPrevista"
+    class="fecha-calculada"
+    readonly
 >
 
 </div>
@@ -875,7 +1067,7 @@ Todavía no hay cobros registrados
 </strong>
 
 <span>
-Registrá el primer cobro de tu empresa.
+Registrá el primer importe a cobrar.
 </span>
 
 </div>
@@ -887,9 +1079,9 @@ Registrá el primer cobro de tu empresa.
 </div>
 
 
-<!-- ==========================================
+<!-- ==============================
      RECIBO
-========================================== -->
+============================== -->
 
 <div
     id="reciboOverlay"
@@ -963,7 +1155,7 @@ CLIENTE
 <div class="recibo-campo">
 
 <small>
-FECHA
+FECHA DE REGISTRO
 </small>
 
 <strong id="reciboFecha">
@@ -998,6 +1190,32 @@ MEDIO DE PAGO
 
 </div>
 
+
+<div class="recibo-campo">
+
+<small>
+DÍAS A COBRAR
+</small>
+
+<strong id="reciboDias">
+-
+</strong>
+
+</div>
+
+
+<div class="recibo-campo">
+
+<small>
+FECHA PREVISTA
+</small>
+
+<strong id="reciboFechaPrevista">
+-
+</strong>
+
+</div>
+
 </div>
 
 
@@ -1024,7 +1242,7 @@ Detalle
 <tr>
 
 <td>
-Trabajo realizado
+Importe a cobrar
 </td>
 
 <td id="reciboDescripcion">
@@ -1043,7 +1261,7 @@ Trabajo realizado
 <div class="recibo-total-box">
 
 <div class="recibo-total-label">
-TOTAL COBRADO
+TOTAL
 </div>
 
 <div
@@ -1055,6 +1273,14 @@ $0,00
 
 </div>
 
+</div>
+
+
+<div
+    id="reciboEstado"
+    class="recibo-observaciones"
+>
+Estado: Pendiente
 </div>
 
 
@@ -1112,7 +1338,6 @@ Cerrar
 
 <script type="module">
 
-
 // ==========================================
 // FIREBASE
 // ==========================================
@@ -1122,18 +1347,18 @@ import {
     db
 } from "./Js/firebase.js";
 
-
 import {
     onAuthStateChanged
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-
 import {
     collection,
     getDocs,
+    getDoc,
     addDoc,
     deleteDoc,
+    updateDoc,
     doc,
     serverTimestamp
 } from
@@ -1159,6 +1384,12 @@ document.getElementById("importe");
 const fecha =
 document.getElementById("fecha");
 
+const diasACobrar =
+document.getElementById("diasACobrar");
+
+const fechaPrevista =
+document.getElementById("fechaPrevista");
+
 const medioPago =
 document.getElementById("medioPago");
 
@@ -1182,6 +1413,12 @@ document.getElementById("sinCobros");
 
 const contador =
 document.getElementById("contador");
+
+const totalRegistrado =
+document.getElementById("totalRegistrado");
+
+const totalPendiente =
+document.getElementById("totalPendiente");
 
 const totalCobrado =
 document.getElementById("totalCobrado");
@@ -1208,6 +1445,8 @@ document.getElementById("btnCerrarRecibo");
 
 let usuarioActual = null;
 
+let empresaIdActual = "";
+
 let clientes = [];
 
 let trabajos = [];
@@ -1220,10 +1459,10 @@ let reciboActual = null;
 
 
 // ==========================================
-// FECHA
+// FECHA LOCAL
 // ==========================================
 
-function colocarFechaActual(){
+function fechaLocal(){
 
     const ahora = new Date();
 
@@ -1240,12 +1479,104 @@ function colocarFechaActual(){
         ahora.getDate()
     ).padStart(2,"0");
 
+    return `${año}-${mes}-${dia}`;
+
+}
+
+
+function colocarFechaActual(){
+
     fecha.value =
+    fechaLocal();
+
+    calcularFechaPrevista();
+
+}
+
+
+colocarFechaActual();
+
+
+// ==========================================
+// CALCULAR FECHA PREVISTA
+// ==========================================
+
+function calcularFechaPrevista(){
+
+    if(!fecha.value){
+
+        fechaPrevista.value =
+        "";
+
+        return;
+
+    }
+
+
+    const dias =
+    Number(
+        diasACobrar.value
+    ) || 0;
+
+
+    const partes =
+    fecha.value.split("-");
+
+
+    if(partes.length !== 3){
+
+        fechaPrevista.value =
+        "";
+
+        return;
+
+    }
+
+
+    const fechaBase =
+    new Date(
+        Number(partes[0]),
+        Number(partes[1]) - 1,
+        Number(partes[2])
+    );
+
+
+    fechaBase.setDate(
+        fechaBase.getDate() +
+        dias
+    );
+
+
+    const año =
+    fechaBase.getFullYear();
+
+    const mes =
+    String(
+        fechaBase.getMonth() + 1
+    ).padStart(2,"0");
+
+    const dia =
+    String(
+        fechaBase.getDate()
+    ).padStart(2,"0");
+
+
+    fechaPrevista.value =
     `${año}-${mes}-${dia}`;
 
 }
 
-colocarFechaActual();
+
+fecha.addEventListener(
+    "change",
+    calcularFechaPrevista
+);
+
+
+diasACobrar.addEventListener(
+    "change",
+    calcularFechaPrevista
+);
 
 
 // ==========================================
@@ -1312,8 +1643,46 @@ function formatoMoneda(
         "es-AR",
         {
             style:"currency",
-            currency:"ARS"
+            currency:"ARS",
+            minimumFractionDigits:2
         }
+    );
+
+}
+
+
+// ==========================================
+// FORMATO FECHA
+// ==========================================
+
+function formatoFecha(
+    valor
+){
+
+    if(!valor){
+
+        return "-";
+
+    }
+
+
+    const partes =
+    String(valor).split("-");
+
+
+    if(partes.length !== 3){
+
+        return valor;
+
+    }
+
+
+    return (
+        partes[2] +
+        "/" +
+        partes[1] +
+        "/" +
+        partes[0]
     );
 
 }
@@ -1340,81 +1709,139 @@ function escapar(
 
 
 // ==========================================
-// EMPRESA
+// OBTENER EMPRESA DEL USUARIO
 // ==========================================
 
 async function cargarEmpresa(){
 
     try{
 
-        const referencia =
+        const referenciaUsuario =
         doc(
             db,
-            "empresas",
+            "usuarios",
             usuarioActual.uid
         );
 
 
-        const resultado =
-        await getDocs(
-            collection(
-                db,
-                "empresas"
-            )
+        const documentoUsuario =
+        await getDoc(
+            referenciaUsuario
         );
+
+
+        let datosUsuario = {};
+
+
+        if(
+            documentoUsuario.exists()
+        ){
+
+            datosUsuario =
+            documentoUsuario.data();
+
+        }
 
 
         /*
-         * Primero intentamos el documento
-         * cuyo ID sea el UID.
+         * PRIORIDAD:
+         * 1. empresaId del usuario
+         * 2. empresa del usuario
+         * 3. UID como compatibilidad
          */
 
-        // Se vuelve a buscar mediante getDocs
-        // para mantener compatibilidad con
-        // estructuras existentes.
-
-        let encontrada = null;
-
-
-        resultado.forEach(
-            function(documento){
-
-                const datos =
-                documento.data();
+        empresaIdActual =
+        String(
+            datosUsuario.empresaId ||
+            datosUsuario.empresa ||
+            ""
+        ).trim();
 
 
-                if(
-                    documento.id ===
-                    usuarioActual.uid
-                ){
+        if(!empresaIdActual){
 
-                    encontrada =
-                    datos;
+            empresaIdActual =
+            usuarioActual.uid;
 
-                    return;
-
-                }
+        }
 
 
-                if(
-                    datos.uid ===
-                    usuarioActual.uid
-                    ||
-                    datos.usuarioId ===
-                    usuarioActual.uid
-                ){
-
-                    encontrada =
-                    datos;
-
-                }
-
-            }
+        const referenciaEmpresa =
+        doc(
+            db,
+            "empresas",
+            empresaIdActual
         );
 
 
-        empresaActual =
-        encontrada || {};
+        const documentoEmpresa =
+        await getDoc(
+            referenciaEmpresa
+        );
+
+
+        if(
+            documentoEmpresa.exists()
+        ){
+
+            empresaActual =
+            documentoEmpresa.data();
+
+        }
+        else{
+
+            /*
+             * Compatibilidad con estructuras
+             * antiguas donde la empresa puede
+             * estar relacionada por UID.
+             */
+
+            const empresasSnapshot =
+            await getDocs(
+                collection(
+                    db,
+                    "empresas"
+                )
+            );
+
+
+            empresasSnapshot.forEach(
+                function(documento){
+
+                    const datos =
+                    documento.data();
+
+
+                    if(
+                        documento.id ===
+                        usuarioActual.uid
+                        ||
+                        datos.uid ===
+                        usuarioActual.uid
+                        ||
+                        datos.usuarioId ===
+                        usuarioActual.uid
+                    ){
+
+                        empresaActual =
+                        datos;
+
+                        if(
+                            !datosUsuario.empresaId &&
+                            !datosUsuario.empresa
+                        ){
+
+                            empresaIdActual =
+                            documento.id;
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
 
     }
     catch(error){
@@ -1424,7 +1851,22 @@ async function cargarEmpresa(){
             error
         );
 
+
         empresaActual = {};
+
+
+        /*
+         * Compatibilidad:
+         * si no existe empresaId,
+         * se utiliza UID.
+         */
+
+        if(!empresaIdActual){
+
+            empresaIdActual =
+            usuarioActual.uid;
+
+        }
 
     }
 
@@ -1432,8 +1874,7 @@ async function cargarEmpresa(){
 
 
 // ==========================================
-// CLIENTES
-// MISMA LÓGICA QUE TRABAJOS.JS
+// CARGAR CLIENTES
 // ==========================================
 
 async function cargarClientes(){
@@ -1445,107 +1886,170 @@ async function cargarClientes(){
     `;
 
 
-    const referencia =
-    collection(
-        db,
-        "clientes"
-    );
+    try{
+
+        const snapshot =
+        await getDocs(
+            collection(
+                db,
+                "clientes"
+            )
+        );
 
 
-    const snapshot =
-    await getDocs(
-        referencia
-    );
+        clientes = [];
 
 
-    cliente.innerHTML = `
-        <option value="">
-            Seleccionar cliente
-        </option>
-    `;
+        snapshot.forEach(
+            function(documento){
+
+                const datos =
+                documento.data();
 
 
-    clientes = [];
+                const perteneceEmpresa =
+                (
+                    datos.empresaId ===
+                    empresaIdActual
+                )
+                ||
+                (
+                    datos.usuarioId ===
+                    usuarioActual.uid
+                )
+                ||
+                (
+                    datos.uid ===
+                    usuarioActual.uid
+                )
+                ||
+                (
+                    empresaIdActual ===
+                    usuarioActual.uid &&
+                    datos.empresaId ===
+                    usuarioActual.uid
+                );
 
 
-    snapshot.forEach(
-        function(documento){
+                if(!perteneceEmpresa){
 
-            const datos =
-            documento.data();
+                    return;
+
+                }
 
 
-            if(
-                datos.uid !==
-                usuarioActual.uid
-                &&
-                datos.empresaId !==
-                usuarioActual.uid
-            ){
+                const nombre =
+                [
+                    datos.nombre,
+                    datos.apellido
+                ]
+                .filter(Boolean)
+                .join(" ");
 
-                return;
+
+                const nombreFinal =
+                nombre ||
+                datos.empresa ||
+                datos.razonSocial ||
+                datos.razon_social ||
+                "Cliente";
+
+
+                clientes.push({
+
+                    id:
+                    documento.id,
+
+                    nombre:
+                    nombreFinal,
+
+                    datos:
+                    datos
+
+                });
 
             }
+        );
 
 
-            const nombre =
-            [
-                datos.nombre,
-                datos.apellido
-            ]
-            .filter(Boolean)
-            .join(" ");
+        cliente.innerHTML = `
+            <option value="">
+                Seleccionar cliente
+            </option>
+        `;
 
 
-            const nombreFinal =
-            nombre ||
-            datos.empresa ||
-            datos.razonSocial ||
-            datos.razon_social ||
-            "Cliente";
+        clientes.sort(
+            function(a,b){
+
+                return a.nombre.localeCompare(
+                    b.nombre,
+                    "es"
+                );
+
+            }
+        );
 
 
-            clientes.push({
+        clientes.forEach(
+            function(item){
 
-                id:
-                documento.id,
-
-                nombre:
-                nombreFinal,
-
-                datos:
-                datos
-
-            });
+                const opcion =
+                document.createElement(
+                    "option"
+                );
 
 
-            const opcion =
-            document.createElement(
-                "option"
-            );
+                opcion.value =
+                item.id;
 
 
-            opcion.value =
-            documento.id;
+                opcion.textContent =
+                item.nombre;
 
 
-            opcion.textContent =
-            nombreFinal;
+                cliente.appendChild(
+                    opcion
+                );
+
+            }
+        );
 
 
-            cliente.appendChild(
-                opcion
-            );
+        if(
+            clientes.length === 0
+        ){
+
+            cliente.innerHTML = `
+                <option value="">
+                    No hay clientes disponibles
+                </option>
+            `;
 
         }
-    );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando clientes:",
+            error
+        );
+
+
+        cliente.innerHTML = `
+            <option value="">
+                Error cargando clientes
+            </option>
+        `;
+
+    }
 
 }
 
 
 // ==========================================
-// TRABAJOS
-// MISMA LÓGICA REAL DE TRABAJOS.JS
+// CARGAR TRABAJOS
 // ==========================================
 
 async function cargarTrabajos(){
@@ -1557,105 +2061,127 @@ async function cargarTrabajos(){
     `;
 
 
-    const referencia =
-    collection(
-        db,
-        "trabajos"
-    );
+    try{
+
+        const snapshot =
+        await getDocs(
+            collection(
+                db,
+                "trabajos"
+            )
+        );
 
 
-    const snapshot =
-    await getDocs(
-        referencia
-    );
+        trabajos = [];
 
 
-    trabajo.innerHTML = `
-        <option value="">
-            Sin trabajo relacionado
-        </option>
-    `;
+        snapshot.forEach(
+            function(documento){
+
+                const datos =
+                documento.data();
 
 
-    trabajos = [];
+                const perteneceEmpresa =
+                (
+                    datos.empresaId ===
+                    empresaIdActual
+                )
+                ||
+                (
+                    datos.usuarioId ===
+                    usuarioActual.uid
+                )
+                ||
+                (
+                    datos.uid ===
+                    usuarioActual.uid
+                );
 
 
-    snapshot.forEach(
-        function(documento){
+                if(!perteneceEmpresa){
 
-            const datos =
-            documento.data();
+                    return;
+
+                }
 
 
-            if(
-                datos.empresaId !==
-                usuarioActual.uid
-            ){
+                trabajos.push({
 
-                return;
+                    id:
+                    documento.id,
+
+                    descripcion:
+                    datos.descripcion ||
+                    datos.nombre ||
+                    datos.titulo ||
+                    "Trabajo",
+
+                    clienteId:
+                    datos.clienteId ||
+                    datos.cliente ||
+                    "",
+
+                    estado:
+                    datos.estado ||
+                    "Pendiente",
+
+                    lugar:
+                    datos.lugar ||
+                    "",
+
+                    datos:
+                    datos
+
+                });
 
             }
+        );
 
-
-            const item = {
-
-                id:
-                documento.id,
-
-                descripcion:
-                datos.descripcion ||
-                "Trabajo",
-
-                clienteId:
-                datos.clienteId || "",
-
-                estado:
-                datos.estado || "Pendiente",
-
-                lugar:
-                datos.lugar || "",
-
-                fechaInicio:
-                datos.fechaInicio || ""
-
-            };
-
-
-            trabajos.push(
-                item
-            );
-
-
-            const opcion =
-            document.createElement(
-                "option"
-            );
-
-
-            opcion.value =
-            documento.id;
-
-
-            opcion.textContent =
-            datos.descripcion ||
-            "Trabajo";
-
-
-            trabajo.appendChild(
-                opcion
-            );
-
-        }
-    );
-
-
-    if(
-        trabajos.length === 0
-    ){
 
         trabajo.innerHTML = `
             <option value="">
-                No hay trabajos disponibles
+                Sin trabajo relacionado
+            </option>
+        `;
+
+
+        trabajos.forEach(
+            function(item){
+
+                const opcion =
+                document.createElement(
+                    "option"
+                );
+
+
+                opcion.value =
+                item.id;
+
+
+                opcion.textContent =
+                item.descripcion;
+
+
+                trabajo.appendChild(
+                    opcion
+                );
+
+            }
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando trabajos:",
+            error
+        );
+
+
+        trabajo.innerHTML = `
+            <option value="">
+                Error cargando trabajos
             </option>
         `;
 
@@ -1740,6 +2266,23 @@ function nombreTrabajo(
 
 
 // ==========================================
+// ESTADO NORMALIZADO
+// ==========================================
+
+function estaCobrado(
+    cobro
+){
+
+    return String(
+        cobro.estado || ""
+    )
+    .toLowerCase()
+    .trim() === "cobrado";
+
+}
+
+
+// ==========================================
 // CARGAR COBROS
 // ==========================================
 
@@ -1757,16 +2300,12 @@ async function cargarCobros(){
 
     try{
 
-        const referencia =
-        collection(
-            db,
-            "cobros"
-        );
-
-
         const snapshot =
         await getDocs(
-            referencia
+            collection(
+                db,
+                "cobros"
+            )
         );
 
 
@@ -1780,16 +2319,29 @@ async function cargarCobros(){
                 documento.data();
 
 
-                if(
-                    datos.usuarioId !==
+                /*
+                 * Compatibilidad con cobros
+                 * anteriores.
+                 */
+
+                const perteneceEmpresa =
+                (
+                    datos.empresaId ===
+                    empresaIdActual
+                )
+                ||
+                (
+                    datos.usuarioId ===
                     usuarioActual.uid
-                    &&
-                    datos.empresaId !==
+                )
+                ||
+                (
+                    datos.uid ===
                     usuarioActual.uid
-                    &&
-                    datos.uid !==
-                    usuarioActual.uid
-                ){
+                );
+
+
+                if(!perteneceEmpresa){
 
                     return;
 
@@ -1826,23 +2378,53 @@ async function cargarCobros(){
 
         let total = 0;
 
+        let pendiente = 0;
+
+        let cobrado = 0;
+
 
         cobrosActuales.forEach(
             function(item){
 
-                total +=
+                const importeItem =
                 Number(
                     item.importe || 0
                 );
+
+
+                total +=
+                importeItem;
+
+
+                if(
+                    estaCobrado(item)
+                ){
+
+                    cobrado +=
+                    importeItem;
+
+                }
+                else{
+
+                    pendiente +=
+                    importeItem;
+
+                }
 
             }
         );
 
 
+        totalRegistrado.textContent =
+        formatoMoneda(total);
+
+
+        totalPendiente.textContent =
+        formatoMoneda(pendiente);
+
+
         totalCobrado.textContent =
-        formatoMoneda(
-            total
-        );
+        formatoMoneda(cobrado);
 
 
         cantidadCobros.textContent =
@@ -1896,6 +2478,7 @@ async function cargarCobros(){
     catch(error){
 
         console.error(
+            "Error cargando cobros:",
             error
         );
 
@@ -1929,8 +2512,17 @@ function crearCobro(
     );
 
 
+    const cobrado =
+    estaCobrado(cobro);
+
+
     tarjeta.className =
-    "cobro";
+    "cobro " +
+    (
+        cobrado
+        ? "cobrado"
+        : "pendiente"
+    );
 
 
     const nombre =
@@ -1945,23 +2537,45 @@ function crearCobro(
     );
 
 
+    const dias =
+    cobro.diasACobrar !== undefined
+    ? cobro.diasACobrar
+    : "-";
+
+
+    const fechaPrev =
+    cobro.fechaPrevista ||
+    "";
+
+
     tarjeta.innerHTML = `
 
         <div class="cobro-cabecera">
 
             <div class="cobro-cliente">
-
                 ${escapar(nombre)}
-
             </div>
 
             <div class="cobro-importe">
-
                 ${formatoMoneda(
                     cobro.importe
                 )}
-
             </div>
+
+        </div>
+
+
+        <div class="estado-cobro ${
+            cobrado
+            ? "cobrado"
+            : "pendiente"
+        }">
+
+            ${
+                cobrado
+                ? "✅ COBRADO"
+                : "🟠 PENDIENTE"
+            }
 
         </div>
 
@@ -1970,12 +2584,41 @@ function crearCobro(
 
             <div class="cobro-dato">
 
-                Fecha
+                Fecha de registro
 
                 <strong>
                     ${escapar(
-                        cobro.fecha ||
-                        "Sin fecha"
+                        formatoFecha(
+                            cobro.fecha
+                        )
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="cobro-dato">
+
+                Días a cobrar
+
+                <strong>
+                    ${escapar(
+                        dias + " días"
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="cobro-dato">
+
+                Fecha prevista
+
+                <strong>
+                    ${escapar(
+                        formatoFecha(
+                            fechaPrev
+                        )
                     )}
                 </strong>
 
@@ -2008,6 +2651,27 @@ function crearCobro(
 
             </div>
 
+
+            ${
+                cobrado && cobro.fechaCobrado
+                ? `
+                    <div class="cobro-dato">
+
+                        Fecha cobrado
+
+                        <strong>
+                            ${escapar(
+                                formatoFecha(
+                                    cobro.fechaCobrado
+                                )
+                            )}
+                        </strong>
+
+                    </div>
+                `
+                : ""
+            }
+
         </div>
 
 
@@ -2028,12 +2692,35 @@ function crearCobro(
 
         <div class="botones-cobro">
 
+            ${
+                !cobrado
+                ? `
+                    <button
+                        class="btn-cobrado"
+                        type="button"
+                        data-cobrado="${cobro.id}"
+                    >
+                        💵 COBRADO
+                    </button>
+                `
+                : `
+                    <button
+                        class="btn-cobrado"
+                        type="button"
+                        disabled
+                    >
+                        ✅ COBRADO
+                    </button>
+                `
+            }
+
+
             <button
                 class="btn-recibo"
                 type="button"
                 data-recibo="${cobro.id}"
             >
-                🧾 Ver recibo
+                🧾 Recibo
             </button>
 
 
@@ -2042,12 +2729,34 @@ function crearCobro(
                 type="button"
                 data-eliminar="${cobro.id}"
             >
-                Eliminar
+                🗑️ Eliminar
             </button>
 
         </div>
 
     `;
+
+
+    const botonCobrado =
+    tarjeta.querySelector(
+        "[data-cobrado]"
+    );
+
+
+    if(botonCobrado){
+
+        botonCobrado.addEventListener(
+            "click",
+            function(){
+
+                marcarComoCobrado(
+                    cobro.id
+                );
+
+            }
+        );
+
+    }
 
 
     const botonRecibo =
@@ -2094,6 +2803,109 @@ function crearCobro(
 
 
 // ==========================================
+// MARCAR COMO COBRADO
+// ==========================================
+
+async function marcarComoCobrado(
+    id
+){
+
+    const cobro =
+    cobrosActuales.find(
+        function(item){
+
+            return item.id === id;
+
+        }
+    );
+
+
+    if(!cobro){
+
+        return;
+
+    }
+
+
+    if(
+        estaCobrado(cobro)
+    ){
+
+        return;
+
+    }
+
+
+    if(
+        !confirm(
+            "¿Confirmás que este importe ya fue cobrado?"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        mostrarEstado(
+            "Marcando como cobrado...",
+            "info"
+        );
+
+
+        const hoy =
+        fechaLocal();
+
+
+        await updateDoc(
+            doc(
+                db,
+                "cobros",
+                id
+            ),
+            {
+
+                estado:
+                "Cobrado",
+
+                fechaCobrado:
+                hoy
+
+            }
+        );
+
+
+        mostrarEstado(
+            "Cobro marcado correctamente como COBRADO.",
+            "exito"
+        );
+
+
+        await cargarCobros();
+
+    }
+    catch(error){
+
+        console.error(
+            "Error marcando cobro:",
+            error
+        );
+
+
+        mostrarEstado(
+            "No se pudo marcar como cobrado. " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// ==========================================
 // GENERAR NÚMERO DE RECIBO
 // ==========================================
 
@@ -2127,11 +2939,10 @@ function generarNumeroRecibo(){
                 );
 
 
-                if(
-                    n > mayor
-                ){
+                if(n > mayor){
 
-                    mayor = n;
+                    mayor =
+                    n;
 
                 }
 
@@ -2141,11 +2952,9 @@ function generarNumeroRecibo(){
     );
 
 
-    return (
+    return String(
         mayor + 1
-    )
-    .toString()
-    .padStart(
+    ).padStart(
         6,
         "0"
     );
@@ -2163,12 +2972,6 @@ function mostrarRecibo(
 
     reciboActual =
     cobro;
-
-
-    const clienteDatos =
-    datosCliente(
-        cobro.clienteId
-    );
 
 
     const trabajoDatos =
@@ -2241,9 +3044,7 @@ function mostrarRecibo(
     "";
 
 
-    if(
-        logoUrl
-    ){
+    if(logoUrl){
 
         logo.src =
         logoUrl;
@@ -2263,10 +3064,7 @@ function mostrarRecibo(
     const numero =
     cobro.numeroRecibo ||
     "RC-" +
-    (
-        cobro.numero ||
-        generarNumeroRecibo()
-    );
+    generarNumeroRecibo();
 
 
     document.getElementById(
@@ -2287,8 +3085,9 @@ function mostrarRecibo(
     document.getElementById(
         "reciboFecha"
     ).textContent =
-    cobro.fecha ||
-    "-";
+    formatoFecha(
+        cobro.fecha
+    );
 
 
     document.getElementById(
@@ -2307,10 +3106,29 @@ function mostrarRecibo(
 
 
     document.getElementById(
+        "reciboDias"
+    ).textContent =
+    (
+        cobro.diasACobrar !== undefined
+        ? cobro.diasACobrar + " días"
+        : "-"
+    );
+
+
+    document.getElementById(
+        "reciboFechaPrevista"
+    ).textContent =
+    formatoFecha(
+        cobro.fechaPrevista
+    );
+
+
+    document.getElementById(
         "reciboDescripcion"
     ).textContent =
     trabajoDatos.descripcion ||
-    "Pago recibido";
+    trabajoDatos.nombre ||
+    "Importe a cobrar";
 
 
     document.getElementById(
@@ -2321,15 +3139,24 @@ function mostrarRecibo(
     );
 
 
+    document.getElementById(
+        "reciboEstado"
+    ).textContent =
+    estaCobrado(cobro)
+    ? "Estado: COBRADO — " +
+      formatoFecha(
+          cobro.fechaCobrado
+      )
+    : "Estado: PENDIENTE";
+
+
     const observacion =
     document.getElementById(
         "reciboObservaciones"
     );
 
 
-    if(
-        cobro.observaciones
-    ){
+    if(cobro.observaciones){
 
         observacion.textContent =
         "Observaciones: " +
@@ -2374,9 +3201,19 @@ btnGuardar.addEventListener(
         }
 
 
-        if(
-            !cliente.value
-        ){
+        if(!empresaIdActual){
+
+            mostrarEstado(
+                "No se pudo identificar la empresa.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if(!cliente.value){
 
             mostrarEstado(
                 "Seleccioná un cliente.",
@@ -2409,9 +3246,7 @@ btnGuardar.addEventListener(
         }
 
 
-        if(
-            !fecha.value
-        ){
+        if(!fecha.value){
 
             mostrarEstado(
                 "Seleccioná la fecha.",
@@ -2423,19 +3258,29 @@ btnGuardar.addEventListener(
         }
 
 
+        if(!diasACobrar.value){
+
+            mostrarEstado(
+                "Seleccioná los días a cobrar.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        calcularFechaPrevista();
+
+
         btnGuardar.disabled =
         true;
-
 
         btnGuardar.textContent =
         "Guardando...";
 
 
         try{
-
-            /*
-             * El número se genera antes de guardar.
-             */
 
             const numero =
             generarNumeroRecibo();
@@ -2446,63 +3291,18 @@ btnGuardar.addEventListener(
             numero;
 
 
-            const referencia =
-            await addDoc(
-                collection(
-                    db,
-                    "cobros"
-                ),
-                {
-
-                    usuarioId:
-                    usuarioActual.uid,
-
-                    empresaId:
-                    usuarioActual.uid,
-
-                    clienteId:
-                    cliente.value,
-
-                    trabajoId:
-                    trabajo.value || "",
-
-                    importe:
-                    importeNumero,
-
-                    fecha:
-                    fecha.value,
-
-                    medioPago:
-                    medioPago.value || "",
-
-                    observaciones:
-                    observaciones.value.trim(),
-
-                    numeroRecibo:
-                    numeroRecibo,
-
-                    creado:
-                    serverTimestamp()
-
-                }
-            );
-
-
-            /*
-             * Construimos inmediatamente
-             * el recibo con los datos ingresados.
-             */
-
-            const cobroNuevo = {
-
-                id:
-                referencia.id,
+            const datosCobro = {
 
                 usuarioId:
                 usuarioActual.uid,
 
+                /*
+                 * IMPORTANTE:
+                 * Se guarda la empresa real.
+                 */
+
                 empresaId:
-                usuarioActual.uid,
+                empresaIdActual,
 
                 clienteId:
                 cliente.value,
@@ -2516,6 +3316,20 @@ btnGuardar.addEventListener(
                 fecha:
                 fecha.value,
 
+                diasACobrar:
+                Number(
+                    diasACobrar.value
+                ),
+
+                fechaPrevista:
+                fechaPrevista.value,
+
+                estado:
+                "Pendiente",
+
+                fechaCobrado:
+                "",
+
                 medioPago:
                 medioPago.value || "",
 
@@ -2523,10 +3337,37 @@ btnGuardar.addEventListener(
                 observaciones.value.trim(),
 
                 numeroRecibo:
-                numeroRecibo
+                numeroRecibo,
+
+                creado:
+                serverTimestamp()
 
             };
 
+
+            const referencia =
+            await addDoc(
+                collection(
+                    db,
+                    "cobros"
+                ),
+                datosCobro
+            );
+
+
+            const cobroNuevo = {
+
+                id:
+                referencia.id,
+
+                ...datosCobro
+
+            };
+
+
+            /*
+             * Actualización inmediata.
+             */
 
             cobrosActuales.push(
                 cobroNuevo
@@ -2555,18 +3396,22 @@ btnGuardar.addEventListener(
             observaciones.value =
             "";
 
+            diasACobrar.value =
+            "1";
+
+
             colocarFechaActual();
 
 
             /*
-             * Actualizar listado.
+             * Recargar listado.
              */
 
             await cargarCobros();
 
 
             /*
-             * ABRIR RECIBO AUTOMÁTICAMENTE.
+             * Mostrar recibo.
              */
 
             mostrarRecibo(
@@ -2625,9 +3470,7 @@ btnWhatsApp.addEventListener(
     "click",
     function(){
 
-        if(
-            !reciboActual
-        ){
+        if(!reciboActual){
 
             return;
 
@@ -2651,6 +3494,12 @@ btnWhatsApp.addEventListener(
         );
 
 
+        const estadoTexto =
+        estaCobrado(reciboActual)
+        ? "COBRADO"
+        : "PENDIENTE";
+
+
         const mensaje =
 
 `🧾 RECIBO DE COBRO - GESBASE
@@ -2661,18 +3510,40 @@ Cliente: ${clienteNombre}
 
 Trabajo: ${trabajoNombre}
 
-Fecha: ${reciboActual.fecha || "-"}
+Fecha de registro: ${
+    formatoFecha(
+        reciboActual.fecha
+    )
+}
 
-Medio de pago: ${reciboActual.medioPago || "-"}
+Días a cobrar: ${
+    reciboActual.diasACobrar || "-"
+}
 
-Importe cobrado: ${formatoMoneda(
-    reciboActual.importe
-)}
+Fecha prevista: ${
+    formatoFecha(
+        reciboActual.fechaPrevista
+    )
+}
 
-${reciboActual.observaciones
+Medio de pago: ${
+    reciboActual.medioPago || "-"
+}
+
+Estado: ${estadoTexto}
+
+Importe: ${
+    formatoMoneda(
+        reciboActual.importe
+    )
+}
+
+${
+    reciboActual.observaciones
     ? "Observaciones: " +
       reciboActual.observaciones
-    : ""}
+    : ""
+}
 
 Gracias por su pago.`;
 
@@ -2701,11 +3572,31 @@ async function eliminarCobro(
     id
 ){
 
-    if(
-        !confirm(
-            "¿Querés eliminar este cobro?"
-        )
-    ){
+    const cobro =
+    cobrosActuales.find(
+        function(item){
+
+            return item.id === id;
+
+        }
+    );
+
+
+    if(!cobro){
+
+        return;
+
+    }
+
+
+    const confirmado =
+    confirm(
+        "¿Querés eliminar este cobro?\n\n" +
+        "Esta acción no se puede deshacer."
+    );
+
+
+    if(!confirmado){
 
         return;
 
@@ -2741,6 +3632,7 @@ async function eliminarCobro(
     catch(error){
 
         console.error(
+            "Error eliminando cobro:",
             error
         );
 
@@ -2781,7 +3673,17 @@ onAuthStateChanged(
 
         try{
 
+            /*
+             * PRIMERO identificamos la empresa.
+             */
+
             await cargarEmpresa();
+
+
+            /*
+             * DESPUÉS cargamos clientes,
+             * trabajos y cobros.
+             */
 
             await cargarClientes();
 
@@ -2796,6 +3698,10 @@ onAuthStateChanged(
                 "Error inicializando Cobros:",
                 error
             );
+
+
+            cargando.style.display =
+            "none";
 
 
             mostrarEstado(
