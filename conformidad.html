@@ -164,6 +164,7 @@ textarea{
     height:220px;
     background:white;
     touch-action:none;
+    cursor:crosshair;
 }
 
 .firma-ayuda{
@@ -351,10 +352,6 @@ Registrá la conformidad del cliente una vez finalizado el trabajo.
 ></div>
 
 
-<!-- ==========================================
-     SELECCIONAR TRABAJO
-========================================== -->
-
 <section class="card">
 
 <h2>
@@ -386,10 +383,6 @@ Cargando trabajos...
 
 </section>
 
-
-<!-- ==========================================
-     DATOS DEL TRABAJO
-========================================== -->
 
 <section
     id="datosTrabajo"
@@ -486,10 +479,6 @@ Observaciones del trabajo
 </section>
 
 
-<!-- ==========================================
-     OBSERVACIONES
-========================================== -->
-
 <section
     id="seccionObservaciones"
     class="card hidden"
@@ -506,10 +495,6 @@ Observaciones del trabajo
 
 </section>
 
-
-<!-- ==========================================
-     FIRMA
-========================================== -->
 
 <section
     id="seccionFirma"
@@ -562,10 +547,6 @@ Firmá con el dedo sobre la pantalla.
 </section>
 
 
-<!-- ==========================================
-     PDF
-========================================== -->
-
 <section
     id="seccionPDF"
     class="card hidden"
@@ -579,7 +560,7 @@ Firmá con el dedo sobre la pantalla.
 
 La conformidad fue registrada correctamente.
 
-Ahora podés generar la constancia PDF con la firma del cliente.
+La firma del cliente quedó guardada junto con la conformidad.
 
 </div>
 
@@ -604,6 +585,7 @@ GESBASE — Del presupuesto a la rentabilidad.
 
 
 <script type="module">
+
 
 // ==========================================
 // FIREBASE
@@ -699,6 +681,8 @@ let firmaRealizada = false;
 
 let conformidadGuardada = null;
 
+let dibujando = false;
+
 
 // ==========================================
 // AUTENTICACIÓN
@@ -764,10 +748,6 @@ async function cargarTrabajos(){
                 documento.data();
 
 
-                // ==================================
-                // FILTRO POR USUARIO / EMPRESA
-                // ==================================
-
                 if(
                     datos.empresaId &&
                     datos.empresaId !==
@@ -814,12 +794,10 @@ async function cargarTrabajos(){
                 opcion.value =
                 trabajo.id;
 
-
                 opcion.textContent =
                 construirNombreTrabajo(
                     trabajo
                 );
-
 
                 trabajoSelect.appendChild(
                     opcion
@@ -846,7 +824,10 @@ async function cargarTrabajos(){
     }
     catch(error){
 
-        console.error(error);
+        console.error(
+            "Error cargando trabajos:",
+            error
+        );
 
         estadoCarga.textContent =
         "No se pudieron cargar los trabajos.";
@@ -887,7 +868,7 @@ function construirNombreTrabajo(
 
 
 // ==========================================
-// SELECCIÓN DE TRABAJO
+// SELECCIÓN
 // ==========================================
 
 trabajoSelect.addEventListener(
@@ -998,7 +979,21 @@ function mostrarDatosTrabajo(){
     );
 
 
-    limpiarFirma();
+    /*
+     * Esperamos a que el navegador
+     * muestre el canvas antes
+     * de configurarlo.
+     */
+
+    requestAnimationFrame(
+        function(){
+
+            ajustarCanvas();
+
+            limpiarFirma();
+
+        }
+    );
 
 }
 
@@ -1012,16 +1007,36 @@ function ajustarCanvas(){
     const rect =
     canvas.getBoundingClientRect();
 
+    if(
+        rect.width <= 0 ||
+        rect.height <= 0
+    ){
+
+        return;
+
+    }
+
+
     const ratio =
     window.devicePixelRatio ||
     1;
 
 
+    /*
+     * IMPORTANTE:
+     * El tamaño real del canvas se establece
+     * según el tamaño visible.
+     */
+
     canvas.width =
-    rect.width * ratio;
+    Math.round(
+        rect.width * ratio
+    );
 
     canvas.height =
-    rect.height * ratio;
+    Math.round(
+        rect.height * ratio
+    );
 
 
     ctx.setTransform(
@@ -1035,7 +1050,7 @@ function ajustarCanvas(){
 
 
     ctx.lineWidth =
-    2;
+    2.5;
 
     ctx.lineCap =
     "round";
@@ -1043,26 +1058,38 @@ function ajustarCanvas(){
     ctx.lineJoin =
     "round";
 
+    ctx.strokeStyle =
+    "#111827";
+
 }
-
-
-ajustarCanvas();
 
 
 window.addEventListener(
     "resize",
-    ajustarCanvas
+    function(){
+
+        /*
+         * No redimensionamos el canvas
+         * mientras el usuario está firmando.
+         */
+
+        if(!dibujando){
+
+            ajustarCanvas();
+
+        }
+
+    }
 );
 
 
 // ==========================================
-// FIRMA
+// POSICIÓN
 // ==========================================
 
-let dibujando = false;
-
-
-function obtenerPosicion(evento){
+function obtenerPosicion(
+    evento
+){
 
     const rect =
     canvas.getBoundingClientRect();
@@ -1074,7 +1101,7 @@ function obtenerPosicion(evento){
 
     if(
         evento.touches &&
-        evento.touches.length
+        evento.touches.length > 0
     ){
 
         clienteX =
@@ -1110,9 +1137,25 @@ function obtenerPosicion(evento){
 }
 
 
-function iniciarFirma(evento){
+// ==========================================
+// INICIAR FIRMA
+// ==========================================
+
+function iniciarFirma(
+    evento
+){
 
     evento.preventDefault();
+
+    if(
+        !canvas.width ||
+        !canvas.height
+    ){
+
+        ajustarCanvas();
+
+    }
+
 
     dibujando =
     true;
@@ -1137,7 +1180,13 @@ function iniciarFirma(evento){
 }
 
 
-function dibujarFirma(evento){
+// ==========================================
+// DIBUJAR
+// ==========================================
+
+function dibujarFirma(
+    evento
+){
 
     if(!dibujando){
 
@@ -1165,7 +1214,23 @@ function dibujarFirma(evento){
 }
 
 
-function terminarFirma(){
+// ==========================================
+// TERMINAR
+// ==========================================
+
+function terminarFirma(
+    evento
+){
+
+    if(
+        evento &&
+        evento.preventDefault
+    ){
+
+        evento.preventDefault();
+
+    }
+
 
     if(!dibujando){
 
@@ -1181,6 +1246,10 @@ function terminarFirma(){
 
 }
 
+
+// ==========================================
+// EVENTOS FIRMA
+// ==========================================
 
 canvas.addEventListener(
     "mousedown",
@@ -1221,7 +1290,18 @@ canvas.addEventListener(
 
 canvas.addEventListener(
     "touchend",
-    terminarFirma
+    terminarFirma,
+    {
+        passive:false
+    }
+);
+
+canvas.addEventListener(
+    "touchcancel",
+    terminarFirma,
+    {
+        passive:false
+    }
 );
 
 
@@ -1231,16 +1311,59 @@ canvas.addEventListener(
 
 function limpiarFirma(){
 
+    if(
+        !canvas.width ||
+        !canvas.height
+    ){
+
+        return;
+
+    }
+
+
     const rect =
     canvas.getBoundingClientRect();
+
+
+    ctx.save();
+
+    ctx.setTransform(
+        1,
+        0,
+        0,
+        1,
+        0,
+        0
+    );
 
 
     ctx.clearRect(
         0,
         0,
-        rect.width,
-        rect.height
+        canvas.width,
+        canvas.height
     );
+
+
+    ctx.restore();
+
+
+    /*
+     * Volvemos a establecer
+     * configuración del pincel.
+     */
+
+    ctx.lineWidth =
+    2.5;
+
+    ctx.lineCap =
+    "round";
+
+    ctx.lineJoin =
+    "round";
+
+    ctx.strokeStyle =
+    "#111827";
 
 
     firmaRealizada =
@@ -1256,7 +1379,37 @@ btnLimpiarFirma.addEventListener(
 
 
 // ==========================================
-// CONFIRMAR
+// VALIDAR FIRMA
+// ==========================================
+
+function obtenerFirmaDataURL(){
+
+    if(
+        !firmaRealizada
+    ){
+
+        return "";
+
+    }
+
+
+    /*
+     * PNG completo en Base64.
+     * Esta cadena es la que se guarda
+     * en Firestore y luego se utiliza
+     * directamente en el PDF.
+     */
+
+    return canvas.toDataURL(
+        "image/png",
+        1
+    );
+
+}
+
+
+// ==========================================
+// CONFIRMAR CONFORMIDAD
 // ==========================================
 
 btnConfirmar.addEventListener(
@@ -1287,6 +1440,27 @@ btnConfirmar.addEventListener(
         }
 
 
+        const firma =
+        obtenerFirmaDataURL();
+
+
+        if(
+            !firma ||
+            !firma.startsWith(
+                "data:image/png"
+            )
+        ){
+
+            mostrarMensaje(
+                "No se pudo obtener la firma. Volvé a firmar.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
         btnConfirmar.disabled =
         true;
 
@@ -1296,15 +1470,12 @@ btnConfirmar.addEventListener(
 
         try{
 
-            const firma =
-            canvas.toDataURL(
-                "image/png"
-            );
-
-
             const registro = {
 
                 usuarioId:
+                usuarioActual.uid,
+
+                empresaId:
                 usuarioActual.uid,
 
                 trabajoId:
@@ -1340,9 +1511,16 @@ btnConfirmar.addEventListener(
                 observacionesConformidad:
                 observacionesConformidad.value.trim(),
 
-                firma:
+                /*
+                 * FIRMA:
+                 * Se guarda el PNG completo.
+                 */
 
+                firma:
                 firma,
+
+                firmaTipo:
+                "image/png",
 
                 estado:
                 "CONFORME",
@@ -1367,12 +1545,21 @@ btnConfirmar.addEventListener(
             );
 
 
+            /*
+             * Guardamos también la firma localmente
+             * dentro del objeto que utilizaremos
+             * para generar el PDF.
+             */
+
             conformidadGuardada = {
 
                 id:
                 documento.id,
 
                 ...registro,
+
+                firma:
+                firma,
 
                 fechaCreacion:
                 new Date()
@@ -1381,7 +1568,7 @@ btnConfirmar.addEventListener(
 
 
             mostrarMensaje(
-                "Conformidad registrada correctamente.",
+                "Conformidad registrada correctamente. La firma fue guardada.",
                 "ok"
             );
 
@@ -1394,9 +1581,16 @@ btnConfirmar.addEventListener(
             btnConfirmar.textContent =
             "✅ Conformidad registrada";
 
-
             btnConfirmar.disabled =
             true;
+
+
+            /*
+             * Dejamos visible la firma.
+             */
+
+            canvas.style.pointerEvents =
+            "none";
 
         }
         catch(error){
@@ -1454,6 +1648,27 @@ async function generarPDF(){
     conformidadGuardada;
 
 
+    const firma =
+    datos.firma;
+
+
+    if(
+        !firma ||
+        !firma.startsWith(
+            "data:image/"
+        )
+    ){
+
+        mostrarMensaje(
+            "La firma no está disponible. La conformidad debe volver a registrarse.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
     const ventana =
     window.open(
         "",
@@ -1473,250 +1688,373 @@ async function generarPDF(){
     }
 
 
-    const firma =
-    datos.firma;
+    /*
+     * Escapamos la firma para evitar
+     * problemas dentro del HTML.
+     */
+
+    const firmaSegura =
+    firma;
+
+
+    ventana.document.open();
 
 
     ventana.document.write(`
 
-        <!DOCTYPE html>
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+>
+
+<title>
+Constancia de conformidad - GESBASE
+</title>
+
+
+<style>
+
+@page{
+    size:A4;
+    margin:18mm;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    color:#111827;
+    background:white;
+    padding:0;
+    margin:0;
+}
+
+.encabezado{
+    border-bottom:2px solid #111827;
+    padding-bottom:15px;
+    margin-bottom:25px;
+}
+
+.logo{
+    font-size:28px;
+    font-weight:bold;
+}
+
+.subtitulo{
+    margin-top:4px;
+    color:#6b7280;
+    font-size:12px;
+}
+
+.titulo{
+    font-size:22px;
+    font-weight:bold;
+    margin:20px 0 25px;
+}
+
+.campo{
+    margin:15px 0;
+}
+
+.etiqueta{
+    font-size:11px;
+    color:#6b7280;
+    text-transform:uppercase;
+}
+
+.valor{
+    font-weight:bold;
+    margin-top:5px;
+    font-size:14px;
+}
+
+.observaciones{
+    border:1px solid #d1d5db;
+    padding:15px;
+    min-height:80px;
+    margin-top:10px;
+    border-radius:5px;
+    white-space:pre-wrap;
+}
+
+.declaracion{
+    margin-top:25px;
+    padding:15px;
+    border:1px solid #d1d5db;
+    border-radius:5px;
+    line-height:1.5;
+}
 
-        <html lang="es">
+.firma{
+    margin-top:35px;
+    page-break-inside:avoid;
+}
+
+.firma-titulo{
+    font-weight:bold;
+    margin-bottom:10px;
+}
 
-        <head>
+.firma-contenedor{
+    width:350px;
+    height:170px;
+    border-bottom:1px solid #111827;
+    display:flex;
+    align-items:flex-end;
+}
 
-        <meta charset="UTF-8">
+.firma-contenedor img{
+    display:block;
+    width:330px;
+    max-width:100%;
+    height:150px;
+    object-fit:contain;
+    object-position:center bottom;
+}
 
-        <title>
-        Constancia de conformidad - GESBASE
-        </title>
+.firma-texto{
+    font-size:11px;
+    color:#6b7280;
+    margin-top:8px;
+}
 
-        <style>
+.pie{
+    margin-top:45px;
+    padding-top:12px;
+    border-top:1px solid #e5e7eb;
+    font-size:11px;
+    color:#6b7280;
+}
 
-        body{
-            font-family:Arial,sans-serif;
-            padding:40px;
-            color:#111827;
-        }
+@media print{
 
-        .encabezado{
-            border-bottom:2px solid #111827;
-            padding-bottom:15px;
-            margin-bottom:25px;
-        }
+    body{
+        -webkit-print-color-adjust:exact;
+        print-color-adjust:exact;
+    }
 
-        .logo{
-            font-size:28px;
-            font-weight:bold;
-        }
+}
 
-        .titulo{
-            font-size:22px;
-            font-weight:bold;
-            margin-top:20px;
-        }
+</style>
 
-        .campo{
-            margin:15px 0;
-        }
+</head>
 
-        .etiqueta{
-            font-size:12px;
-            color:#6b7280;
-        }
 
-        .valor{
-            font-weight:bold;
-            margin-top:4px;
-        }
+<body>
 
-        .observaciones{
-            border:1px solid #d1d5db;
-            padding:15px;
-            min-height:80px;
-            margin-top:10px;
-        }
 
-        .firma{
-            margin-top:30px;
-        }
+<div class="encabezado">
 
-        .firma img{
-            max-width:300px;
-            max-height:150px;
-            border-bottom:1px solid #111827;
-        }
+<div class="logo">
+GESBASE
+</div>
 
-        .pie{
-            margin-top:40px;
-            font-size:12px;
-            color:#6b7280;
-        }
+<div class="subtitulo">
+Tu empresa. Todo organizado.
+</div>
 
-        </style>
+</div>
 
-        </head>
 
-        <body>
+<div class="titulo">
+CONSTANCIA DE CONFORMIDAD DE TRABAJO
+</div>
 
-        <div class="encabezado">
 
-            <div class="logo">
-            GESBASE
-            </div>
+<div class="campo">
 
-            <div>
-            Tu empresa. Todo organizado.
-            </div>
+<div class="etiqueta">
+CLIENTE
+</div>
 
-        </div>
+<div class="valor">
+${escapeHTML(
+    datos.cliente ||
+    "Sin informar"
+)}
+</div>
 
+</div>
 
-        <div class="titulo">
-        CONSTANCIA DE CONFORMIDAD DE TRABAJO
-        </div>
 
+<div class="campo">
 
-        <div class="campo">
+<div class="etiqueta">
+TRABAJO REALIZADO
+</div>
 
-            <div class="etiqueta">
-            CLIENTE
-            </div>
+<div class="valor">
+${escapeHTML(
+    datos.trabajo ||
+    "Sin informar"
+)}
+</div>
 
-            <div class="valor">
-            ${escapeHTML(
-                datos.cliente ||
-                "Sin informar"
-            )}
-            </div>
+</div>
 
-        </div>
 
+<div class="campo">
 
-        <div class="campo">
+<div class="etiqueta">
+LUGAR
+</div>
 
-            <div class="etiqueta">
-            TRABAJO REALIZADO
-            </div>
+<div class="valor">
+${escapeHTML(
+    datos.lugar ||
+    "Sin informar"
+)}
+</div>
 
-            <div class="valor">
-            ${escapeHTML(
-                datos.trabajo ||
-                "Sin informar"
-            )}
-            </div>
+</div>
 
-        </div>
 
+<div class="campo">
 
-        <div class="campo">
+<div class="etiqueta">
+FECHA DEL TRABAJO
+</div>
 
-            <div class="etiqueta">
-            LUGAR
-            </div>
+<div class="valor">
+${escapeHTML(
+    datos.fechaTrabajo ||
+    "Sin informar"
+)}
+</div>
 
-            <div class="valor">
-            ${escapeHTML(
-                datos.lugar ||
-                "Sin informar"
-            )}
-            </div>
+</div>
 
-        </div>
 
+<div class="campo">
 
-        <div class="campo">
+<div class="etiqueta">
+OBSERVACIONES
+</div>
 
-            <div class="etiqueta">
-            FECHA DEL TRABAJO
-            </div>
+<div class="observaciones">
 
-            <div class="valor">
-            ${escapeHTML(
-                datos.fechaTrabajo ||
-                "Sin informar"
-            )}
-            </div>
+${escapeHTML(
+    datos.observacionesConformidad ||
+    "Sin observaciones."
+)}
 
-        </div>
+</div>
 
+</div>
 
-        <div class="campo">
 
-            <div class="etiqueta">
-            OBSERVACIONES
-            </div>
+<div class="declaracion">
 
-            <div class="observaciones">
+Declaro haber recibido y revisado el trabajo indicado
+y manifiesto mi conformidad con el trabajo realizado.
 
-            ${escapeHTML(
-                datos.observacionesConformidad ||
-                "Sin observaciones."
-            )}
+</div>
 
-            </div>
 
-        </div>
+<div class="firma">
 
+<div class="firma-titulo">
+Firma del cliente
+</div>
 
-        <div class="campo">
+<div class="firma-contenedor">
 
-        Declaro haber recibido y revisado el trabajo indicado
-        y manifiesto mi conformidad con el trabajo realizado.
+<img
+    id="imagenFirma"
+    src="${firmaSegura}"
+    alt="Firma del cliente"
+>
 
-        </div>
+</div>
 
+<div class="firma-texto">
+Firma registrada digitalmente mediante GESBASE.
+</div>
 
-        <div class="firma">
+</div>
 
-            <strong>
-            Firma del cliente
-            </strong>
 
-            <br><br>
+<div class="pie">
 
-            <img
-                src="${firma}"
-                alt="Firma del cliente"
-            >
+Documento generado por GESBASE.
+<br>
 
-        </div>
+Fecha de registro:
+${escapeHTML(
+    new Date().toLocaleString("es-AR")
+)}
 
+</div>
 
-        <div class="pie">
 
-        Documento generado por GESBASE.
-        <br>
+<script>
 
-        Fecha de registro:
-        ${new Date().toLocaleString("es-AR")}
+(function(){
 
-        </div>
+    const imagen =
+    document.getElementById("imagenFirma");
 
+    function imprimir(){
 
-        <script>
+        setTimeout(
+            function(){
 
-        window.onload = function(){
+                window.focus();
 
-            setTimeout(
-                function(){
+                window.print();
 
-                    window.print();
+            },
+            300
+        );
 
-                },
-                500
+    }
+
+
+    if(
+        imagen.complete &&
+        imagen.naturalWidth > 0
+    ){
+
+        imprimir();
+
+    }
+    else{
+
+        imagen.onload =
+        imprimir;
+
+        imagen.onerror =
+        function(){
+
+            document.body.insertAdjacentHTML(
+                "beforeend",
+                '<p style="color:red;margin-top:20px;">No se pudo cargar la firma.</p>'
             );
 
         };
 
-        <\/script>
+    }
+
+})();
+
+<\/script>
 
 
-        </body>
+</body>
 
-        </html>
+</html>
 
-    `);
+`);
 
 
     ventana.document.close();
