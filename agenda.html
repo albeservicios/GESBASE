@@ -1,9 +1,24 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111827">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<meta
+    name="description"
+    content="GESBASE - Agenda de trabajos"
+>
 
 <title>Agenda - GESBASE</title>
 
@@ -16,7 +31,7 @@
 }
 
 body{
-    font-family:Arial,sans-serif;
+    font-family:Arial,Helvetica,sans-serif;
     background:#f3f4f6;
     color:#111827;
 }
@@ -40,11 +55,21 @@ header h1{
 
 header p{
     margin-top:6px;
+    font-size:14px;
     color:#d1d5db;
 }
 
 main{
     padding:20px;
+}
+
+.estado-sesion{
+    margin-bottom:18px;
+    padding:12px;
+    border-radius:10px;
+    background:#f3f4f6;
+    color:#4b5563;
+    font-size:13px;
 }
 
 .campo{
@@ -67,6 +92,14 @@ select{
     border-radius:9px;
     font-size:16px;
     background:white;
+    color:#111827;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+    outline:none;
+    border-color:#2563eb;
 }
 
 textarea{
@@ -97,6 +130,7 @@ button{
 
 button:disabled{
     opacity:.6;
+    cursor:not-allowed;
 }
 
 .mensaje{
@@ -104,21 +138,32 @@ button:disabled{
     margin-top:15px;
     padding:13px;
     border-radius:10px;
+    font-size:14px;
+    line-height:1.5;
 }
 
-.exito{
+.mensaje.exito{
     display:block;
     background:#dcfce7;
     color:#166534;
 }
 
-.error{
+.mensaje.error{
     display:block;
     background:#fee2e2;
     color:#991b1b;
 }
 
+@media(max-width:600px){
+
+    main{
+        padding:15px;
+    }
+
+}
+
 </style>
+
 </head>
 
 <body>
@@ -127,15 +172,30 @@ button:disabled{
 
 <header>
 
-<h1>Nueva agenda</h1>
+<h1>
+Nueva agenda
+</h1>
 
-<p>GESBASE</p>
+<p>
+GESBASE
+</p>
 
 </header>
 
 <main>
 
-<!-- NÚMERO DE AGENDA -->
+
+<div
+    id="estadoSesion"
+    class="estado-sesion"
+>
+Verificando sesión...
+</div>
+
+
+<!-- =========================================
+     NÚMERO DE AGENDA
+========================================= -->
 
 <div class="campo">
 
@@ -153,7 +213,9 @@ N.º de agenda
 </div>
 
 
-<!-- CLIENTE -->
+<!-- =========================================
+     CLIENTE
+========================================= -->
 
 <div class="campo">
 
@@ -165,12 +227,15 @@ Cliente
     type="text"
     id="cliente"
     placeholder="Nombre del cliente"
+    autocomplete="off"
 >
 
 </div>
 
 
-<!-- FECHA -->
+<!-- =========================================
+     FECHA
+========================================= -->
 
 <div class="campo">
 
@@ -186,7 +251,9 @@ Fecha
 </div>
 
 
-<!-- HORA -->
+<!-- =========================================
+     HORA
+========================================= -->
 
 <div class="campo">
 
@@ -202,7 +269,9 @@ Hora
 </div>
 
 
-<!-- LUGAR -->
+<!-- =========================================
+     LUGAR
+========================================= -->
 
 <div class="campo">
 
@@ -219,7 +288,9 @@ Lugar de trabajo
 </div>
 
 
-<!-- ESTADO -->
+<!-- =========================================
+     ESTADO
+========================================= -->
 
 <div class="campo">
 
@@ -246,7 +317,9 @@ Finalizada
 </div>
 
 
-<!-- OBSERVACIONES -->
+<!-- =========================================
+     OBSERVACIONES
+========================================= -->
 
 <div class="campo">
 
@@ -268,6 +341,10 @@ Observaciones
 ></div>
 
 
+<!-- =========================================
+     GUARDAR
+========================================= -->
+
 <button
     type="button"
     class="guardar"
@@ -277,6 +354,10 @@ Guardar agenda
 </button>
 
 
+<!-- =========================================
+     VOLVER
+========================================= -->
+
 <button
     type="button"
     class="volver"
@@ -285,6 +366,7 @@ Guardar agenda
 Volver
 </button>
 
+
 </main>
 
 </div>
@@ -292,11 +374,11 @@ Volver
 
 <script type="module">
 
-/*
-====================================================
-FIREBASE
-====================================================
-*/
+
+/* =====================================================
+   FIREBASE
+   Utiliza la configuración central de GESBASE.
+===================================================== */
 
 import {
     auth,
@@ -306,123 +388,225 @@ import {
 
 import {
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 
 import {
     collection,
     addDoc,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    serverTimestamp,
+    doc,
+    getDoc
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-/*
-====================================================
-ELEMENTOS
-====================================================
-*/
+/* =====================================================
+   ELEMENTOS
+===================================================== */
+
+const estadoSesion =
+document.getElementById(
+    "estadoSesion"
+);
 
 const numeroAgenda =
-document.getElementById("numeroAgenda");
+document.getElementById(
+    "numeroAgenda"
+);
 
 const cliente =
-document.getElementById("cliente");
+document.getElementById(
+    "cliente"
+);
 
 const fecha =
-document.getElementById("fecha");
+document.getElementById(
+    "fecha"
+);
 
 const hora =
-document.getElementById("hora");
+document.getElementById(
+    "hora"
+);
 
 const lugar =
-document.getElementById("lugar");
+document.getElementById(
+    "lugar"
+);
 
 const estado =
-document.getElementById("estado");
+document.getElementById(
+    "estado"
+);
 
 const observaciones =
-document.getElementById("observaciones");
+document.getElementById(
+    "observaciones"
+);
 
 const mensaje =
-document.getElementById("mensaje");
+document.getElementById(
+    "mensaje"
+);
 
 const btnGuardar =
-document.getElementById("btnGuardar");
+document.getElementById(
+    "btnGuardar"
+);
 
 const btnVolver =
-document.getElementById("btnVolver");
-
-
-let usuarioActual = null;
-
-
-/*
-====================================================
-FECHA ACTUAL
-====================================================
-*/
-
-const hoy = new Date();
-
-fecha.value =
-hoy.getFullYear() +
-"-" +
-String(hoy.getMonth() + 1).padStart(2,"0") +
-"-" +
-String(hoy.getDate()).padStart(2,"0");
-
-
-/*
-====================================================
-AUTENTICACIÓN
-====================================================
-*/
-
-onAuthStateChanged(
-    auth,
-    function(usuario){
-
-        if(!usuario){
-
-            window.location.replace(
-                "login.html"
-            );
-
-            return;
-        }
-
-        usuarioActual = usuario;
-
-    }
+document.getElementById(
+    "btnVolver"
 );
 
 
-/*
-====================================================
-NÚMERO DE AGENDA
-====================================================
+/* =====================================================
+   VARIABLES
+===================================================== */
 
-Si la empresa entregó un número,
-se utiliza ese.
+let usuarioActual = null;
 
-Si queda vacío,
-GESBASE genera uno automáticamente.
-
-====================================================
-*/
-
-function obtenerNumeroAgenda(){
-
-    const numero =
-    numeroAgenda.value.trim();
+let empresaIdActual = "";
 
 
-    if(numero !== ""){
+/* =====================================================
+   UTILIDADES
+===================================================== */
 
-        return numero;
+function texto(valor){
+
+    if(
+        valor === undefined ||
+        valor === null
+    ){
+
+        return "";
 
     }
 
+    return String(valor).trim();
+
+}
+
+
+function mostrarMensaje(
+    textoMensaje,
+    tipo
+){
+
+    mensaje.textContent =
+    textoMensaje;
+
+    mensaje.className =
+    "mensaje " + tipo;
+
+}
+
+
+/* =====================================================
+   FECHA ACTUAL
+===================================================== */
+
+function establecerFechaActual(){
+
+    const hoy =
+    new Date();
+
+    fecha.value =
+        hoy.getFullYear() +
+        "-" +
+        String(
+            hoy.getMonth() + 1
+        ).padStart(2,"0") +
+        "-" +
+        String(
+            hoy.getDate()
+        ).padStart(2,"0");
+
+}
+
+establecerFechaActual();
+
+
+/* =====================================================
+   OBTENER EMPRESA DEL USUARIO
+===================================================== */
+
+async function obtenerEmpresaId(){
+
+    if(!usuarioActual){
+
+        return "";
+
+    }
+
+
+    try{
+
+        const referenciaUsuario =
+        doc(
+            db,
+            "usuarios",
+            usuarioActual.uid
+        );
+
+
+        const resultado =
+        await getDoc(
+            referenciaUsuario
+        );
+
+
+        if(
+            resultado.exists()
+        ){
+
+            const datos =
+            resultado.data();
+
+
+            const empresaId =
+            texto(
+                datos.empresaId ||
+                datos.empresa ||
+                datos.idEmpresa
+            );
+
+
+            if(empresaId){
+
+                return empresaId;
+
+            }
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo obtener empresaId:",
+            error
+        );
+
+    }
+
+
+    /*
+     * Compatibilidad con la estructura
+     * anterior de GESBASE.
+     */
+
+    return usuarioActual.uid;
+
+}
+
+
+/* =====================================================
+   GENERAR NÚMERO DE AGENDA
+===================================================== */
+
+function generarNumeroAgenda(){
 
     return String(
 
@@ -438,34 +622,91 @@ function obtenerNumeroAgenda(){
 }
 
 
-/*
-====================================================
-MENSAJE
-====================================================
-*/
+/* =====================================================
+   OBTENER NÚMERO
+===================================================== */
 
-function mostrarMensaje(
-    texto,
-    tipo
-){
+function obtenerNumeroAgenda(){
 
-    mensaje.textContent =
-    texto;
+    const ingresado =
+    texto(
+        numeroAgenda.value
+    );
 
-    mensaje.className =
-    "mensaje " + tipo;
+
+    if(ingresado){
+
+        return ingresado;
+
+    }
+
+
+    return generarNumeroAgenda();
 
 }
 
 
-/*
-====================================================
-GUARDAR AGENDA
-====================================================
-*/
+/* =====================================================
+   AUTENTICACIÓN
+===================================================== */
+
+onAuthStateChanged(
+
+    auth,
+
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.replace(
+                "./login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+        usuario;
+
+
+        estadoSesion.textContent =
+        "Sesión activa: " +
+        (
+            usuario.email ||
+            "usuario autenticado"
+        );
+
+
+        try{
+
+            empresaIdActual =
+            await obtenerEmpresaId();
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudo determinar empresaId:",
+                error
+            );
+
+        }
+
+    }
+
+);
+
+
+/* =====================================================
+   GUARDAR AGENDA
+===================================================== */
 
 btnGuardar.addEventListener(
+
     "click",
+
     async function(){
 
         if(!usuarioActual){
@@ -480,9 +721,37 @@ btnGuardar.addEventListener(
         }
 
 
-        if(
-            cliente.value.trim() === ""
-        ){
+        const clienteValor =
+        texto(
+            cliente.value
+        );
+
+
+        const fechaValor =
+        texto(
+            fecha.value
+        );
+
+
+        const horaValor =
+        texto(
+            hora.value
+        );
+
+
+        const lugarValor =
+        texto(
+            lugar.value
+        );
+
+
+        const observacionesValor =
+        texto(
+            observaciones.value
+        );
+
+
+        if(!clienteValor){
 
             mostrarMensaje(
                 "Ingresá el nombre del cliente.",
@@ -496,9 +765,7 @@ btnGuardar.addEventListener(
         }
 
 
-        if(
-            fecha.value === ""
-        ){
+        if(!fechaValor){
 
             mostrarMensaje(
                 "Seleccioná una fecha.",
@@ -512,9 +779,7 @@ btnGuardar.addEventListener(
         }
 
 
-        if(
-            hora.value === ""
-        ){
+        if(!horaValor){
 
             mostrarMensaje(
                 "Seleccioná una hora.",
@@ -528,9 +793,7 @@ btnGuardar.addEventListener(
         }
 
 
-        if(
-            lugar.value.trim() === ""
-        ){
+        if(!lugarValor){
 
             mostrarMensaje(
                 "Ingresá el lugar de trabajo.",
@@ -557,6 +820,58 @@ btnGuardar.addEventListener(
 
         try{
 
+            /*
+             * Si por alguna razón todavía
+             * no tenemos empresaId, lo
+             * intentamos obtener nuevamente.
+             */
+
+            if(!empresaIdActual){
+
+                empresaIdActual =
+                await obtenerEmpresaId();
+
+            }
+
+
+            const datosAgenda = {
+
+                uid:
+                usuarioActual.uid,
+
+                empresaId:
+                empresaIdActual,
+
+                numeroAgenda:
+                numeroAgendaFinal,
+
+                cliente:
+                clienteValor,
+
+                fecha:
+                fechaValor,
+
+                hora:
+                horaValor,
+
+                lugar:
+                lugarValor,
+
+                estado:
+                texto(
+                    estado.value
+                ) ||
+                "pendiente",
+
+                observaciones:
+                observacionesValor,
+
+                creado:
+                serverTimestamp()
+
+            };
+
+
             await addDoc(
 
                 collection(
@@ -564,36 +879,7 @@ btnGuardar.addEventListener(
                     "agendas"
                 ),
 
-                {
-
-                    uid:
-                    usuarioActual.uid,
-
-                    numeroAgenda:
-                    numeroAgendaFinal,
-
-                    cliente:
-                    cliente.value.trim(),
-
-                    fecha:
-                    fecha.value,
-
-                    hora:
-                    hora.value,
-
-                    lugar:
-                    lugar.value.trim(),
-
-                    estado:
-                    estado.value,
-
-                    observaciones:
-                    observaciones.value.trim(),
-
-                    creado:
-                    serverTimestamp()
-
-                }
+                datosAgenda
 
             );
 
@@ -608,28 +894,53 @@ btnGuardar.addEventListener(
             );
 
 
+            btnGuardar.textContent =
+            "Agenda guardada";
+
+
             setTimeout(
+
                 function(){
 
                     window.location.href =
-                    "index.html";
+                    "./index.html";
 
                 },
+
                 800
+
             );
 
-
-        }catch(error){
+        }
+        catch(error){
 
             console.error(
+                "ERROR GUARDANDO AGENDA:",
                 error
             );
 
 
+            let detalle =
+            error.message ||
+            error.code ||
+            "Error desconocido";
+
+
+            if(
+                error.code ===
+                "permission-denied"
+            ){
+
+                detalle =
+                "Firebase rechazó el acceso. Revisá las reglas de Firestore para la colección agendas.";
+
+            }
+
+
             mostrarMensaje(
 
-                "No se pudo guardar: " +
-                error.message,
+                "No se pudo guardar la agenda: " +
+                detalle,
 
                 "error"
 
@@ -645,26 +956,29 @@ btnGuardar.addEventListener(
         }
 
     }
+
 );
 
 
-/*
-====================================================
-VOLVER
-====================================================
-*/
+/* =====================================================
+   VOLVER
+===================================================== */
 
 btnVolver.addEventListener(
+
     "click",
+
     function(){
 
         window.location.href =
-        "index.html";
+        "./index.html";
 
     }
+
 );
 
 </script>
 
 </body>
+
 </html>
