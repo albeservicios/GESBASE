@@ -33,6 +33,7 @@ body{
 }
 
 .app{
+    width:100%;
     max-width:700px;
     margin:auto;
     min-height:100vh;
@@ -133,6 +134,7 @@ input[type="file"]{
     margin-top:7px;
     color:#6b7280;
     font-size:13px;
+    line-height:1.4;
 }
 
 button{
@@ -233,6 +235,7 @@ button{
     color:#374151;
     line-height:1.5;
     white-space:pre-wrap;
+    word-break:break-word;
 }
 
 .ticket-archivo{
@@ -241,6 +244,10 @@ button{
     color:#2563eb;
     font-weight:bold;
     text-decoration:none;
+}
+
+.ticket-archivo:hover{
+    text-decoration:underline;
 }
 
 .respuesta-cliente{
@@ -281,6 +288,7 @@ button{
     padding:14px;
     border-radius:9px;
     margin-bottom:15px;
+    line-height:1.5;
 }
 
 .exito{
@@ -451,7 +459,7 @@ Adjuntar archivo o imagen
 >
 
 <div class="archivo-info">
-Podés adjuntar una captura, fotografía, PDF u otro archivo. Máximo recomendado: 10 MB.
+Podés adjuntar una captura, fotografía, PDF u otro archivo. Máximo: 10 MB.
 </div>
 
 </div>
@@ -497,7 +505,7 @@ Cargando consultas...
 <button
     type="button"
     class="btn-volver"
-    onclick="window.location.href='index.html'"
+    id="btnVolver"
 >
 ← Volver a GESBASE
 </button>
@@ -511,6 +519,11 @@ Cargando consultas...
 <script type="module">
 
 
+/* =====================================================
+   FIREBASE
+   MISMA VERSIÓN EN TODA LA APP
+   ===================================================== */
+
 import {
     auth,
     db,
@@ -521,7 +534,7 @@ import {
 import {
     onAuthStateChanged
 } from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 
 import {
@@ -529,12 +542,10 @@ import {
     addDoc,
     query,
     where,
-    orderBy,
     getDocs,
-    collection as firestoreCollection,
     serverTimestamp
 } from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
 import {
@@ -542,14 +553,21 @@ import {
     uploadBytes,
     getDownloadURL
 } from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js";
 
+
+/* =====================================================
+   ELEMENTOS
+   ===================================================== */
 
 const form =
 document.getElementById("formAtencion");
 
 const btnEnviar =
 document.getElementById("btnEnviar");
+
+const btnVolver =
+document.getElementById("btnVolver");
 
 const mensajeSistema =
 document.getElementById("mensajeSistema");
@@ -558,8 +576,239 @@ const listaConsultas =
 document.getElementById("listaConsultas");
 
 
+/* =====================================================
+   VARIABLES
+   ===================================================== */
+
 let usuarioActual = null;
 
+
+/* =====================================================
+   UTILIDAD
+   ===================================================== */
+
+function escapeHTML(valor){
+
+    return String(valor ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* =====================================================
+   MENSAJES
+   ===================================================== */
+
+function mostrarError(texto){
+
+    mensajeSistema.innerHTML = `
+        <div class="error">
+            ❌ ${escapeHTML(texto)}
+        </div>
+    `;
+
+}
+
+
+function mostrarExito(texto){
+
+    mensajeSistema.innerHTML = `
+        <div class="exito">
+            ✅ ${escapeHTML(texto)}
+        </div>
+    `;
+
+}
+
+
+/* =====================================================
+   OBTENER FECHA
+   ===================================================== */
+
+function obtenerFecha(valor){
+
+    if(!valor){
+
+        return 0;
+
+    }
+
+
+    if(
+        typeof valor.toMillis === "function"
+    ){
+
+        return valor.toMillis();
+
+    }
+
+
+    if(
+        typeof valor.toDate === "function"
+    ){
+
+        return valor.toDate().getTime();
+
+    }
+
+
+    const fecha =
+    new Date(valor);
+
+
+    if(
+        !isNaN(fecha.getTime())
+    ){
+
+        return fecha.getTime();
+
+    }
+
+
+    return 0;
+
+}
+
+
+/* =====================================================
+   FORMATEAR FECHA
+   ===================================================== */
+
+function formatearFecha(valor){
+
+    if(!valor){
+
+        return "Fecha pendiente";
+
+    }
+
+
+    let fecha;
+
+
+    if(
+        typeof valor.toDate === "function"
+    ){
+
+        fecha =
+        valor.toDate();
+
+    }
+    else if(
+        typeof valor.toMillis === "function"
+    ){
+
+        fecha =
+        new Date(
+            valor.toMillis()
+        );
+
+    }
+    else{
+
+        fecha =
+        new Date(valor);
+
+    }
+
+
+    if(
+        isNaN(fecha.getTime())
+    ){
+
+        return "Fecha pendiente";
+
+    }
+
+
+    return new Intl.DateTimeFormat(
+        "es-AR",
+        {
+            dateStyle:"short",
+            timeStyle:"short"
+        }
+    ).format(fecha);
+
+}
+
+
+/* =====================================================
+   ESTADO
+   ===================================================== */
+
+function textoEstado(estado){
+
+    switch(estado){
+
+        case "pendiente":
+        case "nueva":
+
+            return "Pendiente";
+
+
+        case "en_atencion":
+
+            return "En atención";
+
+
+        case "respondida":
+
+            return "Respondida";
+
+
+        case "cerrada":
+
+            return "Cerrada";
+
+
+        default:
+
+            return "Pendiente";
+
+    }
+
+}
+
+
+/* =====================================================
+   CLASE ESTADO
+   ===================================================== */
+
+function claseEstado(estado){
+
+    switch(estado){
+
+        case "en_atencion":
+
+            return "estado-en-atencion";
+
+
+        case "respondida":
+
+            return "estado-respondida";
+
+
+        case "cerrada":
+
+            return "estado-cerrada";
+
+
+        default:
+
+            return "estado-pendiente";
+
+    }
+
+}
+
+
+/* =====================================================
+   AUTENTICACIÓN
+   ===================================================== */
 
 onAuthStateChanged(
     auth,
@@ -572,9 +821,13 @@ onAuthStateChanged(
             );
 
             return;
+
         }
 
-        usuarioActual = usuario;
+
+        usuarioActual =
+        usuario;
+
 
         await cargarConsultas();
 
@@ -582,6 +835,9 @@ onAuthStateChanged(
 );
 
 
+/* =====================================================
+   ENVIAR CONSULTA
+   ===================================================== */
 
 form.addEventListener(
     "submit",
@@ -597,6 +853,7 @@ form.addEventListener(
             );
 
             return;
+
         }
 
 
@@ -624,30 +881,38 @@ form.addEventListener(
         ).files[0];
 
 
-        if(!tipo || !asunto || !mensaje){
+        if(
+            !tipo ||
+            !asunto ||
+            !mensaje
+        ){
 
             mostrarError(
                 "Completá todos los campos obligatorios."
             );
 
             return;
+
         }
 
 
         if(
             archivo &&
-            archivo.size > 10 * 1024 * 1024
+            archivo.size >
+            10 * 1024 * 1024
         ){
 
             mostrarError(
-                "El archivo supera los 10 MB."
+                "El archivo supera el límite de 10 MB."
             );
 
             return;
+
         }
 
 
-        btnEnviar.disabled = true;
+        btnEnviar.disabled =
+        true;
 
         btnEnviar.textContent =
         "Enviando consulta...";
@@ -659,6 +924,10 @@ form.addEventListener(
 
             let nombreArchivo = "";
 
+
+            /* =========================================
+               SUBIR ARCHIVO
+            ========================================= */
 
             if(archivo){
 
@@ -699,18 +968,25 @@ form.addEventListener(
             }
 
 
+            /* =========================================
+               GUARDAR CONSULTA
+            ========================================= */
+
             await addDoc(
+
                 collection(
                     db,
                     "atenciones"
                 ),
+
                 {
 
                     uid:
                     usuarioActual.uid,
 
                     email:
-                    usuarioActual.email || "",
+                    usuarioActual.email ||
+                    "",
 
                     tipo:
                     tipo,
@@ -734,6 +1010,7 @@ form.addEventListener(
                     serverTimestamp()
 
                 }
+
             );
 
 
@@ -758,13 +1035,14 @@ form.addEventListener(
 
             mostrarError(
                 "No se pudo enviar la consulta. " +
-                error.message
+                (error.message || "Error desconocido.")
             );
 
         }
         finally{
 
-            btnEnviar.disabled = false;
+            btnEnviar.disabled =
+            false;
 
             btnEnviar.textContent =
             "📨 Enviar consulta";
@@ -775,6 +1053,9 @@ form.addEventListener(
 );
 
 
+/* =====================================================
+   CARGAR CONSULTAS
+   ===================================================== */
 
 async function cargarConsultas(){
 
@@ -804,6 +1085,7 @@ async function cargarConsultas(){
         const consulta =
         query(
             referencia,
+
             where(
                 "uid",
                 "==",
@@ -833,10 +1115,14 @@ async function cargarConsultas(){
             let respuestas = [];
 
 
+            /*
+             * Cargar respuestas.
+             */
+
             try{
 
                 const referenciaRespuestas =
-                firestoreCollection(
+                collection(
                     db,
                     "atenciones",
                     documento.id,
@@ -868,8 +1154,8 @@ async function cargarConsultas(){
 
                 respuestas.sort(
                     (a,b) =>
-                    obtenerFecha(b) -
-                    obtenerFecha(a)
+                    obtenerFecha(b.fecha) -
+                    obtenerFecha(a.fecha)
                 );
 
             }
@@ -898,14 +1184,21 @@ async function cargarConsultas(){
         }
 
 
+        /*
+         * Ordenar consultas más recientes
+         * primero.
+         */
+
         consultas.sort(
             (a,b) =>
-            obtenerFecha(b) -
-            obtenerFecha(a)
+            obtenerFecha(b.fecha) -
+            obtenerFecha(a.fecha)
         );
 
 
-        if(consultas.length === 0){
+        if(
+            consultas.length === 0
+        ){
 
             listaConsultas.innerHTML = `
                 <div class="sin-tickets">
@@ -918,7 +1211,8 @@ async function cargarConsultas(){
         }
 
 
-        listaConsultas.innerHTML = "";
+        listaConsultas.innerHTML =
+        "";
 
 
         consultas.forEach(
@@ -957,7 +1251,8 @@ async function cargarConsultas(){
                 );
 
 
-                let archivoHTML = "";
+                let archivoHTML =
+                "";
 
 
                 if(
@@ -968,9 +1263,11 @@ async function cargarConsultas(){
 
                         <a
                             class="ticket-archivo"
-                            href="${escapeHTML(consulta.archivoURL)}"
+                            href="${escapeHTML(
+                                consulta.archivoURL
+                            )}"
                             target="_blank"
-                            rel="noopener"
+                            rel="noopener noreferrer"
                         >
                             📎 Ver archivo adjunto
                         </a>
@@ -980,7 +1277,8 @@ async function cargarConsultas(){
                 }
 
 
-                let respuestasHTML = "";
+                let respuestasHTML =
+                "";
 
 
                 if(
@@ -1005,7 +1303,11 @@ async function cargarConsultas(){
                             respuestasHTML += `
 
                                 <div class="ticket-mensaje">
-                                    ${escapeHTML(respuesta.texto || "")}
+                                    ${escapeHTML(
+                                        respuesta.texto ||
+                                        respuesta.mensaje ||
+                                        ""
+                                    )}
                                 </div>
 
                                 <div class="respuesta-fecha">
@@ -1023,7 +1325,9 @@ async function cargarConsultas(){
 
 
                     respuestasHTML += `
+
                         </div>
+
                     `;
 
                 }
@@ -1042,15 +1346,20 @@ async function cargarConsultas(){
                             </div>
 
                             <div class="ticket-fecha">
-                                ${escapeHTML(fechaTexto)}
+                                ${escapeHTML(
+                                    fechaTexto
+                                )}
                             </div>
 
                         </div>
 
+
                         <span
                             class="estado ${estadoClase}"
                         >
-                            ${escapeHTML(estadoTexto)}
+                            ${escapeHTML(
+                                estadoTexto
+                            )}
                         </span>
 
                     </div>
@@ -1058,21 +1367,24 @@ async function cargarConsultas(){
 
                     <div class="ticket-tipo">
                         ${escapeHTML(
-                            consulta.tipo || ""
+                            consulta.tipo ||
+                            ""
                         )}
                     </div>
 
 
                     <div class="ticket-asunto">
                         ${escapeHTML(
-                            consulta.asunto || ""
+                            consulta.asunto ||
+                            ""
                         )}
                     </div>
 
 
                     <div class="ticket-mensaje">
                         ${escapeHTML(
-                            consulta.mensaje || ""
+                            consulta.mensaje ||
+                            ""
                         )}
                     </div>
 
@@ -1102,11 +1414,20 @@ async function cargarConsultas(){
 
 
         listaConsultas.innerHTML = `
+
             <div class="error">
+
                 No se pudieron cargar las consultas.
+
                 <br><br>
-                ${escapeHTML(error.message)}
+
+                ${escapeHTML(
+                    error.message ||
+                    "Error desconocido."
+                )}
+
             </div>
+
         `;
 
     }
@@ -1114,204 +1435,19 @@ async function cargarConsultas(){
 }
 
 
+/* =====================================================
+   VOLVER
+   ===================================================== */
 
-function textoEstado(estado){
+btnVolver.addEventListener(
+    "click",
+    function(){
 
-    switch(estado){
-
-        case "pendiente":
-        case "nueva":
-            return "Pendiente";
-
-        case "en_atencion":
-            return "En atención";
-
-        case "respondida":
-            return "Respondida";
-
-        case "cerrada":
-            return "Cerrada";
-
-        default:
-            return "Pendiente";
+        window.location.href =
+        "index.html";
 
     }
-
-}
-
-
-function claseEstado(estado){
-
-    switch(estado){
-
-        case "en_atencion":
-            return "estado-en-atencion";
-
-        case "respondida":
-            return "estado-respondida";
-
-        case "cerrada":
-            return "estado-cerrada";
-
-        default:
-            return "estado-pendiente";
-
-    }
-
-}
-
-
-
-function obtenerFecha(objeto){
-
-    if(!objeto){
-
-        return 0;
-
-    }
-
-
-    if(
-        typeof objeto.toMillis ===
-        "function"
-    ){
-
-        return objeto.toMillis();
-
-    }
-
-
-    if(
-        typeof objeto.toDate ===
-        "function"
-    ){
-
-        return objeto.toDate().getTime();
-
-    }
-
-
-    const fecha =
-    new Date(objeto);
-
-
-    if(
-        !isNaN(
-            fecha.getTime()
-        )
-    ){
-
-        return fecha.getTime();
-
-    }
-
-
-    return 0;
-
-}
-
-
-
-function formatearFecha(valor){
-
-    if(!valor){
-
-        return "Fecha pendiente";
-
-    }
-
-
-    let fecha;
-
-
-    if(
-        typeof valor.toDate ===
-        "function"
-    ){
-
-        fecha =
-        valor.toDate();
-
-    }
-    else if(
-        typeof valor.toMillis ===
-        "function"
-    ){
-
-        fecha =
-        new Date(
-            valor.toMillis()
-        );
-
-    }
-    else{
-
-        fecha =
-        new Date(valor);
-
-    }
-
-
-    if(
-        isNaN(
-            fecha.getTime()
-        )
-    ){
-
-        return "Fecha pendiente";
-
-    }
-
-
-    return new Intl.DateTimeFormat(
-        "es-AR",
-        {
-            dateStyle:"short",
-            timeStyle:"short"
-        }
-    ).format(fecha);
-
-}
-
-
-
-function mostrarError(texto){
-
-    mensajeSistema.innerHTML = `
-
-        <div class="error">
-            ${escapeHTML(texto)}
-        </div>
-
-    `;
-
-}
-
-
-function mostrarExito(texto){
-
-    mensajeSistema.innerHTML = `
-
-        <div class="exito">
-            ✅ ${escapeHTML(texto)}
-        </div>
-
-    `;
-
-}
-
-
-
-function escapeHTML(texto){
-
-    return String(texto ?? "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-
-}
+);
 
 </script>
 
