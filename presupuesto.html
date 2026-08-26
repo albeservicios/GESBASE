@@ -5,9 +5,15 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-<meta name="theme-color" content="#111827">
+<meta
+    name="theme-color"
+    content="#111827"
+>
 
 <meta
     name="description"
@@ -31,15 +37,16 @@ body{
 }
 
 .contenedor{
+    width:100%;
     max-width:600px;
     margin:auto;
     min-height:100vh;
-    background:white;
+    background:#fff;
 }
 
 header{
     background:#111827;
-    color:white;
+    color:#fff;
     padding:25px 20px;
 }
 
@@ -83,7 +90,8 @@ main{
 .empresa-dato{
     font-size:13px;
     color:#4b5563;
-    margin-top:5px;
+    margin-top:6px;
+    line-height:1.4;
 }
 
 .empresa-logo{
@@ -91,7 +99,7 @@ main{
     height:80px;
     object-fit:contain;
     display:none;
-    margin-bottom:10px;
+    margin-bottom:12px;
     border-radius:8px;
 }
 
@@ -113,7 +121,7 @@ textarea{
     border:1px solid #d1d5db;
     border-radius:9px;
     font-size:16px;
-    background:white;
+    background:#fff;
 }
 
 input:focus,
@@ -147,7 +155,7 @@ textarea{
     padding:13px 5px;
     margin:0;
     background:#dc2626;
-    color:white;
+    color:#fff;
     border:none;
     border-radius:9px;
     font-size:18px;
@@ -155,7 +163,7 @@ textarea{
 
 .btn-agregar{
     background:#2563eb;
-    color:white;
+    color:#fff;
 }
 
 .resumen{
@@ -168,6 +176,7 @@ textarea{
 .resumen-linea{
     display:flex;
     justify-content:space-between;
+    align-items:center;
     gap:10px;
     padding:8px 0;
     font-size:16px;
@@ -194,7 +203,7 @@ button{
 
 .guardar{
     background:#111827;
-    color:white;
+    color:#fff;
 }
 
 .volver{
@@ -213,6 +222,7 @@ button:disabled{
     padding:13px;
     border-radius:10px;
     font-size:14px;
+    line-height:1.5;
 }
 
 .exito{
@@ -327,6 +337,7 @@ Cliente
     type="text"
     id="cliente"
     placeholder="Nombre del cliente"
+    autocomplete="off"
 >
 
 </div>
@@ -345,8 +356,9 @@ N.º de agenda
 <input
     type="text"
     id="numeroAgenda"
-    placeholder="Número de agenda"
+    placeholder="Se genera automáticamente si lo dejás vacío"
     inputmode="numeric"
+    autocomplete="off"
 >
 
 </div>
@@ -384,6 +396,7 @@ Lugar de trabajo
     type="text"
     id="lugarTrabajo"
     placeholder="Dirección, localidad o sucursal"
+    autocomplete="off"
 >
 
 </div>
@@ -591,10 +604,9 @@ VOLVER A MIS PRESUPUESTOS
 
 <script type="module">
 
-// =====================================================
-// FIREBASE
-// MISMA VERSIÓN EN TODA LA APP: 12.18.0
-// =====================================================
+/* =====================================================
+   FIREBASE
+===================================================== */
 
 import {
     auth,
@@ -619,9 +631,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-// =====================================================
-// ELEMENTOS
-// =====================================================
+/* =====================================================
+   ELEMENTOS
+===================================================== */
 
 const estadoSesion =
 document.getElementById("estadoSesion");
@@ -696,13 +708,16 @@ const btnVolver =
 document.getElementById("btnVolver");
 
 
-// =====================================================
-// VARIABLES
-// =====================================================
+/* =====================================================
+   VARIABLES
+===================================================== */
 
 let usuarioActual = null;
 
+let empresaIdActual = "";
+
 let datosEmpresa = {
+
     nombreEmpresa:"",
     razonSocial:"",
     cuit:"",
@@ -710,12 +725,13 @@ let datosEmpresa = {
     email:"",
     direccion:"",
     logoUrl:""
+
 };
 
 
-// =====================================================
-// UTILIDADES
-// =====================================================
+/* =====================================================
+   UTILIDADES
+===================================================== */
 
 function texto(valor){
 
@@ -729,6 +745,18 @@ function texto(valor){
     }
 
     return String(valor).trim();
+
+}
+
+
+function numero(valor){
+
+    const n =
+    Number(valor);
+
+    return Number.isFinite(n)
+        ? n
+        : 0;
 
 }
 
@@ -749,8 +777,8 @@ function mostrarMensaje(
 
 function formatoDinero(valor){
 
-    return Number(
-        valor || 0
+    return numero(
+        valor
     ).toLocaleString(
         "es-AR",
         {
@@ -762,28 +790,32 @@ function formatoDinero(valor){
 }
 
 
-// =====================================================
-// FECHA ACTUAL
-// =====================================================
+/* =====================================================
+   FECHA ACTUAL
+===================================================== */
 
-const ahora =
-new Date();
+function colocarFechaActual(){
 
-fecha.value =
-ahora.getFullYear() +
-"-" +
-String(
-    ahora.getMonth() + 1
-).padStart(2,"0") +
-"-" +
-String(
-    ahora.getDate()
-).padStart(2,"0");
+    const ahora =
+    new Date();
+
+    fecha.value =
+    ahora.getFullYear() +
+    "-" +
+    String(
+        ahora.getMonth() + 1
+    ).padStart(2,"0") +
+    "-" +
+    String(
+        ahora.getDate()
+    ).padStart(2,"0");
+
+}
 
 
-// =====================================================
-// OBTENER ID DE EMPRESA
-// =====================================================
+/* =====================================================
+   OBTENER EMPRESA ID
+===================================================== */
 
 async function obtenerEmpresaId(){
 
@@ -793,6 +825,10 @@ async function obtenerEmpresaId(){
 
     }
 
+
+    /*
+     * Primero buscamos en usuarios/{uid}.
+     */
 
     try{
 
@@ -814,14 +850,16 @@ async function obtenerEmpresaId(){
             resultadoUsuario.exists()
         ){
 
-            const datos =
+            const datosUsuario =
             resultadoUsuario.data();
 
 
             const empresaId =
             texto(
-                datos.empresaId ||
-                datos.empresa
+                datosUsuario.empresaId
+            ) ||
+            texto(
+                datosUsuario.empresa
             );
 
 
@@ -837,7 +875,7 @@ async function obtenerEmpresaId(){
     catch(error){
 
         console.warn(
-            "No se pudo obtener empresaId desde usuarios:",
+            "No se pudo consultar usuarios:",
             error
         );
 
@@ -845,8 +883,9 @@ async function obtenerEmpresaId(){
 
 
     /*
-     * Compatibilidad con la estructura
-     * anterior de GESBASE.
+     * Compatibilidad:
+     * algunas estructuras anteriores
+     * pueden utilizar el UID como empresa.
      */
 
     return usuarioActual.uid;
@@ -854,9 +893,9 @@ async function obtenerEmpresaId(){
 }
 
 
-// =====================================================
-// CARGAR EMPRESA
-// =====================================================
+/* =====================================================
+   CARGAR EMPRESA
+===================================================== */
 
 async function cargarEmpresa(){
 
@@ -869,79 +908,141 @@ async function cargarEmpresa(){
 
     try{
 
-        const empresaId =
+        empresaIdActual =
         await obtenerEmpresaId();
 
 
-        if(!empresaId){
+        if(!empresaIdActual){
 
             throw new Error(
-                "No se encontró el ID de la empresa."
+                "No se encontró la empresa asociada a la cuenta."
             );
 
         }
 
 
-        const referencia =
+        const referenciaEmpresa =
         doc(
             db,
             "empresas",
-            empresaId
+            empresaIdActual
         );
 
 
-        const resultado =
+        const resultadoEmpresa =
         await getDoc(
-            referencia
+            referenciaEmpresa
         );
 
 
         if(
-            resultado.exists()
+            !resultadoEmpresa.exists()
         ){
 
-            datosEmpresa =
-            resultado.data();
+            throw new Error(
+                "No existe el registro de la empresa en Firebase."
+            );
 
         }
 
 
+        datosEmpresa =
+        resultadoEmpresa.data();
+
+
+        /*
+         * Empresa
+         */
+
         empresaNombre.textContent =
-        datosEmpresa.nombreEmpresa ||
-        datosEmpresa.nombre ||
+        texto(
+            datosEmpresa.nombreEmpresa
+        ) ||
+        texto(
+            datosEmpresa.nombre
+        ) ||
         "Sin informar";
 
+
+        /*
+         * Razón social
+         */
 
         empresaRazonSocial.textContent =
-        datosEmpresa.razonSocial ||
+        texto(
+            datosEmpresa.razonSocial
+        ) ||
         "Sin informar";
 
+
+        /*
+         * CUIT
+         */
 
         empresaCuit.textContent =
-        datosEmpresa.cuit ||
+        texto(
+            datosEmpresa.cuit
+        ) ||
+        texto(
+            datosEmpresa.CUIT
+        ) ||
         "Sin informar";
 
+
+        /*
+         * Teléfono
+         */
 
         empresaTelefono.textContent =
-        datosEmpresa.telefono ||
+        texto(
+            datosEmpresa.telefono
+        ) ||
+        texto(
+            datosEmpresa.phone
+        ) ||
         "Sin informar";
 
+
+        /*
+         * Email
+         */
 
         empresaEmail.textContent =
-        datosEmpresa.email ||
-        usuarioActual.email ||
+        texto(
+            datosEmpresa.email
+        ) ||
+        texto(
+            usuarioActual.email
+        ) ||
         "Sin informar";
 
 
-        if(
+        /*
+         * Logo
+         */
+
+        const logo =
+        texto(
             datosEmpresa.logoUrl
-        ){
+        ) ||
+        texto(
+            datosEmpresa.logo
+        );
+
+
+        if(logo){
 
             empresaLogo.src =
-            datosEmpresa.logoUrl;
+            logo;
 
             empresaLogo.style.display =
             "block";
+
+        }
+        else{
+
+            empresaLogo.style.display =
+            "none";
 
         }
 
@@ -957,31 +1058,37 @@ async function cargarEmpresa(){
         empresaNombre.textContent =
         "Sin informar";
 
-
         empresaRazonSocial.textContent =
         "Sin informar";
-
 
         empresaCuit.textContent =
         "Sin informar";
 
-
         empresaTelefono.textContent =
         "Sin informar";
-
 
         empresaEmail.textContent =
         usuarioActual.email ||
         "Sin informar";
+
+
+        /*
+         * No bloqueamos la creación
+         * del presupuesto por un dato
+         * visual de la empresa.
+         */
+
+        estadoSesion.textContent =
+        "Sesión activa. No se pudieron cargar todos los datos de la empresa.";
 
     }
 
 }
 
 
-// =====================================================
-// AUTENTICACIÓN
-// =====================================================
+/* =====================================================
+   AUTENTICACIÓN
+===================================================== */
 
 onAuthStateChanged(
     auth,
@@ -1010,15 +1117,28 @@ onAuthStateChanged(
         );
 
 
-        await cargarEmpresa();
+        btnGuardar.disabled =
+        false;
+
+
+        try{
+
+            await cargarEmpresa();
+
+        }
+        catch(error){
+
+            console.error(error);
+
+        }
 
     }
 );
 
 
-// =====================================================
-// AGREGAR MATERIAL
-// =====================================================
+/* =====================================================
+   AGREGAR MATERIAL
+===================================================== */
 
 function agregarMaterial(){
 
@@ -1058,7 +1178,7 @@ function agregarMaterial(){
     "0";
 
     cantidad.step =
-    "1";
+    "0.01";
 
 
     const quitar =
@@ -1072,6 +1192,9 @@ function agregarMaterial(){
 
     quitar.textContent =
     "×";
+
+    quitar.title =
+    "Quitar material";
 
 
     quitar.addEventListener(
@@ -1101,12 +1224,15 @@ function agregarMaterial(){
         fila
     );
 
+
+    tipo.focus();
+
 }
 
 
-// =====================================================
-// EVENTO AGREGAR MATERIAL
-// =====================================================
+/* =====================================================
+   BOTÓN AGREGAR MATERIAL
+===================================================== */
 
 btnAgregar.addEventListener(
     "click",
@@ -1114,9 +1240,9 @@ btnAgregar.addEventListener(
 );
 
 
-// =====================================================
-// OBTENER MATERIALES
-// =====================================================
+/* =====================================================
+   OBTENER MATERIALES
+===================================================== */
 
 function obtenerMateriales(){
 
@@ -1151,20 +1277,18 @@ function obtenerMateriales(){
 
 
             const cantidad =
-            Number(
+            numero(
                 campoCantidad.value
-            ) || 0;
+            );
 
 
             if(tipo){
 
                 lista.push({
 
-                    tipo:
-                    tipo,
+                    tipo:tipo,
 
-                    cantidad:
-                    cantidad
+                    cantidad:cantidad
 
                 });
 
@@ -1179,28 +1303,28 @@ function obtenerMateriales(){
 }
 
 
-// =====================================================
-// CALCULAR TOTAL
-// =====================================================
+/* =====================================================
+   CALCULAR TOTAL
+===================================================== */
 
 function calcularTotal(){
 
     const valorMateriales =
-    Number(
+    numero(
         materiales.value
-    ) || 0;
+    );
 
 
     const valorManoObra =
-    Number(
+    numero(
         manoObra.value
-    ) || 0;
+    );
 
 
     const valorViaticos =
-    Number(
+    numero(
         viaticos.value
-    ) || 0;
+    );
 
 
     const totalGeneral =
@@ -1256,11 +1380,16 @@ viaticos.addEventListener(
 );
 
 
-// =====================================================
-// NÚMERO DE AGENDA
-// =====================================================
+/* =====================================================
+   GENERAR NÚMERO DE AGENDA
+===================================================== */
 
 async function obtenerNumeroAgenda(){
+
+    /*
+     * Si el usuario escribió uno,
+     * respetamos el número.
+     */
 
     const ingresado =
     texto(
@@ -1285,8 +1414,7 @@ async function obtenerNumeroAgenda(){
 
 
     /*
-     * Generamos un número y comprobamos
-     * que no exista para este usuario.
+     * Generamos números de 6 dígitos.
      */
 
     for(
@@ -1295,7 +1423,7 @@ async function obtenerNumeroAgenda(){
         intento++
     ){
 
-        const numero =
+        const numeroGenerado =
         String(
             Math.floor(
                 100000 +
@@ -1311,6 +1439,11 @@ async function obtenerNumeroAgenda(){
         );
 
 
+        /*
+         * Buscamos si ya existe
+         * para este usuario.
+         */
+
         const consulta =
         query(
             referencia,
@@ -1324,7 +1457,7 @@ async function obtenerNumeroAgenda(){
             where(
                 "numeroAgenda",
                 "==",
-                numero
+                numeroGenerado
             )
         );
 
@@ -1339,7 +1472,7 @@ async function obtenerNumeroAgenda(){
             resultado.empty
         ){
 
-            return numero;
+            return numeroGenerado;
 
         }
 
@@ -1347,15 +1480,15 @@ async function obtenerNumeroAgenda(){
 
 
     throw new Error(
-        "No se pudo generar un número de agenda único."
+        "No se pudo generar un número de agenda disponible."
     );
 
 }
 
 
-// =====================================================
-// GUARDAR PRESUPUESTO
-// =====================================================
+/* =====================================================
+   GUARDAR PRESUPUESTO
+===================================================== */
 
 btnGuardar.addEventListener(
     "click",
@@ -1373,8 +1506,14 @@ btnGuardar.addEventListener(
         }
 
 
+        /*
+         * Cliente
+         */
+
         if(
-            !cliente.value.trim()
+            !texto(
+                cliente.value
+            )
         ){
 
             mostrarMensaje(
@@ -1389,8 +1528,14 @@ btnGuardar.addEventListener(
         }
 
 
+        /*
+         * Lugar
+         */
+
         if(
-            !lugarTrabajo.value.trim()
+            !texto(
+                lugarTrabajo.value
+            )
         ){
 
             mostrarMensaje(
@@ -1405,8 +1550,14 @@ btnGuardar.addEventListener(
         }
 
 
+        /*
+         * Descripción
+         */
+
         if(
-            !descripcion.value.trim()
+            !texto(
+                descripcion.value
+            )
         ){
 
             mostrarMensaje(
@@ -1421,26 +1572,46 @@ btnGuardar.addEventListener(
         }
 
 
-        const lista =
+        /*
+         * Fecha
+         */
+
+        if(
+            !fecha.value
+        ){
+
+            mostrarMensaje(
+                "Seleccioná la fecha del presupuesto.",
+                "error"
+            );
+
+            fecha.focus();
+
+            return;
+
+        }
+
+
+        const listaMateriales =
         obtenerMateriales();
 
 
         const valorMateriales =
-        Number(
+        numero(
             materiales.value
-        ) || 0;
+        );
 
 
         const valorManoObra =
-        Number(
+        numero(
             manoObra.value
-        ) || 0;
+        );
 
 
         const valorViaticos =
-        Number(
+        numero(
             viaticos.value
-        ) || 0;
+        );
 
 
         const totalGeneral =
@@ -1458,125 +1629,183 @@ btnGuardar.addEventListener(
 
         try{
 
-            const empresaId =
-            await obtenerEmpresaId();
+            /*
+             * Obtenemos la empresa.
+             */
 
+            if(!empresaIdActual){
+
+                empresaIdActual =
+                await obtenerEmpresaId();
+
+            }
+
+
+            if(!empresaIdActual){
+
+                throw new Error(
+                    "No se encontró la empresa asociada al usuario."
+                );
+
+            }
+
+
+            /*
+             * Número de agenda.
+             */
 
             const numeroAgendaFinal =
             await obtenerNumeroAgenda();
 
 
-            await addDoc(
+            /*
+             * Datos que se guardarán.
+             */
 
-                collection(
-                    db,
-                    "presupuestos"
+            const presupuesto = {
+
+                uid:
+                usuarioActual.uid,
+
+
+                empresaId:
+                empresaIdActual,
+
+
+                empresaNombre:
+                texto(
+                    datosEmpresa.nombreEmpresa
+                ) ||
+                texto(
+                    datosEmpresa.nombre
+                ) ||
+                "",
+
+
+                empresaRazonSocial:
+                texto(
+                    datosEmpresa.razonSocial
                 ),
 
-                {
 
-                    uid:
-                    usuarioActual.uid,
-
-
-                    empresaId:
-                    empresaId,
-
-
-                    empresaNombre:
-                    datosEmpresa.nombreEmpresa ||
-                    datosEmpresa.nombre ||
-                    "",
+                empresaCuit:
+                texto(
+                    datosEmpresa.cuit
+                ) ||
+                texto(
+                    datosEmpresa.CUIT
+                ),
 
 
-                    empresaRazonSocial:
-                    datosEmpresa.razonSocial ||
-                    "",
+                empresaTelefono:
+                texto(
+                    datosEmpresa.telefono
+                ) ||
+                texto(
+                    datosEmpresa.phone
+                ),
 
 
-                    empresaCuit:
-                    datosEmpresa.cuit ||
-                    "",
+                empresaEmail:
+                texto(
+                    datosEmpresa.email
+                ) ||
+                texto(
+                    usuarioActual.email
+                ),
 
 
-                    empresaTelefono:
-                    datosEmpresa.telefono ||
-                    "",
+                empresaDireccion:
+                texto(
+                    datosEmpresa.direccion
+                ),
 
 
-                    empresaEmail:
-                    datosEmpresa.email ||
-                    usuarioActual.email ||
-                    "",
+                empresaLogo:
+                texto(
+                    datosEmpresa.logoUrl
+                ) ||
+                texto(
+                    datosEmpresa.logo
+                ),
 
 
-                    empresaDireccion:
-                    datosEmpresa.direccion ||
-                    "",
+                cliente:
+                texto(
+                    cliente.value
+                ),
 
 
-                    empresaLogo:
-                    datosEmpresa.logoUrl ||
-                    "",
+                numeroAgenda:
+                numeroAgendaFinal,
 
 
-                    cliente:
-                    texto(
-                        cliente.value
-                    ),
+                fecha:
+                fecha.value,
 
 
-                    numeroAgenda:
-                    numeroAgendaFinal,
+                lugarTrabajo:
+                texto(
+                    lugarTrabajo.value
+                ),
 
 
-                    fecha:
-                    fecha.value,
+                descripcion:
+                texto(
+                    descripcion.value
+                ),
 
 
-                    lugarTrabajo:
-                    texto(
-                        lugarTrabajo.value
-                    ),
+                materialesLista:
+                listaMateriales,
 
 
-                    descripcion:
-                    texto(
-                        descripcion.value
-                    ),
+                materiales:
+                valorMateriales,
 
 
-                    materialesLista:
-                    lista,
+                manoObra:
+                valorManoObra,
 
 
-                    materiales:
-                    valorMateriales,
+                viaticos:
+                valorViaticos,
 
 
-                    manoObra:
-                    valorManoObra,
+                total:
+                totalGeneral,
 
 
-                    viaticos:
-                    valorViaticos,
+                estado:
+                "Pendiente",
 
 
-                    total:
-                    totalGeneral,
+                creado:
+                serverTimestamp()
+
+            };
 
 
-                    estado:
-                    "Pendiente",
+            /*
+             * Guardar en Firestore.
+             */
 
-
-                    creado:
-                    serverTimestamp()
-
-                }
-
+            const referencia =
+            collection(
+                db,
+                "presupuestos"
             );
 
+
+            await addDoc(
+                referencia,
+                presupuesto
+            );
+
+
+            /*
+             * Éxito.
+             */
 
             mostrarMensaje(
                 "Presupuesto guardado correctamente. N.º de agenda: " +
@@ -1585,12 +1814,13 @@ btnGuardar.addEventListener(
             );
 
 
-            btnGuardar.disabled =
-            false;
-
             btnGuardar.textContent =
-            "GUARDAR PRESUPUESTO";
+            "PRESUPUESTO GUARDADO";
 
+
+            /*
+             * Ir al listado.
+             */
 
             setTimeout(
                 function(){
@@ -1599,7 +1829,7 @@ btnGuardar.addEventListener(
                     "./presupuestos.html";
 
                 },
-                800
+                1000
             );
 
         }
@@ -1612,19 +1842,46 @@ btnGuardar.addEventListener(
 
 
             let textoError =
-            error.message ||
-            error.code ||
             "Error desconocido";
 
 
-            if(
-                error.code ===
-                "permission-denied"
-            ){
+            if(error){
 
-                textoError =
-                "Firebase rechazó el acceso. Revisá las reglas de Firestore.";
+                if(
+                    error.code ===
+                    "permission-denied"
+                ){
 
+                    textoError =
+                    "Firebase rechazó el acceso. Revisá las reglas de Firestore.";
+
+                }
+                else if(
+                    error.code ===
+                    "failed-precondition"
+                ){
+
+                    textoError =
+                    "Firebase requiere una configuración o índice adicional.";
+
+                }
+                else if(
+                    error.code ===
+                    "unauthenticated"
+                ){
+
+                    textoError =
+                    "La sesión expiró. Volvé a iniciar sesión.";
+
+                }
+                else if(
+                    error.message
+                ){
+
+                    textoError =
+                    error.message;
+
+                }
             }
 
 
@@ -1647,9 +1904,9 @@ btnGuardar.addEventListener(
 );
 
 
-// =====================================================
-// VOLVER
-// =====================================================
+/* =====================================================
+   VOLVER
+===================================================== */
 
 btnVolver.addEventListener(
     "click",
@@ -1662,11 +1919,16 @@ btnVolver.addEventListener(
 );
 
 
-// =====================================================
-// TOTAL INICIAL
-// =====================================================
+/* =====================================================
+   INICIO
+===================================================== */
+
+colocarFechaActual();
 
 calcularTotal();
+
+btnGuardar.disabled =
+false;
 
 </script>
 
