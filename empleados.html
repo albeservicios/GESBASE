@@ -109,11 +109,6 @@ main{
     cursor:pointer;
 }
 
-.boton:disabled{
-    opacity:.6;
-    cursor:not-allowed;
-}
-
 .boton-principal{
     background:#111827;
     color:#fff;
@@ -356,10 +351,6 @@ class="alerta"
 ></div>
 
 
-<!-- =========================================
-     LIQUIDACIÓN
-========================================= -->
-
 <div class="tarjeta">
 
 <div class="titulo">
@@ -426,17 +417,13 @@ id="btnVolver"
 type="button"
 class="boton boton-gris"
 >
-⬅️ VOLVER AL PANEL
+⬅️ PANEL ADMINISTRACIÓN
 </button>
 
 </div>
 
 </div>
 
-
-<!-- =========================================
-     RESUMEN
-========================================= -->
 
 <div class="resumen">
 
@@ -503,10 +490,6 @@ Total a pagar
 </div>
 
 
-<!-- =========================================
-     TABLA
-========================================= -->
-
 <div class="tarjeta">
 
 <div class="titulo">
@@ -516,7 +499,7 @@ Total a pagar
 <div class="descripcion">
 
 Empleados pertenecientes a la empresa actualmente
-autenticada.
+logueada.
 
 </div>
 
@@ -526,7 +509,7 @@ class="tabla-contenedor"
 >
 
 <div class="cargando">
-Verificando sesión y cargando empleados...
+Verificando empresa...
 </div>
 
 </div>
@@ -811,6 +794,7 @@ function minutosEntre(
     const partesSalida =
     texto(salida).split(":");
 
+
     if(
         partesEntrada.length < 2 ||
         partesSalida.length < 2
@@ -820,16 +804,20 @@ function minutosEntre(
 
     }
 
+
     const entradaMin =
     numero(partesEntrada[0]) * 60 +
     numero(partesEntrada[1]);
+
 
     const salidaMin =
     numero(partesSalida[0]) * 60 +
     numero(partesSalida[1]);
 
+
     let diferencia =
     salidaMin - entradaMin;
+
 
     if(diferencia < 0){
 
@@ -837,6 +825,7 @@ function minutosEntre(
         24 * 60;
 
     }
+
 
     return diferencia;
 
@@ -853,13 +842,16 @@ function formatoHoras(minutos){
         )
     );
 
+
     const horas =
     Math.floor(
         minutos / 60
     );
 
+
     const mins =
     minutos % 60;
+
 
     return (
         horas +
@@ -871,7 +863,7 @@ function formatoHoras(minutos){
 
 
 /* =========================================
-   OBTENER EMPRESA
+   OBTENER EMPRESA CORRECTAMENTE
 ========================================= */
 
 async function obtenerEmpresa(){
@@ -884,80 +876,80 @@ async function obtenerEmpresa(){
 
     }
 
+
     empresaId = "";
 
 
     /*
-     * Buscamos el documento del usuario
-     * autenticado.
+     * Buscamos directamente en:
+     *
+     * empresas
+     *
+     * utilizando propietarioUid.
      */
 
-    try{
+    const referenciaEmpresas =
+    collection(
+        db,
+        "empresas"
+    );
 
-        const referenciaUsuario =
-        collection(
-            db,
-            "usuarios"
-        );
 
-        const consultaUsuario =
-        query(
-            referenciaUsuario,
-            where(
-                "__name__",
-                "==",
-                usuarioActual.uid
-            )
-        );
+    const consultaEmpresa =
+    query(
+        referenciaEmpresas,
+        where(
+            "propietarioUid",
+            "==",
+            usuarioActual.uid
+        )
+    );
 
-        const snapshotUsuario =
-        await getDocs(
-            consultaUsuario
-        );
 
-        if(
-            !snapshotUsuario.empty
-        ){
+    const resultado =
+    await getDocs(
+        consultaEmpresa
+    );
 
-            const datos =
-            snapshotUsuario.docs[0].data();
 
-            empresaId =
-            texto(
-                datos.empresaId
-            ).trim();
+    if(
+        resultado.empty
+    ){
 
-            if(!empresaId){
-
-                empresaId =
-                texto(
-                    datos.empresa
-                ).trim();
-
-            }
-
-        }
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo obtener empresa desde usuarios:",
-            error
+        throw new Error(
+            "No se encontró una empresa asociada a esta cuenta."
         );
 
     }
+
+
+    const documento =
+    resultado.docs[0];
+
+
+    const datos =
+    documento.data();
 
 
     /*
-     * Compatibilidad con cuentas donde
-     * el UID de Firebase es el ID de empresa.
+     * Usamos el empresaId guardado.
+     */
+
+    empresaId =
+    texto(
+        datos.empresaId
+    ).trim();
+
+
+    /*
+     * Si por algún motivo no existe,
+     * usamos el ID del documento.
      */
 
     if(!empresaId){
 
         empresaId =
-        usuarioActual.uid;
+        documento.id;
 
     }
 
@@ -965,10 +957,16 @@ async function obtenerEmpresa(){
     if(!empresaId){
 
         throw new Error(
-            "No se pudo determinar la empresa del usuario."
+            "La empresa no tiene un ID válido."
         );
 
     }
+
+
+    console.log(
+        "GESBASE empresaId:",
+        empresaId
+    );
 
 }
 
@@ -1009,15 +1007,12 @@ async function cargarEmpleados(){
     resultado.forEach(
         documento => {
 
-            const datos =
-            documento.data();
-
             empleados.push({
 
                 id:
                 documento.id,
 
-                ...datos
+                ...documento.data()
 
             });
 
@@ -1035,12 +1030,14 @@ async function cargarEmpleados(){
                 texto(a.apellido)
             ).trim().toLowerCase();
 
+
             const nombreB =
             (
                 texto(b.nombre) +
                 " " +
                 texto(b.apellido)
             ).trim().toLowerCase();
+
 
             return nombreA.localeCompare(
                 nombreB,
@@ -1126,6 +1123,7 @@ function buscarEmpleado(
             empleado.id === empleadoId
         );
 
+
         if(encontrado){
 
             return encontrado;
@@ -1150,6 +1148,7 @@ function buscarEmpleado(
                 empleado.authUid
             ).trim() === authUid
         );
+
 
         if(encontrado){
 
@@ -1176,6 +1175,7 @@ function buscarEmpleado(
             ).trim() === usuarioId
         );
 
+
         if(encontrado){
 
             return encontrado;
@@ -1191,7 +1191,7 @@ function buscarEmpleado(
 
 
 /* =========================================
-   FECHA DEL FICHAJE
+   FECHA FICHAJE
 ========================================= */
 
 function obtenerFechaFichaje(
@@ -1206,6 +1206,7 @@ function obtenerFechaFichaje(
 
     }
 
+
     if(fichaje.fechaTrabajo){
 
         return texto(
@@ -1214,13 +1215,14 @@ function obtenerFechaFichaje(
 
     }
 
+
     return "";
 
 }
 
 
 /* =========================================
-   LIQUIDACIÓN
+   CALCULAR LIQUIDACIÓN
 ========================================= */
 
 function calcularLiquidaciones(){
@@ -1235,10 +1237,7 @@ function calcularLiquidaciones(){
     fechaHasta.value;
 
 
-    if(
-        !desde ||
-        !hasta
-    ){
+    if(!desde || !hasta){
 
         mostrarMensaje(
             "Seleccioná el período.",
@@ -1277,6 +1276,7 @@ function calcularLiquidaciones(){
                         fichaje
                     );
 
+
                     if(
                         !fecha ||
                         fecha < desde ||
@@ -1287,10 +1287,12 @@ function calcularLiquidaciones(){
 
                     }
 
+
                     const encontrado =
                     buscarEmpleado(
                         fichaje
                     );
+
 
                     return (
                         encontrado &&
@@ -1307,8 +1309,6 @@ function calcularLiquidaciones(){
 
             let diasTrabajados = 0;
 
-            let diasAusente = 0;
-
             let diasTarde = 0;
 
 
@@ -1320,6 +1320,7 @@ function calcularLiquidaciones(){
                         fichaje.horaEntrada,
                         fichaje.horaSalida
                     );
+
 
                     minutosTrabajados +=
                     minutos;
@@ -1410,8 +1411,6 @@ function calcularLiquidaciones(){
                 fichajesEmpleado,
 
                 diasTrabajados,
-
-                diasAusente,
 
                 diasTarde,
 
@@ -1532,11 +1531,11 @@ function mostrarTabla(){
         liquidaciones.length === 0
     ){
 
-        tablaContenedor.innerHTML = `
-            <div class="sin-datos">
-                No hay empleados registrados
-                para esta empresa.
-            </div>
+        tablaContenedor.innerHTML =
+        `
+        <div class="sin-datos">
+            No hay empleados registrados para esta empresa.
+        </div>
         `;
 
 
@@ -1658,7 +1657,6 @@ function mostrarTabla(){
 
             </td>
 
-
             <td>
 
             ${escapar(
@@ -1673,35 +1671,29 @@ function mostrarTabla(){
 
             </td>
 
-
             <td>
 
             ${registro.diasTrabajados}
 
             </td>
 
-
             <td>
 
             ${formatoHoras(
                 registro.minutosTrabajados
             )}
-
             hs
 
             </td>
-
 
             <td>
 
             ${formatoHoras(
                 registro.minutosExtras
             )}
-
             hs
 
             </td>
-
 
             <td>
 
@@ -1711,7 +1703,6 @@ function mostrarTabla(){
 
             </td>
 
-
             <td>
 
             ${moneda(
@@ -1720,7 +1711,6 @@ function mostrarTabla(){
 
             </td>
 
-
             <td class="total">
 
             ${moneda(
@@ -1728,7 +1718,6 @@ function mostrarTabla(){
             )}
 
             </td>
-
 
             <td>
 
@@ -1741,7 +1730,6 @@ function mostrarTabla(){
             </span>
 
             </td>
-
 
             <td>
 
@@ -1756,7 +1744,6 @@ function mostrarTabla(){
             </button>
 
             </td>
-
 
             </tr>
 
@@ -2155,7 +2142,7 @@ window.onload = function(){
 
 
 /* =========================================
-   EXPORTAR CSV
+   EXPORTAR
 ========================================= */
 
 btnExportar.addEventListener(
@@ -2335,20 +2322,12 @@ btnCalcular.addEventListener(
 
 
 /* =========================================
-   VOLVER
+   VOLVER AL PANEL ADMINISTRACIÓN
 ========================================= */
 
 btnVolver.addEventListener(
     "click",
     function(){
-
-        /*
-         * IMPORTANTE:
-         * No vamos a index.html.
-         *
-         * La empresa vuelve a su panel
-         * de administración.
-         */
 
         window.location.href =
         "panel-administracion.html";
@@ -2366,8 +2345,8 @@ onAuthStateChanged(
     async function(usuario){
 
         /*
-         * SOLAMENTE si realmente no hay
-         * una sesión activa volvemos al login.
+         * IMPORTANTE:
+         * No cerramos sesión.
          */
 
         if(!usuario){
@@ -2381,55 +2360,65 @@ onAuthStateChanged(
         }
 
 
-        /*
-         * La empresa ya está autenticada.
-         *
-         * NO hacemos login nuevamente.
-         * NO cerramos sesión.
-         * NO vamos a index.html.
-         */
-
         usuarioActual =
         usuario;
 
 
         try{
 
-            tablaContenedor.innerHTML = `
-                <div class="cargando">
-                    Cargando empleados de la empresa...
-                </div>
+            tablaContenedor.innerHTML =
+            `
+            <div class="cargando">
+                Buscando empresa...
+            </div>
             `;
 
 
             /*
-             * Obtener empresa asociada
-             * a la cuenta autenticada.
+             * 1. Obtener empresa
              */
 
             await obtenerEmpresa();
 
 
             /*
-             * Cargar solamente empleados
-             * pertenecientes a esa empresa.
+             * 2. Cargar empleados
              */
+
+            tablaContenedor.innerHTML =
+            `
+            <div class="cargando">
+                Cargando empleados...
+            </div>
+            `;
+
 
             await cargarEmpleados();
 
 
             /*
-             * Cargar fichajes de esa empresa.
+             * 3. Cargar fichajes
              */
 
             await cargarFichajes();
 
 
             /*
-             * Calcular y mostrar.
+             * 4. Calcular
              */
 
             calcularLiquidaciones();
+
+
+            console.log(
+                "GESBASE listo.",
+                "Usuario:",
+                usuarioActual.uid,
+                "Empresa:",
+                empresaId,
+                "Empleados:",
+                empleados.length
+            );
 
         }
         catch(error){
@@ -2440,10 +2429,11 @@ onAuthStateChanged(
             );
 
 
-            tablaContenedor.innerHTML = `
-                <div class="sin-datos">
-                    No se pudieron cargar los empleados.
-                </div>
+            tablaContenedor.innerHTML =
+            `
+            <div class="sin-datos">
+                No se pudieron cargar los empleados.
+            </div>
             `;
 
 
@@ -2451,28 +2441,9 @@ onAuthStateChanged(
             "0";
 
 
-            totalHoras.textContent =
-            "0:00";
-
-
-            totalExtras.textContent =
-            "0:00";
-
-
-            totalPagar.textContent =
-            "$0";
-
-
-            totalGeneral.textContent =
-            "$0";
-
-
             mostrarMensaje(
-                "No se pudo cargar la información de empleados. " +
-                (
-                    error.message ||
-                    "Error desconocido."
-                ),
+                error.message ||
+                "No se pudo cargar la información.",
                 "error"
             );
 
