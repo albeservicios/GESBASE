@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="theme-color" content="#111827">
+
+<meta name="description"
+content="Administración de empleados - GESBASE">
+
+<title>Administración de empleados - GESBASE</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.app{
+    max-width:1100px;
+    margin:auto;
+    min-height:100vh;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:#fff;
+    padding:22px 20px;
+}
+
+.header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.btn-volver{
+    width:42px;
+    height:42px;
+    border:none;
+    border-radius:10px;
+    background:#374151;
+    color:#fff;
+    font-size:21px;
+    cursor:pointer;
+}
+
+header h1{
+    font-size:25px;
+}
+
+header p{
+    margin-top:5px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+.tarjeta{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:18px;
+}
+
+.titulo{
+    font-size:21px;
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.descripcion{
+    color:#6b7280;
+    font-size:14px;
+    line-height:1.5;
+    margin-bottom:18px;
+}
+
+.formulario{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.campo{
+    display:flex;
+    flex-direction:column;
+}
+
+.campo.completo{
+    grid-column:1 / -1;
+}
+
+label{
+    font-size:13px;
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+input,
+select{
+    width:100%;
+    padding:13px;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    font-size:15px;
+    background:#fff;
+    outline:none;
+}
+
+input:focus,
+select:focus{
+    border-color:#2563eb;
+}
+
+.acciones-form{
+    grid-column:1 / -1;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+button{
+    border:none;
+    border-radius:9px;
+    padding:13px 17px;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+.btn-principal{
+    background:#111827;
+    color:#fff;
+}
+
+.btn-secundario{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.btn-verde{
+    background:#16a34a;
+    color:#fff;
+}
+
+.btn-rojo{
+    background:#dc2626;
+    color:#fff;
+}
+
+.btn-azul{
+    background:#2563eb;
+    color:#fff;
+}
+
+.mensaje{
+    display:none;
+    padding:13px;
+    border-radius:9px;
+    margin-bottom:15px;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.mensaje.ok{
+    display:block;
+    background:#dcfce7;
+    color:#166534;
+}
+
+.mensaje.error{
+    display:block;
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.resumen{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.resumen-item{
+    background:#f3f4f6;
+    border-radius:10px;
+    padding:15px;
+    text-align:center;
+}
+
+.resumen-item strong{
+    display:block;
+    font-size:25px;
+}
+
+.resumen-item span{
+    font-size:12px;
+    color:#6b7280;
+}
+
+.tabla-contenedor{
+    width:100%;
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    min-width:1150px;
+    border-collapse:collapse;
+}
+
+th{
+    background:#111827;
+    color:#fff;
+    padding:12px 10px;
+    text-align:left;
+    font-size:12px;
+    white-space:nowrap;
+}
+
+td{
+    padding:12px 10px;
+    border-bottom:1px solid #e5e7eb;
+    font-size:13px;
+    vertical-align:middle;
+}
+
+.nombre{
+    font-weight:bold;
+    font-size:14px;
+}
+
+.subdato{
+    margin-top:4px;
+    color:#6b7280;
+    font-size:11px;
+    word-break:break-all;
+}
+
+.estado{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.estado-on{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado-off{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.selector-tabla{
+    width:145px;
+    padding:8px;
+    font-size:12px;
+}
+
+.acciones-tabla{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+}
+
+.acciones-tabla button{
+    padding:9px 11px;
+    font-size:12px;
+}
+
+.cargando,
+.vacio{
+    text-align:center;
+    padding:30px;
+    color:#6b7280;
+}
+
+.oculto{
+    display:none;
+}
+
+.info-acceso{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    color:#1e40af;
+    border-radius:10px;
+    padding:12px;
+    font-size:13px;
+    line-height:1.5;
+    margin-bottom:15px;
+}
+
+.badge-acceso{
+    display:inline-block;
+    margin-top:5px;
+    padding:4px 8px;
+    border
+  <script type="module">
+
+// =====================================================
+// FIREBASE
+// =====================================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+import {
+    collection,
+    getDocs,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    doc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+
+// =====================================================
+// ADMINISTRADOR
+// =====================================================
+
+const EMAIL_ADMIN = "julianbattauz006@gmail.com";
+
+
+// =====================================================
+// ELEMENTOS
+// =====================================================
+
+const form = document.getElementById("formEmpleado");
+const empleadoId = document.getElementById("empleadoId");
+
+const nombre = document.getElementById("nombre");
+const apellido = document.getElementById("apellido");
+const email = document.getElementById("email");
+const telefono = document.getElementById("telefono");
+const empresaId = document.getElementById("empresaId");
+
+const tipoAcceso = document.getElementById("tipoAcceso");
+const accesoHabilitado = document.getElementById("accesoHabilitado");
+
+const btnGuardar = document.getElementById("btnGuardar");
+const btnCancelar = document.getElementById("btnCancelar");
+
+const tabla = document.getElementById("tablaEmpleados");
+const mensaje = document.getElementById("mensaje");
+
+const totalEmpleados = document.getElementById("totalEmpleados");
+const totalActivos = document.getElementById("totalActivos");
+const totalBloqueados = document.getElementById("totalBloqueados");
+
+
+// =====================================================
+// VARIABLES
+// =====================================================
+
+let usuarioActual = null;
+let empleados = [];
+let empresas = [];
+
+
+// =====================================================
+// UTILIDADES
+// =====================================================
+
+function texto(valor) {
+
+    if (
+        valor === undefined ||
+        valor === null
+    ) {
+        return "";
+    }
+
+    return String(valor);
+}
+
+
+function escapar(valor) {
+
+    return texto(valor)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+function mostrarMensaje(textoMensaje, tipo = "ok") {
+
+    mensaje.textContent = textoMensaje;
+
+    mensaje.className = "mensaje " + tipo;
+
+    mensaje.style.display = "block";
+
+    setTimeout(() => {
+
+        mensaje.style.display = "none";
+
+    }, 4000);
+}
+
+
+// =====================================================
+// CARGAR EMPRESAS
+// =====================================================
+
+async function cargarEmpresas() {
+
+    empresaId.innerHTML = `
+        <option value="">
+            Cargando empresas...
+        </option>
+    `;
+
+    try {
+
+        const resultado = await getDocs(
+            collection(db, "empresas")
+        );
+
+        empresas = [];
+
+        resultado.forEach(documento => {
+
+            empresas.push({
+
+                id: documento.id,
+
+                datos: documento.data()
+
+            });
+
+        });
+
+
+        empresaId.innerHTML = `
+            <option value="">
+                Seleccionar empresa
+            </option>
+        `;
+
+
+        empresas.forEach(item => {
+
+            const datos = item.datos;
+
+            const nombreEmpresa =
+                datos.nombreEmpresa ||
+                datos.nombre ||
+                datos.empresa ||
+                "Empresa sin nombre";
+
+
+            const opcion =
+                document.createElement("option");
+
+            opcion.value = item.id;
+
+            opcion.textContent = nombreEmpresa;
+
+            empresaId.appendChild(opcion);
+
+        });
+
+    }
+    catch (error) {
+
+        console.error(
+            "Error cargando empresas:",
+            error
+        );
+
+        empresaId.innerHTML = `
+            <option value="">
+                Error al cargar empresas
+            </option>
+        `;
+
+        mostrarMensaje(
+            "No se pudieron cargar las empresas: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// OBTENER NOMBRE EMPRESA
+// =====================================================
+
+function obtenerNombreEmpresa(id) {
+
+    const empresa = empresas.find(
+        item => item.id === id
+    );
+
+    if (!empresa) {
+
+        return "Sin empresa";
+
+    }
+
+    const datos = empresa.datos;
+
+    return (
+        datos.nombreEmpresa ||
+        datos.nombre ||
+        datos.empresa ||
+        "Empresa sin nombre"
+    );
+
+}
+
+
+// =====================================================
+// GUARDAR EMPLEADO
+// =====================================================
+
+form.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+
+        if (!usuarioActual) {
+
+            mostrarMensaje(
+                "No hay una sesión activa.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        const id = empleadoId.value.trim();
+
+        const nombreValor =
+            nombre.value.trim();
+
+        const apellidoValor =
+            apellido.value.trim();
+
+        const emailValor =
+            email.value.trim().toLowerCase();
+
+        const telefonoValor =
+            telefono.value.trim();
+
+        const empresaValor =
+            empresaId.value;
+
+        let tipoValor =
+            tipoAcceso.value;
+
+        const accesoValor =
+            accesoHabilitado.value === "true";
+
+
+        if (
+            !nombreValor ||
+            !apellidoValor ||
+            !emailValor ||
+            !empresaValor
+        ) {
+
+            mostrarMensaje(
+                "Completá nombre, apellido, email y empresa.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (tipoValor === "bloqueado") {
+
+            tipoValor = "empleado";
+
+        }
+
+
+        btnGuardar.disabled = true;
+
+        btnGuardar.textContent =
+            "⏳ GUARDANDO...";
+
+
+        try {
+
+            const datosEmpleado = {
+
+                nombre:
+                    nombreValor,
+
+                apellido:
+                    apellidoValor,
+
+                nombreCompleto:
+                    nombreValor +
+                    " " +
+                    apellidoValor,
+
+                email:
+                    emailValor,
+
+                telefono:
+                    telefonoValor,
+
+                empresaId:
+                    empresaValor,
+
+                tipoAcceso:
+                    tipoValor,
+
+                accesoHabilitado:
+                    accesoValor,
+
+                estado:
+                    accesoValor
+                        ? "habilitado"
+                        : "bloqueado",
+
+                uid:
+                    id
+                        ? (
+                            empleados.find(
+                                e => e.id === id
+                            )?.datos?.uid || ""
+                        )
+                        : "",
+
+                actualizadoPor:
+                    usuarioActual.uid,
+
+                actualizadoEn:
+                    serverTimestamp()
+
+            };
+
+
+            // =================================================
+            // ACTUALIZAR
+            // =================================================
+
+            if (id) {
+
+                await updateDoc(
+                    doc(
+                        db,
+                        "empleados",
+                        id
+                    ),
+                    datosEmpleado
+                );
+
+
+                mostrarMensaje(
+                    "Empleado actualizado correctamente."
+                );
+
+            }
+
+            // =================================================
+            // CREAR
+            // =================================================
+
+            else {
+
+                datosEmpleado.creadoPor =
+                    usuarioActual.uid;
+
+                datosEmpleado.creadoEn =
+                    serverTimestamp();
+
+                datosEmpleado.fechaRegistro =
+                    serverTimestamp();
+
+
+                const nuevoEmpleado =
+                    await addDoc(
+                        collection(
+                            db,
+                            "empleados"
+                        ),
+                        datosEmpleado
+                    );
+
+
+                console.log(
+                    "Empleado creado:",
+                    nuevoEmpleado.id
+                );
+
+
+                mostrarMensaje(
+                    "Empleado registrado correctamente. Ahora podés darle acceso."
+                );
+
+            }
+
+
+            limpiarFormulario();
+
+            await cargarEmpleados();
+
+        }
+        catch (error) {
+
+            console.error(
+                "ERROR GUARDANDO EMPLEADO:",
+                error
+            );
+
+            mostrarMensaje(
+                "No se pudo guardar el empleado: " +
+                error.message,
+                "error"
+            );
+
+        }
+        finally {
+
+            btnGuardar.disabled =
+                false;
+
+            btnGuardar.textContent =
+                "💾 GUARDAR EMPLEADO";
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// LIMPIAR FORMULARIO
+// =====================================================
+
+function limpiarFormulario() {
+
+    empleadoId.value = "";
+
+    nombre.value = "";
+
+    apellido.value = "";
+
+    email.value = "";
+
+    telefono.value = "";
+
+    empresaId.value = "";
+
+    tipoAcceso.value = "empleado";
+
+    accesoHabilitado.value = "true";
+
+    btnGuardar.textContent =
+        "💾 GUARDAR EMPLEADO";
+
+    btnCancelar.classList.add(
+        "oculto"
+    );
+
+}
+
+
+// =====================================================
+// EDITAR EMPLEADO
+// =====================================================
+
+function editarEmpleado(id) {
+
+    const item = empleados.find(
+        empleado =>
+            empleado.id === id
+    );
+
+
+    if (!item) {
+
+        mostrarMensaje(
+            "No se encontró el empleado.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const datos = item.datos;
+
+
+    empleadoId.value = id;
+
+    nombre.value =
+        datos.nombre || "";
+
+    apellido.value =
+        datos.apellido || "";
+
+    email.value =
+        datos.email || "";
+
+    telefono.value =
+        datos.telefono || "";
+
+    empresaId.value =
+        datos.empresaId || "";
+
+    tipoAcceso.value =
+        datos.tipoAcceso || "empleado";
+
+    accesoHabilitado.value =
+        datos.accesoHabilitado === true
+            ? "true"
+            : "false";
+
+
+    btnGuardar.textContent =
+        "💾 ACTUALIZAR EMPLEADO";
+
+    btnCancelar.classList.remove(
+        "oculto"
+    );
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+// =====================================================
+// CANCELAR EDICIÓN
+// =====================================================
+
+btnCancelar.addEventListener(
+    "click",
+    limpiarFormulario
+);
+
+
+// =====================================================
+// DAR ACCESO / BLOQUEAR
+// =====================================================
+
+async function cambiarAcceso(
+    id,
+    habilitar
+) {
+
+    if (!usuarioActual) {
+
+        mostrarMensaje(
+            "No hay una sesión activa.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const mensajeConfirmacion =
+        habilitar
+            ? "¿Querés DAR ACCESO a este empleado?"
+            : "¿Querés BLOQUEAR el acceso de este empleado?";
+
+
+    if (!confirm(mensajeConfirmacion)) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await updateDoc(
+            doc(
+                db,
+                "empleados",
+                id
+            ),
+            {
+
+                accesoHabilitado:
+                    habilitar,
+
+                estado:
+                    habilitar
+                        ? "habilitado"
+                        : "bloqueado",
+
+                tipoAcceso:
+                    habilitar
+                        ? "empleado"
+                        : "bloqueado",
+
+                actualizadoPor:
+                    usuarioActual.uid,
+
+                actualizadoEn:
+                    serverTimestamp()
+
+            }
+        );
+
+
+        mostrarMensaje(
+            habilitar
+                ? "✅ ACCESO DADO. El empleado ya puede usar su cuenta cuando su usuario esté vinculado."
+                : "🔒 Acceso bloqueado correctamente."
+        );
+
+
+        await cargarEmpleados();
+
+    }
+    catch (error) {
+
+        console.error(
+            "ERROR CAMBIANDO ACCESO:",
+            error
+        );
+
+        mostrarMensaje(
+            "No se pudo cambiar el acceso: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// ELIMINAR EMPLEADO
+// =====================================================
+
+async function eliminarEmpleado(id) {
+
+    if (!confirm(
+        "¿Seguro que querés eliminar este empleado?\n\nEsta acción no se puede deshacer."
+    )) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await deleteDoc(
+            doc(
+                db,
+                "empleados",
+                id
+            )
+        );
+
+
+        mostrarMensaje(
+            "Empleado eliminado correctamente."
+        );
+
+
+        await cargarEmpleados();
+
+    }
+    catch (error) {
+
+        console.error(
+            "ERROR ELIMINANDO:",
+            error
+        );
+
+        mostrarMensaje(
+            "No se pudo eliminar el empleado: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// CARGAR EMPLEADOS
+// =====================================================
+
+async function cargarEmpleados() {
+
+    tabla.innerHTML = `
+        <tr>
+            <td
+                colspan="7"
+                class="cargando"
+            >
+                Cargando empleados...
+            </td>
+        </tr>
+    `;
+
+
+    try {
+
+        const resultado =
+            await getDocs(
+                collection(
+                    db,
+                    "empleados"
+                )
+            );
+
+
+        empleados = [];
+
+
+        resultado.forEach(
+            documento => {
+
+                empleados.push({
+
+                    id:
+                        documento.id,
+
+                    datos:
+                        documento.data()
+
+                });
+
+            }
+        );
+
+
+        let activos = 0;
+        let bloqueados = 0;
+
+
+        empleados.forEach(item => {
+
+            if (
+                item.datos.accesoHabilitado === true
+            ) {
+
+                activos++;
+
+            }
+            else {
+
+                bloqueados++;
+
+            }
+
+        });
+
+
+        totalEmpleados.textContent =
+            empleados.length;
+
+        totalActivos.textContent =
+            activos;
+
+        totalBloqueados.textContent =
+            bloqueados;
+
+
+        if (
+            empleados.length === 0
+        ) {
+
+            tabla.innerHTML = `
+                <tr>
+                    <td
+                        colspan="7"
+                        class="vacio"
+                    >
+                        👷 Todavía no hay empleados registrados.
+                    </td>
+                </tr>
+            `;
+
+            return;
+
+        }
+
+
+        let html = "";
+
+
+        empleados.forEach(item => {
+
+            const datos = item.datos;
+
+            const id = item.id;
+
+
+            const nombreCompleto =
+                datos.nombreCompleto ||
+                (
+                    texto(datos.nombre) +
+                    " " +
+                    texto(datos.apellido)
+                ).trim() ||
+                "Empleado sin nombre";
+
+
+            const emailValor =
+                datos.email || "-";
+
+
+            const telefonoValor =
+                datos.telefono || "-";
+
+
+            const nombreEmpresa =
+                obtenerNombreEmpresa(
+                    datos.empresaId
+                );
+
+
+            const habilitado =
+                datos.accesoHabilitado === true;
+
+
+            const tipo =
+                habilitado
+                    ? (
+                        datos.tipoAcceso === "supervisor"
+                            ? "supervisor"
+                            : "empleado"
+                    )
+                    : "bloqueado";
+
+
+            html += `
+
+            <tr>
+
+                <td>
+
+                    <div class="nombre">
+
+                        ${escapar(
+                            nombreCompleto
+                        )}
+
+                    </div>
+
+                    <div class="subdato">
+
+                        ID:
+                        ${escapar(id)}
+
+                    </div>
+
+                </td>
+
+
+                <td>
+
+                    ${escapar(
+                        emailValor
+                    )}
+
+                </td>
+
+
+                <td>
+
+                    ${escapar(
+                        telefonoValor
+                    )}
+
+                </td>
+
+
+                <td>
+
+                    ${escapar(
+                        nombreEmpresa
+                    )}
+
+                </td>
+
+
+                <td>
+
+                    <select
+                        class="selector-tabla selector-tipo"
+                        data-id="${escapar(id)}"
+                    >
+
+                        <option
+                            value="empleado"
+                            ${tipo === "empleado"
+                                ? "selected"
+                                : ""}
+                        >
+                            👷 Empleado
+                        </option>
+
+                        <option
+                            value="supervisor"
+                            ${tipo === "supervisor"
+                                ? "selected"
+                                : ""}
+                        >
+                            👷 Supervisor
+                        </option>
+
+                        <option
+                            value="bloqueado"
+                            ${tipo === "bloqueado"
+                                ? "selected"
+                                : ""}
+                        >
+                            🔴 Bloqueado
+                        </option>
+
+                    </select>
+
+                </td>
+
+
+                <td>
+
+                    <span
+                        class="estado ${
+                            habilitado
+                                ? "estado-on"
+                                : "estado-off"
+                        }"
+                    >
+
+                        ${
+                            habilitado
+                                ? "HABILITADO"
+                                : "BLOQUEADO"
+                        }
+
+                    </span>
+
+                </td>
+
+
+                <td>
+
+                    <div class="acciones-tabla">
+
+                        <button
+                            type="button"
+                            class="btn-azul"
+                            data-editar="${escapar(id)}"
+                        >
+                            ✏️ Editar
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="${
+                                habilitado
+                                    ? "btn-rojo"
+                                    : "btn-verde"
+                            }"
+                            data-acceso="${escapar(id)}"
+                            data-habilitar="${
+                                habilitado
+                                    ? "false"
+                                    : "true"
+                            }"
+                        >
+
+                            ${
+                                habilitado
+                                    ? "🔒 Bloquear"
+                                    : "🔓 DAR ACCESO"
+                            }
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="btn-rojo"
+                            data-eliminar="${escapar(id)}"
+                        >
+
+                            🗑️ Eliminar
+
+                        </button>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            `;
+
+        });
+
+
+        tabla.innerHTML = html;
+
+
+        // =================================================
+        // EDITAR
+        // =================================================
+
+        document
+            .querySelectorAll("[data-editar]")
+            .forEach(boton => {
+
+                boton.addEventListener(
+                    "click",
+                    () => {
+
+                        editarEmpleado(
+                            boton.dataset.editar
+                        );
+
+                    }
+                );
+
+            });
+
+
+        // =================================================
+        // DAR ACCESO
+        // =================================================
+
+        document
+            .querySelectorAll("[data-acceso]")
+            .forEach(boton => {
+
+                boton.addEventListener(
+                    "click",
+                    () => {
+
+                        cambiarAcceso(
+
+                            boton.dataset.acceso,
+
+                            boton.dataset.habilitar === "true"
+
+                        );
+
+                    }
+                );
+
+            });
+
+
+        // =================================================
+        // ELIMINAR
+        // =================================================
+
+        document
+            .querySelectorAll("[data-eliminar]")
+            .forEach(boton => {
+
+                boton.addEventListener(
+                    "click",
+                    () => {
+
+                        eliminarEmpleado(
+                            boton.dataset.eliminar
+                        );
+
+                    }
+                );
+
+            });
+
+
+        // =================================================
+        // CAMBIAR TIPO
+        // =================================================
+
+        document
+            .querySelectorAll(".selector-tipo")
+            .forEach(selector => {
+
+                selector.addEventListener(
+                    "change",
+                    async () => {
+
+                        const id =
+                            selector.dataset.id;
+
+                        const nuevoTipo =
+                            selector.value;
+
+
+                        const habilitado =
+                            nuevoTipo !== "bloqueado";
+
+
+                        try {
+
+                            await updateDoc(
+                                doc(
+                                    db,
+                                    "empleados",
+                                    id
+                                ),
+                                {
+
+                                    tipoAcceso:
+                                        nuevoTipo,
+
+                                    accesoHabilitado:
+                                        habilitado,
+
+                                    estado:
+                                        habilitado
+                                            ? "habilitado"
+                                            : "bloqueado",
+
+                                    actualizadoPor:
+                                        usuarioActual.uid,
+
+                                    actualizadoEn:
+                                        serverTimestamp()
+
+                                }
+                            );
+
+
+                            mostrarMensaje(
+                                "Tipo de acceso actualizado."
+                            );
+
+
+                            await cargarEmpleados();
+
+                        }
+                        catch (error) {
+
+                            console.error(error);
+
+                            mostrarMensaje(
+                                "No se pudo actualizar: " +
+                                error.message,
+                                "error"
+                            );
+
+                        }
+
+                    }
+                );
+
+            });
+
+    }
+    catch (error) {
+
+        console.error(
+            "ERROR CARGANDO EMPLEADOS:",
+            error
+        );
+
+
+        tabla.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="7"
+                    style="
+                        text-align:center;
+                        padding:30px;
+                        color:#991b1b;
+                    "
+                >
+
+                    ❌ Error al cargar empleados.
+
+                    <br><br>
+
+                    ${escapar(
+                        error.message
+                    )}
+
+                </td>
+
+            </tr>
+
+        `;
+
+
+        mostrarMensaje(
+            "No se pudieron cargar los empleados: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// VOLVER
+// =====================================================
+
+document
+    .getElementById("btnVolver")
+    .addEventListener(
+        "click",
+        () => {
+
+            window.location.href =
+                "index.html";
+
+        }
+    );
+
+
+// =====================================================
+// AUTENTICACIÓN
+// =====================================================
+
+onAuthStateChanged(
+    auth,
+    async usuario => {
+
+        if (!usuario) {
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+            usuario;
+
+
+        const emailUsuario =
+            texto(usuario.email)
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            emailUsuario !==
+            EMAIL_ADMIN.toLowerCase()
+        ) {
+
+            document.body.innerHTML = `
+
+                <div
+                    style="
+                        min-height:100vh;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        padding:25px;
+                        background:#f3f4f6;
+                        font-family:Arial,sans-serif;
+                    "
+                >
+
+                    <div
+                        style="
+                            background:#fff;
+                            padding:35px;
+                            border-radius:16px;
+                            max-width:420px;
+                            width:100%;
+                            text-align:center;
+                            box-shadow:0 4px 20px rgba(0,0,0,.08);
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:55px;
+                                margin-bottom:15px;
+                            "
+                        >
+                            🚫
+                        </div>
+
+                        <h2>
+                            Acceso denegado
+                        </h2>
+
+                        <p
+                            style="
+                                margin-top:10px;
+                                color:#6b7280;
+                                line-height:1.5;
+                            "
+                        >
+                            Solo el administrador GESBASE
+                            puede administrar empleados.
+                        </p>
+
+                        <button
+                            type="button"
+                            onclick="location.href='index.html'"
+                            style="
+                                margin-top:20px;
+                                background:#111827;
+                                color:#fff;
+                            "
+                        >
+                            ← Volver
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        await cargarEmpresas();
+
+        await cargarEmpleados();
+
+    }
+);
+
+</script>
+
+</body>
+</html>
