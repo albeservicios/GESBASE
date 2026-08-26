@@ -143,7 +143,8 @@ input:focus{
     padding:13px;
     border-radius:10px;
     font-size:14px;
-    line-height:1.4;
+    line-height:1.5;
+    word-break:break-word;
 }
 
 .mensaje.error{
@@ -156,6 +157,17 @@ input:focus{
     display:block;
     background:#dcfce7;
     color:#166534;
+}
+
+.diagnostico{
+    margin-top:10px;
+    padding:10px;
+    background:#f9fafb;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    font-size:12px;
+    color:#374151;
+    word-break:break-word;
 }
 
 .registro{
@@ -248,6 +260,13 @@ Contraseña
 <div
     id="mensaje"
     class="mensaje"
+></div>
+
+
+<div
+    id="diagnostico"
+    class="diagnostico"
+    style="display:none;"
 ></div>
 
 
@@ -345,6 +364,12 @@ document.getElementById(
 );
 
 
+const diagnostico =
+document.getElementById(
+    "diagnostico"
+);
+
+
 const botonLogin =
 document.getElementById(
     "btnLogin"
@@ -378,6 +403,31 @@ function mostrarMensaje(
     mensaje.className =
         "mensaje " +
         tipo;
+
+}
+
+
+// ==========================================
+// DIAGNÓSTICO
+// ==========================================
+
+function mostrarDiagnostico(
+    error
+){
+
+    diagnostico.style.display =
+        "block";
+
+    diagnostico.innerHTML =
+        "<strong>Diagnóstico Firebase</strong><br><br>" +
+
+        "Código: " +
+        String(error.code || "sin código") +
+
+        "<br><br>" +
+
+        "Mensaje: " +
+        String(error.message || "sin mensaje");
 
 }
 
@@ -431,6 +481,10 @@ botonRecuperar.addEventListener(
             "Enviando...";
 
 
+        diagnostico.style.display =
+            "none";
+
+
         try{
 
             await sendPasswordResetEmail(
@@ -448,7 +502,12 @@ botonRecuperar.addEventListener(
         catch(error){
 
             console.error(
-                "Error recuperación:",
+                "ERROR RECUPERACIÓN:",
+                error
+            );
+
+
+            mostrarDiagnostico(
                 error
             );
 
@@ -479,6 +538,14 @@ botonRecuperar.addEventListener(
 
                     texto =
                         "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
+
+                    break;
+
+
+                case "auth/network-request-failed":
+
+                    texto =
+                        "Firebase no pudo completar la conexión. Revisá el diagnóstico que aparece debajo.";
 
                     break;
 
@@ -524,11 +591,6 @@ onAuthStateChanged(
             usuario.uid
         );
 
-
-        /*
-         * Si ya existe una sesión válida,
-         * entramos directamente al panel.
-         */
 
         window.location.replace(
             "index.html"
@@ -577,6 +639,10 @@ formulario.addEventListener(
             "Ingresando...";
 
 
+        diagnostico.style.display =
+            "none";
+
+
         mostrarMensaje(
             "Verificando acceso...",
             "exito"
@@ -605,11 +671,6 @@ formulario.addEventListener(
             );
 
 
-            /*
-             * Firebase ya confirmó las
-             * credenciales.
-             */
-
             window.location.replace(
                 "index.html"
             );
@@ -619,6 +680,12 @@ formulario.addEventListener(
 
             console.error(
                 "ERROR LOGIN:",
+                error
+            );
+
+
+            // Mostrar diagnóstico exacto
+            mostrarDiagnostico(
                 error
             );
 
@@ -680,7 +747,23 @@ formulario.addEventListener(
                 case "auth/network-request-failed":
 
                     texto =
-                        "No hay conexión con Firebase. Revisá tu conexión a Internet.";
+                        "Firebase no pudo completar la conexión. Mirá el diagnóstico debajo.";
+
+                    break;
+
+
+                case "auth/api-key-not-valid":
+
+                    texto =
+                        "La API Key de Firebase no es válida para este proyecto.";
+
+                    break;
+
+
+                case "auth/operation-not-allowed":
+
+                    texto =
+                        "El acceso con email y contraseña no está habilitado en Firebase.";
 
                     break;
 
