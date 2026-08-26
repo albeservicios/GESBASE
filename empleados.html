@@ -5,15 +5,9 @@
 
 <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta
-    name="theme-color"
-    content="#111827"
->
+<meta name="theme-color" content="#111827">
 
 <title>Empleados - GESBASE</title>
 
@@ -415,10 +409,6 @@ class="mensaje exito"
 ></div>
 
 
-<!-- ==================================================
-     FORMULARIO
-================================================== -->
-
 <div class="tarjeta">
 
 <div
@@ -437,7 +427,6 @@ habilitar su acceso a GESBASE cuando quieras.
 
 
 <div class="formulario">
-
 
 <div class="campo">
 
@@ -572,6 +561,7 @@ placeholder="0"
 <button
 id="btnGuardar"
 class="boton boton-guardar"
+type="button"
 >
 💾 GUARDAR EMPLEADO
 </button>
@@ -579,6 +569,7 @@ class="boton boton-guardar"
 <button
 id="btnCancelar"
 class="boton boton-cancelar"
+type="button"
 >
 CANCELAR EDICIÓN
 </button>
@@ -587,10 +578,6 @@ CANCELAR EDICIÓN
 
 </div>
 
-
-<!-- ==================================================
-     LISTADO
-================================================== -->
 
 <div class="tarjeta">
 
@@ -619,6 +606,7 @@ Cargando empleados...
 <button
 id="btnVolver"
 class="boton volver"
+type="button"
 >
 ⬅️ VOLVER
 </button>
@@ -627,10 +615,6 @@ class="boton volver"
 
 </div>
 
-
-<!-- ==================================================
-     MODAL HABILITAR ACCESO
-================================================== -->
 
 <div
 id="modalAcceso"
@@ -675,7 +659,9 @@ para ingresar desde <strong>empleado-login.html</strong>.
 
 <button
 id="btnCancelarAcceso"
-class="boton boton-cancelar-modal"
+class="boton"
+type="button"
+style="background:#e5e7eb;color:#111827;"
 >
 CANCELAR
 </button>
@@ -683,6 +669,7 @@ CANCELAR
 <button
 id="btnConfirmarAcceso"
 class="boton boton-guardar"
+type="button"
 >
 HABILITAR ACCESO
 </button>
@@ -696,42 +683,8 @@ HABILITAR ACCESO
 
 <script type="module">
 
-
 // =====================================================
-// FIREBASE PRINCIPAL
-// =====================================================
-
-import {
-    auth,
-    db
-} from "./Js/firebase.js";
-
-
-import {
-    onAuthStateChanged
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
-
-import {
-    collection,
-    getDocs,
-    query,
-    where,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    doc,
-    serverTimestamp
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-
-// =====================================================
-// FIREBASE AUTH SECUNDARIO
-//
-// Permite crear la cuenta del empleado SIN cerrar
-// la sesión del administrador.
+// FIREBASE
 // =====================================================
 
 import {
@@ -744,6 +697,7 @@ import {
 
 import {
     getAuth,
+    onAuthStateChanged,
     createUserWithEmailAndPassword,
     signOut
 } from
@@ -751,8 +705,77 @@ import {
 
 
 import {
+    getFirestore,
+    collection,
+    getDocs,
+    query,
+    where,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    doc,
+    getDoc,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+import {
     firebaseConfig
 } from "./Js/firebase-config.js";
+
+
+// =====================================================
+// INICIALIZAR FIREBASE
+// =====================================================
+
+const NOMBRE_APP =
+"GESBASE-EMPLEADOS-PAGINA";
+
+
+let appPrincipal;
+
+
+const aplicaciones =
+getApps();
+
+
+const appExistente =
+aplicaciones.find(
+    app =>
+    app.name === NOMBRE_APP
+);
+
+
+if(appExistente){
+
+    appPrincipal =
+    getApp(
+        NOMBRE_APP
+    );
+
+}
+else{
+
+    appPrincipal =
+    initializeApp(
+        firebaseConfig,
+        NOMBRE_APP
+    );
+
+}
+
+
+const auth =
+getAuth(
+    appPrincipal
+);
+
+
+const db =
+getFirestore(
+    appPrincipal
+);
 
 
 // =====================================================
@@ -767,15 +790,14 @@ let empleadoEditando = null;
 
 let empleadoAcceso = null;
 
-let authSecundario = null;
-
 
 // =====================================================
 // ELEMENTOS
 // =====================================================
 
 const $ =
-id => document.getElementById(id);
+id =>
+document.getElementById(id);
 
 
 // =====================================================
@@ -826,7 +848,13 @@ function dinero(valor){
 }
 
 
-function mostrarError(mensaje){
+// =====================================================
+// MENSAJES
+// =====================================================
+
+function mostrarError(
+    mensaje
+){
 
     $("mensajeError").textContent =
     mensaje;
@@ -840,7 +868,9 @@ function mostrarError(mensaje){
 }
 
 
-function mostrarExito(mensaje){
+function mostrarExito(
+    mensaje
+){
 
     $("mensajeExito").textContent =
     mensaje;
@@ -866,61 +896,51 @@ function limpiarMensajes(){
 
 
 // =====================================================
-// AUTH SECUNDARIO
+// OBTENER AUTH SECUNDARIO
 // =====================================================
 
 function obtenerAuthSecundario(){
 
-    try{
+    const NOMBRE_APP =
+    "GESBASE-AUTH-EMPLEADO";
 
-        const nombreApp =
-        "GESBASE-EMPLEADOS";
 
-        let appSecundaria;
+    const aplicaciones =
+    getApps();
 
-        const aplicaciones =
-        getApps();
 
-        const existente =
-        aplicaciones.find(
-            app =>
-            app.name === nombreApp
+    const existente =
+    aplicaciones.find(
+        app =>
+        app.name === NOMBRE_APP
+    );
+
+
+    let appSecundaria;
+
+
+    if(existente){
+
+        appSecundaria =
+        getApp(
+            NOMBRE_APP
         );
-
-        if(existente){
-
-            appSecundaria =
-            getApp(nombreApp);
-
-        }
-        else{
-
-            appSecundaria =
-            initializeApp(
-                firebaseConfig,
-                nombreApp
-            );
-
-        }
-
-        authSecundario =
-        getAuth(
-            appSecundaria
-        );
-
-        return authSecundario;
 
     }
-    catch(error){
+    else{
 
-        console.error(
-            "Error Firebase secundario:",
-            error
+        appSecundaria =
+        initializeApp(
+            firebaseConfig,
+            NOMBRE_APP
         );
 
-        throw error;
-
     }
+
+
+    return getAuth(
+        appSecundaria
+    );
 
 }
 
@@ -933,38 +953,34 @@ async function obtenerEmpresa(){
 
     empresaId = "";
 
-    const referencia =
-    collection(
+
+    const referenciaUsuario =
+    doc(
         db,
-        "usuarios"
+        "usuarios",
+        usuarioActual.uid
     );
 
-    const consulta =
-    query(
-        referencia,
-        where(
-            "__name__",
-            "==",
-            usuarioActual.uid
-        )
+
+    const documentoUsuario =
+    await getDoc(
+        referenciaUsuario
     );
 
-    const resultado =
-    await getDocs(
-        consulta
-    );
 
     if(
-        !resultado.empty
+        documentoUsuario.exists()
     ){
 
         const datos =
-        resultado.docs[0].data();
+        documentoUsuario.data();
+
 
         empresaId =
         texto(
             datos.empresaId
         );
+
 
         if(!empresaId){
 
@@ -977,9 +993,9 @@ async function obtenerEmpresa(){
 
     }
 
+
     /*
-     * Compatibilidad con el esquema
-     * actual de GESBASE.
+     * Compatibilidad con usuarios antiguos.
      */
 
     if(!empresaId){
@@ -989,16 +1005,23 @@ async function obtenerEmpresa(){
 
     }
 
+
+    console.log(
+        "GESBASE empresaId:",
+        empresaId
+    );
+
 }
 
 
 // =====================================================
-// GUARDAR
+// GUARDAR EMPLEADO
 // =====================================================
 
 async function guardarEmpleado(){
 
     limpiarMensajes();
+
 
     const datos = {
 
@@ -1114,8 +1137,10 @@ async function guardarEmpleado(){
     const boton =
     $("btnGuardar");
 
+
     boton.disabled =
     true;
+
 
     boton.textContent =
     empleadoEditando
@@ -1163,12 +1188,16 @@ async function guardarEmpleado(){
 
         else{
 
+            const referenciaEmpleados =
+            collection(
+                db,
+                "empleados"
+            );
+
+
             const consulta =
             query(
-                collection(
-                    db,
-                    "empleados"
-                ),
+                referenciaEmpleados,
 
                 where(
                     "empresaId",
@@ -1200,10 +1229,7 @@ async function guardarEmpleado(){
 
 
             await addDoc(
-                collection(
-                    db,
-                    "empleados"
-                ),
+                referenciaEmpleados,
                 {
 
                     empresaId:
@@ -1231,13 +1257,14 @@ async function guardarEmpleado(){
 
 
             mostrarExito(
-                "Empleado registrado correctamente. Ahora podés habilitarle el acceso cuando quieras."
+                "Empleado registrado correctamente."
             );
 
         }
 
 
         cancelarEdicion();
+
 
         await cargarEmpleados();
 
@@ -1248,6 +1275,7 @@ async function guardarEmpleado(){
             "ERROR GUARDANDO EMPLEADO:",
             error
         );
+
 
         mostrarError(
             "No se pudo guardar el empleado: " +
@@ -1264,6 +1292,7 @@ async function guardarEmpleado(){
         boton.disabled =
         false;
 
+
         boton.textContent =
         "💾 GUARDAR EMPLEADO";
 
@@ -1273,13 +1302,16 @@ async function guardarEmpleado(){
 
 
 // =====================================================
-// HABILITAR ACCESO
+// MODAL ACCESO
 // =====================================================
 
-function abrirModalAcceso(empleado){
+function abrirModalAcceso(
+    empleado
+){
 
     empleadoAcceso =
     empleado;
+
 
     $("textoAcceso").textContent =
     "Empleado: " +
@@ -1300,7 +1332,7 @@ function abrirModalAcceso(empleado){
 
 
     setTimeout(
-        function(){
+        () => {
 
             $("passwordEmpleado")
                 .focus();
@@ -1318,14 +1350,20 @@ function cerrarModalAcceso(){
         .classList
         .remove("visible");
 
+
     empleadoAcceso =
     null;
+
 
     $("passwordEmpleado").value =
     "";
 
 }
 
+
+// =====================================================
+// HABILITAR ACCESO
+// =====================================================
 
 async function habilitarAcceso(){
 
@@ -1340,7 +1378,9 @@ async function habilitarAcceso(){
     $("passwordEmpleado").value;
 
 
-    if(password.length < 6){
+    if(
+        password.length < 6
+    ){
 
         mostrarError(
             "La contraseña debe tener como mínimo 6 caracteres."
@@ -1360,10 +1400,8 @@ async function habilitarAcceso(){
     if(!email){
 
         mostrarError(
-            "El empleado necesita tener un correo electrónico para habilitarle el acceso."
+            "El empleado necesita tener un correo electrónico."
         );
-
-        cerrarModalAcceso();
 
         return;
 
@@ -1373,21 +1411,16 @@ async function habilitarAcceso(){
     const boton =
     $("btnConfirmarAcceso");
 
+
     boton.disabled =
     true;
+
 
     boton.textContent =
     "CREANDO ACCESO...";
 
 
     try{
-
-        /*
-         * Creamos la cuenta en una segunda instancia
-         * de Firebase Authentication.
-         *
-         * Esto NO cierra la sesión del administrador.
-         */
 
         const authEmpleado =
         obtenerAuthSecundario();
@@ -1404,10 +1437,6 @@ async function habilitarAcceso(){
         const uidEmpleado =
         resultado.user.uid;
 
-
-        // =================================================
-        // VINCULAR AUTH UID
-        // =================================================
 
         await updateDoc(
             doc(
@@ -1435,11 +1464,6 @@ async function habilitarAcceso(){
             }
         );
 
-
-        /*
-         * Cerramos solamente la sesión de la instancia
-         * secundaria.
-         */
 
         await signOut(
             authEmpleado
@@ -1478,7 +1502,6 @@ async function habilitarAcceso(){
             "Ese correo ya tiene una cuenta en Firebase Authentication.";
 
         }
-
         else if(
             error.code ===
             "auth/invalid-email"
@@ -1488,17 +1511,15 @@ async function habilitarAcceso(){
             "El correo del empleado no es válido.";
 
         }
-
         else if(
             error.code ===
             "auth/weak-password"
         ){
 
             mensaje =
-            "La contraseña es demasiado débil.";
+            "La contraseña debe tener como mínimo 6 caracteres.";
 
         }
-
         else if(
             error.code ===
             "permission-denied"
@@ -1508,7 +1529,6 @@ async function habilitarAcceso(){
             "Firestore rechazó la vinculación del empleado. Hay que revisar las reglas de Firebase.";
 
         }
-
         else if(error.message){
 
             mensaje =
@@ -1527,6 +1547,7 @@ async function habilitarAcceso(){
         boton.disabled =
         false;
 
+
         boton.textContent =
         "HABILITAR ACCESO";
 
@@ -1539,7 +1560,9 @@ async function habilitarAcceso(){
 // MODIFICAR
 // =====================================================
 
-function modificarEmpleado(empleado){
+function modificarEmpleado(
+    empleado
+){
 
     empleadoEditando =
     empleado;
@@ -1554,35 +1577,42 @@ function modificarEmpleado(empleado){
         empleado.nombre
     );
 
+
     $("apellido").value =
     texto(
         empleado.apellido
     );
+
 
     $("dni").value =
     texto(
         empleado.dni
     );
 
+
     $("telefono").value =
     texto(
         empleado.telefono
     );
+
 
     $("email").value =
     texto(
         empleado.email
     );
 
+
     $("puesto").value =
     texto(
         empleado.puesto
     );
 
+
     $("fechaIngreso").value =
     texto(
         empleado.fechaIngreso
     );
+
 
     $("pagoHora").value =
     numero(
@@ -1605,7 +1635,7 @@ function modificarEmpleado(empleado){
 
 
 // =====================================================
-// CANCELAR EDICIÓN
+// CANCELAR
 // =====================================================
 
 function cancelarEdicion(){
@@ -1655,7 +1685,9 @@ function cancelarEdicion(){
 // BORRAR
 // =====================================================
 
-async function borrarEmpleado(empleado){
+async function borrarEmpleado(
+    empleado
+){
 
     const confirmar =
     confirm(
@@ -1705,7 +1737,8 @@ async function borrarEmpleado(empleado){
             "No se pudo borrar el empleado: " +
             (
                 error.message ||
-                error.code
+                error.code ||
+                "error desconocido"
             )
         );
 
@@ -1730,12 +1763,16 @@ async function cargarEmpleados(){
 
     try{
 
+        const referenciaEmpleados =
+        collection(
+            db,
+            "empleados"
+        );
+
+
         const consulta =
         query(
-            collection(
-                db,
-                "empleados"
-            ),
+            referenciaEmpleados,
 
             where(
                 "empresaId",
@@ -1751,7 +1788,9 @@ async function cargarEmpleados(){
         );
 
 
-        if(resultado.empty){
+        if(
+            resultado.empty
+        ){
 
             $("listaEmpleados").innerHTML =
             `
@@ -1805,6 +1844,13 @@ async function cargarEmpleados(){
         `
         <div class="vacio">
             No se pudieron cargar los empleados.
+            <br><br>
+            <small>
+                ${texto(
+                    error.message ||
+                    error.code
+                )}
+            </small>
         </div>
         `;
 
@@ -1814,34 +1860,48 @@ async function cargarEmpleados(){
 
 
 // =====================================================
-// CREAR TARJETA
+// CREAR TARJETA EMPLEADO
 // =====================================================
 
-function crearEmpleado(empleado){
+function crearEmpleado(
+    empleado
+){
 
     const tarjeta =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
+
 
     tarjeta.className =
     "empleado";
 
 
     const cabecera =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
+
 
     cabecera.className =
     "empleado-cabecera";
 
 
     const izquierda =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
 
 
     const nombre =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
+
 
     nombre.className =
     "nombre";
+
 
     nombre.textContent =
     (
@@ -1861,10 +1921,14 @@ function crearEmpleado(empleado){
 
 
     const puesto =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
+
 
     puesto.className =
     "puesto";
+
 
     puesto.textContent =
     texto(
@@ -1879,7 +1943,9 @@ function crearEmpleado(empleado){
 
 
     const estado =
-    document.createElement("span");
+    document.createElement(
+        "span"
+    );
 
 
     if(
@@ -1892,11 +1958,11 @@ function crearEmpleado(empleado){
         estado.className =
         "estado activo";
 
+
         estado.textContent =
         "ACCESO ACTIVO";
 
     }
-
     else if(
         empleado.accesoHabilitado
     ){
@@ -1904,15 +1970,16 @@ function crearEmpleado(empleado){
         estado.className =
         "estado pendiente";
 
+
         estado.textContent =
         "ACCESO PENDIENTE";
 
     }
-
     else{
 
         estado.className =
         "estado inactivo";
+
 
         estado.textContent =
         "SIN ACCESO";
@@ -1923,6 +1990,7 @@ function crearEmpleado(empleado){
     cabecera.appendChild(
         izquierda
     );
+
 
     cabecera.appendChild(
         estado
@@ -1939,7 +2007,10 @@ function crearEmpleado(empleado){
     // =================================================
 
     const datos =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
+
 
     datos.className =
     "datos";
@@ -2000,7 +2071,10 @@ function crearEmpleado(empleado){
     // =================================================
 
     const acceso =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
+
 
     acceso.className =
     "acceso-estado";
@@ -2017,7 +2091,6 @@ function crearEmpleado(empleado){
         "🔐 <strong>Acceso habilitado.</strong> El empleado puede ingresar desde el login de empleados.";
 
     }
-
     else if(
         empleado.accesoHabilitado
     ){
@@ -2026,7 +2099,6 @@ function crearEmpleado(empleado){
         "🟡 <strong>Acceso pendiente.</strong> Falta vincular la cuenta.";
 
     }
-
     else{
 
         acceso.innerHTML =
@@ -2045,7 +2117,10 @@ function crearEmpleado(empleado){
     // =================================================
 
     const acciones =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
+
 
     acciones.className =
     "acciones";
@@ -2059,10 +2134,14 @@ function crearEmpleado(empleado){
     ){
 
         const botonAcceso =
-        document.createElement("button");
+        document.createElement(
+            "button"
+        );
+
 
         botonAcceso.className =
         "accion accion-acceso";
+
 
         botonAcceso.textContent =
         "🔐 HABILITAR ACCESO";
@@ -2088,10 +2167,14 @@ function crearEmpleado(empleado){
 
 
     const botonModificar =
-    document.createElement("button");
+    document.createElement(
+        "button"
+    );
+
 
     botonModificar.className =
     "accion accion-modificar";
+
 
     botonModificar.textContent =
     "✏️ MODIFICAR";
@@ -2115,10 +2198,14 @@ function crearEmpleado(empleado){
 
 
     const botonBorrar =
-    document.createElement("button");
+    document.createElement(
+        "button"
+    );
+
 
     botonBorrar.className =
     "accion accion-borrar";
+
 
     botonBorrar.textContent =
     "🗑️ BORRAR";
@@ -2162,21 +2249,30 @@ function agregarDato(
 ){
 
     const dato =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
+
 
     dato.className =
     "dato";
 
 
     const small =
-    document.createElement("small");
+    document.createElement(
+        "small"
+    );
+
 
     small.textContent =
     etiqueta;
 
 
     const strong =
-    document.createElement("strong");
+    document.createElement(
+        "strong"
+    );
+
 
     strong.textContent =
     valor;
@@ -2185,6 +2281,7 @@ function agregarDato(
     dato.appendChild(
         small
     );
+
 
     dato.appendChild(
         strong
@@ -2212,11 +2309,7 @@ $("btnGuardar")
 $("btnCancelar")
 .addEventListener(
     "click",
-    function(){
-
-        cancelarEdicion();
-
-    }
+    cancelarEdicion
 );
 
 
@@ -2246,7 +2339,7 @@ $("btnVolver")
 
 
 // =====================================================
-// AUTENTICACIÓN ADMINISTRADOR
+// AUTENTICACIÓN
 // =====================================================
 
 onAuthStateChanged(
@@ -2270,7 +2363,20 @@ onAuthStateChanged(
 
         try{
 
+            console.log(
+                "GESBASE UID:",
+                usuario.uid
+            );
+
+
             await obtenerEmpresa();
+
+
+            console.log(
+                "GESBASE empresaId:",
+                empresaId
+            );
+
 
             await cargarEmpleados();
 
@@ -2278,6 +2384,7 @@ onAuthStateChanged(
         catch(error){
 
             console.error(
+                "ERROR INICIALIZANDO EMPLEADOS:",
                 error
             );
 
@@ -2286,7 +2393,8 @@ onAuthStateChanged(
                 "No se pudo cargar empleados: " +
                 (
                     error.message ||
-                    error.code
+                    error.code ||
+                    "error desconocido"
                 )
             );
 
