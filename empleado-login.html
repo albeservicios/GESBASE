@@ -247,6 +247,7 @@ autocomplete="current-password"
 
 
 <button
+type="button"
 id="btnIngresar"
 class="boton boton-principal"
 >
@@ -255,6 +256,7 @@ INGRESAR
 
 
 <button
+type="button"
 id="btnVolver"
 class="boton boton-volver"
 >
@@ -285,11 +287,6 @@ GESBASE · Acceso empleado
 
 <script type="module">
 
-
-// =====================================================
-// FIREBASE
-// =====================================================
-
 import {
     auth,
     db
@@ -310,41 +307,27 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
-// =====================================================
-// ELEMENTOS
-// =====================================================
-
 const email =
 document.getElementById("email");
-
 
 const password =
 document.getElementById("password");
 
-
 const btnIngresar =
 document.getElementById("btnIngresar");
-
 
 const btnVolver =
 document.getElementById("btnVolver");
 
-
 const mensajeError =
 document.getElementById("mensajeError");
-
 
 const mensajeExito =
 document.getElementById("mensajeExito");
 
-
 const cargando =
 document.getElementById("cargando");
 
-
-// =====================================================
-// MENSAJES
-// =====================================================
 
 function mostrarError(mensaje){
 
@@ -385,10 +368,6 @@ function limpiarMensajes(){
 }
 
 
-// =====================================================
-// CARGANDO
-// =====================================================
-
 function iniciarCarga(){
 
     cargando.style.display =
@@ -417,10 +396,6 @@ function terminarCarga(){
 }
 
 
-// =====================================================
-// TEXTO
-// =====================================================
-
 function texto(valor){
 
     if(
@@ -437,26 +412,7 @@ function texto(valor){
 }
 
 
-// =====================================================
-// BUSCAR EMPLEADO
-// =====================================================
-
 async function buscarEmpleado(usuario){
-
-    /*
-     * BUSCAMOS DIRECTAMENTE EN:
-     *
-     * empleados
-     *
-     * usando:
-     *
-     * authUid == UID DEL USUARIO
-     *
-     * No dependemos de:
-     *
-     * usuarios/{uid}
-     */
-
 
     const referencia =
     collection(
@@ -485,12 +441,10 @@ async function buscarEmpleado(usuario){
     );
 
 
-    if(
-        resultados.empty
-    ){
+    if(resultados.empty){
 
         throw new Error(
-            "No encontramos el perfil del empleado. Verificá que el acceso haya sido creado desde GESBASE."
+            "No encontramos el perfil del empleado. El administrador debe vincular esta cuenta desde GESBASE."
         );
 
     }
@@ -510,14 +464,19 @@ async function buscarEmpleado(usuario){
     };
 
 
-    // =================================================
-    // VERIFICAR ESTADO
-    // =================================================
+    /*
+     * ESTADO
+     */
+
+    const estadoEmpleado =
+    texto(
+        empleado.estado
+    ).trim().toLowerCase();
+
 
     if(
-        empleado.estado &&
-        empleado.estado !==
-        "Activo"
+        estadoEmpleado &&
+        estadoEmpleado !== "activo"
     ){
 
         throw new Error(
@@ -527,9 +486,9 @@ async function buscarEmpleado(usuario){
     }
 
 
-    // =================================================
-    // EMPRESA
-    // =================================================
+    /*
+     * EMPRESA
+     */
 
     const empresaId =
     texto(
@@ -540,15 +499,15 @@ async function buscarEmpleado(usuario){
     if(!empresaId){
 
         throw new Error(
-            "El empleado no tiene empresa asignada."
+            "El empleado no tiene una empresa asignada."
         );
 
     }
 
 
-    // =================================================
-    // VERIFICAR AUTH UID
-    // =================================================
+    /*
+     * VINCULACIÓN
+     */
 
     if(
         texto(
@@ -564,9 +523,9 @@ async function buscarEmpleado(usuario){
     }
 
 
-    // =================================================
-    // DATOS DE SESIÓN
-    // =================================================
+    /*
+     * SESIÓN
+     */
 
     const sesion = {
 
@@ -611,15 +570,9 @@ async function buscarEmpleado(usuario){
     };
 
 
-    // =================================================
-    // GUARDAR SESIÓN
-    // =================================================
-
     sessionStorage.setItem(
         "gesbaseEmpleado",
-        JSON.stringify(
-            sesion
-        )
+        JSON.stringify(sesion)
     );
 
 
@@ -628,235 +581,227 @@ async function buscarEmpleado(usuario){
 }
 
 
-// =====================================================
-// LOGIN
-// =====================================================
+async function iniciarSesion(){
+
+    limpiarMensajes();
+
+
+    const emailValor =
+    email.value
+    .trim()
+    .toLowerCase();
+
+
+    const passwordValor =
+    password.value;
+
+
+    if(!emailValor){
+
+        mostrarError(
+            "Ingresá el email."
+        );
+
+        email.focus();
+
+        return;
+
+    }
+
+
+    if(!passwordValor){
+
+        mostrarError(
+            "Ingresá la contraseña."
+        );
+
+        password.focus();
+
+        return;
+
+    }
+
+
+    iniciarCarga();
+
+
+    try{
+
+        /*
+         * AUTENTICAR
+         */
+
+        const resultado =
+        await signInWithEmailAndPassword(
+            auth,
+            emailValor,
+            passwordValor
+        );
+
+
+        const usuario =
+        resultado.user;
+
+
+        /*
+         * BUSCAR PERFIL
+         */
+
+        const empleado =
+        await buscarEmpleado(
+            usuario
+        );
+
+
+        /*
+         * ÉXITO
+         */
+
+        mostrarExito(
+            "Bienvenido " +
+            (
+                empleado.nombre ||
+                "empleado"
+            ) +
+            ". Ingresando..."
+        );
+
+
+        /*
+         * ENTRAR AL FICHAJE
+         */
+
+        setTimeout(
+            function(){
+
+                window.location.replace(
+                    "fichaje.html"
+                );
+
+            },
+            700
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "ERROR LOGIN EMPLEADO:",
+            error
+        );
+
+
+        let mensaje =
+        "No se pudo iniciar sesión.";
+
+
+        if(
+            error.code ===
+            "auth/invalid-credential"
+        ){
+
+            mensaje =
+            "Email o contraseña incorrectos.";
+
+        }
+
+        else if(
+            error.code ===
+            "auth/user-not-found"
+        ){
+
+            mensaje =
+            "No existe un usuario con ese email.";
+
+        }
+
+        else if(
+            error.code ===
+            "auth/wrong-password"
+        ){
+
+            mensaje =
+            "La contraseña es incorrecta.";
+
+        }
+
+        else if(
+            error.code ===
+            "auth/invalid-email"
+        ){
+
+            mensaje =
+            "El email no es válido.";
+
+        }
+
+        else if(
+            error.code ===
+            "auth/user-disabled"
+        ){
+
+            mensaje =
+            "Este usuario está deshabilitado.";
+
+        }
+
+        else if(
+            error.code ===
+            "auth/too-many-requests"
+        ){
+
+            mensaje =
+            "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
+
+        }
+
+        else if(
+            error.code ===
+            "permission-denied"
+        ){
+
+            mensaje =
+            "Firebase rechazó el acceso a los empleados. Hay que revisar las reglas de Firestore.";
+
+        }
+
+        else if(error.message){
+
+            mensaje =
+            error.message;
+
+        }
+
+
+        /*
+         * SI FALLÓ LA VINCULACIÓN,
+         * NO DEJAMOS UNA SESIÓN DE EMPLEADO
+         */
+
+        sessionStorage.removeItem(
+            "gesbaseEmpleado"
+        );
+
+
+        mostrarError(
+            mensaje
+        );
+
+    }
+    finally{
+
+        terminarCarga();
+
+    }
+
+}
+
 
 btnIngresar.addEventListener(
     "click",
-    async function(){
-
-        limpiarMensajes();
-
-
-        const emailValor =
-        email.value
-        .trim()
-        .toLowerCase();
-
-
-        const passwordValor =
-        password.value;
-
-
-        // ==============================================
-        // VALIDACIONES
-        // ==============================================
-
-        if(!emailValor){
-
-            mostrarError(
-                "Ingresá el email."
-            );
-
-            return;
-
-        }
-
-
-        if(!passwordValor){
-
-            mostrarError(
-                "Ingresá la contraseña."
-            );
-
-            return;
-
-        }
-
-
-        iniciarCarga();
-
-
-        try{
-
-            // ==========================================
-            // 1. AUTENTICAR EN FIREBASE AUTH
-            // ==========================================
-
-            const resultado =
-            await signInWithEmailAndPassword(
-                auth,
-                emailValor,
-                passwordValor
-            );
-
-
-            const usuario =
-            resultado.user;
-
-
-            // ==========================================
-            // 2. BUSCAR EMPLEADO
-            // ==========================================
-
-            const empleado =
-            await buscarEmpleado(
-                usuario
-            );
-
-
-            // ==========================================
-            // 3. ACCESO CORRECTO
-            // ==========================================
-
-            mostrarExito(
-                "Bienvenido " +
-                (
-                    empleado.nombre ||
-                    "empleado"
-                ) +
-                ". Ingresando..."
-            );
-
-
-            // ==========================================
-            // 4. IR A FICHAJE
-            // ==========================================
-
-            setTimeout(
-                function(){
-
-                    window.location.href =
-                    "fichaje.html";
-
-                },
-                500
-            );
-
-        }
-        catch(error){
-
-            console.error(
-                "ERROR LOGIN EMPLEADO:",
-                error
-            );
-
-
-            let mensaje =
-            "No se pudo iniciar sesión.";
-
-
-            // ==========================================
-            // ERRORES FIREBASE AUTH
-            // ==========================================
-
-            if(
-                error.code ===
-                "auth/invalid-credential"
-            ){
-
-                mensaje =
-                "Email o contraseña incorrectos.";
-
-            }
-
-            else if(
-                error.code ===
-                "auth/user-not-found"
-            ){
-
-                mensaje =
-                "No existe un usuario con ese email.";
-
-            }
-
-            else if(
-                error.code ===
-                "auth/wrong-password"
-            ){
-
-                mensaje =
-                "La contraseña es incorrecta.";
-
-            }
-
-            else if(
-                error.code ===
-                "auth/invalid-email"
-            ){
-
-                mensaje =
-                "El email no es válido.";
-
-            }
-
-            else if(
-                error.code ===
-                "auth/user-disabled"
-            ){
-
-                mensaje =
-                "Este usuario está deshabilitado.";
-
-            }
-
-            else if(
-                error.code ===
-                "auth/too-many-requests"
-            ){
-
-                mensaje =
-                "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
-
-            }
-
-            // ==========================================
-            // FIRESTORE
-            // ==========================================
-
-            else if(
-                error.code ===
-                "permission-denied"
-            ){
-
-                mensaje =
-                "Firebase rechazó el acceso a los datos del empleado. Hay que revisar las reglas de Firestore.";
-
-            }
-
-            // ==========================================
-            // ERROR PERSONALIZADO
-            // ==========================================
-
-            else if(
-                error.message
-            ){
-
-                mensaje =
-                error.message;
-
-            }
-
-
-            mostrarError(
-                mensaje
-            );
-
-        }
-        finally{
-
-            terminarCarga();
-
-        }
-
-    }
+    iniciarSesion
 );
 
-
-// =====================================================
-// ENTER
-// =====================================================
 
 password.addEventListener(
     "keydown",
@@ -867,7 +812,7 @@ password.addEventListener(
             "Enter"
         ){
 
-            btnIngresar.click();
+            iniciarSesion();
 
         }
 
@@ -875,9 +820,22 @@ password.addEventListener(
 );
 
 
-// =====================================================
-// VOLVER
-// =====================================================
+email.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.key ===
+            "Enter"
+        ){
+
+            password.focus();
+
+        }
+
+    }
+);
+
 
 btnVolver.addEventListener(
     "click",
@@ -887,7 +845,6 @@ btnVolver.addEventListener(
 
     }
 );
-
 
 </script>
 
