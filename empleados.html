@@ -5,9 +5,15 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-<meta name="theme-color" content="#111827">
+<meta
+    name="theme-color"
+    content="#111827"
+>
 
 <title>Empleados - GESBASE</title>
 
@@ -242,6 +248,15 @@ main{
     word-break:break-word;
 }
 
+.acceso-estado{
+    margin-top:12px;
+    padding:10px;
+    border-radius:9px;
+    background:#f3f4f6;
+    font-size:13px;
+    line-height:1.5;
+}
+
 .acciones{
     display:flex;
     flex-wrap:wrap;
@@ -258,6 +273,11 @@ main{
     cursor:pointer;
 }
 
+.accion:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
 .accion-acceso{
     background:#2563eb;
     color:#fff;
@@ -271,15 +291,6 @@ main{
 .accion-borrar{
     background:#fee2e2;
     color:#991b1b;
-}
-
-.acceso-estado{
-    margin-top:12px;
-    padding:10px;
-    border-radius:9px;
-    background:#f3f4f6;
-    font-size:13px;
-    line-height:1.5;
 }
 
 .vacio,
@@ -376,6 +387,10 @@ main{
         width:100%;
     }
 
+    .modal-botones{
+        flex-direction:column;
+    }
+
 }
 
 </style>
@@ -408,6 +423,10 @@ id="mensajeExito"
 class="mensaje exito"
 ></div>
 
+
+<!-- =====================================================
+     FORMULARIO
+===================================================== -->
 
 <div class="tarjeta">
 
@@ -579,6 +598,10 @@ CANCELAR EDICIÓN
 </div>
 
 
+<!-- =====================================================
+     LISTA
+===================================================== -->
+
 <div class="tarjeta">
 
 <div class="titulo">
@@ -615,6 +638,10 @@ type="button"
 
 </div>
 
+
+<!-- =====================================================
+     MODAL ACCESO
+===================================================== -->
 
 <div
 id="modalAcceso"
@@ -694,7 +721,6 @@ import {
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
-
 import {
     getAuth,
     onAuthStateChanged,
@@ -702,7 +728,6 @@ import {
     signOut
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
 
 import {
     getFirestore,
@@ -719,31 +744,30 @@ import {
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
 import {
     firebaseConfig
 } from "./Js/firebase-config.js";
 
 
 // =====================================================
-// INICIALIZAR FIREBASE
+// APLICACIÓN PRINCIPAL
 // =====================================================
 
-const NOMBRE_APP =
+const APP_PRINCIPAL =
 "GESBASE-EMPLEADOS-PAGINA";
 
 
 let appPrincipal;
 
 
-const aplicaciones =
+const apps =
 getApps();
 
 
 const appExistente =
-aplicaciones.find(
+apps.find(
     app =>
-    app.name === NOMBRE_APP
+    app.name === APP_PRINCIPAL
 );
 
 
@@ -751,7 +775,7 @@ if(appExistente){
 
     appPrincipal =
     getApp(
-        NOMBRE_APP
+        APP_PRINCIPAL
     );
 
 }
@@ -760,7 +784,7 @@ else{
     appPrincipal =
     initializeApp(
         firebaseConfig,
-        NOMBRE_APP
+        APP_PRINCIPAL
     );
 
 }
@@ -839,7 +863,8 @@ function dinero(valor){
         {
             style:"currency",
             currency:"ARS",
-            maximumFractionDigits:0
+            minimumFractionDigits:0,
+            maximumFractionDigits:2
         }
     ).format(
         numero(valor)
@@ -896,23 +921,27 @@ function limpiarMensajes(){
 
 
 // =====================================================
-// OBTENER AUTH SECUNDARIO
+// AUTH SECUNDARIO
+//
+// IMPORTANTE:
+// Se utiliza otra instancia de Firebase Auth.
+// De esta manera NO se cierra la sesión del administrador.
 // =====================================================
 
 function obtenerAuthSecundario(){
 
-    const NOMBRE_APP =
+    const APP_EMPLEADO =
     "GESBASE-AUTH-EMPLEADO";
 
 
-    const aplicaciones =
+    const apps =
     getApps();
 
 
     const existente =
-    aplicaciones.find(
+    apps.find(
         app =>
-        app.name === NOMBRE_APP
+        app.name === APP_EMPLEADO
     );
 
 
@@ -923,7 +952,7 @@ function obtenerAuthSecundario(){
 
         appSecundaria =
         getApp(
-            NOMBRE_APP
+            APP_EMPLEADO
         );
 
     }
@@ -932,7 +961,7 @@ function obtenerAuthSecundario(){
         appSecundaria =
         initializeApp(
             firebaseConfig,
-            NOMBRE_APP
+            APP_EMPLEADO
         );
 
     }
@@ -951,7 +980,8 @@ function obtenerAuthSecundario(){
 
 async function obtenerEmpresa(){
 
-    empresaId = "";
+    empresaId =
+    "";
 
 
     const referenciaUsuario =
@@ -982,6 +1012,11 @@ async function obtenerEmpresa(){
         );
 
 
+        /*
+         * Compatibilidad con estructuras
+         * anteriores de GESBASE.
+         */
+
         if(!empresaId){
 
             empresaId =
@@ -995,7 +1030,7 @@ async function obtenerEmpresa(){
 
 
     /*
-     * Compatibilidad con usuarios antiguos.
+     * Compatibilidad final.
      */
 
     if(!empresaId){
@@ -1010,6 +1045,39 @@ async function obtenerEmpresa(){
         "GESBASE empresaId:",
         empresaId
     );
+
+}
+
+
+// =====================================================
+// LIMPIAR FORMULARIO
+// =====================================================
+
+function limpiarFormulario(){
+
+    $("nombre").value =
+    "";
+
+    $("apellido").value =
+    "";
+
+    $("dni").value =
+    "";
+
+    $("telefono").value =
+    "";
+
+    $("email").value =
+    "";
+
+    $("puesto").value =
+    "";
+
+    $("fechaIngreso").value =
+    "";
+
+    $("pagoHora").value =
+    "";
 
 }
 
@@ -1067,6 +1135,10 @@ async function guardarEmpleado(){
 
     };
 
+
+    // =================================================
+    // VALIDACIONES
+    // =================================================
 
     if(!datos.nombre){
 
@@ -1151,10 +1223,15 @@ async function guardarEmpleado(){
     try{
 
         // =================================================
-        // MODIFICAR
+        // MODIFICAR EMPLEADO
         // =================================================
 
         if(empleadoEditando){
+
+            /*
+             * Si el empleado ya tiene acceso,
+             * NO modificamos authUid ni accesoHabilitado.
+             */
 
             await updateDoc(
                 doc(
@@ -1164,7 +1241,29 @@ async function guardarEmpleado(){
                 ),
                 {
 
-                    ...datos,
+                    nombre:
+                    datos.nombre,
+
+                    apellido:
+                    datos.apellido,
+
+                    dni:
+                    datos.dni,
+
+                    telefono:
+                    datos.telefono,
+
+                    email:
+                    datos.email,
+
+                    puesto:
+                    datos.puesto,
+
+                    fechaIngreso:
+                    datos.fechaIngreso,
+
+                    pagoHora:
+                    datos.pagoHora,
 
                     modificado:
                     serverTimestamp(),
@@ -1183,7 +1282,7 @@ async function guardarEmpleado(){
         }
 
         // =================================================
-        // CREAR
+        // CREAR EMPLEADO
         // =================================================
 
         else{
@@ -1195,7 +1294,12 @@ async function guardarEmpleado(){
             );
 
 
-            const consulta =
+            /*
+             * Verificar DNI duplicado
+             * dentro de la empresa.
+             */
+
+            const consultaDni =
             query(
                 referenciaEmpleados,
 
@@ -1215,18 +1319,24 @@ async function guardarEmpleado(){
 
             const existentes =
             await getDocs(
-                consulta
+                consultaDni
             );
 
 
-            if(!existentes.empty){
+            if(
+                !existentes.empty
+            ){
 
                 throw new Error(
-                    "Ya existe un empleado con ese DNI."
+                    "Ya existe un empleado con ese DNI en esta empresa."
                 );
 
             }
 
+
+            /*
+             * Crear ficha.
+             */
 
             await addDoc(
                 referenciaEmpleados,
@@ -1238,13 +1348,35 @@ async function guardarEmpleado(){
                     authUid:
                     "",
 
-                    ...datos,
-
                     accesoHabilitado:
                     false,
 
                     estado:
                     "Inactivo",
+
+                    nombre:
+                    datos.nombre,
+
+                    apellido:
+                    datos.apellido,
+
+                    dni:
+                    datos.dni,
+
+                    telefono:
+                    datos.telefono,
+
+                    email:
+                    datos.email,
+
+                    puesto:
+                    datos.puesto,
+
+                    fechaIngreso:
+                    datos.fechaIngreso,
+
+                    pagoHora:
+                    datos.pagoHora,
 
                     creado:
                     serverTimestamp(),
@@ -1278,11 +1410,9 @@ async function guardarEmpleado(){
 
 
         mostrarError(
-            "No se pudo guardar el empleado: " +
-            (
-                error.message ||
-                error.code ||
-                "error desconocido"
+            traducirError(
+                error,
+                "No se pudo guardar el empleado."
             )
         );
 
@@ -1319,7 +1449,10 @@ function abrirModalAcceso(
     " " +
     empleado.apellido +
     " · " +
-    empleado.email;
+    (
+        empleado.email ||
+        "Sin correo"
+    );
 
 
     $("passwordEmpleado").value =
@@ -1332,7 +1465,7 @@ function abrirModalAcceso(
 
 
     setTimeout(
-        () => {
+        function(){
 
             $("passwordEmpleado")
                 .focus();
@@ -1366,6 +1499,9 @@ function cerrarModalAcceso(){
 // =====================================================
 
 async function habilitarAcceso(){
+
+    limpiarMensajes();
+
 
     if(!empleadoAcceso){
 
@@ -1422,9 +1558,33 @@ async function habilitarAcceso(){
 
     try{
 
+        /*
+         * Crear Auth en la instancia secundaria.
+         */
+
         const authEmpleado =
         obtenerAuthSecundario();
 
+
+        /*
+         * Si la instancia secundaria ya tuviera
+         * una sesión anterior, la cerramos primero.
+         */
+
+        if(
+            authEmpleado.currentUser
+        ){
+
+            await signOut(
+                authEmpleado
+            );
+
+        }
+
+
+        /*
+         * Crear cuenta Firebase Authentication.
+         */
 
         const resultado =
         await createUserWithEmailAndPassword(
@@ -1437,6 +1597,10 @@ async function habilitarAcceso(){
         const uidEmpleado =
         resultado.user.uid;
 
+
+        /*
+         * Vincular cuenta con la ficha.
+         */
 
         await updateDoc(
             doc(
@@ -1465,16 +1629,38 @@ async function habilitarAcceso(){
         );
 
 
+        /*
+         * Cerrar únicamente la sesión
+         * de la instancia secundaria.
+         *
+         * La sesión del administrador
+         * permanece intacta.
+         */
+
         await signOut(
             authEmpleado
         );
+
+
+        const nombreEmpleado =
+        (
+            texto(
+                empleadoAcceso.nombre
+            ) +
+            " " +
+            texto(
+                empleadoAcceso.apellido
+            )
+        ).trim();
 
 
         cerrarModalAcceso();
 
 
         mostrarExito(
-            "Acceso habilitado correctamente. El empleado ya puede ingresar desde empleado-login.html."
+            "Acceso habilitado correctamente para " +
+            nombreEmpleado +
+            ". El empleado ya puede ingresar desde empleado-login.html."
         );
 
 
@@ -1489,56 +1675,43 @@ async function habilitarAcceso(){
         );
 
 
-        let mensaje =
-        "No se pudo habilitar el acceso.";
+        /*
+         * Intentamos cerrar la sesión secundaria
+         * aunque haya ocurrido un error.
+         */
+
+        try{
+
+            const authEmpleado =
+            obtenerAuthSecundario();
 
 
-        if(
-            error.code ===
-            "auth/email-already-in-use"
-        ){
+            if(
+                authEmpleado.currentUser
+            ){
 
-            mensaje =
-            "Ese correo ya tiene una cuenta en Firebase Authentication.";
+                await signOut(
+                    authEmpleado
+                );
 
-        }
-        else if(
-            error.code ===
-            "auth/invalid-email"
-        ){
-
-            mensaje =
-            "El correo del empleado no es válido.";
-
-        }
-        else if(
-            error.code ===
-            "auth/weak-password"
-        ){
-
-            mensaje =
-            "La contraseña debe tener como mínimo 6 caracteres.";
+            }
 
         }
-        else if(
-            error.code ===
-            "permission-denied"
-        ){
+        catch(errorSecundario){
 
-            mensaje =
-            "Firestore rechazó la vinculación del empleado. Hay que revisar las reglas de Firebase.";
-
-        }
-        else if(error.message){
-
-            mensaje =
-            error.message;
+            console.warn(
+                "No se pudo cerrar Auth secundario:",
+                errorSecundario
+            );
 
         }
 
 
         mostrarError(
-            mensaje
+            traducirError(
+                error,
+                "No se pudo habilitar el acceso."
+            )
         );
 
     }
@@ -1557,7 +1730,7 @@ async function habilitarAcceso(){
 
 
 // =====================================================
-// MODIFICAR
+// MODIFICAR EMPLEADO
 // =====================================================
 
 function modificarEmpleado(
@@ -1635,7 +1808,7 @@ function modificarEmpleado(
 
 
 // =====================================================
-// CANCELAR
+// CANCELAR EDICIÓN
 // =====================================================
 
 function cancelarEdicion(){
@@ -1648,29 +1821,7 @@ function cancelarEdicion(){
     "👤 Cargar empleado";
 
 
-    $("nombre").value =
-    "";
-
-    $("apellido").value =
-    "";
-
-    $("dni").value =
-    "";
-
-    $("telefono").value =
-    "";
-
-    $("email").value =
-    "";
-
-    $("puesto").value =
-    "";
-
-    $("fechaIngreso").value =
-    "";
-
-    $("pagoHora").value =
-    "";
+    limpiarFormulario();
 
 
     $("btnCancelar")
@@ -1682,20 +1833,30 @@ function cancelarEdicion(){
 
 
 // =====================================================
-// BORRAR
+// BORRAR EMPLEADO
 // =====================================================
 
 async function borrarEmpleado(
     empleado
 ){
 
+    const nombre =
+    (
+        texto(
+            empleado.nombre
+        ) +
+        " " +
+        texto(
+            empleado.apellido
+        )
+    ).trim();
+
+
     const confirmar =
     confirm(
         "¿Querés borrar al empleado " +
-        empleado.nombre +
-        " " +
-        empleado.apellido +
-        "?\n\nEsta acción eliminará su ficha de empleados."
+        nombre +
+        "?\n\nSe eliminará su ficha de empleados."
     );
 
 
@@ -1722,6 +1883,17 @@ async function borrarEmpleado(
         );
 
 
+        if(
+            empleadoEditando &&
+            empleadoEditando.id ===
+            empleado.id
+        ){
+
+            cancelarEdicion();
+
+        }
+
+
         await cargarEmpleados();
 
     }
@@ -1734,11 +1906,9 @@ async function borrarEmpleado(
 
 
         mostrarError(
-            "No se pudo borrar el empleado: " +
-            (
-                error.message ||
-                error.code ||
-                "error desconocido"
+            traducirError(
+                error,
+                "No se pudo borrar el empleado."
             )
         );
 
@@ -1755,9 +1925,9 @@ async function cargarEmpleados(){
 
     $("listaEmpleados").innerHTML =
     `
-    <div class="cargando">
-        Cargando empleados...
-    </div>
+        <div class="cargando">
+            Cargando empleados...
+        </div>
     `;
 
 
@@ -1794,9 +1964,9 @@ async function cargarEmpleados(){
 
             $("listaEmpleados").innerHTML =
             `
-            <div class="vacio">
-                Todavía no hay empleados cargados.
-            </div>
+                <div class="vacio">
+                    Todavía no hay empleados cargados.
+                </div>
             `;
 
             return;
@@ -1804,22 +1974,63 @@ async function cargarEmpleados(){
         }
 
 
-        $("listaEmpleados").innerHTML =
-        "";
+        const empleados = [];
 
 
         resultado.forEach(
-            documento => {
+            function(documento){
 
-                const empleado = {
+                empleados.push({
 
                     id:
                     documento.id,
 
                     ...documento.data()
 
-                };
+                });
 
+            }
+        );
+
+
+        /*
+         * Orden alfabético.
+         */
+
+        empleados.sort(
+            function(a,b){
+
+                const nombreA =
+                (
+                    texto(a.nombre) +
+                    " " +
+                    texto(a.apellido)
+                ).toLowerCase();
+
+
+                const nombreB =
+                (
+                    texto(b.nombre) +
+                    " " +
+                    texto(b.apellido)
+                ).toLowerCase();
+
+
+                return nombreA.localeCompare(
+                    nombreB,
+                    "es"
+                );
+
+            }
+        );
+
+
+        $("listaEmpleados").innerHTML =
+        "";
+
+
+        empleados.forEach(
+            function(empleado){
 
                 $("listaEmpleados")
                     .appendChild(
@@ -1841,18 +2052,32 @@ async function cargarEmpleados(){
 
 
         $("listaEmpleados").innerHTML =
-        `
-        <div class="vacio">
-            No se pudieron cargar los empleados.
-            <br><br>
-            <small>
-                ${texto(
-                    error.message ||
-                    error.code
-                )}
-            </small>
-        </div>
-        `;
+        "";
+
+
+        const mensaje =
+        document.createElement(
+            "div"
+        );
+
+
+        mensaje.className =
+        "vacio";
+
+
+        mensaje.textContent =
+        "No se pudieron cargar los empleados: " +
+        (
+            error.message ||
+            error.code ||
+            "error desconocido"
+        );
+
+
+        $("listaEmpleados")
+            .appendChild(
+                mensaje
+            );
 
     }
 
@@ -1876,6 +2101,10 @@ function crearEmpleado(
     tarjeta.className =
     "empleado";
 
+
+    // =================================================
+    // CABECERA
+    // =================================================
 
     const cabecera =
     document.createElement(
@@ -1948,11 +2177,19 @@ function crearEmpleado(
     );
 
 
+    const tieneAuth =
+    !!texto(
+        empleado.authUid
+    );
+
+
+    const accesoHabilitado =
+    empleado.accesoHabilitado === true;
+
+
     if(
-        empleado.accesoHabilitado &&
-        texto(
-            empleado.authUid
-        )
+        accesoHabilitado &&
+        tieneAuth
     ){
 
         estado.className =
@@ -1964,7 +2201,8 @@ function crearEmpleado(
 
     }
     else if(
-        empleado.accesoHabilitado
+        accesoHabilitado &&
+        !tieneAuth
     ){
 
         estado.className =
@@ -2067,7 +2305,7 @@ function crearEmpleado(
 
 
     // =================================================
-    // ESTADO ACCESO
+    // ESTADO DE ACCESO
     // =================================================
 
     const acceso =
@@ -2081,28 +2319,27 @@ function crearEmpleado(
 
 
     if(
-        empleado.accesoHabilitado &&
-        texto(
-            empleado.authUid
-        )
+        accesoHabilitado &&
+        tieneAuth
     ){
 
-        acceso.innerHTML =
-        "🔐 <strong>Acceso habilitado.</strong> El empleado puede ingresar desde el login de empleados.";
+        acceso.textContent =
+        "🔐 Acceso habilitado. El empleado puede ingresar desde el login de empleados.";
 
     }
     else if(
-        empleado.accesoHabilitado
+        accesoHabilitado &&
+        !tieneAuth
     ){
 
-        acceso.innerHTML =
-        "🟡 <strong>Acceso pendiente.</strong> Falta vincular la cuenta.";
+        acceso.textContent =
+        "🟡 Acceso pendiente. La ficha figura habilitada, pero todavía no está vinculada a una cuenta.";
 
     }
     else{
 
-        acceso.innerHTML =
-        "🔒 <strong>Sin acceso.</strong> El empleado todavía no puede ingresar.";
+        acceso.textContent =
+        "🔒 Sin acceso. El empleado todavía no puede ingresar.";
 
     }
 
@@ -2126,11 +2363,13 @@ function crearEmpleado(
     "acciones";
 
 
+    /*
+     * HABILITAR ACCESO
+     */
+
     if(
-        !empleado.accesoHabilitado ||
-        !texto(
-            empleado.authUid
-        )
+        !accesoHabilitado ||
+        !tieneAuth
     ){
 
         const botonAcceso =
@@ -2166,6 +2405,10 @@ function crearEmpleado(
     }
 
 
+    /*
+     * MODIFICAR
+     */
+
     const botonModificar =
     document.createElement(
         "button"
@@ -2196,6 +2439,10 @@ function crearEmpleado(
         botonModificar
     );
 
+
+    /*
+     * BORRAR
+     */
 
     const botonBorrar =
     document.createElement(
@@ -2296,6 +2543,125 @@ function agregarDato(
 
 
 // =====================================================
+// TRADUCIR ERRORES
+// =====================================================
+
+function traducirError(
+    error,
+    mensajeBase
+){
+
+    const codigo =
+    texto(
+        error &&
+        error.code
+    );
+
+
+    if(
+        codigo ===
+        "auth/email-already-in-use"
+    ){
+
+        return (
+            "Ese correo ya tiene una cuenta en Firebase Authentication."
+        );
+
+    }
+
+
+    if(
+        codigo ===
+        "auth/invalid-email"
+    ){
+
+        return (
+            "El correo electrónico del empleado no es válido."
+        );
+
+    }
+
+
+    if(
+        codigo ===
+        "auth/weak-password"
+    ){
+
+        return (
+            "La contraseña debe tener como mínimo 6 caracteres."
+        );
+
+    }
+
+
+    if(
+        codigo ===
+        "auth/operation-not-allowed"
+    ){
+
+        return (
+            "El acceso con correo y contraseña no está habilitado en Firebase Authentication."
+        );
+
+    }
+
+
+    if(
+        codigo ===
+        "permission-denied"
+    ){
+
+        return (
+            "Firebase rechazó la operación por permisos de Firestore. Hay que revisar las reglas."
+        );
+
+    }
+
+
+    if(
+        codigo ===
+        "failed-precondition"
+    ){
+
+        return (
+            "Firebase necesita una configuración adicional para realizar esta consulta."
+        );
+
+    }
+
+
+    if(
+        codigo ===
+        "unavailable"
+    ){
+
+        return (
+            "Firebase no está disponible temporalmente. Revisá tu conexión e intentá nuevamente."
+        );
+
+    }
+
+
+    if(
+        error &&
+        error.message
+    ){
+
+        return (
+            mensajeBase +
+            " " +
+            error.message
+        );
+
+    }
+
+
+    return mensajeBase;
+
+}
+
+
+// =====================================================
 // EVENTOS
 // =====================================================
 
@@ -2309,7 +2675,11 @@ $("btnGuardar")
 $("btnCancelar")
 .addEventListener(
     "click",
-    cancelarEdicion
+    function(){
+
+        cancelarEdicion();
+
+    }
 );
 
 
@@ -2327,6 +2697,56 @@ $("btnCancelarAcceso")
 );
 
 
+// =====================================================
+// CERRAR MODAL AL TOCAR AFUERA
+// =====================================================
+
+$("modalAcceso")
+.addEventListener(
+    "click",
+    function(event){
+
+        if(
+            event.target ===
+            $("modalAcceso")
+        ){
+
+            cerrarModalAcceso();
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// ENTER EN CONTRASEÑA
+// =====================================================
+
+$("passwordEmpleado")
+.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.key ===
+            "Enter"
+        ){
+
+            event.preventDefault();
+
+            habilitarAcceso();
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// VOLVER
+// =====================================================
+
 $("btnVolver")
 .addEventListener(
     "click",
@@ -2339,7 +2759,7 @@ $("btnVolver")
 
 
 // =====================================================
-// AUTENTICACIÓN
+// AUTENTICACIÓN ADMINISTRADOR
 // =====================================================
 
 onAuthStateChanged(
@@ -2372,6 +2792,15 @@ onAuthStateChanged(
             await obtenerEmpresa();
 
 
+            if(!empresaId){
+
+                throw new Error(
+                    "No se pudo determinar la empresa del usuario."
+                );
+
+            }
+
+
             console.log(
                 "GESBASE empresaId:",
                 empresaId
@@ -2390,11 +2819,9 @@ onAuthStateChanged(
 
 
             mostrarError(
-                "No se pudo cargar empleados: " +
-                (
-                    error.message ||
-                    error.code ||
-                    "error desconocido"
+                traducirError(
+                    error,
+                    "No se pudo cargar el módulo de empleados."
                 )
             );
 
