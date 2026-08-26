@@ -311,6 +311,7 @@ main{
     border-radius:10px;
     margin-bottom:15px;
     display:none;
+    line-height:1.5;
 }
 
 .aviso{
@@ -319,6 +320,7 @@ main{
     padding:14px;
     border-radius:10px;
     margin-bottom:15px;
+    line-height:1.5;
 }
 
 .oculto{
@@ -756,8 +758,7 @@ import {
     onAuthStateChanged,
     signOut
 }
-from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
 import {
@@ -767,8 +768,7 @@ import {
     where,
     limit
 }
-from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
 let usuarioActual = null;
@@ -844,6 +844,12 @@ function dinero(valor){
 
 }
 
+
+/*
+================================================
+MENSAJES
+================================================
+*/
 
 function mostrarError(mensaje){
 
@@ -937,96 +943,267 @@ function fechaPorDefecto(){
 ================================================
 CARGAR EMPLEADO
 ================================================
+
+Busca el vínculo con:
+
+1. authUid
+2. uid
+3. usuarioId
+4. email
+
+Esto permite compatibilidad con
+las distintas versiones de GESBASE.
+================================================
 */
 
 async function cargarEmpleado(usuario){
 
+    const empleadosRef =
+    collection(
+        db,
+        "empleados"
+    );
+
+
+    let documentoEncontrado =
+    null;
+
+
     /*
-     * El empleado debe estar vinculado
-     * mediante authUid.
-     */
+    ==============================================
+    1. authUid
+    ==============================================
+    */
 
-    const consulta =
-    query(
-        collection(
-            db,
-            "empleados"
-        ),
-        where(
-            "authUid",
-            "==",
-            usuario.uid
-        ),
-        limit(1)
-    );
+    try{
 
-
-    const resultado =
-    await getDocs(
-        consulta
-    );
+        const consulta =
+        query(
+            empleadosRef,
+            where(
+                "authUid",
+                "==",
+                usuario.uid
+            ),
+            limit(1)
+        );
 
 
-    if(
-        resultado.empty
-    ){
+        const resultado =
+        await getDocs(
+            consulta
+        );
 
-        throw new Error(
-            "La cuenta está autenticada, pero todavía no está vinculada a un empleado."
+
+        if(
+            !resultado.empty
+        ){
+
+            documentoEncontrado =
+            resultado.docs[0];
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo buscar por authUid:",
+            error
         );
 
     }
 
 
-    const documento =
-    resultado.docs[0];
+    /*
+    ==============================================
+    2. uid
+    ==============================================
+    */
 
+    if(!documentoEncontrado){
+
+        try{
+
+            const consulta =
+            query(
+                empleadosRef,
+                where(
+                    "uid",
+                    "==",
+                    usuario.uid
+                ),
+                limit(1)
+            );
+
+
+            const resultado =
+            await getDocs(
+                consulta
+            );
+
+
+            if(
+                !resultado.empty
+            ){
+
+                documentoEncontrado =
+                resultado.docs[0];
+
+            }
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudo buscar por uid:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+    ==============================================
+    3. usuarioId
+    ==============================================
+    */
+
+    if(!documentoEncontrado){
+
+        try{
+
+            const consulta =
+            query(
+                empleadosRef,
+                where(
+                    "usuarioId",
+                    "==",
+                    usuario.uid
+                ),
+                limit(1)
+            );
+
+
+            const resultado =
+            await getDocs(
+                consulta
+            );
+
+
+            if(
+                !resultado.empty
+            ){
+
+                documentoEncontrado =
+                resultado.docs[0];
+
+            }
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudo buscar por usuarioId:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+    ==============================================
+    4. EMAIL
+    ==============================================
+    */
+
+    if(
+        !documentoEncontrado &&
+        usuario.email
+    ){
+
+        try{
+
+            const consulta =
+            query(
+                empleadosRef,
+                where(
+                    "email",
+                    "==",
+                    usuario.email
+                ),
+                limit(1)
+            );
+
+
+            const resultado =
+            await getDocs(
+                consulta
+            );
+
+
+            if(
+                !resultado.empty
+            ){
+
+                documentoEncontrado =
+                resultado.docs[0];
+
+            }
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudo buscar por email:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+    ==============================================
+    SI NO EXISTE
+    ==============================================
+    */
+
+    if(!documentoEncontrado){
+
+        throw new Error(
+            "La cuenta está autenticada, pero no encontramos un empleado vinculado con esta cuenta."
+        );
+
+    }
+
+
+    /*
+    ==============================================
+    DATOS DEL EMPLEADO
+    ==============================================
+    */
 
     empleadoActual = {
 
         id:
-        documento.id,
+        documentoEncontrado.id,
 
-        ...documento.data()
+        ...documentoEncontrado.data()
 
     };
 
 
     /*
-     * Nombre
-     */
-
-    const nombreCompleto =
-    (
-        texto(
-            empleadoActual.nombre
-        ) +
-        " " +
-        texto(
-            empleadoActual.apellido
-        )
-    ).trim();
-
-
-    $("empleadoNombre").textContent =
-    nombreCompleto ||
-    "Empleado";
-
-
-    /*
-     * Puesto
-     */
-
-    $("empleadoPuesto").textContent =
-    texto(
-        empleadoActual.puesto
-    ) ||
-    "Empleado";
-
-
-    /*
-     * Estado
-     */
+    ==============================================
+    ESTADO
+    ==============================================
+    */
 
     let estado =
     texto(
@@ -1042,22 +1219,113 @@ async function cargarEmpleado(usuario){
     }
 
 
+    const estadoNormalizado =
+    estado.toLowerCase();
+
+
+    /*
+    Solo bloqueamos estados
+    explícitamente inactivos.
+    */
+
+    const estadosBloqueados = [
+
+        "inactivo",
+        "deshabilitado",
+        "baja",
+        "eliminado",
+        "bloqueado"
+
+    ];
+
+
+    if(
+        estadosBloqueados.includes(
+            estadoNormalizado
+        )
+    ){
+
+        throw new Error(
+            "El acceso de este empleado está actualmente " +
+            estadoNormalizado +
+            "."
+        );
+
+    }
+
+
+    /*
+    ==============================================
+    NOMBRE
+    ==============================================
+    */
+
+    const nombreCompleto =
+    (
+        texto(
+            empleadoActual.nombre
+        ) +
+        " " +
+        texto(
+            empleadoActual.apellido
+        )
+    ).trim();
+
+
+    $("empleadoNombre").textContent =
+    nombreCompleto ||
+    texto(
+        empleadoActual.nombreCompleto
+    ) ||
+    "Empleado";
+
+
+    /*
+    ==============================================
+    PUESTO
+    ==============================================
+    */
+
+    $("empleadoPuesto").textContent =
+    texto(
+        empleadoActual.puesto
+    ) ||
+    texto(
+        empleadoActual.cargo
+    ) ||
+    "Empleado";
+
+
+    /*
+    ==============================================
+    ESTADO
+    ==============================================
+    */
+
     $("estadoEmpleado").textContent =
     estado.toUpperCase();
 
 
     /*
-     * Datos
-     */
+    ==============================================
+    DATOS
+    ==============================================
+    */
 
     $("datoNombre").textContent =
     nombreCompleto ||
+    texto(
+        empleadoActual.nombreCompleto
+    ) ||
     "-";
 
 
     $("datoPuesto").textContent =
     texto(
         empleadoActual.puesto
+    ) ||
+    texto(
+        empleadoActual.cargo
     ) ||
     "-";
 
@@ -1076,6 +1344,9 @@ async function cargarEmpleado(usuario){
     texto(
         empleadoActual.telefono
     ) ||
+    texto(
+        empleadoActual.celular
+    ) ||
     "-";
 
 
@@ -1083,12 +1354,16 @@ async function cargarEmpleado(usuario){
     texto(
         empleadoActual.dni
     ) ||
+    texto(
+        empleadoActual.DNI
+    ) ||
     "-";
 
 
     $("datoIngreso").textContent =
     formatearFechaSimple(
-        empleadoActual.fechaIngreso
+        empleadoActual.fechaIngreso ||
+        empleadoActual.ingreso
     );
 
 }
@@ -1134,10 +1409,6 @@ function formatearFechaSimple(valor){
 
     }
 
-
-    /*
-     * Si viene YYYY-MM-DD
-     */
 
     const textoFecha =
     texto(valor);
@@ -1211,9 +1482,10 @@ async function cargarFichajes(){
 
 
     /*
-     * PRIMERA OPCIÓN:
-     * authUid
-     */
+    ==============================================
+    1. authUid
+    ==============================================
+    */
 
     try{
 
@@ -1264,9 +1536,10 @@ async function cargarFichajes(){
 
 
     /*
-     * SEGUNDA OPCIÓN:
-     * empleadoId
-     */
+    ==============================================
+    2. empleadoId
+    ==============================================
+    */
 
     if(
         fichajes.length === 0 &&
@@ -1325,9 +1598,10 @@ async function cargarFichajes(){
 
 
     /*
-     * TERCERA OPCIÓN:
-     * empleadoUID
-     */
+    ==============================================
+    3. empleadoUID
+    ==============================================
+    */
 
     if(
         fichajes.length === 0 &&
@@ -1369,7 +1643,6 @@ async function cargarFichajes(){
                     });
 
                 }
-
             );
 
         }
@@ -1386,8 +1659,10 @@ async function cargarFichajes(){
 
 
     /*
-     * Eliminar duplicados.
-     */
+    ==============================================
+    ELIMINAR DUPLICADOS
+    ==============================================
+    */
 
     const mapa =
     new Map();
@@ -1475,10 +1750,6 @@ function obtenerFechaFichaje(fichaje){
         texto(valor);
 
 
-        /*
-         * YYYY-MM-DD
-         */
-
         if(
             /^\d{4}-\d{2}-\d{2}$/.test(
                 valorTexto
@@ -1489,10 +1760,6 @@ function obtenerFechaFichaje(fichaje){
 
         }
 
-
-        /*
-         * Fecha ISO
-         */
 
         const fecha =
         new Date(
@@ -1534,10 +1801,6 @@ function obtenerHora(valor){
 
     }
 
-
-    /*
-     * Timestamp Firebase
-     */
 
     if(
         typeof valor.toDate ===
@@ -1587,10 +1850,6 @@ function obtenerHora(valor){
     texto(valor);
 
 
-    /*
-     * HH:MM
-     */
-
     const coincidencia =
     valorTexto.match(
         /(\d{1,2}):(\d{2})/
@@ -1625,10 +1884,6 @@ OBTENER HORAS
 
 function obtenerHoras(fichaje){
 
-    /*
-     * Duración en segundos
-     */
-
     const duracionSegundos =
     numero(
         fichaje.duracionSegundos
@@ -1644,10 +1899,6 @@ function obtenerHoras(fichaje){
     }
 
 
-    /*
-     * Duración en minutos
-     */
-
     const duracionMinutos =
     numero(
         fichaje.duracionMinutos
@@ -1662,10 +1913,6 @@ function obtenerHoras(fichaje){
 
     }
 
-
-    /*
-     * Horarios
-     */
 
     const entrada =
     obtenerHora(
@@ -1721,10 +1968,6 @@ function obtenerHoras(fichaje){
     minutosSalida -
     minutosEntrada;
 
-
-    /*
-     * Turno que cruza medianoche.
-     */
 
     if(
         diferencia < 0
@@ -1831,8 +2074,10 @@ function calcularLiquidacion(){
 
 
     /*
-     * VALOR HORA
-     */
+    ==============================================
+    VALOR HORA
+    ==============================================
+    */
 
     let valorHora =
     numero(
@@ -1840,15 +2085,21 @@ function calcularLiquidacion(){
     );
 
 
-    /*
-     * Compatibilidad con otros nombres.
-     */
-
     if(valorHora <= 0){
 
         valorHora =
         numero(
             empleadoActual.valorHora
+        );
+
+    }
+
+
+    if(valorHora <= 0){
+
+        valorHora =
+        numero(
+            empleadoActual.pagoPorHora
         );
 
     }
@@ -1873,10 +2124,6 @@ function calcularLiquidacion(){
 
     }
 
-
-    /*
-     * Hora extra 50%.
-     */
 
     const valorHoraExtra =
     valorHora * 1.5;
@@ -1939,10 +2186,6 @@ function calcularLiquidacion(){
                 fichaje.salida
             );
 
-
-            /*
-             * Sin salida no se liquida.
-             */
 
             if(
                 !entrada ||
@@ -2016,10 +2259,6 @@ function calcularLiquidacion(){
     );
 
 
-    /*
-     * Ordenar por fecha.
-     */
-
     detalles.sort(
         (a,b) =>
         a.fecha.localeCompare(
@@ -2029,10 +2268,11 @@ function calcularLiquidacion(){
 
 
     /*
-     * DÍAS DEL PERÍODO
-     *
-     * No contamos domingos.
-     */
+    ==============================================
+    DÍAS DEL PERÍODO
+    No contamos domingos.
+    ==============================================
+    */
 
     const inicio =
     new Date(
@@ -2062,12 +2302,8 @@ function calcularLiquidacion(){
         )
     ){
 
-        const dia =
-        fecha.getDay();
-
-
         if(
-            dia !== 0
+            fecha.getDay() !== 0
         ){
 
             diasPeriodo++;
@@ -2090,8 +2326,10 @@ function calcularLiquidacion(){
 
 
     /*
-     * TOTALES
-     */
+    ==============================================
+    TOTALES
+    ==============================================
+    */
 
     const totalNormal =
     horasNormales *
@@ -2109,8 +2347,10 @@ function calcularLiquidacion(){
 
 
     /*
-     * MOSTRAR
-     */
+    ==============================================
+    MOSTRAR
+    ==============================================
+    */
 
     $("diasTrabajados").textContent =
     diasTrabajados;
@@ -2374,6 +2614,12 @@ $("btnVolver").addEventListener(
     "click",
     function(){
 
+        /*
+         * Si el empleado llegó desde
+         * Administración de empleados,
+         * history.back() vuelve correctamente.
+         */
+
         if(
             window.history.length > 1
         ){
@@ -2398,18 +2644,55 @@ INICIO
 ================================================
 */
 
+let inicioCompletado =
+false;
+
+
 onAuthStateChanged(
     auth,
     async function(usuario){
 
-        if(!usuario){
-
-            window.location.href =
-            "empleado-login.html";
+        if(
+            inicioCompletado
+        ){
 
             return;
 
         }
+
+
+        if(!usuario){
+
+            /*
+             * Esperamos un pequeño margen
+             * para evitar redirecciones
+             * prematuras mientras Firebase
+             * recupera la sesión.
+             */
+
+            setTimeout(
+                function(){
+
+                    if(
+                        !auth.currentUser
+                    ){
+
+                        window.location.href =
+                        "empleado-login.html";
+
+                    }
+
+                },
+                1200
+            );
+
+            return;
+
+        }
+
+
+        inicioCompletado =
+        true;
 
 
         usuarioActual =
@@ -2423,19 +2706,49 @@ onAuthStateChanged(
 
         try{
 
+            /*
+            ======================================
+            CARGAR EMPLEADO
+            ======================================
+            */
+
             await cargarEmpleado(
                 usuario
             );
 
 
+            /*
+            ======================================
+            CARGAR FICHAJES
+            ======================================
+            */
+
             await cargarFichajes();
 
+
+            /*
+            ======================================
+            FECHAS
+            ======================================
+            */
 
             fechaPorDefecto();
 
 
+            /*
+            ======================================
+            LIQUIDACIÓN
+            ======================================
+            */
+
             calcularLiquidacion();
 
+
+            /*
+            ======================================
+            AVISO
+            ======================================
+            */
 
             if(
                 fichajes.length === 0
