@@ -1,57 +1,27 @@
-import {
-    initializeApp
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-
-import {
-    getAuth
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-
-import {
-    getFirestore
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-
-import {
-    getStorage
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js";
-
-
-import {
-    firebaseConfig
-} from "./firebase-config.js";
-
-
 // ==========================================
-// INICIALIZAR FIREBASE
+// FIREBASE.JS - GESBASE
 // ==========================================
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js";
+
+import { firebaseConfig } from "./firebase-config.js";
+
+// Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 
-
-// ==========================================
-// AUTENTICACIÓN
-// ==========================================
-
+// Authentication
 const auth = getAuth(app);
 
-
-// ==========================================
-// FIRESTORE
-// ==========================================
-
+// Firestore
 const db = getFirestore(app);
 
-
-// ==========================================
-// STORAGE
-// ==========================================
-
+// Storage
 const almacenamiento = getStorage(app);
 
-
-// ==========================================
-// EXPORTAR
-// ==========================================
-
+// Exportar
 export {
     app,
     auth,
