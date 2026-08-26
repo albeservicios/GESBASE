@@ -17,7 +17,6 @@
 
 <title>Editar presupuesto - GESBASE</title>
 
-
 <style>
 
 *{
@@ -65,6 +64,7 @@ main{
     border-radius:10px;
     margin-bottom:18px;
     font-size:14px;
+    line-height:1.4;
 }
 
 .estado-cargando{
@@ -105,6 +105,14 @@ select{
     border-radius:9px;
     font-size:16px;
     background:white;
+    color:#111827;
+    outline:none;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+    border-color:#2563eb;
 }
 
 textarea{
@@ -118,7 +126,7 @@ select{
 
 
 /* =====================================
-   INFORMACIÓN
+   INFORMACIÓN EMPRESA
 ===================================== */
 
 .info{
@@ -162,6 +170,19 @@ select{
 
 
 /* =====================================
+   CLIENTE MANUAL
+===================================== */
+
+.cliente-manual{
+    margin-top:10px;
+    padding:14px;
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    border-radius:10px;
+}
+
+
+/* =====================================
    MATERIALES
 ===================================== */
 
@@ -189,6 +210,7 @@ select{
     border:none;
     border-radius:9px;
     font-size:18px;
+    cursor:pointer;
 }
 
 .btn-agregar{
@@ -252,6 +274,7 @@ button{
 
 button:disabled{
     opacity:.6;
+    cursor:not-allowed;
 }
 
 
@@ -394,19 +417,12 @@ Cargando clientes...
 
 </div>
 
-</div>
-
-
-<!-- =====================================
-     CLIENTE MANUAL
-===================================== -->
 
 <div
     id="clienteManual"
+    class="cliente-manual"
     style="display:none;"
 >
-
-<div class="campo">
 
 <label for="clienteManualNombre">
 Nombre del cliente
@@ -638,7 +654,7 @@ $ <span id="total">0,00</span>
     id="btnGuardar"
     class="guardar"
 >
-Guardar cambios
+💾 Guardar cambios
 </button>
 
 
@@ -647,7 +663,7 @@ Guardar cambios
     id="btnVolver"
     class="volver"
 >
-Volver a presupuestos
+⬅️ Volver a presupuestos
 </button>
 
 
@@ -677,12 +693,11 @@ import {
 
 import {
     collection,
-    query,
-    where,
     getDocs,
     doc,
     getDoc,
-    updateDoc
+    updateDoc,
+    serverTimestamp
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -692,144 +707,88 @@ import {
 // ==========================================
 
 const estado =
-document.getElementById(
-    "estado"
-);
+document.getElementById("estado");
 
 const empresaNombre =
-document.getElementById(
-    "empresaNombre"
-);
+document.getElementById("empresaNombre");
 
 const empresaCuit =
-document.getElementById(
-    "empresaCuit"
-);
+document.getElementById("empresaCuit");
 
 const empresaTelefono =
-document.getElementById(
-    "empresaTelefono"
-);
+document.getElementById("empresaTelefono");
 
 const clienteSeleccionado =
-document.getElementById(
-    "clienteSeleccionado"
-);
+document.getElementById("clienteSeleccionado");
 
 const clienteInfo =
-document.getElementById(
-    "clienteInfo"
-);
+document.getElementById("clienteInfo");
 
 const clienteManual =
-document.getElementById(
-    "clienteManual"
-);
+document.getElementById("clienteManual");
 
 const clienteManualNombre =
-document.getElementById(
-    "clienteManualNombre"
-);
+document.getElementById("clienteManualNombre");
 
 const clienteCuit =
-document.getElementById(
-    "clienteCuit"
-);
+document.getElementById("clienteCuit");
 
 const clienteTelefono =
-document.getElementById(
-    "clienteTelefono"
-);
+document.getElementById("clienteTelefono");
 
 const clienteEmail =
-document.getElementById(
-    "clienteEmail"
-);
+document.getElementById("clienteEmail");
 
 const clienteDireccion =
-document.getElementById(
-    "clienteDireccion"
-);
+document.getElementById("clienteDireccion");
 
 const clienteLocalidad =
-document.getElementById(
-    "clienteLocalidad"
-);
+document.getElementById("clienteLocalidad");
 
 const numeroAgenda =
-document.getElementById(
-    "numeroAgenda"
-);
+document.getElementById("numeroAgenda");
 
 const fecha =
-document.getElementById(
-    "fecha"
-);
+document.getElementById("fecha");
 
 const lugarTrabajo =
-document.getElementById(
-    "lugarTrabajo"
-);
+document.getElementById("lugarTrabajo");
 
 const descripcion =
-document.getElementById(
-    "descripcion"
-);
+document.getElementById("descripcion");
 
 const listaMateriales =
-document.getElementById(
-    "listaMateriales"
-);
+document.getElementById("listaMateriales");
 
 const btnAgregar =
-document.getElementById(
-    "btnAgregar"
-);
+document.getElementById("btnAgregar");
 
 const materiales =
-document.getElementById(
-    "materiales"
-);
+document.getElementById("materiales");
 
 const manoObra =
-document.getElementById(
-    "manoObra"
-);
+document.getElementById("manoObra");
 
 const viaticos =
-document.getElementById(
-    "viaticos"
-);
+document.getElementById("viaticos");
 
 const resumenMateriales =
-document.getElementById(
-    "resumenMateriales"
-);
+document.getElementById("resumenMateriales");
 
 const resumenManoObra =
-document.getElementById(
-    "resumenManoObra"
-);
+document.getElementById("resumenManoObra");
 
 const resumenViaticos =
-document.getElementById(
-    "resumenViaticos"
-);
+document.getElementById("resumenViaticos");
 
 const total =
-document.getElementById(
-    "total"
-);
+document.getElementById("total");
 
 const btnGuardar =
-document.getElementById(
-    "btnGuardar"
-);
+document.getElementById("btnGuardar");
 
 const btnVolver =
-document.getElementById(
-    "btnVolver"
-);
+document.getElementById("btnVolver");
 
 
 // ==========================================
@@ -842,11 +801,9 @@ let presupuestoActual = null;
 
 let clientes = [];
 
-let clienteActual = null;
-
 
 // ==========================================
-// ID DEL PRESUPUESTO
+// ID PRESUPUESTO
 // ==========================================
 
 const parametros =
@@ -897,48 +854,47 @@ function dinero(valor){
 
 
 // ==========================================
+// ESCAPAR TEXTO
+// ==========================================
+
+function escapar(valor){
+
+    return String(
+        valor ?? ""
+    );
+
+}
+
+
+// ==========================================
 // TOTAL
 // ==========================================
 
 function calcularTotal(){
 
     const m =
-    Number(
-        materiales.value
-    ) || 0;
-
+    Number(materiales.value) || 0;
 
     const mo =
-    Number(
-        manoObra.value
-    ) || 0;
-
+    Number(manoObra.value) || 0;
 
     const v =
-    Number(
-        viaticos.value
-    ) || 0;
-
+    Number(viaticos.value) || 0;
 
     const resultado =
     m + mo + v;
 
-
     resumenMateriales.textContent =
     dinero(m);
-
 
     resumenManoObra.textContent =
     dinero(mo);
 
-
     resumenViaticos.textContent =
     dinero(v);
 
-
     total.textContent =
     dinero(resultado);
-
 
     return resultado;
 
@@ -967,68 +923,87 @@ viaticos.addEventListener(
 
 function agregarMaterial(
     tipo = "",
-    cantidad = 0
+    cantidad = ""
 ){
 
     const fila =
-    document.createElement(
-        "div"
-    );
-
+    document.createElement("div");
 
     fila.className =
     "material-item";
 
 
-    fila.innerHTML = `
+    const inputTipo =
+    document.createElement("input");
 
-        <input
-            type="text"
-            class="material-tipo"
-            placeholder="Tipo de material"
-            value=""
-        >
+    inputTipo.type =
+    "text";
 
-        <input
-            type="number"
-            class="material-cantidad"
-            placeholder="Cantidad"
-            min="0"
-            step="1"
-            value=""
-        >
+    inputTipo.className =
+    "material-tipo";
 
-        <button
-            type="button"
-            class="btn-quitar"
-        >
-            ×
-        </button>
+    inputTipo.placeholder =
+    "Tipo de material";
 
-    `;
-
-
-    fila.querySelector(
-        ".material-tipo"
-    ).value =
+    inputTipo.value =
     tipo;
 
 
-    fila.querySelector(
-        ".material-cantidad"
-    ).value =
+    const inputCantidad =
+    document.createElement("input");
+
+    inputCantidad.type =
+    "number";
+
+    inputCantidad.className =
+    "material-cantidad";
+
+    inputCantidad.placeholder =
+    "Cantidad";
+
+    inputCantidad.min =
+    "0";
+
+    inputCantidad.step =
+    "1";
+
+    inputCantidad.value =
     cantidad;
 
 
-    fila.querySelector(
-        ".btn-quitar"
-    ).addEventListener(
+    const boton =
+    document.createElement("button");
+
+    boton.type =
+    "button";
+
+    boton.className =
+    "btn-quitar";
+
+    boton.textContent =
+    "×";
+
+
+    boton.addEventListener(
         "click",
         function(){
 
             fila.remove();
 
         }
+    );
+
+
+    fila.appendChild(
+        inputTipo
+    );
+
+    fila.appendChild(
+        inputCantidad
+    );
+
+    fila.appendChild(
+        boton
     );
 
 
@@ -1059,7 +1034,6 @@ function obtenerMateriales(){
     listaMateriales.querySelectorAll(
         ".material-item"
     );
-
 
     const lista = [];
 
@@ -1113,27 +1087,33 @@ function mostrarCliente(
 ){
 
     clienteCuit.textContent =
-    datos.cuit || "-";
+    datos.cuit ||
+    "-";
 
 
     clienteTelefono.textContent =
-    datos.telefono || "-";
+    datos.telefono ||
+    "-";
 
 
     clienteEmail.textContent =
-    datos.email || "-";
+    datos.email ||
+    "-";
 
 
     clienteDireccion.textContent =
-    datos.direccion || "-";
+    datos.direccion ||
+    "-";
 
 
     const localidad =
-    datos.localidad || "";
+    datos.localidad ||
+    "";
 
 
     const provincia =
-    datos.provincia || "";
+    datos.provincia ||
+    "";
 
 
     clienteLocalidad.textContent =
@@ -1154,40 +1134,68 @@ function mostrarCliente(
 
 
 // ==========================================
+// NOMBRE CLIENTE
+// ==========================================
+
+function obtenerNombreCliente(
+    datos
+){
+
+    return (
+        datos.nombre ||
+        datos.empresa ||
+        datos.razonSocial ||
+        datos.razon_social ||
+        "Cliente sin nombre"
+    );
+
+}
+
+
+// ==========================================
 // CARGAR CLIENTES
 // ==========================================
 
 async function cargarClientes(){
 
-    const referencia =
-    collection(
-        db,
-        "clientes"
-    );
-
-
-    const consulta =
-    query(
-        referencia,
-        where(
-            "uid",
-            "==",
-            usuarioActual.uid
-        )
-    );
-
-
-    const resultado =
+    const snapshot =
     await getDocs(
-        consulta
+        collection(
+            db,
+            "clientes"
+        )
     );
 
 
     clientes = [];
 
 
-    resultado.forEach(
+    snapshot.forEach(
         function(documento){
+
+            const datos =
+            documento.data();
+
+
+            /*
+             * Aceptamos clientes vinculados
+             * mediante uid o empresaId.
+             */
+
+            const pertenece =
+            datos.uid ===
+            usuarioActual.uid
+            ||
+            datos.empresaId ===
+            usuarioActual.uid;
+
+
+            if(!pertenece){
+
+                return;
+
+            }
+
 
             clientes.push({
 
@@ -1195,7 +1203,7 @@ async function cargarClientes(){
                 documento.id,
 
                 datos:
-                documento.data()
+                datos
 
             });
 
@@ -1206,24 +1214,12 @@ async function cargarClientes(){
     clientes.sort(
         function(a,b){
 
-            const aNombre =
-            String(
-                a.datos.nombre ||
-                a.datos.empresa ||
-                ""
-            ).toLowerCase();
-
-
-            const bNombre =
-            String(
-                b.datos.nombre ||
-                b.datos.empresa ||
-                ""
-            ).toLowerCase();
-
-
-            return aNombre.localeCompare(
-                bNombre,
+            return obtenerNombreCliente(
+                a.datos
+            ).localeCompare(
+                obtenerNombreCliente(
+                    b.datos
+                ),
                 "es"
             );
 
@@ -1259,16 +1255,13 @@ async function cargarClientes(){
                 "option"
             );
 
-
             opcion.value =
             item.id;
 
-
             opcion.textContent =
-            item.datos.nombre ||
-            item.datos.empresa ||
-            "Cliente sin nombre";
-
+            obtenerNombreCliente(
+                item.datos
+            );
 
             clienteSeleccionado.appendChild(
                 opcion
@@ -1297,7 +1290,7 @@ async function cargarClientes(){
 
 
 // ==========================================
-// CAMBIO DE CLIENTE
+// CAMBIO CLIENTE
 // ==========================================
 
 clienteSeleccionado.addEventListener(
@@ -1308,13 +1301,8 @@ clienteSeleccionado.addEventListener(
         clienteSeleccionado.value;
 
 
-        clienteActual =
-        null;
-
-
         clienteInfo.style.display =
         "none";
-
 
         clienteManual.style.display =
         "none";
@@ -1349,10 +1337,6 @@ clienteSeleccionado.addEventListener(
             return;
 
         }
-
-
-        clienteActual =
-        encontrado;
 
 
         mostrarCliente(
@@ -1395,9 +1379,7 @@ async function cargarPresupuesto(){
     );
 
 
-    if(
-        !documento.exists()
-    ){
+    if(!documento.exists()){
 
         mostrarEstado(
             "El presupuesto no existe.",
@@ -1413,10 +1395,27 @@ async function cargarPresupuesto(){
     documento.data();
 
 
-    if(
-        datos.uid !==
-        usuarioActual.uid
-    ){
+    /*
+     * ======================================
+     * SEGURIDAD
+     * ======================================
+     *
+     * El presupuesto puede estar vinculado
+     * mediante uid, empresaId o usuarioId.
+     */
+
+    const pertenece =
+    datos.uid ===
+    usuarioActual.uid
+    ||
+    datos.usuarioId ===
+    usuarioActual.uid
+    ||
+    datos.empresaId ===
+    usuarioActual.uid;
+
+
+    if(!pertenece){
 
         mostrarEstado(
             "No tenés permiso para editar este presupuesto.",
@@ -1432,31 +1431,35 @@ async function cargarPresupuesto(){
     datos;
 
 
-    /*
-     * Empresa
-     */
+    // ======================================
+    // EMPRESA
+    // ======================================
 
     empresaNombre.textContent =
     datos.empresaNombre ||
+    datos.empresa ||
     "Sin informar";
 
 
     empresaCuit.textContent =
     datos.empresaCuit ||
+    datos.cuitEmpresa ||
     "-";
 
 
     empresaTelefono.textContent =
     datos.empresaTelefono ||
+    datos.telefonoEmpresa ||
     "-";
 
 
-    /*
-     * Datos generales
-     */
+    // ======================================
+    // DATOS GENERALES
+    // ======================================
 
     numeroAgenda.value =
     datos.numeroAgenda ||
+    datos.numero ||
     "";
 
 
@@ -1467,6 +1470,7 @@ async function cargarPresupuesto(){
 
     lugarTrabajo.value =
     datos.lugarTrabajo ||
+    datos.lugar ||
     "";
 
 
@@ -1476,23 +1480,26 @@ async function cargarPresupuesto(){
 
 
     materiales.value =
-    datos.materiales ||
-    0;
+    Number(
+        datos.materiales || 0
+    );
 
 
     manoObra.value =
-    datos.manoObra ||
-    0;
+    Number(
+        datos.manoObra || 0
+    );
 
 
     viaticos.value =
-    datos.viaticos ||
-    0;
+    Number(
+        datos.viaticos || 0
+    );
 
 
-    /*
-     * Materiales
-     */
+    // ======================================
+    // MATERIALES
+    // ======================================
 
     listaMateriales.innerHTML =
     "";
@@ -1512,8 +1519,8 @@ async function cargarPresupuesto(){
                     material.tipo ||
                     "",
 
-                    material.cantidad ||
-                    0
+                    material.cantidad ??
+                    ""
 
                 );
 
@@ -1523,9 +1530,9 @@ async function cargarPresupuesto(){
     }
 
 
-    /*
-     * Cliente guardado
-     */
+    // ======================================
+    // CLIENTE
+    // ======================================
 
     if(
         datos.clienteId
@@ -1544,10 +1551,6 @@ async function cargarPresupuesto(){
 
         if(encontrado){
 
-            clienteActual =
-            encontrado;
-
-
             clienteSeleccionado.value =
             datos.clienteId;
 
@@ -1556,40 +1559,34 @@ async function cargarPresupuesto(){
                 encontrado.datos
             );
 
-        }else{
-
-            /*
-             * El cliente pudo haber sido
-             * eliminado después de crear
-             * el presupuesto.
-             */
+        }
+        else{
 
             clienteSeleccionado.value =
             "__manual__";
 
-
             clienteManual.style.display =
             "block";
 
-
             clienteManualNombre.value =
             datos.cliente ||
+            datos.clienteNombre ||
             "";
 
         }
 
-    }else{
+    }
+    else{
 
         clienteSeleccionado.value =
         "__manual__";
 
-
         clienteManual.style.display =
         "block";
 
-
         clienteManualNombre.value =
         datos.cliente ||
+        datos.clienteNombre ||
         "";
 
     }
@@ -1617,9 +1614,19 @@ btnGuardar.addEventListener(
     "click",
     async function(){
 
-        if(
-            !presupuestoActual
-        ){
+        if(!usuarioActual){
+
+            mostrarEstado(
+                "No hay una sesión activa.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if(!presupuestoActual){
 
             mostrarEstado(
                 "Todavía no se cargó el presupuesto.",
@@ -1636,9 +1643,9 @@ btnGuardar.addEventListener(
         let clienteId = "";
 
 
-        /*
-         * Cliente registrado
-         */
+        // ==================================
+        // CLIENTE REGISTRADO
+        // ==================================
 
         if(
             clienteSeleccionado.value &&
@@ -1672,16 +1679,15 @@ btnGuardar.addEventListener(
             datosCliente =
             encontrado.datos;
 
-
             clienteId =
             encontrado.id;
 
         }
 
 
-        /*
-         * Cliente manual
-         */
+        // ==================================
+        // CLIENTE MANUAL
+        // ==================================
 
         else if(
             clienteSeleccionado.value ===
@@ -1711,12 +1717,23 @@ btnGuardar.addEventListener(
                 nombre:
                 nombre,
 
-                cuit:"",
-                telefono:"",
-                email:"",
-                direccion:"",
-                localidad:"",
-                provincia:""
+                cuit:
+                "",
+
+                telefono:
+                "",
+
+                email:
+                "",
+
+                direccion:
+                "",
+
+                localidad:
+                "",
+
+                provincia:
+                ""
 
             };
 
@@ -1735,9 +1752,11 @@ btnGuardar.addEventListener(
         }
 
 
-        if(
-            !fecha.value
-        ){
+        // ==================================
+        // VALIDACIONES
+        // ==================================
+
+        if(!fecha.value){
 
             mostrarEstado(
                 "Ingresá la fecha.",
@@ -1783,10 +1802,6 @@ btnGuardar.addEventListener(
         }
 
 
-        const materialesLista =
-        obtenerMateriales();
-
-
         const valorMateriales =
         Number(
             materiales.value
@@ -1805,18 +1820,25 @@ btnGuardar.addEventListener(
         ) || 0;
 
 
+        const materialesLista =
+        obtenerMateriales();
+
+
         const totalGeneral =
         valorMateriales +
         valorManoObra +
         valorViaticos;
 
 
+        // ==================================
+        // GUARDANDO
+        // ==================================
+
         btnGuardar.disabled =
         true;
 
-
         btnGuardar.textContent =
-        "Guardando cambios...";
+        "⏳ Guardando cambios...";
 
 
         try{
@@ -1829,13 +1851,57 @@ btnGuardar.addEventListener(
             );
 
 
+            /*
+             * Volvemos a comprobar el propietario
+             * antes de actualizar.
+             */
+
+            const comprobacion =
+            await getDoc(
+                referencia
+            );
+
+
+            if(!comprobacion.exists()){
+
+                throw new Error(
+                    "El presupuesto ya no existe."
+                );
+
+            }
+
+
+            const datosActuales =
+            comprobacion.data();
+
+
+            const pertenece =
+            datosActuales.uid ===
+            usuarioActual.uid
+            ||
+            datosActuales.usuarioId ===
+            usuarioActual.uid
+            ||
+            datosActuales.empresaId ===
+            usuarioActual.uid;
+
+
+            if(!pertenece){
+
+                throw new Error(
+                    "No tenés permiso para modificar este presupuesto."
+                );
+
+            }
+
+
             await updateDoc(
                 referencia,
                 {
 
-                    /*
-                     * CLIENTE
-                     */
+                    // ======================
+                    // CLIENTE
+                    // ======================
 
                     clienteId:
                     clienteId,
@@ -1843,6 +1909,8 @@ btnGuardar.addEventListener(
                     cliente:
                     datosCliente.nombre ||
                     datosCliente.empresa ||
+                    datosCliente.razonSocial ||
+                    datosCliente.razon_social ||
                     "",
 
                     clienteCuit:
@@ -1870,9 +1938,9 @@ btnGuardar.addEventListener(
                     "",
 
 
-                    /*
-                     * PRESUPUESTO
-                     */
+                    // ======================
+                    // PRESUPUESTO
+                    // ======================
 
                     numeroAgenda:
                     numeroAgenda.value.trim(),
@@ -1899,24 +1967,85 @@ btnGuardar.addEventListener(
                     valorViaticos,
 
                     total:
-                    totalGeneral
+                    totalGeneral,
+
+                    actualizado:
+                    serverTimestamp()
 
                 }
             );
 
 
+            presupuestoActual = {
+
+                ...datosActuales,
+
+                clienteId:
+                clienteId,
+
+                cliente:
+                datosCliente.nombre ||
+                datosCliente.empresa ||
+                datosCliente.razonSocial ||
+                datosCliente.razon_social ||
+                "",
+
+                clienteCuit:
+                datosCliente.cuit || "",
+
+                clienteTelefono:
+                datosCliente.telefono || "",
+
+                clienteEmail:
+                datosCliente.email || "",
+
+                clienteDireccion:
+                datosCliente.direccion || "",
+
+                clienteLocalidad:
+                datosCliente.localidad || "",
+
+                clienteProvincia:
+                datosCliente.provincia || "",
+
+                numeroAgenda:
+                numeroAgenda.value.trim(),
+
+                fecha:
+                fecha.value,
+
+                lugarTrabajo:
+                lugarTrabajo.value.trim(),
+
+                descripcion:
+                descripcion.value.trim(),
+
+                materialesLista:
+                materialesLista,
+
+                materiales:
+                valorMateriales,
+
+                manoObra:
+                valorManoObra,
+
+                viaticos:
+                valorViaticos,
+
+                total:
+                totalGeneral
+
+            };
+
+
             mostrarEstado(
-                "Presupuesto actualizado correctamente.",
+                "✅ Presupuesto actualizado correctamente.",
                 "exito"
             );
 
 
-            btnGuardar.disabled =
-            false;
-
-
             btnGuardar.textContent =
-            "Guardar cambios";
+            "✅ Cambios guardados";
 
 
             setTimeout(
@@ -1926,20 +2055,20 @@ btnGuardar.addEventListener(
                     "presupuestos.html";
 
                 },
-                900
+                1000
             );
 
         }
         catch(error){
 
             console.error(
-                "Error actualizando:",
+                "Error actualizando presupuesto:",
                 error
             );
 
 
             mostrarEstado(
-                "No se pudo actualizar: " +
+                "No se pudo actualizar el presupuesto: " +
                 error.message,
                 "error"
             );
@@ -1948,9 +2077,8 @@ btnGuardar.addEventListener(
             btnGuardar.disabled =
             false;
 
-
             btnGuardar.textContent =
-            "Guardar cambios";
+            "💾 Guardar cambios";
 
         }
 
@@ -2006,8 +2134,10 @@ onAuthStateChanged(
         catch(error){
 
             console.error(
+                "Error inicializando:",
                 error
             );
+
 
             mostrarEstado(
                 "Error cargando el módulo: " +
