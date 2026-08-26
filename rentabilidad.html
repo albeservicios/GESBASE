@@ -4,7 +4,9 @@
 <head>
 
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <meta name="theme-color" content="#111827">
 
 <title>Rentabilidad - GESBASE</title>
@@ -137,6 +139,11 @@ select{
     color:#111827;
 }
 
+.btn:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
 .resumen{
     display:grid;
     grid-template-columns:repeat(4,1fr);
@@ -184,6 +191,7 @@ select{
     border-radius:10px;
     margin-bottom:18px;
     font-size:14px;
+    line-height:1.5;
 }
 
 .estado.visible{
@@ -340,6 +348,12 @@ td{
     border-bottom:none;
 }
 
+.linea small{
+    display:block;
+    color:#9ca3af;
+    margin-top:3px;
+}
+
 .pie{
     text-align:center;
     color:#6b7280;
@@ -396,11 +410,9 @@ td{
 
 </head>
 
-
 <body>
 
 <div class="app">
-
 
 <header>
 
@@ -430,9 +442,7 @@ Tu empresa. Todo organizado.
 
 </header>
 
-
 <main>
-
 
 <h1 class="titulo">
 📈 Rentabilidad
@@ -442,16 +452,10 @@ Tu empresa. Todo organizado.
 Analizá cuánto cobrás, cuánto gastás y cuánto realmente ganás.
 </p>
 
-
 <div
     id="estado"
     class="estado"
 ></div>
-
-
-<!-- ======================================
-     FILTROS
-====================================== -->
 
 <section class="card">
 
@@ -497,7 +501,6 @@ Personalizado
 
 </div>
 
-
 <div
     class="campo"
     id="campoDesde"
@@ -514,7 +517,6 @@ Desde
 >
 
 </div>
-
 
 <div
     class="campo"
@@ -547,11 +549,6 @@ Hasta
 
 </section>
 
-
-<!-- ======================================
-     RESUMEN
-====================================== -->
-
 <section class="resumen">
 
 <div class="resumen-card">
@@ -569,7 +566,6 @@ $0,00
 
 </div>
 
-
 <div class="resumen-card">
 
 <div class="resumen-label">
@@ -585,7 +581,6 @@ $0,00
 
 </div>
 
-
 <div class="resumen-card">
 
 <div class="resumen-label">
@@ -600,7 +595,6 @@ $0,00
 </div>
 
 </div>
-
 
 <div class="resumen-card">
 
@@ -618,11 +612,6 @@ $0,00
 </div>
 
 </section>
-
-
-<!-- ======================================
-     CANTIDADES
-====================================== -->
 
 <section class="card">
 
@@ -664,7 +653,6 @@ $0,00
 
 </div>
 
-
 <div class="detalle-box">
 
 <h3>
@@ -701,11 +689,6 @@ $0,00
 
 </section>
 
-
-<!-- ======================================
-     GASTOS POR CATEGORÍA
-====================================== -->
-
 <section class="card">
 
 <h2>
@@ -725,11 +708,6 @@ Cargando...
 
 </section>
 
-
-<!-- ======================================
-     RENTABILIDAD POR TRABAJO
-====================================== -->
-
 <section class="card">
 
 <h2>
@@ -744,29 +722,12 @@ Cargando...
 
 <tr>
 
-<th>
-Trabajo
-</th>
-
-<th>
-Cliente
-</th>
-
-<th>
-Cobrado
-</th>
-
-<th>
-Gastado
-</th>
-
-<th>
-Rentabilidad
-</th>
-
-<th>
-Margen
-</th>
+<th>Trabajo</th>
+<th>Cliente</th>
+<th>Cobrado</th>
+<th>Gastado</th>
+<th>Rentabilidad</th>
+<th>Margen</th>
 
 </tr>
 
@@ -792,11 +753,6 @@ Cargando...
 </div>
 
 </section>
-
-
-<!-- ======================================
-     DETALLE
-====================================== -->
 
 <section class="card">
 
@@ -825,7 +781,6 @@ Cargando...
 
 </div>
 
-
 <div class="detalle-box">
 
 <h3>
@@ -849,19 +804,15 @@ Cargando...
 
 </section>
 
-
 <div class="pie">
 GESBASE — Del presupuesto a la rentabilidad.
 </div>
-
 
 </main>
 
 </div>
 
-
 <script type="module">
-
 
 // ==========================================
 // FIREBASE
@@ -918,11 +869,8 @@ document.getElementById("estado");
 let usuarioActual = null;
 
 let cobros = [];
-
 let gastos = [];
-
 let trabajos = [];
-
 let clientes = [];
 
 
@@ -932,7 +880,7 @@ let clientes = [];
 
 btnVolver.addEventListener(
     "click",
-    function(){
+    () => {
 
         window.location.href =
         "index.html";
@@ -942,7 +890,7 @@ btnVolver.addEventListener(
 
 
 // ==========================================
-// MENSAJE
+// ESTADO
 // ==========================================
 
 function mostrarEstado(
@@ -964,11 +912,22 @@ function mostrarEstado(
 // MONEDA
 // ==========================================
 
-function moneda(valor){
+function moneda(
+    valor
+){
 
-    return Number(
-        valor || 0
-    ).toLocaleString(
+    let numero =
+    Number(valor);
+
+    if(
+        !Number.isFinite(numero)
+    ){
+
+        numero = 0;
+
+    }
+
+    return numero.toLocaleString(
         "es-AR",
         {
             style:"currency",
@@ -980,34 +939,269 @@ function moneda(valor){
 
 
 // ==========================================
-// FECHA LOCAL
+// NUMERO
 // ==========================================
 
-function fechaLocal(){
+function numero(
+    valor
+){
 
-    const ahora =
-    new Date();
+    if(
+        typeof valor ===
+        "number"
+    ){
 
-    const año =
-    ahora.getFullYear();
+        return Number.isFinite(valor)
+        ? valor
+        : 0;
 
-    const mes =
-    String(
-        ahora.getMonth()+1
-    ).padStart(2,"0");
+    }
 
-    const dia =
-    String(
-        ahora.getDate()
-    ).padStart(2,"0");
 
-    return `${año}-${mes}-${dia}`;
+    if(
+        valor === null ||
+        valor === undefined ||
+        valor === ""
+    ){
+
+        return 0;
+
+    }
+
+
+    let texto =
+    String(valor)
+    .trim();
+
+
+    texto =
+    texto.replace(
+        /\$/g,
+        ""
+    );
+
+
+    texto =
+    texto.replace(
+        /\s/g,
+        ""
+    );
+
+
+    // 1.234,56
+    if(
+        texto.includes(",") &&
+        texto.includes(".")
+    ){
+
+        texto =
+        texto.replace(
+            /\./g,
+            ""
+        );
+
+        texto =
+        texto.replace(
+            ",",
+            "."
+        );
+
+    }
+    else if(
+        texto.includes(",")
+    ){
+
+        texto =
+        texto.replace(
+            ",",
+            "."
+        );
+
+    }
+
+
+    const resultado =
+    parseFloat(texto);
+
+
+    return Number.isFinite(resultado)
+    ? resultado
+    : 0;
 
 }
 
 
 // ==========================================
-// FECHA INICIO / FIN
+// FECHA A YYYY-MM-DD
+// ==========================================
+
+function normalizarFecha(
+    valor
+){
+
+    if(!valor){
+        return "";
+    }
+
+
+    // Timestamp de Firebase
+    if(
+        typeof valor ===
+        "object" &&
+        typeof valor.toDate ===
+        "function"
+    ){
+
+        const fecha =
+        valor.toDate();
+
+        return formatearFecha(
+            fecha
+        );
+
+    }
+
+
+    // Timestamp serializado
+    if(
+        typeof valor ===
+        "object" &&
+        typeof valor.seconds ===
+        "number"
+    ){
+
+        const fecha =
+        new Date(
+            valor.seconds * 1000
+        );
+
+        return formatearFecha(
+            fecha
+        );
+
+    }
+
+
+    if(
+        valor instanceof Date
+    ){
+
+        return formatearFecha(
+            valor
+        );
+
+    }
+
+
+    const texto =
+    String(valor)
+    .trim();
+
+
+    // YYYY-MM-DD
+    if(
+        /^\d{4}-\d{2}-\d{2}$/.test(
+            texto
+        )
+    ){
+
+        return texto;
+
+    }
+
+
+    // DD/MM/YYYY
+    const partes =
+    texto.split("/");
+
+
+    if(
+        partes.length === 3 &&
+        partes[0].length <= 2 &&
+        partes[1].length <= 2 &&
+        partes[2].length === 4
+    ){
+
+        return (
+            partes[2] +
+            "-" +
+            partes[1].padStart(2,"0") +
+            "-" +
+            partes[0].padStart(2,"0")
+        );
+
+    }
+
+
+    const fecha =
+    new Date(texto);
+
+
+    if(
+        !Number.isNaN(
+            fecha.getTime()
+        )
+    ){
+
+        return formatearFecha(
+            fecha
+        );
+
+    }
+
+
+    return "";
+
+}
+
+
+// ==========================================
+// FORMATEAR FECHA
+// ==========================================
+
+function formatearFecha(
+    fecha
+){
+
+    const año =
+    fecha.getFullYear();
+
+    const mes =
+    String(
+        fecha.getMonth() + 1
+    ).padStart(2,"0");
+
+    const dia =
+    String(
+        fecha.getDate()
+    ).padStart(2,"0");
+
+    return (
+        año +
+        "-" +
+        mes +
+        "-" +
+        dia
+    );
+
+}
+
+
+// ==========================================
+// FECHA ACTUAL
+// ==========================================
+
+function fechaLocal(){
+
+    return formatearFecha(
+        new Date()
+    );
+
+}
+
+
+// ==========================================
+// PERÍODO
 // ==========================================
 
 function obtenerPeriodo(){
@@ -1015,8 +1209,11 @@ function obtenerPeriodo(){
     const hoy =
     new Date();
 
-    let inicio = "";
-    let fin = fechaLocal();
+    const año =
+    hoy.getFullYear();
+
+    const mes =
+    hoy.getMonth();
 
 
     if(
@@ -1039,20 +1236,19 @@ function obtenerPeriodo(){
 
         return {
             inicio:
-            desde.value,
+            desde.value || "",
 
             fin:
-            hasta.value
+            hasta.value || ""
         };
 
     }
 
 
-    const año =
-    hoy.getFullYear();
+    let inicio = "";
 
-    const mes =
-    hoy.getMonth();
+    let fin =
+    fechaLocal();
 
 
     if(
@@ -1074,7 +1270,7 @@ function obtenerPeriodo(){
         const fecha =
         new Date(
             año,
-            mes-1,
+            mes - 1,
             1
         );
 
@@ -1082,7 +1278,8 @@ function obtenerPeriodo(){
         fecha.getFullYear();
 
         const mesAnterior =
-        fecha.getMonth()+1;
+        fecha.getMonth() + 1;
+
 
         inicio =
         `${añoAnterior}-${String(mesAnterior).padStart(2,"0")}-01`;
@@ -1094,6 +1291,7 @@ function obtenerPeriodo(){
             mes,
             0
         ).getDate();
+
 
         fin =
         `${añoAnterior}-${String(mesAnterior).padStart(2,"0")}-${String(ultimoDia).padStart(2,"0")}`;
@@ -1109,7 +1307,7 @@ function obtenerPeriodo(){
         const fecha =
         new Date(
             año,
-            mes-2,
+            mes - 2,
             1
         );
 
@@ -1139,12 +1337,12 @@ function obtenerPeriodo(){
 
 
 // ==========================================
-// CAMBIO DE PERÍODO
+// CAMBIO PERÍODO
 // ==========================================
 
 periodo.addEventListener(
     "change",
-    function(){
+    () => {
 
         const personalizado =
         periodo.value ===
@@ -1167,15 +1365,76 @@ periodo.addEventListener(
 
 
 // ==========================================
-// FILTRAR FECHA
+// VALIDAR PERÍODO
+// ==========================================
+
+function validarPeriodo(){
+
+    if(
+        periodo.value !==
+        "personalizado"
+    ){
+
+        return true;
+
+    }
+
+
+    if(
+        !desde.value ||
+        !hasta.value
+    ){
+
+        mostrarEstado(
+            "Seleccioná la fecha desde y hasta.",
+            "error"
+        );
+
+        return false;
+
+    }
+
+
+    if(
+        desde.value >
+        hasta.value
+    ){
+
+        mostrarEstado(
+            "La fecha Desde no puede ser posterior a Hasta.",
+            "error"
+        );
+
+        return false;
+
+    }
+
+
+    return true;
+
+}
+
+
+// ==========================================
+// ESTÁ EN PERÍODO
 // ==========================================
 
 function estaEnPeriodo(
-    fechaDato
+    fecha
 ){
 
-    if(!fechaDato){
+    const fechaNormalizada =
+    normalizarFecha(
+        fecha
+    );
+
+
+    if(
+        !fechaNormalizada
+    ){
+
         return false;
+
     }
 
 
@@ -1185,7 +1444,7 @@ function estaEnPeriodo(
 
     if(
         periodoActual.inicio &&
-        fechaDato <
+        fechaNormalizada <
         periodoActual.inicio
     ){
 
@@ -1196,7 +1455,7 @@ function estaEnPeriodo(
 
     if(
         periodoActual.fin &&
-        fechaDato >
+        fechaNormalizada >
         periodoActual.fin
     ){
 
@@ -1211,17 +1470,89 @@ function estaEnPeriodo(
 
 
 // ==========================================
-// CARGAR COLECCIONES
+// PROPIETARIO DEL REGISTRO
+// ==========================================
+
+function perteneceUsuario(
+    datos
+){
+
+    if(!usuarioActual){
+        return false;
+    }
+
+
+    const uid =
+    usuarioActual.uid;
+
+
+    // Si el registro tiene empresaId,
+    // lo comparamos con el usuario.
+    if(
+        datos.empresaId &&
+        datos.empresaId === uid
+    ){
+
+        return true;
+
+    }
+
+
+    if(
+        datos.usuarioId &&
+        datos.usuarioId === uid
+    ){
+
+        return true;
+
+    }
+
+
+    if(
+        datos.uid &&
+        datos.uid === uid
+    ){
+
+        return true;
+
+    }
+
+
+    /*
+      Compatibilidad con registros
+      que usan propietarioUid.
+    */
+
+    if(
+        datos.propietarioUid &&
+        datos.propietarioUid === uid
+    ){
+
+        return true;
+
+    }
+
+
+    /*
+      Si el registro no tiene ningún
+      identificador de propietario,
+      NO se muestra para evitar mezclar
+      datos de otras empresas.
+    */
+
+    return false;
+
+}
+
+
+// ==========================================
+// CARGAR DATOS
 // ==========================================
 
 async function cargarDatos(){
 
-    const [
-        snapCobros,
-        snapGastos,
-        snapTrabajos,
-        snapClientes
-    ] = await Promise.all([
+    const resultados =
+    await Promise.all([
 
         getDocs(
             collection(
@@ -1254,6 +1585,19 @@ async function cargarDatos(){
     ]);
 
 
+    const snapCobros =
+    resultados[0];
+
+    const snapGastos =
+    resultados[1];
+
+    const snapTrabajos =
+    resultados[2];
+
+    const snapClientes =
+    resultados[3];
+
+
     cobros = [];
 
     gastos = [];
@@ -1271,29 +1615,21 @@ async function cargarDatos(){
 
 
             if(
-                datos.usuarioId !==
-                usuarioActual.uid
-                &&
-                datos.empresaId !==
-                usuarioActual.uid
-                &&
-                datos.uid !==
-                usuarioActual.uid
+                perteneceUsuario(
+                    datos
+                )
             ){
 
-                return;
+                cobros.push({
+
+                    id:
+                    documento.id,
+
+                    ...datos
+
+                });
 
             }
-
-
-            cobros.push({
-
-                id:
-                documento.id,
-
-                ...datos
-
-            });
 
         }
     );
@@ -1307,29 +1643,21 @@ async function cargarDatos(){
 
 
             if(
-                datos.usuarioId !==
-                usuarioActual.uid
-                &&
-                datos.empresaId !==
-                usuarioActual.uid
-                &&
-                datos.uid !==
-                usuarioActual.uid
+                perteneceUsuario(
+                    datos
+                )
             ){
 
-                return;
+                gastos.push({
+
+                    id:
+                    documento.id,
+
+                    ...datos
+
+                });
 
             }
-
-
-            gastos.push({
-
-                id:
-                documento.id,
-
-                ...datos
-
-            });
 
         }
     );
@@ -1343,23 +1671,21 @@ async function cargarDatos(){
 
 
             if(
-                datos.empresaId !==
-                usuarioActual.uid
+                perteneceUsuario(
+                    datos
+                )
             ){
 
-                return;
+                trabajos.push({
+
+                    id:
+                    documento.id,
+
+                    ...datos
+
+                });
 
             }
-
-
-            trabajos.push({
-
-                id:
-                documento.id,
-
-                ...datos
-
-            });
 
         }
     );
@@ -1373,28 +1699,80 @@ async function cargarDatos(){
 
 
             if(
-                datos.uid !==
-                usuarioActual.uid
-                &&
-                datos.empresaId !==
-                usuarioActual.uid
+                perteneceUsuario(
+                    datos
+                )
             ){
 
-                return;
+                clientes.push({
+
+                    id:
+                    documento.id,
+
+                    ...datos
+
+                });
 
             }
 
-
-            clientes.push({
-
-                id:
-                documento.id,
-
-                ...datos
-
-            });
-
         }
+    );
+
+}
+
+
+// ==========================================
+// IMPORTE
+// ==========================================
+
+function obtenerImporte(
+    dato
+){
+
+    return numero(
+
+        dato.importe ??
+        dato.monto ??
+        dato.total ??
+        dato.valor ??
+        0
+
+    );
+
+}
+
+
+// ==========================================
+// TRABAJO ID
+// ==========================================
+
+function obtenerTrabajoId(
+    dato
+){
+
+    return (
+        dato.trabajoId ||
+        dato.trabajo_id ||
+        dato.trabajo ||
+        ""
+    );
+
+}
+
+
+// ==========================================
+// CLIENTE ID
+// ==========================================
+
+function obtenerClienteId(
+    dato
+){
+
+    return (
+        dato.clienteId ||
+        dato.cliente_id ||
+        dato.cliente ||
+        ""
     );
 
 }
@@ -1408,6 +1786,13 @@ function nombreCliente(
     id
 ){
 
+    if(!id){
+
+        return "Sin cliente";
+
+    }
+
+
     const cliente =
     clientes.find(
         item =>
@@ -1417,27 +1802,37 @@ function nombreCliente(
 
     if(!cliente){
 
-        return "Cliente";
+        return (
+            typeof id ===
+            "string"
+            ? id
+            : "Cliente"
+        );
 
     }
 
 
-    const nombre = [
-
-        cliente.nombre,
-        cliente.apellido
-
-    ]
-    .filter(Boolean)
-    .join(" ");
-
-
     return (
-        nombre ||
+
+        cliente.nombreCompleto ||
+
+        [
+            cliente.nombre,
+            cliente.apellido
+        ]
+        .filter(Boolean)
+        .join(" ") ||
+
+        cliente.nombreEmpresa ||
+
         cliente.empresa ||
+
         cliente.razonSocial ||
+
         cliente.razon_social ||
+
         "Cliente"
+
     );
 
 }
@@ -1451,6 +1846,13 @@ function nombreTrabajo(
     id
 ){
 
+    if(!id){
+
+        return "Sin trabajo";
+
+    }
+
+
     const trabajo =
     trabajos.find(
         item =>
@@ -1460,15 +1862,23 @@ function nombreTrabajo(
 
     if(!trabajo){
 
-        return "Sin trabajo";
+        return "Trabajo";
 
     }
 
 
     return (
-        trabajo.descripcion ||
+
         trabajo.nombre ||
+
+        trabajo.descripcion ||
+
+        trabajo.titulo ||
+
+        trabajo.detalle ||
+
         "Trabajo"
+
     );
 
 }
@@ -1484,7 +1894,10 @@ function obtenerDatos(){
     cobros.filter(
         item =>
         estaEnPeriodo(
-            item.fecha
+            item.fecha ||
+            item.fechaCobro ||
+            item.createdAt ||
+            item.creado
         )
     );
 
@@ -1493,7 +1906,10 @@ function obtenerDatos(){
     gastos.filter(
         item =>
         estaEnPeriodo(
-            item.fecha
+            item.fecha ||
+            item.fechaGasto ||
+            item.createdAt ||
+            item.creado
         )
     );
 
@@ -1520,11 +1936,11 @@ function mostrarResumen(
 
 
     cobrosFiltrados.forEach(
-        item => {
+        cobro => {
 
             totalCobrado +=
-            Number(
-                item.importe || 0
+            obtenerImporte(
+                cobro
             );
 
         }
@@ -1532,11 +1948,11 @@ function mostrarResumen(
 
 
     gastosFiltrados.forEach(
-        item => {
+        gasto => {
 
             totalGastado +=
-            Number(
-                item.importe || 0
+            obtenerImporte(
+                gasto
             );
 
         }
@@ -1651,7 +2067,7 @@ function mostrarResumen(
 
 
 // ==========================================
-// GASTOS POR CATEGORÍA
+// CATEGORÍAS
 // ==========================================
 
 function mostrarCategorias(
@@ -1672,6 +2088,7 @@ function mostrarCategorias(
 
             const categoria =
             gasto.categoria ||
+            gasto.tipo ||
             "otros";
 
 
@@ -1686,8 +2103,8 @@ function mostrarCategorias(
 
 
             categorias[categoria] +=
-            Number(
-                gasto.importe || 0
+            obtenerImporte(
+                gasto
             );
 
         }
@@ -1703,6 +2120,9 @@ function mostrarCategorias(
         "Materiales",
 
         viaticos:
+        "Viáticos",
+
+        viáticos:
         "Viáticos",
 
         herramientas:
@@ -1751,7 +2171,8 @@ function mostrarCategorias(
     const maximo =
     Math.max(
         ...lista.map(
-            item => item[1]
+            item =>
+            item[1]
         )
     );
 
@@ -1786,9 +2207,10 @@ function mostrarCategorias(
 
                 <div class="barra-nombre">
                     ${
-                        nombres[categoria]
-                        ||
-                        categoria
+                        escapar(
+                            nombres[categoria] ||
+                            categoria
+                        )
                     }
                 </div>
 
@@ -1836,38 +2258,13 @@ function mostrarTrabajos(
     const datos = {};
 
 
-    trabajos.forEach(
-        trabajo => {
-
-            datos[trabajo.id] = {
-
-                id:
-                trabajo.id,
-
-                nombre:
-                trabajo.descripcion ||
-                trabajo.nombre ||
-                "Trabajo",
-
-                clienteId:
-                trabajo.clienteId ||
-                "",
-
-                cobrado:0,
-
-                gastado:0
-
-            };
-
-        }
-    );
-
-
     cobrosFiltrados.forEach(
         cobro => {
 
             const id =
-            cobro.trabajoId;
+            obtenerTrabajoId(
+                cobro
+            );
 
 
             if(!id){
@@ -1887,8 +2284,9 @@ function mostrarTrabajos(
                     nombreTrabajo(id),
 
                     clienteId:
-                    cobro.clienteId ||
-                    "",
+                    obtenerClienteId(
+                        cobro
+                    ),
 
                     cobrado:0,
 
@@ -1900,8 +2298,8 @@ function mostrarTrabajos(
 
 
             datos[id].cobrado +=
-            Number(
-                cobro.importe || 0
+            obtenerImporte(
+                cobro
             );
 
         }
@@ -1912,9 +2310,9 @@ function mostrarTrabajos(
         gasto => {
 
             const id =
-            gasto.trabajoId ||
-            gasto.trabajo ||
-            "";
+            obtenerTrabajoId(
+                gasto
+            );
 
 
             if(!id){
@@ -1934,7 +2332,9 @@ function mostrarTrabajos(
                     nombreTrabajo(id),
 
                     clienteId:
-                    "",
+                    obtenerClienteId(
+                        gasto
+                    ),
 
                     cobrado:0,
 
@@ -1946,8 +2346,8 @@ function mostrarTrabajos(
 
 
             datos[id].gastado +=
-            Number(
-                gasto.importe || 0
+            obtenerImporte(
+                gasto
             );
 
         }
@@ -1988,9 +2388,11 @@ function mostrarTrabajos(
         tabla.innerHTML = `
             <tr>
                 <td colspan="6">
+
                     <div class="sin-datos">
                         No hay datos de trabajos para el período seleccionado.
                     </div>
+
                 </td>
             </tr>
         `;
@@ -2097,7 +2499,7 @@ function mostrarTrabajos(
 
 
 // ==========================================
-// ESCAPAR
+// ESCAPAR HTML
 // ==========================================
 
 function escapar(
@@ -2107,17 +2509,32 @@ function escapar(
     return String(
         valor ?? ""
     )
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+    .replaceAll(
+        "&",
+        "&amp;"
+    )
+    .replaceAll(
+        "<",
+        "&lt;"
+    )
+    .replaceAll(
+        ">",
+        "&gt;"
+    )
+    .replaceAll(
+        '"',
+        "&quot;"
+    )
+    .replaceAll(
+        "'",
+        "&#039;"
+    );
 
 }
 
 
 // ==========================================
-// DETALLE INGRESOS
+// INGRESOS
 // ==========================================
 
 function mostrarIngresos(
@@ -2150,14 +2567,24 @@ function mostrarIngresos(
     .sort(
         (a,b) =>
         String(
-            b.fecha || ""
-        )
-        .localeCompare(
+            normalizarFecha(
+                a.fecha ||
+                a.fechaCobro ||
+                a.createdAt ||
+                a.creado
+            )
+        ).localeCompare(
             String(
-                a.fecha || ""
+                normalizarFecha(
+                    b.fecha ||
+                    b.fechaCobro ||
+                    b.createdAt ||
+                    b.creado
+                )
             )
         )
     )
+    .reverse()
     .slice(
         0,
         15
@@ -2181,20 +2608,30 @@ function mostrarIngresos(
             "linea";
 
 
+            const fecha =
+            normalizarFecha(
+                cobro.fecha ||
+                cobro.fechaCobro ||
+                cobro.createdAt ||
+                cobro.creado
+            );
+
+
             linea.innerHTML = `
 
                 <span>
 
                     ${escapar(
                         nombreCliente(
-                            cobro.clienteId
+                            obtenerClienteId(
+                                cobro
+                            )
                         )
                     )}
 
                     <small>
                         ${escapar(
-                            cobro.fecha ||
-                            ""
+                            fecha
                         )}
                     </small>
 
@@ -2202,7 +2639,9 @@ function mostrarIngresos(
 
                 <strong>
                     ${moneda(
-                        cobro.importe
+                        obtenerImporte(
+                            cobro
+                        )
                     )}
                 </strong>
 
@@ -2220,7 +2659,7 @@ function mostrarIngresos(
 
 
 // ==========================================
-// DETALLE GASTOS
+// GASTOS
 // ==========================================
 
 function mostrarGastos(
@@ -2253,14 +2692,24 @@ function mostrarGastos(
     .sort(
         (a,b) =>
         String(
-            b.fecha || ""
-        )
-        .localeCompare(
+            normalizarFecha(
+                a.fecha ||
+                a.fechaGasto ||
+                a.createdAt ||
+                a.creado
+            )
+        ).localeCompare(
             String(
-                a.fecha || ""
+                normalizarFecha(
+                    b.fecha ||
+                    b.fechaGasto ||
+                    b.createdAt ||
+                    b.creado
+                )
             )
         )
     )
+    .reverse()
     .slice(
         0,
         15
@@ -2284,20 +2733,29 @@ function mostrarGastos(
             "linea";
 
 
+            const fecha =
+            normalizarFecha(
+                gasto.fecha ||
+                gasto.fechaGasto ||
+                gasto.createdAt ||
+                gasto.creado
+            );
+
+
             linea.innerHTML = `
 
                 <span>
 
                     ${escapar(
                         gasto.descripcion ||
+                        gasto.detalle ||
                         gasto.categoria ||
                         "Gasto"
                     )}
 
                     <small>
                         ${escapar(
-                            gasto.fecha ||
-                            ""
+                            fecha
                         )}
                     </small>
 
@@ -2305,7 +2763,9 @@ function mostrarGastos(
 
                 <strong>
                     ${moneda(
-                        gasto.importe
+                        obtenerImporte(
+                            gasto
+                        )
                     )}
                 </strong>
 
@@ -2323,7 +2783,7 @@ function mostrarGastos(
 
 
 // ==========================================
-// ACTUALIZAR TODO
+// ACTUALIZAR
 // ==========================================
 
 async function actualizar(){
@@ -2333,6 +2793,19 @@ async function actualizar(){
         return;
 
     }
+
+
+    if(
+        !validarPeriodo()
+    ){
+
+        return;
+
+    }
+
+
+    btnActualizar.disabled =
+    true;
 
 
     try{
@@ -2391,10 +2864,19 @@ async function actualizar(){
 
 
         mostrarEstado(
-            "No se pudo cargar Rentabilidad. " +
-            error.message,
+            "No se pudo cargar Rentabilidad: " +
+            (
+                error.message ||
+                "error desconocido"
+            ),
             "error"
         );
+
+    }
+    finally{
+
+        btnActualizar.disabled =
+        false;
 
     }
 
@@ -2402,7 +2884,7 @@ async function actualizar(){
 
 
 // ==========================================
-// BOTÓN ACTUALIZAR
+// BOTÓN
 // ==========================================
 
 btnActualizar.addEventListener(
@@ -2412,12 +2894,12 @@ btnActualizar.addEventListener(
 
 
 // ==========================================
-// INICIO
+// AUTENTICACIÓN
 // ==========================================
 
 onAuthStateChanged(
     auth,
-    async function(usuario){
+    async usuario => {
 
         if(!usuario){
 
@@ -2443,4 +2925,4 @@ onAuthStateChanged(
 
 </body>
 
-  </html>
+</html>
