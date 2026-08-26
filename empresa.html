@@ -173,6 +173,7 @@ input[type="file"]{
     margin-bottom:18px;
     font-size:13px;
     line-height:1.6;
+    word-break:break-word;
 }
 
 .info-empresa strong{
@@ -223,9 +224,7 @@ button:disabled{
 
 <body>
 
-
 <div class="contenedor">
-
 
 <header>
 
@@ -239,9 +238,7 @@ Configuración de GESBASE
 
 </header>
 
-
 <main>
-
 
 <div
 id="mensaje"
@@ -256,10 +253,7 @@ id="contenido"
 style="display:none;"
 >
 
-
-<!-- =====================================
-     IDENTIFICACIÓN EMPRESA
-===================================== -->
+<!-- IDENTIFICACIÓN -->
 
 <div class="info-empresa">
 
@@ -276,16 +270,13 @@ style="display:none;"
 </div>
 
 
-<!-- =====================================
-     LOGO
-===================================== -->
+<!-- LOGO -->
 
 <div class="tarjeta">
 
 <div class="titulo">
 Logo de la empresa
 </div>
-
 
 <div class="logo-contenedor">
 
@@ -296,13 +287,11 @@ class="logo-preview"
 Sin logo
 </div>
 
-
 <input
 type="file"
 id="logo"
 accept="image/png,image/jpeg,image/webp"
 >
-
 
 <div class="nota">
 
@@ -311,7 +300,7 @@ JPG, PNG o WEBP.
 
 <br>
 
-Tamaño máximo recomendado:
+Tamaño máximo:
 2 MB.
 
 </div>
@@ -321,9 +310,7 @@ Tamaño máximo recomendado:
 </div>
 
 
-<!-- =====================================
-     DATOS EMPRESA
-===================================== -->
+<!-- DATOS EMPRESA -->
 
 <div class="tarjeta">
 
@@ -447,7 +434,6 @@ id="btnVolver"
 ⬅️ Volver al panel
 </button>
 
-
 </div>
 
 </main>
@@ -456,7 +442,6 @@ id="btnVolver"
 
 
 <script type="module">
-
 
 // =====================================================
 // FIREBASE
@@ -475,8 +460,13 @@ import {
 
 
 import {
+    collection,
     doc,
     getDoc,
+    getDocs,
+    query,
+    where,
+    limit,
     setDoc,
     serverTimestamp
 } from
@@ -496,8 +486,7 @@ import {
 // STORAGE
 // =====================================================
 
-const storage =
-getStorage();
+const storage = getStorage();
 
 
 // =====================================================
@@ -505,95 +494,63 @@ getStorage();
 // =====================================================
 
 const mensaje =
-document.getElementById(
-    "mensaje"
-);
+document.getElementById("mensaje");
 
 const contenido =
-document.getElementById(
-    "contenido"
-);
+document.getElementById("contenido");
 
 const empresaIdMostrar =
-document.getElementById(
-    "empresaIdMostrar"
-);
+document.getElementById("empresaIdMostrar");
 
 const usuarioMostrar =
-document.getElementById(
-    "usuarioMostrar"
-);
+document.getElementById("usuarioMostrar");
 
 const nombreEmpresa =
-document.getElementById(
-    "nombreEmpresa"
-);
+document.getElementById("nombreEmpresa");
 
 const razonSocial =
-document.getElementById(
-    "razonSocial"
-);
+document.getElementById("razonSocial");
 
 const cuit =
-document.getElementById(
-    "cuit"
-);
+document.getElementById("cuit");
 
 const telefono =
-document.getElementById(
-    "telefono"
-);
+document.getElementById("telefono");
 
 const email =
-document.getElementById(
-    "email"
-);
+document.getElementById("email");
 
 const direccion =
-document.getElementById(
-    "direccion"
-);
+document.getElementById("direccion");
 
 const logo =
-document.getElementById(
-    "logo"
-);
+document.getElementById("logo");
 
 const logoPreview =
-document.getElementById(
-    "logoPreview"
-);
+document.getElementById("logoPreview");
 
 const btnGuardar =
-document.getElementById(
-    "btnGuardar"
-);
+document.getElementById("btnGuardar");
 
 const btnVolver =
-document.getElementById(
-    "btnVolver"
-);
+document.getElementById("btnVolver");
 
 
 // =====================================================
 // VARIABLES
 // =====================================================
 
-let usuarioActual =
-null;
+let usuarioActual = null;
 
-let empresaId =
-"";
+let empresaId = "";
 
-let empresaRef =
-null;
+let empresaRef = null;
 
-let logoActual =
-"";
+let logoActual = "";
 
 
 // =====================================================
-// UTILIDADES
+// UTILIDAD
 // =====================================================
 
 function texto(valor){
@@ -625,8 +582,18 @@ function mostrarMensaje(
     textoMensaje;
 
     mensaje.className =
-    "mensaje " +
-    tipo;
+    "mensaje " + tipo;
+
+    mensaje.style.display =
+    "block";
+
+}
+
+
+function ocultarMensaje(){
+
+    mensaje.style.display =
+    "none";
 
 }
 
@@ -635,12 +602,9 @@ function mostrarMensaje(
 // MOSTRAR LOGO
 // =====================================================
 
-function mostrarLogo(
-    url
-){
+function mostrarLogo(url){
 
-    logoPreview.innerHTML =
-    "";
+    logoPreview.innerHTML = "";
 
     if(!url){
 
@@ -653,13 +617,9 @@ function mostrarLogo(
 
 
     const imagen =
-    document.createElement(
-        "img"
-    );
+    document.createElement("img");
 
-
-    imagen.src =
-    url;
+    imagen.src = url;
 
     imagen.alt =
     "Logo de la empresa";
@@ -668,8 +628,7 @@ function mostrarLogo(
     imagen.onerror =
     function(){
 
-        logoPreview.innerHTML =
-        "";
+        logoPreview.innerHTML = "";
 
         logoPreview.textContent =
         "No se pudo cargar el logo.";
@@ -685,7 +644,7 @@ function mostrarLogo(
 
 
 // =====================================================
-// VISTA PREVIA LOGO
+// VISTA PREVIA
 // =====================================================
 
 logo.addEventListener(
@@ -705,9 +664,11 @@ logo.addEventListener(
 
 
         const tiposPermitidos = [
+
             "image/jpeg",
             "image/png",
             "image/webp"
+
         ];
 
 
@@ -722,8 +683,7 @@ logo.addEventListener(
                 "error"
             );
 
-            logo.value =
-            "";
+            logo.value = "";
 
             return;
 
@@ -740,8 +700,7 @@ logo.addEventListener(
                 "error"
             );
 
-            logo.value =
-            "";
+            logo.value = "";
 
             return;
 
@@ -755,21 +714,16 @@ logo.addEventListener(
         lector.onload =
         function(evento){
 
-            logoPreview.innerHTML =
-            "";
+            logoPreview.innerHTML = "";
 
             const imagen =
-            document.createElement(
-                "img"
-            );
-
+            document.createElement("img");
 
             imagen.src =
             evento.target.result;
 
             imagen.alt =
             "Vista previa del logo";
-
 
             logoPreview.appendChild(
                 imagen
@@ -798,64 +752,156 @@ logo.addEventListener(
 
 
 // =====================================================
-// OBTENER EMPRESA ID
+// BUSCAR EMPRESA POR CAMPO
+// =====================================================
+
+async function buscarEmpresaPorCampo(
+    campo,
+    valor
+){
+
+    if(!valor){
+
+        return null;
+
+    }
+
+
+    try{
+
+        const consulta =
+        query(
+            collection(
+                db,
+                "empresas"
+            ),
+            where(
+                campo,
+                "==",
+                valor
+            ),
+            limit(1)
+        );
+
+
+        const resultado =
+        await getDocs(
+            consulta
+        );
+
+
+        if(
+            resultado.empty
+        ){
+
+            return null;
+
+        }
+
+
+        const documento =
+        resultado.docs[0];
+
+
+        return {
+
+            id:
+            documento.id,
+
+            datos:
+            documento.data()
+
+        };
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo buscar empresa por " +
+            campo,
+            error
+        );
+
+        return null;
+
+    }
+
+}
+
+
+// =====================================================
+// OBTENER ID DE EMPRESA
 // =====================================================
 
 async function obtenerEmpresaId(){
 
-    /*
-     * Primero buscamos:
-     *
-     * usuarios/{uid}
-     *
-     * y obtenemos:
-     *
-     * empresaId
-     *
-     * Esto permite que empleados,
-     * presupuestos y demás módulos
-     * trabajen con la misma empresa.
-     */
+    if(!usuarioActual){
 
+        throw new Error(
+            "No hay una sesión de usuario activa."
+        );
+
+    }
+
+
+    const uid =
+    usuarioActual.uid;
+
+
+    /*
+     * 1. BUSCAR USUARIO
+     */
 
     const usuarioRef =
     doc(
         db,
         "usuarios",
-        usuarioActual.uid
+        uid
     );
 
 
-    const usuarioDoc =
-    await getDoc(
-        usuarioRef
-    );
+    let usuarioDoc = null;
+
+
+    try{
+
+        usuarioDoc =
+        await getDoc(
+            usuarioRef
+        );
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo leer usuarios/" +
+            uid,
+            error
+        );
+
+    }
 
 
     if(
+        usuarioDoc &&
         usuarioDoc.exists()
     ){
 
-        const datos =
+        const datosUsuario =
         usuarioDoc.data();
 
 
         empresaId =
         texto(
-            datos.empresaId
+            datosUsuario.empresaId
         );
 
-
-        /*
-         * Compatibilidad con versiones
-         * anteriores de GESBASE.
-         */
 
         if(!empresaId){
 
             empresaId =
             texto(
-                datos.empresa
+                datosUsuario.empresa
             );
 
         }
@@ -864,28 +910,115 @@ async function obtenerEmpresaId(){
 
 
     /*
-     * Si todavía no existe empresaId,
-     * usamos el UID del propietario.
+     * 2. BUSCAR EMPRESA POR UID
+     */
+
+    if(!empresaId){
+
+        const encontrada =
+        await buscarEmpresaPorCampo(
+            "uid",
+            uid
+        );
+
+
+        if(encontrada){
+
+            empresaId =
+            encontrada.id;
+
+        }
+
+    }
+
+
+    /*
+     * 3. BUSCAR POR ownerUid
+     */
+
+    if(!empresaId){
+
+        const encontrada =
+        await buscarEmpresaPorCampo(
+            "ownerUid",
+            uid
+        );
+
+
+        if(encontrada){
+
+            empresaId =
+            encontrada.id;
+
+        }
+
+    }
+
+
+    /*
+     * 4. BUSCAR POR propietarioUid
+     */
+
+    if(!empresaId){
+
+        const encontrada =
+        await buscarEmpresaPorCampo(
+            "propietarioUid",
+            uid
+        );
+
+
+        if(encontrada){
+
+            empresaId =
+            encontrada.id;
+
+        }
+
+    }
+
+
+    /*
+     * 5. BUSCAR POR creadoPor
+     */
+
+    if(!empresaId){
+
+        const encontrada =
+        await buscarEmpresaPorCampo(
+            "creadoPor",
+            uid
+        );
+
+
+        if(encontrada){
+
+            empresaId =
+            encontrada.id;
+
+        }
+
+    }
+
+
+    /*
+     * 6. SI NO EXISTE, USAR UID COMO ID
      *
-     * Esto evita romper cuentas antiguas.
+     * Esto permite crear la empresa
+     * para cuentas nuevas.
      */
 
     if(!empresaId){
 
         empresaId =
-        usuarioActual.uid;
+        uid;
 
     }
 
 
-    if(!empresaId){
-
-        throw new Error(
-            "No se pudo determinar la empresa del usuario."
-        );
-
-    }
-
+    /*
+     * REFERENCIA FINAL
+     */
 
     empresaRef =
     doc(
@@ -907,6 +1040,12 @@ async function obtenerEmpresaId(){
 
 async function cargarEmpresa(){
 
+    mostrarMensaje(
+        "Buscando información de la empresa...",
+        "cargando"
+    );
+
+
     await obtenerEmpresaId();
 
 
@@ -914,6 +1053,10 @@ async function cargarEmpresa(){
     usuarioActual.email ||
     usuarioActual.uid;
 
+
+    /*
+     * Leer documento de empresa
+     */
 
     const documento =
     await getDoc(
@@ -931,13 +1074,16 @@ async function cargarEmpresa(){
 
         nombreEmpresa.value =
         texto(
-            datos.nombreEmpresa
+            datos.nombreEmpresa ||
+            datos.nombre ||
+            datos.nombreEmpresaComercial
         );
 
 
         razonSocial.value =
         texto(
-            datos.razonSocial
+            datos.razonSocial ||
+            datos.razon_social
         );
 
 
@@ -949,7 +1095,8 @@ async function cargarEmpresa(){
 
         telefono.value =
         texto(
-            datos.telefono
+            datos.telefono ||
+            datos.telefonoEmpresa
         );
 
 
@@ -964,13 +1111,15 @@ async function cargarEmpresa(){
 
         direccion.value =
         texto(
-            datos.direccion
+            datos.direccion ||
+            datos.domicilio
         );
 
 
         logoActual =
         texto(
-            datos.logoUrl
+            datos.logoUrl ||
+            datos.logo
         );
 
 
@@ -978,22 +1127,32 @@ async function cargarEmpresa(){
             logoActual
         );
 
+
+        mostrarMensaje(
+            "✅ Empresa encontrada correctamente.",
+            "exito"
+        );
+
     }
     else{
 
         /*
-         * Empresa nueva.
+         * Documento todavía no existe.
          */
 
         email.value =
         usuarioActual.email ||
         "";
 
-        logoActual =
-        "";
 
-        mostrarLogo(
-            ""
+        logoActual = "";
+
+        mostrarLogo("");
+
+
+        mostrarMensaje(
+            "No había datos guardados. Podés completar la información de tu empresa.",
+            "cargando"
         );
 
     }
@@ -1003,24 +1162,13 @@ async function cargarEmpresa(){
     "block";
 
 
-    mostrarMensaje(
-        documento.exists()
-            ? "Información de empresa cargada."
-            : "Podés completar los datos de tu empresa.",
-        documento.exists()
-            ? "exito"
-            : "cargando"
-    );
-
-
     setTimeout(
         function(){
 
-            mensaje.style.display =
-            "none";
+            ocultarMensaje();
 
         },
-        1800
+        2000
     );
 
 }
@@ -1030,9 +1178,7 @@ async function cargarEmpresa(){
 // VALIDAR EMAIL
 // =====================================================
 
-function emailValido(
-    valor
-){
+function emailValido(valor){
 
     if(!valor){
 
@@ -1042,9 +1188,7 @@ function emailValido(
 
 
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        .test(
-            valor
-        );
+        .test(valor);
 
 }
 
@@ -1070,7 +1214,7 @@ async function guardarEmpresa(){
     if(!empresaId){
 
         mostrarMensaje(
-            "No se pudo determinar la empresa.",
+            "No se pudo determinar el ID de la empresa.",
             "error"
         );
 
@@ -1115,9 +1259,9 @@ async function guardarEmpresa(){
     );
 
 
-    // =================================================
-    // VALIDACIONES
-    // =================================================
+    /*
+     * VALIDACIONES
+     */
 
     if(!nombre){
 
@@ -1179,9 +1323,9 @@ async function guardarEmpresa(){
         logoActual;
 
 
-        // =================================================
-        // SUBIR LOGO
-        // =================================================
+        /*
+         * SUBIR LOGO
+         */
 
         const archivo =
         logo.files &&
@@ -1191,9 +1335,11 @@ async function guardarEmpresa(){
         if(archivo){
 
             const tiposPermitidos = [
+
                 "image/jpeg",
                 "image/png",
                 "image/webp"
+
             ];
 
 
@@ -1204,7 +1350,7 @@ async function guardarEmpresa(){
             ){
 
                 throw new Error(
-                    "El logo debe estar en formato JPG, PNG o WEBP."
+                    "El logo debe ser JPG, PNG o WEBP."
                 );
 
             }
@@ -1222,21 +1368,28 @@ async function guardarEmpresa(){
             }
 
 
-            /*
-             * Usamos un nombre único.
-             *
-             * Evitamos problemas de caché
-             * cuando el usuario cambia el logo.
-             */
+            let extension =
+            "jpg";
 
-            const extension =
-            archivo.type ===
-            "image/png"
-                ? "png"
-                : archivo.type ===
-                  "image/webp"
-                    ? "webp"
-                    : "jpg";
+
+            if(
+                archivo.type ===
+                "image/png"
+            ){
+
+                extension =
+                "png";
+
+            }
+            else if(
+                archivo.type ===
+                "image/webp"
+            ){
+
+                extension =
+                "webp";
+
+            }
 
 
             const nombreArchivo =
@@ -1278,9 +1431,9 @@ async function guardarEmpresa(){
         }
 
 
-        // =================================================
-        // DATOS EMPRESA
-        // =================================================
+        /*
+         * DATOS DE EMPRESA
+         */
 
         const datosEmpresa = {
 
@@ -1288,6 +1441,9 @@ async function guardarEmpresa(){
             empresaId,
 
             uid:
+            usuarioActual.uid,
+
+            ownerUid:
             usuarioActual.uid,
 
             nombreEmpresa:
@@ -1317,9 +1473,9 @@ async function guardarEmpresa(){
         };
 
 
-        // =================================================
-        // CREAR / ACTUALIZAR
-        // =================================================
+        /*
+         * GUARDAR EMPRESA
+         */
 
         await setDoc(
             empresaRef,
@@ -1330,6 +1486,39 @@ async function guardarEmpresa(){
         );
 
 
+        /*
+         * ACTUALIZAR TAMBIÉN
+         * EL DOCUMENTO DEL USUARIO
+         *
+         * Esto es importante para que
+         * los demás módulos de GESBASE
+         * encuentren la misma empresa.
+         */
+
+        try{
+
+            await setDoc(
+                usuarioRefSeguro(),
+                {
+                    empresaId:
+                    empresaId
+                },
+                {
+                    merge:true
+                }
+            );
+
+        }
+        catch(errorUsuario){
+
+            console.warn(
+                "No se pudo actualizar usuarios:",
+                errorUsuario
+            );
+
+        }
+
+
         logoActual =
         logoUrl;
 
@@ -1338,12 +1527,6 @@ async function guardarEmpresa(){
             logoActual
         );
 
-
-        /*
-         * Limpiamos el selector
-         * de archivo para que no vuelva
-         * a subir accidentalmente la misma imagen.
-         */
 
         logo.value =
         "";
@@ -1369,11 +1552,13 @@ async function guardarEmpresa(){
 
         if(
             error.code ===
-            "permission-denied"
+            "permission-denied" ||
+            error.code ===
+            "firestore/permission-denied"
         ){
 
             mensajeError =
-            "Firebase rechazó la operación. Revisá las reglas de Firestore.";
+            "Firebase rechazó la operación. Hay que revisar las reglas de Firestore.";
 
         }
         else if(
@@ -1382,16 +1567,7 @@ async function guardarEmpresa(){
         ){
 
             mensajeError =
-            "Firebase Storage rechazó la subida del logo. Revisá las reglas de Storage.";
-
-        }
-        else if(
-            error.code ===
-            "storage/canceled"
-        ){
-
-            mensajeError =
-            "La subida del logo fue cancelada.";
+            "Firebase Storage rechazó el logo. Hay que revisar las reglas de Storage.";
 
         }
         else if(
@@ -1425,6 +1601,21 @@ async function guardarEmpresa(){
 
 
 // =====================================================
+// REFERENCIA USUARIO
+// =====================================================
+
+function usuarioRefSeguro(){
+
+    return doc(
+        db,
+        "usuarios",
+        usuarioActual.uid
+    );
+
+}
+
+
+// =====================================================
 // BOTÓN GUARDAR
 // =====================================================
 
@@ -1435,7 +1626,7 @@ btnGuardar.addEventListener(
 
 
 // =====================================================
-// VOLVER
+// BOTÓN VOLVER
 // =====================================================
 
 btnVolver.addEventListener(
@@ -1457,25 +1648,52 @@ onAuthStateChanged(
     auth,
     async function(usuario){
 
+        /*
+         * NO HAY SESIÓN
+         */
+
         if(!usuario){
 
-            window.location.replace(
-                "login.html"
+            mostrarMensaje(
+                "No hay una sesión iniciada. Redirigiendo al login...",
+                "error"
             );
+
+
+            setTimeout(
+                function(){
+
+                    window.location.replace(
+                        "login.html"
+                    );
+
+                },
+                800
+            );
+
 
             return;
 
         }
 
 
+        /*
+         * SESIÓN CONFIRMADA
+         */
+
         usuarioActual =
         usuario;
+
+
+        usuarioMostrar.textContent =
+        usuario.email ||
+        usuario.uid;
 
 
         try{
 
             mostrarMensaje(
-                "Cargando información de la empresa...",
+                "Sesión verificada. Buscando empresa...",
                 "cargando"
             );
 
@@ -1489,6 +1707,10 @@ onAuthStateChanged(
                 "ERROR CARGANDO EMPRESA:",
                 error
             );
+
+
+            contenido.style.display =
+            "none";
 
 
             mostrarMensaje(
