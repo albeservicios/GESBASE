@@ -5,15 +5,9 @@
 
 <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta
-    name="theme-color"
-    content="#111827"
->
+<meta name="theme-color" content="#111827">
 
 <title>GESBASE - Conformidades</title>
 
@@ -107,6 +101,7 @@ main{
     border-radius:14px;
     padding:16px;
     box-shadow:0 2px 8px rgba(0,0,0,.06);
+    border:1px solid #e5e7eb;
 }
 
 .resumen-label{
@@ -154,6 +149,7 @@ main{
     border-radius:10px;
     margin-bottom:18px;
     font-size:14px;
+    line-height:1.4;
 }
 
 .estado.visible{
@@ -168,6 +164,11 @@ main{
 .estado.exito{
     background:#dcfce7;
     color:#166534;
+}
+
+.estado.info{
+    background:#dbeafe;
+    color:#1e40af;
 }
 
 .cargando{
@@ -245,6 +246,7 @@ main{
     margin-bottom:14px;
     font-size:13px;
     color:#4b5563;
+    line-height:1.5;
 }
 
 .acciones{
@@ -259,6 +261,11 @@ main{
     padding:11px 8px;
     font-weight:bold;
     cursor:pointer;
+}
+
+.acciones button:disabled{
+    opacity:.6;
+    cursor:not-allowed;
 }
 
 .btn-ver{
@@ -295,10 +302,7 @@ main{
     margin-bottom:6px;
 }
 
-
-/* ==========================================
-   MODAL
-========================================== */
+/* MODAL */
 
 .modal{
     position:fixed;
@@ -377,6 +381,7 @@ main{
 .detalle strong{
     font-size:14px;
     word-break:break-word;
+    line-height:1.5;
 }
 
 .firma-box{
@@ -430,6 +435,7 @@ main{
     color:#111827;
 }
 
+/* RESPONSIVE */
 
 @media(max-width:600px){
 
@@ -467,10 +473,7 @@ main{
 
 }
 
-
-/* ==========================================
-   IMPRESIÓN
-========================================== */
+/* IMPRESIÓN */
 
 @media print{
 
@@ -495,7 +498,6 @@ main{
 </style>
 
 </head>
-
 
 <body>
 
@@ -529,7 +531,6 @@ Tu empresa. Todo organizado.
 
 </header>
 
-
 <main>
 
 <h1 class="titulo">
@@ -539,7 +540,6 @@ Tu empresa. Todo organizado.
 <p class="descripcion">
 Consultá las conformidades de trabajos registrados y accedé a la firma del cliente y su constancia.
 </p>
-
 
 <div class="resumen">
 
@@ -558,7 +558,6 @@ Total conformidades
 
 </div>
 
-
 <div class="resumen-card">
 
 <div class="resumen-label">
@@ -576,13 +575,11 @@ Resultados
 
 </div>
 
-
 <div
     id="estado"
     class="estado"
 >
 </div>
-
 
 <section class="busqueda">
 
@@ -599,7 +596,6 @@ Resultados
 
 </section>
 
-
 <div
     id="cargando"
     class="cargando"
@@ -607,14 +603,12 @@ Resultados
 Cargando conformidades...
 </div>
 
-
 <div
     id="lista"
     class="lista"
     style="display:none;"
 >
 </div>
-
 
 <div
     id="sinResultados"
@@ -641,9 +635,7 @@ Las conformidades registradas aparecerán acá.
 </div>
 
 
-<!-- ==========================================
-     MODAL DETALLE
-========================================== -->
+<!-- MODAL -->
 
 <div
     id="modal"
@@ -668,7 +660,6 @@ Detalle de conformidad
 
 </div>
 
-
 <div
     id="modalBody"
     class="modal-body"
@@ -691,16 +682,15 @@ import {
     db
 } from "./Js/firebase.js";
 
-
 import {
     onAuthStateChanged
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-
 import {
     collection,
     getDocs,
+    getDoc,
     deleteDoc,
     doc
 } from
@@ -751,6 +741,10 @@ document.getElementById("btnCerrar");
 
 let usuarioActual = null;
 
+let empresaIdActual = "";
+
+let empresaActual = {};
+
 let conformidades = [];
 
 let conformidadSeleccionada = null;
@@ -762,7 +756,7 @@ let conformidadSeleccionada = null;
 
 btnVolver.addEventListener(
     "click",
-    () => {
+    function(){
 
         window.location.href =
         "index.html";
@@ -811,6 +805,305 @@ function escapar(
 
 
 // ==========================================
+// FECHA
+// ==========================================
+
+function formatoFecha(
+    valor
+){
+
+    if(!valor){
+
+        return "-";
+
+    }
+
+
+    if(
+        typeof valor.toDate ===
+        "function"
+    ){
+
+        return valor
+        .toDate()
+        .toLocaleDateString(
+            "es-AR"
+        );
+
+    }
+
+
+    const texto =
+    String(valor);
+
+
+    if(
+        /^\d{4}-\d{2}-\d{2}$/.test(
+            texto
+        )
+    ){
+
+        const partes =
+        texto.split("-");
+
+        return (
+            partes[2] +
+            "/" +
+            partes[1] +
+            "/" +
+            partes[0]
+        );
+
+    }
+
+
+    return texto;
+
+}
+
+
+// ==========================================
+// OBTENER EMPRESA
+// ==========================================
+
+async function cargarEmpresa(){
+
+    empresaIdActual =
+    "";
+
+
+    empresaActual =
+    {};
+
+
+    try{
+
+        const referenciaUsuario =
+        doc(
+            db,
+            "usuarios",
+            usuarioActual.uid
+        );
+
+
+        const documentoUsuario =
+        await getDoc(
+            referenciaUsuario
+        );
+
+
+        let datosUsuario = {};
+
+
+        if(
+            documentoUsuario.exists()
+        ){
+
+            datosUsuario =
+            documentoUsuario.data();
+
+        }
+
+
+        /*
+         * MISMA LÓGICA UTILIZADA
+         * EN EL MÓDULO COBROS.
+         */
+
+        empresaIdActual =
+        String(
+            datosUsuario.empresaId ||
+            datosUsuario.empresa ||
+            ""
+        ).trim();
+
+
+        /*
+         * Si el usuario tiene empresaId,
+         * buscamos directamente esa empresa.
+         */
+
+        if(empresaIdActual){
+
+            const referenciaEmpresa =
+            doc(
+                db,
+                "empresas",
+                empresaIdActual
+            );
+
+
+            const documentoEmpresa =
+            await getDoc(
+                referenciaEmpresa
+            );
+
+
+            if(
+                documentoEmpresa.exists()
+            ){
+
+                empresaActual =
+                documentoEmpresa.data();
+
+            }
+
+            return;
+
+        }
+
+
+        /*
+         * Compatibilidad:
+         * si no existe empresaId,
+         * buscamos empresa vinculada al UID.
+         */
+
+        const empresasSnapshot =
+        await getDocs(
+            collection(
+                db,
+                "empresas"
+            )
+        );
+
+
+        for(
+            const documento
+            of empresasSnapshot.docs
+        ){
+
+            const datos =
+            documento.data();
+
+
+            if(
+                documento.id ===
+                usuarioActual.uid
+                ||
+                datos.uid ===
+                usuarioActual.uid
+                ||
+                datos.usuarioId ===
+                usuarioActual.uid
+            ){
+
+                empresaIdActual =
+                documento.id;
+
+                empresaActual =
+                datos;
+
+                return;
+
+            }
+
+        }
+
+
+        /*
+         * Última compatibilidad:
+         * UID como ID de empresa.
+         */
+
+        empresaIdActual =
+        usuarioActual.uid;
+
+    }
+    catch(error){
+
+        console.error(
+            "Error obteniendo empresa:",
+            error
+        );
+
+
+        empresaIdActual =
+        usuarioActual.uid;
+
+    }
+
+}
+
+
+// ==========================================
+// VERIFICAR PERTENENCIA
+// ==========================================
+
+function perteneceAUsuarioOEmpresa(
+    datos
+){
+
+    /*
+     * Estructura nueva:
+     */
+
+    if(
+        datos.empresaId &&
+        String(datos.empresaId) ===
+        String(empresaIdActual)
+    ){
+
+        return true;
+
+    }
+
+
+    /*
+     * Compatibilidad con estructura
+     * anterior por usuarioId.
+     */
+
+    if(
+        datos.usuarioId &&
+        String(datos.usuarioId) ===
+        String(usuarioActual.uid)
+    ){
+
+        return true;
+
+    }
+
+
+    /*
+     * Compatibilidad con estructura
+     * antigua por uid.
+     */
+
+    if(
+        datos.uid &&
+        String(datos.uid) ===
+        String(usuarioActual.uid)
+    ){
+
+        return true;
+
+    }
+
+
+    /*
+     * Compatibilidad cuando empresaId
+     * era directamente el UID.
+     */
+
+    if(
+        empresaIdActual ===
+        usuarioActual.uid &&
+        datos.empresaId ===
+        usuarioActual.uid
+    ){
+
+        return true;
+
+    }
+
+
+    return false;
+
+}
+
+
+// ==========================================
 // CARGAR CONFORMIDADES
 // ==========================================
 
@@ -841,35 +1134,16 @@ async function cargarConformidades(){
 
 
         snapshot.forEach(
-            (documento) => {
+            function(documento){
 
                 const datos =
                 documento.data();
 
 
-                /*
-                 * Aceptamos las dos estructuras
-                 * utilizadas en GESBASE:
-                 *
-                 * usuarioId
-                 * empresaId
-                 */
-
                 if(
-                    datos.usuarioId &&
-                    datos.usuarioId !==
-                    usuarioActual.uid
-                ){
-
-                    return;
-
-                }
-
-
-                if(
-                    datos.empresaId &&
-                    datos.empresaId !==
-                    usuarioActual.uid
+                    !perteneceAUsuarioOEmpresa(
+                        datos
+                    )
                 ){
 
                     return;
@@ -891,20 +1165,24 @@ async function cargarConformidades(){
 
 
         conformidades.sort(
-            (a,b) => {
+            function(a,b){
 
                 const fechaA =
-                a.fechaTrabajo ||
-                "";
+                String(
+                    a.fechaTrabajo ||
+                    ""
+                );
+
 
                 const fechaB =
-                b.fechaTrabajo ||
-                "";
+                String(
+                    b.fechaTrabajo ||
+                    ""
+                );
 
-                return String(
-                    fechaB
-                ).localeCompare(
-                    String(fechaA)
+
+                return fechaB.localeCompare(
+                    fechaA
                 );
 
             }
@@ -965,7 +1243,7 @@ function aplicarBusqueda(){
 
     const resultados =
     conformidades.filter(
-        (item) => {
+        function(item){
 
             if(!texto){
 
@@ -988,7 +1266,11 @@ function aplicarBusqueda(){
 
                 item.fechaTrabajo,
 
-                item.estado
+                item.estado,
+
+                item.observacionesTrabajo,
+
+                item.observacionesConformidad
 
             ]
             .join(" ")
@@ -1049,7 +1331,7 @@ function renderizar(
 
 
     resultados.forEach(
-        (conformidad) => {
+        function(conformidad){
 
             const tarjeta =
             document.createElement(
@@ -1059,6 +1341,12 @@ function renderizar(
 
             tarjeta.className =
             "conformidad";
+
+
+            const firmaTexto =
+            conformidad.firma
+            ? "✍️ Guardada"
+            : "⚠️ Sin firma";
 
 
             tarjeta.innerHTML = `
@@ -1112,8 +1400,9 @@ function renderizar(
 
                         <strong>
                         ${escapar(
-                            conformidad.fechaTrabajo ||
-                            "Sin fecha"
+                            formatoFecha(
+                                conformidad.fechaTrabajo
+                            )
                         )}
                         </strong>
 
@@ -1143,10 +1432,7 @@ function renderizar(
                         </small>
 
                         <strong>
-                        ${conformidad.firma
-                            ? "✍️ Guardada"
-                            : "⚠️ Sin firma"
-                        }
+                        ${firmaTexto}
                         </strong>
 
                     </div>
@@ -1156,22 +1442,24 @@ function renderizar(
 
                 ${
                     conformidad.observacionesConformidad
-                    ? `
-                        <div class="observaciones">
-
-                            <strong>
-                            Observaciones:
-                            </strong>
-
-                            <br>
-
-                            ${escapar(
-                                conformidad.observacionesConformidad
-                            )}
-
-                        </div>
+                    ?
                     `
-                    : ""
+                    <div class="observaciones">
+
+                        <strong>
+                        Observaciones:
+                        </strong>
+
+                        <br>
+
+                        ${escapar(
+                            conformidad.observacionesConformidad
+                        )}
+
+                    </div>
+                    `
+                    :
+                    ""
                 }
 
 
@@ -1180,7 +1468,9 @@ function renderizar(
                     <button
                         type="button"
                         class="btn-ver"
-                        data-ver="${conformidad.id}"
+                        data-ver="${escapar(
+                            conformidad.id
+                        )}"
                     >
                         👁️ Ver
                     </button>
@@ -1189,7 +1479,9 @@ function renderizar(
                     <button
                         type="button"
                         class="btn-pdf"
-                        data-pdf="${conformidad.id}"
+                        data-pdf="${escapar(
+                            conformidad.id
+                        )}"
                     >
                         📄 PDF
                     </button>
@@ -1198,7 +1490,9 @@ function renderizar(
                     <button
                         type="button"
                         class="btn-eliminar"
-                        data-eliminar="${conformidad.id}"
+                        data-eliminar="${escapar(
+                            conformidad.id
+                        )}"
                     >
                         🗑️ Eliminar
                     </button>
@@ -1214,7 +1508,7 @@ function renderizar(
             )
             .addEventListener(
                 "click",
-                () => {
+                function(){
 
                     mostrarDetalle(
                         conformidad
@@ -1230,7 +1524,7 @@ function renderizar(
             )
             .addEventListener(
                 "click",
-                () => {
+                function(){
 
                     generarPDF(
                         conformidad
@@ -1246,7 +1540,7 @@ function renderizar(
             )
             .addEventListener(
                 "click",
-                () => {
+                function(){
 
                     eliminarConformidad(
                         conformidad
@@ -1306,8 +1600,9 @@ function mostrarDetalle(
 
                 <strong>
                 ${escapar(
-                    conformidad.fechaTrabajo ||
-                    "Sin fecha"
+                    formatoFecha(
+                        conformidad.fechaTrabajo
+                    )
                 )}
                 </strong>
 
@@ -1388,17 +1683,21 @@ function mostrarDetalle(
 
             ${
                 conformidad.firma
-                ? `
-                    <img
-                        class="firma-imagen"
-                        src="${conformidad.firma}"
-                        alt="Firma del cliente"
-                    >
+                ?
                 `
-                : `
-                    <div class="sin-firma">
-                        No hay una firma guardada.
-                    </div>
+                <img
+                    class="firma-imagen"
+                    src="${escapar(
+                        conformidad.firma
+                    )}"
+                    alt="Firma del cliente"
+                >
+                `
+                :
+                `
+                <div class="sin-firma">
+                    No hay una firma guardada.
+                </div>
                 `
             }
 
@@ -1435,7 +1734,7 @@ function mostrarDetalle(
     )
     .addEventListener(
         "click",
-        () => {
+        function(){
 
             generarPDF(
                 conformidad
@@ -1486,7 +1785,7 @@ btnCerrar.addEventListener(
 
 modal.addEventListener(
     "click",
-    (evento) => {
+    function(evento){
 
         if(
             evento.target === modal
@@ -1501,12 +1800,19 @@ modal.addEventListener(
 
 
 // ==========================================
-// ELIMINAR
+// ELIMINAR CONFORMIDAD
 // ==========================================
 
 async function eliminarConformidad(
     conformidad
 ){
+
+    if(!usuarioActual){
+
+        return;
+
+    }
+
 
     const confirmar =
     confirm(
@@ -1525,25 +1831,92 @@ async function eliminarConformidad(
     try{
 
         mostrarEstado(
+            "Verificando conformidad...",
+            "info"
+        );
+
+
+        /*
+         * VOLVEMOS A LEER EL DOCUMENTO
+         * ANTES DE ELIMINAR.
+         */
+
+        const referencia =
+        doc(
+            db,
+            "conformidades",
+            conformidad.id
+        );
+
+
+        const documento =
+        await getDoc(
+            referencia
+        );
+
+
+        if(
+            !documento.exists()
+        ){
+
+            mostrarEstado(
+                "La conformidad ya no existe.",
+                "error"
+            );
+
+
+            await cargarConformidades();
+
+            return;
+
+        }
+
+
+        const datos =
+        documento.data();
+
+
+        /*
+         * IMPORTANTE:
+         * Nunca eliminar un documento
+         * que pertenezca a otra empresa.
+         */
+
+        if(
+            !perteneceAUsuarioOEmpresa(
+                datos
+            )
+        ){
+
+            mostrarEstado(
+                "No tenés permiso para eliminar esta conformidad.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        mostrarEstado(
             "Eliminando conformidad...",
-            "exito"
+            "info"
         );
 
 
         await deleteDoc(
-            doc(
-                db,
-                "conformidades",
-                conformidad.id
-            )
+            referencia
         );
 
 
         conformidades =
         conformidades.filter(
-            item =>
-            item.id !==
-            conformidad.id
+            function(item){
+
+                return item.id !==
+                conformidad.id;
+
+            }
         );
 
 
@@ -1559,7 +1932,7 @@ async function eliminarConformidad(
     catch(error){
 
         console.error(
-            "Error eliminando:",
+            "Error eliminando conformidad:",
             error
         );
 
@@ -1606,309 +1979,412 @@ function generarPDF(
     datos.firma || "";
 
 
-    const fechaRegistro =
-    datos.fechaCreacion &&
-    typeof datos.fechaCreacion.toDate ===
-    "function"
-    ? datos.fechaCreacion.toDate()
-    : new Date();
+    let fechaRegistro =
+    new Date();
+
+
+    if(
+        datos.fechaCreacion &&
+        typeof datos.fechaCreacion.toDate ===
+        "function"
+    ){
+
+        fechaRegistro =
+        datos.fechaCreacion.toDate();
+
+    }
+
+
+    const empresaNombre =
+    empresaActual.nombreEmpresa ||
+    empresaActual.nombre ||
+    empresaActual.razonSocial ||
+    "GESBASE";
+
+
+    const empresaRazon =
+    empresaActual.razonSocial ||
+    "";
+
+
+    const empresaCuit =
+    empresaActual.cuit ||
+    "";
+
+
+    const empresaTelefono =
+    empresaActual.telefono ||
+    "";
+
+
+    const empresaEmail =
+    empresaActual.email ||
+    "";
+
+
+    const empresaDireccion =
+    empresaActual.direccion ||
+    "";
+
+
+    const logo =
+    empresaActual.logoUrl ||
+    empresaActual.logo ||
+    empresaActual.logoURL ||
+    "";
+
+
+    const datosEmpresa = [
+
+        empresaRazon,
+
+        empresaCuit
+        ? "CUIT: " + empresaCuit
+        : "",
+
+        empresaTelefono
+        ? "Tel: " + empresaTelefono
+        : "",
+
+        empresaEmail,
+
+        empresaDireccion
+
+    ]
+    .filter(Boolean)
+    .join(" | ");
 
 
     ventana.document.write(`
 
-        <!DOCTYPE html>
-
-        <html lang="es">
-
-        <head>
-
-        <meta charset="UTF-8">
-
-        <title>
-        Constancia de conformidad - GESBASE
-        </title>
-
-        <style>
-
-        @page{
-            size:A4;
-            margin:20mm;
-        }
-
-        body{
-            font-family:Arial,sans-serif;
-            color:#111827;
-            line-height:1.5;
-        }
-
-        .encabezado{
-            border-bottom:2px solid #111827;
-            padding-bottom:15px;
-            margin-bottom:25px;
-        }
-
-        .logo{
-            font-size:28px;
-            font-weight:bold;
-        }
-
-        .subtitulo{
-            color:#6b7280;
-            font-size:13px;
-        }
-
-        .titulo{
-            font-size:21px;
-            font-weight:bold;
-            margin-bottom:25px;
-        }
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>
+Constancia de conformidad - GESBASE
+</title>
+
+<style>
+
+@page{
+    size:A4;
+    margin:20mm;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    color:#111827;
+    line-height:1.5;
+}
+
+.encabezado{
+    border-bottom:2px solid #111827;
+    padding-bottom:15px;
+    margin-bottom:25px;
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+}
+
+.logo-texto{
+    font-size:28px;
+    font-weight:bold;
+}
+
+.subtitulo{
+    color:#6b7280;
+    font-size:13px;
+}
+
+.logo-empresa{
+    max-width:130px;
+    max-height:80px;
+    object-fit:contain;
+}
+
+.titulo{
+    font-size:21px;
+    font-weight:bold;
+    margin-bottom:25px;
+}
+
+.campo{
+    margin-bottom:16px;
+}
+
+.etiqueta{
+    font-size:11px;
+    color:#6b7280;
+    font-weight:bold;
+}
+
+.valor{
+    font-size:14px;
+    font-weight:bold;
+    margin-top:3px;
+}
+
+.observaciones{
+    border:1px solid #d1d5db;
+    padding:12px;
+    min-height:70px;
+    margin-top:5px;
+    white-space:pre-wrap;
+}
+
+.texto-conformidad{
+    margin-top:25px;
+    padding:15px;
+    background:#f3f4f6;
+    border-radius:6px;
+}
+
+.firma{
+    margin-top:35px;
+    page-break-inside:avoid;
+}
+
+.firma img{
+    display:block;
+    max-width:320px;
+    max-height:150px;
+    object-fit:contain;
+    margin-top:12px;
+    border-bottom:1px solid #111827;
+}
+
+.sin-firma{
+    margin-top:15px;
+    color:#991b1b;
+}
 
-        .campo{
-            margin-bottom:16px;
-        }
+.pie{
+    margin-top:45px;
+    padding-top:12px;
+    border-top:1px solid #d1d5db;
+    color:#6b7280;
+    font-size:10px;
+}
 
-        .etiqueta{
-            font-size:11px;
-            color:#6b7280;
-            font-weight:bold;
-        }
-
-        .valor{
-            font-size:14px;
-            font-weight:bold;
-            margin-top:3px;
-        }
+</style>
 
-        .observaciones{
-            border:1px solid #d1d5db;
-            padding:12px;
-            min-height:70px;
-            margin-top:5px;
-        }
+</head>
 
-        .texto-conformidad{
-            margin-top:25px;
-            padding:15px;
-            background:#f3f4f6;
-            border-radius:6px;
-        }
+<body>
 
-        .firma{
-            margin-top:35px;
-            page-break-inside:avoid;
-        }
+<div class="encabezado">
 
-        .firma img{
-            display:block;
-            max-width:320px;
-            max-height:150px;
-            object-fit:contain;
-            margin-top:12px;
-            border-bottom:1px solid #111827;
-        }
+<div>
 
-        .sin-firma{
-            margin-top:15px;
-            color:#991b1b;
-        }
+<div class="logo-texto">
+${escapeHTML(empresaNombre)}
+</div>
 
-        .pie{
-            margin-top:45px;
-            padding-top:12px;
-            border-top:1px solid #d1d5db;
-            color:#6b7280;
-            font-size:10px;
-        }
+<div class="subtitulo">
+GESBASE — Tu empresa. Todo organizado.
+</div>
 
-        </style>
+<div class="subtitulo">
+${escapeHTML(datosEmpresa)}
+</div>
 
-        </head>
+</div>
 
-        <body>
+${
+    logo
+    ?
+    `
+    <img
+        class="logo-empresa"
+        src="${escapeHTML(logo)}"
+        alt="Logo"
+    >
+    `
+    :
+    ""
+}
 
-        <div class="encabezado">
+</div>
 
-            <div class="logo">
-            GESBASE
-            </div>
 
-            <div class="subtitulo">
-            Tu empresa. Todo organizado.
-            </div>
+<div class="titulo">
+CONSTANCIA DE CONFORMIDAD DE TRABAJO
+</div>
 
-        </div>
 
+<div class="campo">
 
-        <div class="titulo">
-        CONSTANCIA DE CONFORMIDAD DE TRABAJO
-        </div>
+<div class="etiqueta">
+CLIENTE
+</div>
 
+<div class="valor">
+${escapeHTML(
+    datos.cliente ||
+    "Sin informar"
+)}
+</div>
 
-        <div class="campo">
+</div>
 
-            <div class="etiqueta">
-            CLIENTE
-            </div>
 
-            <div class="valor">
-            ${escapeHTML(
-                datos.cliente ||
-                "Sin informar"
-            )}
-            </div>
+<div class="campo">
 
-        </div>
+<div class="etiqueta">
+TRABAJO REALIZADO
+</div>
 
+<div class="valor">
+${escapeHTML(
+    datos.trabajo ||
+    "Sin informar"
+)}
+</div>
 
-        <div class="campo">
+</div>
 
-            <div class="etiqueta">
-            TRABAJO REALIZADO
-            </div>
 
-            <div class="valor">
-            ${escapeHTML(
-                datos.trabajo ||
-                "Sin informar"
-            )}
-            </div>
+<div class="campo">
 
-        </div>
+<div class="etiqueta">
+LUGAR
+</div>
 
+<div class="valor">
+${escapeHTML(
+    datos.lugar ||
+    "Sin informar"
+)}
+</div>
 
-        <div class="campo">
+</div>
 
-            <div class="etiqueta">
-            LUGAR
-            </div>
 
-            <div class="valor">
-            ${escapeHTML(
-                datos.lugar ||
-                "Sin informar"
-            )}
-            </div>
+<div class="campo">
 
-        </div>
+<div class="etiqueta">
+FECHA DEL TRABAJO
+</div>
 
+<div class="valor">
+${escapeHTML(
+    formatoFecha(
+        datos.fechaTrabajo
+    )
+)}
+</div>
 
-        <div class="campo">
+</div>
 
-            <div class="etiqueta">
-            FECHA DEL TRABAJO
-            </div>
 
-            <div class="valor">
-            ${escapeHTML(
-                datos.fechaTrabajo ||
-                "Sin informar"
-            )}
-            </div>
+<div class="campo">
 
-        </div>
+<div class="etiqueta">
+OBSERVACIONES DEL TRABAJO
+</div>
 
+<div class="observaciones">
+${escapeHTML(
+    datos.observacionesTrabajo ||
+    "Sin observaciones."
+)}
+</div>
 
-        <div class="campo">
+</div>
 
-            <div class="etiqueta">
-            OBSERVACIONES DEL TRABAJO
-            </div>
 
-            <div class="observaciones">
+<div class="campo">
 
-            ${escapeHTML(
-                datos.observacionesTrabajo ||
-                "Sin observaciones."
-            )}
+<div class="etiqueta">
+OBSERVACIONES DE CONFORMIDAD
+</div>
 
-            </div>
+<div class="observaciones">
+${escapeHTML(
+    datos.observacionesConformidad ||
+    "Sin observaciones."
+)}
+</div>
 
-        </div>
+</div>
 
 
-        <div class="campo">
+<div class="texto-conformidad">
 
-            <div class="etiqueta">
-            OBSERVACIONES DE CONFORMIDAD
-            </div>
+Declaro haber recibido y revisado el trabajo indicado
+y manifiesto mi conformidad con el trabajo realizado.
 
-            <div class="observaciones">
+</div>
 
-            ${escapeHTML(
-                datos.observacionesConformidad ||
-                "Sin observaciones."
-            )}
 
-            </div>
+<div class="firma">
 
-        </div>
+<strong>
+Firma del cliente
+</strong>
 
+${
+    firma
+    ?
+    `
+    <img
+        src="${escapeHTML(firma)}"
+        alt="Firma del cliente"
+    >
+    `
+    :
+    `
+    <div class="sin-firma">
+    No hay firma registrada.
+    </div>
+    `
+}
 
-        <div class="texto-conformidad">
+</div>
 
-        Declaro haber recibido y revisado el trabajo indicado
-        y manifiesto mi conformidad con el trabajo realizado.
 
-        </div>
+<div class="pie">
 
+Documento generado por GESBASE.
 
-        <div class="firma">
+<br>
 
-            <strong>
-            Firma del cliente
-            </strong>
+Fecha de registro:
+${escapeHTML(
+    fechaRegistro.toLocaleString(
+        "es-AR"
+    )
+)}
 
-            ${
-                firma
-                ? `
-                    <img
-                        src="${firma}"
-                        alt="Firma del cliente"
-                    >
-                `
-                : `
-                    <div class="sin-firma">
-                    No hay firma registrada.
-                    </div>
-                `
-            }
+</div>
 
-        </div>
 
+<script>
 
-        <div class="pie">
+window.onload = function(){
 
-        Documento generado por GESBASE.
+    setTimeout(
+        function(){
 
-        <br>
+            window.print();
 
-        Fecha de registro:
-        ${fechaRegistro.toLocaleString("es-AR")}
+        },
+        700
+    );
 
-        </div>
+};
 
+<\/script>
 
-        <script>
 
-        window.onload = function(){
+</body>
 
-            setTimeout(
-                function(){
-
-                    window.print();
-
-                },
-                700
-            );
-
-        };
-
-        <\/script>
-
-
-        </body>
-
-        </html>
+</html>
 
     `);
 
@@ -1959,7 +2435,7 @@ function escapeHTML(
 
 onAuthStateChanged(
     auth,
-    async (usuario) => {
+    async function(usuario){
 
         if(!usuario){
 
@@ -1976,7 +2452,43 @@ onAuthStateChanged(
         usuario;
 
 
-        await cargarConformidades();
+        try{
+
+            /*
+             * PRIMERO:
+             * identificar empresa.
+             */
+
+            await cargarEmpresa();
+
+
+            /*
+             * DESPUÉS:
+             * cargar conformidades.
+             */
+
+            await cargarConformidades();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error inicializando Conformidades:",
+                error
+            );
+
+
+            cargando.style.display =
+            "none";
+
+
+            mostrarEstado(
+                "No se pudo iniciar el módulo Conformidades. " +
+                error.message,
+                "error"
+            );
+
+        }
 
     }
 );
