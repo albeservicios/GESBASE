@@ -187,12 +187,9 @@ input:focus{
 
 </head>
 
-
 <body>
 
-
 <div class="contenedor">
-
 
 <header>
 
@@ -206,22 +203,17 @@ Gestión para empresas y profesionales
 
 </header>
 
-
 <main>
-
 
 <h1>
 Iniciar sesión
 </h1>
 
-
 <p class="descripcion">
 Ingresá a tu cuenta para continuar utilizando GESBASE.
 </p>
 
-
 <form id="formLogin">
-
 
 <div class="campo">
 
@@ -239,7 +231,6 @@ Email
 
 </div>
 
-
 <div class="campo">
 
 <label for="password">
@@ -256,19 +247,16 @@ Contraseña
 
 </div>
 
-
 <div
     id="mensaje"
     class="mensaje"
 ></div>
-
 
 <div
     id="diagnostico"
     class="diagnostico"
     style="display:none;"
 ></div>
-
 
 <button
     type="submit"
@@ -278,7 +266,6 @@ Contraseña
 Iniciar sesión
 </button>
 
-
 <button
     type="button"
     id="btnRecuperar"
@@ -286,7 +273,6 @@ Iniciar sesión
 >
 ¿Olvidaste tu contraseña?
 </button>
-
 
 <button
     type="button"
@@ -296,9 +282,7 @@ Iniciar sesión
 Crear una cuenta
 </button>
 
-
 </form>
-
 
 <div class="registro">
 
@@ -310,14 +294,11 @@ Registrate
 
 </div>
 
-
 </main>
 
 </div>
 
-
 <script type="module">
-
 
 // ==========================================
 // FIREBASE
@@ -328,12 +309,16 @@ import {
 } from "./Js/firebase.js";
 
 
+// IMPORTANTE:
+// Usamos EXACTAMENTE la misma versión
+// que Js/firebase.js
+
 import {
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
     onAuthStateChanged
 } from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 
 // ==========================================
@@ -341,68 +326,40 @@ import {
 // ==========================================
 
 const formulario =
-document.getElementById(
-    "formLogin"
-);
-
+document.getElementById("formLogin");
 
 const emailInput =
-document.getElementById(
-    "email"
-);
-
+document.getElementById("email");
 
 const passwordInput =
-document.getElementById(
-    "password"
-);
-
+document.getElementById("password");
 
 const mensaje =
-document.getElementById(
-    "mensaje"
-);
-
+document.getElementById("mensaje");
 
 const diagnostico =
-document.getElementById(
-    "diagnostico"
-);
-
+document.getElementById("diagnostico");
 
 const botonLogin =
-document.getElementById(
-    "btnLogin"
-);
-
+document.getElementById("btnLogin");
 
 const botonRegistro =
-document.getElementById(
-    "btnRegistro"
-);
-
+document.getElementById("btnRegistro");
 
 const botonRecuperar =
-document.getElementById(
-    "btnRecuperar"
-);
+document.getElementById("btnRecuperar");
 
 
 // ==========================================
 // MENSAJE
 // ==========================================
 
-function mostrarMensaje(
-    texto,
-    tipo
-){
+function mostrarMensaje(texto,tipo){
 
-    mensaje.textContent =
-        texto;
+    mensaje.textContent = texto;
 
     mensaje.className =
-        "mensaje " +
-        tipo;
+        "mensaje " + tipo;
 
 }
 
@@ -411,23 +368,40 @@ function mostrarMensaje(
 // DIAGNÓSTICO
 // ==========================================
 
-function mostrarDiagnostico(
-    error
-){
+function mostrarDiagnostico(error){
 
-    diagnostico.style.display =
-        "block";
+    diagnostico.style.display = "block";
 
     diagnostico.innerHTML =
+
         "<strong>Diagnóstico Firebase</strong><br><br>" +
 
         "Código: " +
-        String(error.code || "sin código") +
+        String(
+            error.code ||
+            "sin código"
+        ) +
 
         "<br><br>" +
 
         "Mensaje: " +
-        String(error.message || "sin mensaje");
+        String(
+            error.message ||
+            "sin mensaje"
+        );
+
+}
+
+
+// ==========================================
+// LIMPIAR DIAGNÓSTICO
+// ==========================================
+
+function ocultarDiagnostico(){
+
+    diagnostico.style.display = "none";
+
+    diagnostico.innerHTML = "";
 
 }
 
@@ -473,16 +447,12 @@ botonRecuperar.addEventListener(
         }
 
 
-        botonRecuperar.disabled =
-            true;
-
+        botonRecuperar.disabled = true;
 
         botonRecuperar.textContent =
             "Enviando...";
 
-
-        diagnostico.style.display =
-            "none";
+        ocultarDiagnostico();
 
 
         try{
@@ -507,9 +477,7 @@ botonRecuperar.addEventListener(
             );
 
 
-            mostrarDiagnostico(
-                error
-            );
+            mostrarDiagnostico(error);
 
 
             let texto =
@@ -545,7 +513,15 @@ botonRecuperar.addEventListener(
                 case "auth/network-request-failed":
 
                     texto =
-                        "Firebase no pudo completar la conexión. Revisá el diagnóstico que aparece debajo.";
+                        "Firebase no pudo completar la conexión.";
+
+                    break;
+
+
+                case "auth/api-key-not-valid":
+
+                    texto =
+                        "La API Key de Firebase no es válida.";
 
                     break;
 
@@ -560,9 +536,7 @@ botonRecuperar.addEventListener(
         }
 
 
-        botonRecuperar.disabled =
-            false;
-
+        botonRecuperar.disabled = false;
 
         botonRecuperar.textContent =
             "¿Olvidaste tu contraseña?";
@@ -631,16 +605,12 @@ formulario.addEventListener(
         }
 
 
-        botonLogin.disabled =
-            true;
-
+        botonLogin.disabled = true;
 
         botonLogin.textContent =
             "Ingresando...";
 
-
-        diagnostico.style.display =
-            "none";
+        ocultarDiagnostico();
 
 
         mostrarMensaje(
@@ -671,8 +641,15 @@ formulario.addEventListener(
             );
 
 
-            window.location.replace(
-                "index.html"
+            setTimeout(
+                function(){
+
+                    window.location.replace(
+                        "index.html"
+                    );
+
+                },
+                500
             );
 
         }
@@ -684,10 +661,7 @@ formulario.addEventListener(
             );
 
 
-            // Mostrar diagnóstico exacto
-            mostrarDiagnostico(
-                error
-            );
+            mostrarDiagnostico(error);
 
 
             let texto =
@@ -783,9 +757,7 @@ formulario.addEventListener(
             );
 
 
-            botonLogin.disabled =
-                false;
-
+            botonLogin.disabled = false;
 
             botonLogin.textContent =
                 "Iniciar sesión";
@@ -796,7 +768,6 @@ formulario.addEventListener(
 );
 
 </script>
-
 
 </body>
 
