@@ -1,5 +1,5 @@
 export const firebaseConfig = {
-    apiKey: "TU_API_KEY_NUEVA",
+    apiKey: "AIzaSyDJhmtS1_DxjkkNrZ8HpreqwpSZieubZ5s",
     authDomain: "gesbase-4bf94.firebaseapp.com",
     projectId: "gesbase-4bf94",
     storageBucket: "gesbase-4bf94.firebasestorage.app",
