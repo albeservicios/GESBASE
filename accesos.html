@@ -15,6 +15,11 @@
     content="#111827"
 >
 
+<meta
+    name="description"
+    content="GESBASE - Panel de administración de accesos"
+>
+
 <title>Accesos - GESBASE</title>
 
 <style>
@@ -67,10 +72,6 @@ main{
     font-weight:bold;
     cursor:pointer;
     margin-bottom:18px;
-}
-
-.volver:hover{
-    background:#1f2937;
 }
 
 .tarjeta{
@@ -191,22 +192,6 @@ tr:hover{
     color:#991b1b;
 }
 
-.prueba{
-    background:#dbeafe;
-    color:#1d4ed8;
-}
-
-.pendiente{
-    background:#fef3c7;
-    color:#92400e;
-}
-
-.botones{
-    display:flex;
-    gap:7px;
-    flex-wrap:wrap;
-}
-
 .boton{
     border:0;
     border-radius:8px;
@@ -229,6 +214,12 @@ tr:hover{
 .boton:disabled{
     opacity:.5;
     cursor:not-allowed;
+}
+
+.botones{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
 }
 
 .cargando{
@@ -301,17 +292,13 @@ tr:hover{
 
 </head>
 
-
 <body>
 
 <div class="app">
 
-
 <header>
 
-<h1>
-GESBASE
-</h1>
+<h1>GESBASE</h1>
 
 <p>
 Panel de administración de accesos
@@ -319,9 +306,7 @@ Panel de administración de accesos
 
 </header>
 
-
 <main>
-
 
 <button
     type="button"
@@ -331,19 +316,12 @@ Panel de administración de accesos
 ← Volver al panel
 </button>
 
-
 <div
     id="mensaje"
     class="mensaje"
 ></div>
 
-
-<!-- =========================================
-     RESUMEN
-========================================= -->
-
 <div class="resumen">
-
 
 <div class="resumen-item">
 
@@ -360,7 +338,6 @@ Usuarios registrados
 
 </div>
 
-
 <div class="resumen-item">
 
 <div
@@ -375,7 +352,6 @@ Accesos habilitados
 </div>
 
 </div>
-
 
 <div class="resumen-item">
 
@@ -392,21 +368,13 @@ Accesos bloqueados
 
 </div>
 
-
 </div>
 
-
-<!-- =========================================
-     USUARIOS
-========================================= -->
-
 <div class="tarjeta">
-
 
 <div class="titulo">
 🔐 Control de accesos
 </div>
-
 
 <div class="descripcion">
 
@@ -416,7 +384,6 @@ usuarios a GESBASE.
 
 </div>
 
-
 <input
     type="search"
     id="busqueda"
@@ -424,18 +391,16 @@ usuarios a GESBASE.
     placeholder="🔎 Buscar por email, empresa o nombre..."
 >
 
-
 <div
     id="tablaContenedor"
     class="tabla-contenedor"
 >
 
 <div class="cargando">
-Cargando usuarios...
+Verificando acceso...
 </div>
 
 </div>
-
 
 <div class="nota">
 
@@ -447,106 +412,83 @@ manualmente cuándo habilitar o bloquear la cuenta.
 
 </div>
 
-
 </div>
-
 
 </main>
 
 </div>
 
-
 <script type="module">
 
-
-/* ==========================================
+/* =====================================================
    FIREBASE
-========================================== */
+   IMPORTANTE:
+   Se utiliza la misma configuración central de GESBASE.
+===================================================== */
 
 import {
     auth,
     db
 } from "./Js/firebase.js";
 
-
 import {
     onAuthStateChanged
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
     collection,
     getDocs,
     doc,
-    updateDoc,
-    getDoc
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    updateDoc
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-/* ==========================================
+/* =====================================================
    ADMINISTRADOR
-========================================== */
+===================================================== */
 
 const ADMIN_EMAIL =
 "julianbattauz006@gmail.com";
 
 
-/* ==========================================
+/* =====================================================
    ELEMENTOS
-========================================== */
+===================================================== */
 
 const mensaje =
-document.getElementById(
-    "mensaje"
-);
+document.getElementById("mensaje");
 
 const tablaContenedor =
-document.getElementById(
-    "tablaContenedor"
-);
+document.getElementById("tablaContenedor");
 
 const busqueda =
-document.getElementById(
-    "busqueda"
-);
+document.getElementById("busqueda");
 
 const totalUsuarios =
-document.getElementById(
-    "totalUsuarios"
-);
+document.getElementById("totalUsuarios");
 
 const totalActivos =
-document.getElementById(
-    "totalActivos"
-);
+document.getElementById("totalActivos");
 
 const totalBloqueados =
-document.getElementById(
-    "totalBloqueados"
-);
+document.getElementById("totalBloqueados");
 
 const btnVolver =
-document.getElementById(
-    "btnVolver"
-);
+document.getElementById("btnVolver");
 
 
-/* ==========================================
+/* =====================================================
    VARIABLES
-========================================== */
+===================================================== */
 
-let usuarioAdministrador =
-null;
+let usuarioAdministrador = null;
 
-let usuarios =
-[];
+let usuarios = [];
 
 
-/* ==========================================
+/* =====================================================
    UTILIDADES
-========================================== */
+===================================================== */
 
 function texto(valor){
 
@@ -554,12 +496,10 @@ function texto(valor){
         valor === undefined ||
         valor === null
     ){
-
         return "";
-
     }
 
-    return String(valor);
+    return String(valor).trim();
 
 }
 
@@ -567,26 +507,11 @@ function texto(valor){
 function escapar(valor){
 
     return texto(valor)
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
 
 }
 
@@ -597,59 +522,37 @@ function mostrarMensaje(
 ){
 
     mensaje.textContent =
-        textoMensaje;
+    textoMensaje;
 
     mensaje.className =
-        "mensaje " + tipo;
+    "mensaje " + tipo;
 
 }
 
 
-/* ==========================================
-   ESTADO
-========================================== */
+/* =====================================================
+   ESTADO DE ACCESO
+===================================================== */
 
-function estadoAcceso(
-    usuario
-){
+function accesoHabilitado(usuario){
 
-    /*
-     * Compatibilidad con varios
-     * nombres de campo.
-     */
-
-    if(
+    return (
         usuario.accesoHabilitado === true ||
         usuario.acceso === true ||
         usuario.habilitado === true
-    ){
-
-        return "habilitado";
-
-    }
-
-
-    return "bloqueado";
+    );
 
 }
 
 
-/* ==========================================
-   BADGE ESTADO
-========================================== */
+/* =====================================================
+   ESTADO VISUAL
+===================================================== */
 
-function mostrarEstado(
-    usuario
-){
-
-    const acceso =
-        estadoAcceso(
-            usuario
-        );
-
+function mostrarEstado(usuario){
 
     if(
-        acceso === "habilitado"
+        accesoHabilitado(usuario)
     ){
 
         return `
@@ -660,7 +563,6 @@ function mostrarEstado(
 
     }
 
-
     return `
     <span class="badge bloqueado">
         🔴 Bloqueado
@@ -670,30 +572,30 @@ function mostrarEstado(
 }
 
 
-/* ==========================================
+/* =====================================================
    CARGAR USUARIOS
-========================================== */
+===================================================== */
 
 async function cargarUsuarios(){
 
-    try{
-
-        tablaContenedor.innerHTML =
-        `
+    tablaContenedor.innerHTML = `
         <div class="cargando">
             Cargando usuarios...
         </div>
-        `;
+    `;
 
+    try{
+
+        const referencia =
+        collection(
+            db,
+            "usuarios"
+        );
 
         const resultado =
         await getDocs(
-            collection(
-                db,
-                "usuarios"
-            )
+            referencia
         );
-
 
         usuarios = [];
 
@@ -705,30 +607,29 @@ async function cargarUsuarios(){
                 documento.data();
 
 
+                const email =
+                texto(
+                    datos.email
+                ).toLowerCase();
+
+
                 /*
-                 * Nunca mostramos al
-                 * administrador en la lista.
+                 * Nunca mostrar al administrador.
                  */
 
                 if(
                     documento.id ===
                     usuarioAdministrador.uid
                 ){
-
                     return;
-
                 }
 
 
                 if(
-                    texto(
-                        datos.email
-                    ).toLowerCase() ===
+                    email ===
                     ADMIN_EMAIL.toLowerCase()
                 ){
-
                     return;
-
                 }
 
 
@@ -749,25 +650,62 @@ async function cargarUsuarios(){
 
         mostrarUsuarios();
 
+
+        if(
+            usuarios.length === 0
+        ){
+
+            mostrarMensaje(
+                "No hay otros usuarios registrados en GESBASE.",
+                "info"
+            );
+
+        }
+        else{
+
+            mostrarMensaje(
+                "Usuarios cargados correctamente.",
+                "exito"
+            );
+
+        }
+
     }
     catch(error){
 
         console.error(
-            "Error cargando usuarios:",
+            "ERROR CARGANDO USUARIOS:",
             error
         );
 
 
-        tablaContenedor.innerHTML =
-        `
-        <div class="sin-datos">
-            No se pudieron cargar los usuarios.
-        </div>
+        tablaContenedor.innerHTML = `
+            <div class="sin-datos">
+                No se pudieron cargar los usuarios.
+            </div>
         `;
 
 
+        let detalle =
+        error.message ||
+        error.code ||
+        "Error desconocido";
+
+
+        if(
+            error.code ===
+            "permission-denied"
+        ){
+
+            detalle =
+            "Firebase rechazó la lectura de la colección usuarios. Revisá las reglas de Firestore.";
+
+        }
+
+
         mostrarMensaje(
-            "No se pudieron cargar los usuarios desde Firebase.",
+            "No se pudieron cargar los usuarios: " +
+            detalle,
             "error"
         );
 
@@ -776,9 +714,9 @@ async function cargarUsuarios(){
 }
 
 
-/* ==========================================
+/* =====================================================
    RESUMEN
-========================================== */
+===================================================== */
 
 function actualizarResumen(){
 
@@ -791,8 +729,7 @@ function actualizarResumen(){
         usuario => {
 
             if(
-                estadoAcceso(usuario) ===
-                "habilitado"
+                accesoHabilitado(usuario)
             ){
 
                 activos++;
@@ -809,29 +746,28 @@ function actualizarResumen(){
 
 
     totalUsuarios.textContent =
-        usuarios.length;
+    usuarios.length;
 
     totalActivos.textContent =
-        activos;
+    activos;
 
     totalBloqueados.textContent =
-        bloqueados;
+    bloqueados;
 
 }
 
 
-/* ==========================================
+/* =====================================================
    MOSTRAR USUARIOS
-========================================== */
+===================================================== */
 
 function mostrarUsuarios(){
 
     const termino =
-        texto(
-            busqueda.value
-        )
-        .trim()
-        .toLowerCase();
+    texto(
+        busqueda.value
+    )
+    .toLowerCase();
 
 
     const filtrados =
@@ -839,51 +775,39 @@ function mostrarUsuarios(){
         usuario => {
 
             if(!termino){
-
                 return true;
-
             }
 
 
             const nombre =
-                (
-                    texto(
-                        usuario.nombre
-                    ) +
-                    " " +
-                    texto(
-                        usuario.apellido
-                    )
-                )
-                .toLowerCase();
+            (
+                texto(usuario.nombre) +
+                " " +
+                texto(usuario.apellido)
+            )
+            .toLowerCase();
 
 
             const email =
-                texto(
-                    usuario.email
-                )
-                .toLowerCase();
+            texto(
+                usuario.email
+            )
+            .toLowerCase();
 
 
             const empresa =
-                texto(
-                    usuario.empresa
-                )
-                .toLowerCase();
-
-
-            const nombreEmpresa =
-                texto(
-                    usuario.nombreEmpresa
-                )
-                .toLowerCase();
+            (
+                texto(usuario.empresa) +
+                " " +
+                texto(usuario.nombreEmpresa)
+            )
+            .toLowerCase();
 
 
             return (
                 nombre.includes(termino) ||
                 email.includes(termino) ||
-                empresa.includes(termino) ||
-                nombreEmpresa.includes(termino)
+                empresa.includes(termino)
             );
 
         }
@@ -894,11 +818,10 @@ function mostrarUsuarios(){
         filtrados.length === 0
     ){
 
-        tablaContenedor.innerHTML =
-        `
-        <div class="sin-datos">
-            No se encontraron usuarios.
-        </div>
+        tablaContenedor.innerHTML = `
+            <div class="sin-datos">
+                No se encontraron usuarios.
+            </div>
         `;
 
         return;
@@ -906,33 +829,32 @@ function mostrarUsuarios(){
     }
 
 
-    let html = "";
+    let html = `
 
-
-    html += `
     <table>
 
     <thead>
 
     <tr>
 
-    <th>Usuario</th>
+        <th>Usuario</th>
 
-    <th>Empresa</th>
+        <th>Empresa</th>
 
-    <th>Plan</th>
+        <th>Plan</th>
 
-    <th>Estado suscripción</th>
+        <th>Estado suscripción</th>
 
-    <th>Acceso GESBASE</th>
+        <th>Acceso GESBASE</th>
 
-    <th>Acción</th>
+        <th>Acción</th>
 
     </tr>
 
     </thead>
 
     <tbody>
+
     `;
 
 
@@ -941,85 +863,93 @@ function mostrarUsuarios(){
 
             const nombre =
             (
-                texto(
-                    usuario.nombre
-                ) +
+                texto(usuario.nombre) +
                 " " +
-                texto(
-                    usuario.apellido
-                )
-            ).trim()
+                texto(usuario.apellido)
+            )
+            .trim()
             ||
             "Usuario";
 
 
             const empresa =
-                texto(
-                    usuario.nombreEmpresa
-                ) ||
-                texto(
-                    usuario.empresa
-                ) ||
-                "-";
+            texto(
+                usuario.nombreEmpresa
+            )
+            ||
+            texto(
+                usuario.empresa
+            )
+            ||
+            "-";
 
 
             const plan =
-                texto(
-                    usuario.planSuscripcion
-                ) ||
-                texto(
-                    usuario.plan
-                ) ||
-                texto(
-                    usuario.suscripcionPlan
-                ) ||
-                "Sin plan";
+            texto(
+                usuario.planSuscripcion
+            )
+            ||
+            texto(
+                usuario.plan
+            )
+            ||
+            texto(
+                usuario.suscripcionPlan
+            )
+            ||
+            "Sin plan";
 
 
             const estadoSuscripcion =
-                texto(
-                    usuario.estadoSuscripcion
-                ) ||
-                texto(
-                    usuario.estado
-                ) ||
-                "Pendiente";
+            texto(
+                usuario.estadoSuscripcion
+            )
+            ||
+            texto(
+                usuario.estado
+            )
+            ||
+            "Pendiente";
 
 
-            const acceso =
-                estadoAcceso(
-                    usuario
-                );
+            const habilitado =
+            accesoHabilitado(
+                usuario
+            );
 
 
-            let boton = "";
+            let boton;
 
 
-            if(
-                acceso === "habilitado"
-            ){
+            if(habilitado){
 
                 boton = `
+
                 <button
+                    type="button"
                     class="boton boton-bloquear"
                     data-id="${escapar(usuario.id)}"
                     data-accion="bloquear"
                 >
                     🔴 Bloquear
                 </button>
+
                 `;
 
             }
             else{
 
                 boton = `
+
                 <button
+                    type="button"
                     class="boton boton-habilitar"
                     data-id="${escapar(usuario.id)}"
                     data-accion="habilitar"
                 >
                     🟢 Habilitar
                 </button>
+
                 `;
 
             }
@@ -1029,58 +959,54 @@ function mostrarUsuarios(){
 
             <tr>
 
-            <td>
+                <td>
 
-                <div class="email">
+                    <div class="email">
+                        ${escapar(
+                            usuario.email || "-"
+                        )}
+                    </div>
+
+                    <div class="empresa">
+                        ${escapar(nombre)}
+                    </div>
+
+                </td>
+
+
+                <td>
+                    ${escapar(empresa)}
+                </td>
+
+
+                <td>
+                    <span class="plan">
+                        ${escapar(plan)}
+                    </span>
+                </td>
+
+
+                <td>
                     ${escapar(
-                        usuario.email ||
-                        "-"
+                        estadoSuscripcion
                     )}
-                </div>
-
-                <div class="empresa">
-                    ${escapar(nombre)}
-                </div>
-
-            </td>
+                </td>
 
 
-            <td>
-                ${escapar(empresa)}
-            </td>
+                <td>
+                    ${mostrarEstado(usuario)}
+                </td>
 
 
-            <td>
+                <td>
 
-                <span class="plan">
-                    ${escapar(plan)}
-                </span>
+                    <div class="botones">
 
-            </td>
+                        ${boton}
 
+                    </div>
 
-            <td>
-                ${escapar(
-                    estadoSuscripcion
-                )}
-            </td>
-
-
-            <td>
-                ${mostrarEstado(usuario)}
-            </td>
-
-
-            <td>
-
-                <div class="botones">
-
-                    ${boton}
-
-                </div>
-
-            </td>
-
+                </td>
 
             </tr>
 
@@ -1091,20 +1017,23 @@ function mostrarUsuarios(){
 
 
     html += `
+
     </tbody>
+
     </table>
+
     `;
 
 
     tablaContenedor.innerHTML =
-        html;
+    html;
 
 
     /*
      * Eventos de botones.
      */
 
-    document
+    tablaContenedor
     .querySelectorAll(
         "[data-accion]"
     )
@@ -1115,16 +1044,9 @@ function mostrarUsuarios(){
                 "click",
                 async function(){
 
-                    const id =
-                    this.dataset.id;
-
-                    const accion =
-                    this.dataset.accion;
-
-
                     await cambiarAcceso(
-                        id,
-                        accion,
+                        this.dataset.id,
+                        this.dataset.accion,
                         this
                     );
 
@@ -1137,9 +1059,9 @@ function mostrarUsuarios(){
 }
 
 
-/* ==========================================
+/* =====================================================
    CAMBIAR ACCESO
-========================================== */
+===================================================== */
 
 async function cambiarAcceso(
     id,
@@ -1152,7 +1074,7 @@ async function cambiarAcceso(
     ){
 
         mostrarMensaje(
-            "No hay administrador autenticado.",
+            "No hay un administrador autenticado.",
             "error"
         );
 
@@ -1162,8 +1084,9 @@ async function cambiarAcceso(
 
 
     if(
-        usuarioAdministrador.email
-        .toLowerCase() !==
+        texto(
+            usuarioAdministrador.email
+        ).toLowerCase() !==
         ADMIN_EMAIL.toLowerCase()
     ){
 
@@ -1197,18 +1120,18 @@ async function cambiarAcceso(
 
 
     const nuevoEstado =
-        accion === "habilitar";
+    accion === "habilitar";
 
 
-    const confirmacion =
-        nuevoEstado
-        ? "¿Querés HABILITAR el acceso de este usuario?"
-        : "¿Querés BLOQUEAR el acceso de este usuario?";
+    const pregunta =
+    nuevoEstado
+    ? "¿Querés HABILITAR el acceso de este usuario?"
+    : "¿Querés BLOQUEAR el acceso de este usuario?";
 
 
     if(
         !window.confirm(
-            confirmacion
+            pregunta
         )
     ){
 
@@ -1217,49 +1140,41 @@ async function cambiarAcceso(
     }
 
 
-    boton.disabled =
-        true;
+    boton.disabled = true;
 
 
     try{
 
-        /*
-         * Campo principal.
-         */
-
         await updateDoc(
+
             doc(
                 db,
                 "usuarios",
                 id
             ),
+
             {
 
                 accesoHabilitado:
-                    nuevoEstado,
-
-                /*
-                 * Fecha de modificación.
-                 * Se guarda como texto ISO para
-                 * mantener este primer sistema simple.
-                 */
+                nuevoEstado,
 
                 accesoActualizado:
-                    new Date().toISOString(),
+                new Date().toISOString(),
 
                 accesoActualizadoPor:
-                    usuarioAdministrador.email
+                usuarioAdministrador.email
 
             }
+
         );
 
 
         /*
-         * Actualizar memoria local.
+         * Actualizar usuario local.
          */
 
         usuario.accesoHabilitado =
-            nuevoEstado;
+        nuevoEstado;
 
 
         actualizarResumen();
@@ -1278,17 +1193,34 @@ async function cambiarAcceso(
     catch(error){
 
         console.error(
-            "Error cambiando acceso:",
+            "ERROR CAMBIANDO ACCESO:",
             error
         );
 
 
-        boton.disabled =
-            false;
+        boton.disabled = false;
+
+
+        let detalle =
+        error.message ||
+        error.code ||
+        "Error desconocido";
+
+
+        if(
+            error.code ===
+            "permission-denied"
+        ){
+
+            detalle =
+            "Firebase rechazó la modificación. Revisá las reglas de Firestore.";
+
+        }
 
 
         mostrarMensaje(
-            "No se pudo modificar el acceso. Revisá las reglas de Firestore.",
+            "No se pudo modificar el acceso: " +
+            detalle,
             "error"
         );
 
@@ -1297,38 +1229,34 @@ async function cambiarAcceso(
 }
 
 
-/* ==========================================
+/* =====================================================
    BUSCADOR
-========================================== */
+===================================================== */
 
 busqueda.addEventListener(
     "input",
-    function(){
-
-        mostrarUsuarios();
-
-    }
+    mostrarUsuarios
 );
 
 
-/* ==========================================
+/* =====================================================
    VOLVER
-========================================== */
+===================================================== */
 
 btnVolver.addEventListener(
     "click",
     function(){
 
         window.location.href =
-            "index.html";
+        "index.html";
 
     }
 );
 
 
-/* ==========================================
+/* =====================================================
    AUTENTICACIÓN
-========================================== */
+===================================================== */
 
 onAuthStateChanged(
     auth,
@@ -1345,13 +1273,14 @@ onAuthStateChanged(
         }
 
 
-        /*
-         * Verificación del administrador.
-         */
+        const email =
+        texto(
+            usuario.email
+        ).toLowerCase();
+
 
         if(
-            !usuario.email ||
-            usuario.email.toLowerCase() !==
+            email !==
             ADMIN_EMAIL.toLowerCase()
         ){
 
@@ -1398,7 +1327,8 @@ onAuthStateChanged(
                     </p>
 
                     <button
-                        onclick="location.href='index.html'"
+                        id="btnVolverRestringido"
+                        type="button"
                         style="
                             margin-top:20px;
                             border:0;
@@ -1407,6 +1337,7 @@ onAuthStateChanged(
                             background:#111827;
                             color:white;
                             font-weight:bold;
+                            cursor:pointer;
                         "
                     >
                         Volver
@@ -1418,13 +1349,29 @@ onAuthStateChanged(
 
             `;
 
+
+            document
+            .getElementById(
+                "btnVolverRestringido"
+            )
+            .addEventListener(
+                "click",
+                function(){
+
+                    window.location.href =
+                    "index.html";
+
+                }
+            );
+
+
             return;
 
         }
 
 
         usuarioAdministrador =
-            usuario;
+        usuario;
 
 
         await cargarUsuarios();
@@ -1436,4 +1383,4 @@ onAuthStateChanged(
 
 </body>
 
-  </html>
+</html>
