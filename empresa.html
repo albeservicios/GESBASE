@@ -15,6 +15,11 @@
     content="#111827"
 >
 
+<meta
+    name="description"
+    content="Mi empresa - GESBASE"
+>
+
 <title>Mi empresa - GESBASE</title>
 
 <style>
@@ -253,8 +258,6 @@ id="contenido"
 style="display:none;"
 >
 
-<!-- IDENTIFICACIÓN -->
-
 <div class="info-empresa">
 
 <div>
@@ -270,7 +273,9 @@ style="display:none;"
 </div>
 
 
-<!-- LOGO -->
+<!-- =================================================
+     LOGO
+================================================= -->
 
 <div class="tarjeta">
 
@@ -310,7 +315,9 @@ Tamaño máximo:
 </div>
 
 
-<!-- DATOS EMPRESA -->
+<!-- =================================================
+     DATOS EMPRESA
+================================================= -->
 
 <div class="tarjeta">
 
@@ -452,41 +459,31 @@ import {
     db
 } from "./Js/firebase.js";
 
-
 import {
     onAuthStateChanged
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
-    collection,
     doc,
     getDoc,
-    getDocs,
-    query,
-    where,
-    limit,
     setDoc,
     serverTimestamp
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 import {
     getStorage,
     ref,
     uploadBytes,
     getDownloadURL
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js";
 
 
 // =====================================================
 // STORAGE
 // =====================================================
 
-const storage = getStorage();
+const storage =
+getStorage();
 
 
 // =====================================================
@@ -540,24 +537,31 @@ document.getElementById("btnVolver");
 // VARIABLES
 // =====================================================
 
-let usuarioActual = null;
+let usuarioActual =
+null;
 
-let empresaId = "";
+let empresaId =
+"";
 
-let empresaRef = null;
+let empresaRef =
+null;
 
-let logoActual = "";
+let logoActual =
+"";
+
+let procesoTerminado =
+false;
 
 
 // =====================================================
-// UTILIDAD
+// TEXTO
 // =====================================================
 
 function texto(valor){
 
     if(
-        valor === undefined ||
-        valor === null
+        valor === null ||
+        valor === undefined
     ){
 
         return "";
@@ -570,7 +574,7 @@ function texto(valor){
 
 
 // =====================================================
-// MENSAJES
+// MENSAJE
 // =====================================================
 
 function mostrarMensaje(
@@ -590,21 +594,14 @@ function mostrarMensaje(
 }
 
 
-function ocultarMensaje(){
-
-    mensaje.style.display =
-    "none";
-
-}
-
-
 // =====================================================
 // MOSTRAR LOGO
 // =====================================================
 
 function mostrarLogo(url){
 
-    logoPreview.innerHTML = "";
+    logoPreview.innerHTML =
+    "";
 
     if(!url){
 
@@ -615,26 +612,25 @@ function mostrarLogo(url){
 
     }
 
-
     const imagen =
     document.createElement("img");
 
-    imagen.src = url;
+    imagen.src =
+    url;
 
     imagen.alt =
     "Logo de la empresa";
 
-
     imagen.onerror =
     function(){
 
-        logoPreview.innerHTML = "";
+        logoPreview.innerHTML =
+        "";
 
         logoPreview.textContent =
         "No se pudo cargar el logo.";
 
     };
-
 
     logoPreview.appendChild(
         imagen
@@ -644,7 +640,7 @@ function mostrarLogo(url){
 
 
 // =====================================================
-// VISTA PREVIA
+// VISTA PREVIA LOGO
 // =====================================================
 
 logo.addEventListener(
@@ -655,22 +651,17 @@ logo.addEventListener(
         logo.files &&
         logo.files[0];
 
-
         if(!archivo){
 
             return;
 
         }
 
-
         const tiposPermitidos = [
-
             "image/jpeg",
             "image/png",
             "image/webp"
-
         ];
-
 
         if(
             !tiposPermitidos.includes(
@@ -683,12 +674,12 @@ logo.addEventListener(
                 "error"
             );
 
-            logo.value = "";
+            logo.value =
+            "";
 
             return;
 
         }
-
 
         if(
             archivo.size >
@@ -700,21 +691,21 @@ logo.addEventListener(
                 "error"
             );
 
-            logo.value = "";
+            logo.value =
+            "";
 
             return;
 
         }
 
-
         const lector =
         new FileReader();
-
 
         lector.onload =
         function(evento){
 
-            logoPreview.innerHTML = "";
+            logoPreview.innerHTML =
+            "";
 
             const imagen =
             document.createElement("img");
@@ -731,18 +722,6 @@ logo.addEventListener(
 
         };
 
-
-        lector.onerror =
-        function(){
-
-            mostrarMensaje(
-                "No se pudo leer la imagen.",
-                "error"
-            );
-
-        };
-
-
         lector.readAsDataURL(
             archivo
         );
@@ -752,93 +731,15 @@ logo.addEventListener(
 
 
 // =====================================================
-// BUSCAR EMPRESA POR CAMPO
+// CARGAR EMPRESA
 // =====================================================
 
-async function buscarEmpresaPorCampo(
-    campo,
-    valor
-){
-
-    if(!valor){
-
-        return null;
-
-    }
-
-
-    try{
-
-        const consulta =
-        query(
-            collection(
-                db,
-                "empresas"
-            ),
-            where(
-                campo,
-                "==",
-                valor
-            ),
-            limit(1)
-        );
-
-
-        const resultado =
-        await getDocs(
-            consulta
-        );
-
-
-        if(
-            resultado.empty
-        ){
-
-            return null;
-
-        }
-
-
-        const documento =
-        resultado.docs[0];
-
-
-        return {
-
-            id:
-            documento.id,
-
-            datos:
-            documento.data()
-
-        };
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo buscar empresa por " +
-            campo,
-            error
-        );
-
-        return null;
-
-    }
-
-}
-
-
-// =====================================================
-// OBTENER ID DE EMPRESA
-// =====================================================
-
-async function obtenerEmpresaId(){
+async function cargarEmpresa(){
 
     if(!usuarioActual){
 
         throw new Error(
-            "No hay una sesión de usuario activa."
+            "No hay una sesión autenticada."
         );
 
     }
@@ -848,9 +749,15 @@ async function obtenerEmpresaId(){
     usuarioActual.uid;
 
 
-    /*
-     * 1. BUSCAR USUARIO
-     */
+    mostrarMensaje(
+        "Sesión verificada. Cargando empresa...",
+        "cargando"
+    );
+
+
+    // =================================================
+    // 1. LEER USUARIO
+    // =================================================
 
     const usuarioRef =
     doc(
@@ -859,153 +766,41 @@ async function obtenerEmpresaId(){
         uid
     );
 
+    const usuarioSnap =
+    await getDoc(
+        usuarioRef
+    );
 
-    let usuarioDoc = null;
 
-
-    try{
-
-        usuarioDoc =
-        await getDoc(
-            usuarioRef
-        );
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo leer usuarios/" +
-            uid,
-            error
-        );
-
-    }
+    let datosUsuario = {};
 
 
     if(
-        usuarioDoc &&
-        usuarioDoc.exists()
+        usuarioSnap.exists()
     ){
 
-        const datosUsuario =
-        usuarioDoc.data();
-
-
-        empresaId =
-        texto(
-            datosUsuario.empresaId
-        );
-
-
-        if(!empresaId){
-
-            empresaId =
-            texto(
-                datosUsuario.empresa
-            );
-
-        }
+        datosUsuario =
+        usuarioSnap.data();
 
     }
 
 
-    /*
-     * 2. BUSCAR EMPRESA POR UID
-     */
+    // =================================================
+    // 2. OBTENER EMPRESA
+    // =================================================
 
-    if(!empresaId){
-
-        const encontrada =
-        await buscarEmpresaPorCampo(
-            "uid",
-            uid
-        );
-
-
-        if(encontrada){
-
-            empresaId =
-            encontrada.id;
-
-        }
-
-    }
+    empresaId =
+    texto(
+        datosUsuario.empresaId
+    );
 
 
     /*
-     * 3. BUSCAR POR ownerUid
-     */
-
-    if(!empresaId){
-
-        const encontrada =
-        await buscarEmpresaPorCampo(
-            "ownerUid",
-            uid
-        );
-
-
-        if(encontrada){
-
-            empresaId =
-            encontrada.id;
-
-        }
-
-    }
-
-
-    /*
-     * 4. BUSCAR POR propietarioUid
-     */
-
-    if(!empresaId){
-
-        const encontrada =
-        await buscarEmpresaPorCampo(
-            "propietarioUid",
-            uid
-        );
-
-
-        if(encontrada){
-
-            empresaId =
-            encontrada.id;
-
-        }
-
-    }
-
-
-    /*
-     * 5. BUSCAR POR creadoPor
-     */
-
-    if(!empresaId){
-
-        const encontrada =
-        await buscarEmpresaPorCampo(
-            "creadoPor",
-            uid
-        );
-
-
-        if(encontrada){
-
-            empresaId =
-            encontrada.id;
-
-        }
-
-    }
-
-
-    /*
-     * 6. SI NO EXISTE, USAR UID COMO ID
+     * Si el usuario fue creado con el nuevo
+     * registro.html, empresaId = uid.
      *
-     * Esto permite crear la empresa
-     * para cuentas nuevas.
+     * Para cuentas antiguas también usamos
+     * el UID como respaldo.
      */
 
     if(!empresaId){
@@ -1015,10 +810,6 @@ async function obtenerEmpresaId(){
 
     }
 
-
-    /*
-     * REFERENCIA FINAL
-     */
 
     empresaRef =
     doc(
@@ -1031,45 +822,27 @@ async function obtenerEmpresaId(){
     empresaIdMostrar.textContent =
     empresaId;
 
-}
-
-
-// =====================================================
-// CARGAR EMPRESA
-// =====================================================
-
-async function cargarEmpresa(){
-
-    mostrarMensaje(
-        "Buscando información de la empresa...",
-        "cargando"
-    );
-
-
-    await obtenerEmpresaId();
-
-
     usuarioMostrar.textContent =
     usuarioActual.email ||
-    usuarioActual.uid;
+    uid;
 
 
-    /*
-     * Leer documento de empresa
-     */
+    // =================================================
+    // 3. LEER EMPRESA
+    // =================================================
 
-    const documento =
+    const empresaSnap =
     await getDoc(
         empresaRef
     );
 
 
     if(
-        documento.exists()
+        empresaSnap.exists()
     ){
 
         const datos =
-        documento.data();
+        empresaSnap.data();
 
 
         nombreEmpresa.value =
@@ -1129,7 +902,7 @@ async function cargarEmpresa(){
 
 
         mostrarMensaje(
-            "✅ Empresa encontrada correctamente.",
+            "✅ Empresa cargada correctamente.",
             "exito"
         );
 
@@ -1137,58 +910,131 @@ async function cargarEmpresa(){
     else{
 
         /*
-         * Documento todavía no existe.
+         * Si todavía no existe, la creamos.
          */
 
+        const datosNuevaEmpresa = {
+
+            empresaId:
+            empresaId,
+
+            uid:
+            uid,
+
+            ownerUid:
+            uid,
+
+            nombreEmpresa:
+            texto(
+                datosUsuario.nombreEmpresa
+            ),
+
+            razonSocial:
+            texto(
+                datosUsuario.razonSocial
+            ),
+
+            cuit:
+            texto(
+                datosUsuario.cuit
+            ),
+
+            telefono:
+            texto(
+                datosUsuario.telefono
+            ),
+
+            email:
+            texto(
+                datosUsuario.email
+            ) ||
+            texto(
+                usuarioActual.email
+            ),
+
+            direccion:
+            "",
+
+            logoUrl:
+            "",
+
+            creado:
+            serverTimestamp(),
+
+            actualizado:
+            serverTimestamp()
+
+        };
+
+
+        await setDoc(
+            empresaRef,
+            datosNuevaEmpresa,
+            {
+                merge:true
+            }
+        );
+
+
+        nombreEmpresa.value =
+        texto(
+            datosNuevaEmpresa.nombreEmpresa
+        );
+
+
+        razonSocial.value =
+        texto(
+            datosNuevaEmpresa.razonSocial
+        );
+
+
+        cuit.value =
+        texto(
+            datosNuevaEmpresa.cuit
+        );
+
+
+        telefono.value =
+        texto(
+            datosNuevaEmpresa.telefono
+        );
+
+
         email.value =
-        usuarioActual.email ||
+        texto(
+            datosNuevaEmpresa.email
+        );
+
+
+        direccion.value =
         "";
 
 
-        logoActual = "";
+        logoActual =
+        "";
+
 
         mostrarLogo("");
 
 
         mostrarMensaje(
-            "No había datos guardados. Podés completar la información de tu empresa.",
-            "cargando"
+            "✅ Se creó el registro de tu empresa. Completá los datos y guardá.",
+            "exito"
         );
 
     }
 
 
+    // =================================================
+    // MOSTRAR CONTENIDO
+    // =================================================
+
     contenido.style.display =
     "block";
 
 
-    setTimeout(
-        function(){
-
-            ocultarMensaje();
-
-        },
-        2000
-    );
-
-}
-
-
-// =====================================================
-// VALIDAR EMAIL
-// =====================================================
-
-function emailValido(valor){
-
-    if(!valor){
-
-        return true;
-
-    }
-
-
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        .test(valor);
+    procesoTerminado =
+    true;
 
 }
 
@@ -1202,7 +1048,7 @@ async function guardarEmpresa(){
     if(!usuarioActual){
 
         mostrarMensaje(
-            "La sesión no está disponible.",
+            "No hay una sesión activa.",
             "error"
         );
 
@@ -1214,7 +1060,7 @@ async function guardarEmpresa(){
     if(!empresaId){
 
         mostrarMensaje(
-            "No se pudo determinar el ID de la empresa.",
+            "No se pudo determinar la empresa.",
             "error"
         );
 
@@ -1228,40 +1074,31 @@ async function guardarEmpresa(){
         nombreEmpresa.value
     );
 
-
     const razon =
     texto(
         razonSocial.value
     );
-
 
     const cuitValor =
     texto(
         cuit.value
     );
 
-
     const telefonoValor =
     texto(
         telefono.value
     );
-
 
     const emailValor =
     texto(
         email.value
     ).toLowerCase();
 
-
     const direccionValor =
     texto(
         direccion.value
     );
 
-
-    /*
-     * VALIDACIONES
-     */
 
     if(!nombre){
 
@@ -1293,7 +1130,7 @@ async function guardarEmpresa(){
 
     if(
         emailValor &&
-        !emailValido(
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
             emailValor
         )
     ){
@@ -1323,9 +1160,9 @@ async function guardarEmpresa(){
         logoActual;
 
 
-        /*
-         * SUBIR LOGO
-         */
+        // =================================================
+        // SUBIR LOGO
+        // =================================================
 
         const archivo =
         logo.files &&
@@ -1333,28 +1170,6 @@ async function guardarEmpresa(){
 
 
         if(archivo){
-
-            const tiposPermitidos = [
-
-                "image/jpeg",
-                "image/png",
-                "image/webp"
-
-            ];
-
-
-            if(
-                !tiposPermitidos.includes(
-                    archivo.type
-                )
-            ){
-
-                throw new Error(
-                    "El logo debe ser JPG, PNG o WEBP."
-                );
-
-            }
-
 
             if(
                 archivo.size >
@@ -1368,42 +1183,23 @@ async function guardarEmpresa(){
             }
 
 
-            let extension =
-            "jpg";
-
-
-            if(
-                archivo.type ===
-                "image/png"
-            ){
-
-                extension =
-                "png";
-
-            }
-            else if(
-                archivo.type ===
-                "image/webp"
-            ){
-
-                extension =
-                "webp";
-
-            }
-
-
-            const nombreArchivo =
-            "logo-" +
-            Date.now() +
-            "." +
-            extension;
+            const extension =
+            archivo.type ===
+            "image/png"
+                ? "png"
+                : archivo.type ===
+                  "image/webp"
+                    ? "webp"
+                    : "jpg";
 
 
             const ruta =
             "empresas/" +
             empresaId +
-            "/" +
-            nombreArchivo;
+            "/logo-" +
+            Date.now() +
+            "." +
+            extension;
 
 
             const referenciaLogo =
@@ -1431,102 +1227,100 @@ async function guardarEmpresa(){
         }
 
 
-        /*
-         * DATOS DE EMPRESA
-         */
-
-        const datosEmpresa = {
-
-            empresaId:
-            empresaId,
-
-            uid:
-            usuarioActual.uid,
-
-            ownerUid:
-            usuarioActual.uid,
-
-            nombreEmpresa:
-            nombre,
-
-            razonSocial:
-            razon,
-
-            cuit:
-            cuitValor,
-
-            telefono:
-            telefonoValor,
-
-            email:
-            emailValor,
-
-            direccion:
-            direccionValor,
-
-            logoUrl:
-            logoUrl,
-
-            actualizado:
-            serverTimestamp()
-
-        };
-
-
-        /*
-         * GUARDAR EMPRESA
-         */
+        // =================================================
+        // GUARDAR EMPRESA
+        // =================================================
 
         await setDoc(
             empresaRef,
-            datosEmpresa,
+            {
+
+                empresaId:
+                empresaId,
+
+                uid:
+                usuarioActual.uid,
+
+                ownerUid:
+                usuarioActual.uid,
+
+                nombreEmpresa:
+                nombre,
+
+                razonSocial:
+                razon,
+
+                cuit:
+                cuitValor,
+
+                telefono:
+                telefonoValor,
+
+                email:
+                emailValor,
+
+                direccion:
+                direccionValor,
+
+                logoUrl:
+                logoUrl,
+
+                actualizado:
+                serverTimestamp()
+
+            },
             {
                 merge:true
             }
         );
 
 
-        /*
-         * ACTUALIZAR TAMBIÉN
-         * EL DOCUMENTO DEL USUARIO
-         *
-         * Esto es importante para que
-         * los demás módulos de GESBASE
-         * encuentren la misma empresa.
-         */
+        // =================================================
+        // ACTUALIZAR USUARIO
+        // =================================================
 
-        try{
+        await setDoc(
+            doc(
+                db,
+                "usuarios",
+                usuarioActual.uid
+            ),
+            {
 
-            await setDoc(
-                usuarioRefSeguro(),
-                {
-                    empresaId:
-                    empresaId
-                },
-                {
-                    merge:true
-                }
-            );
+                empresaId:
+                empresaId,
 
-        }
-        catch(errorUsuario){
+                nombreEmpresa:
+                nombre,
 
-            console.warn(
-                "No se pudo actualizar usuarios:",
-                errorUsuario
-            );
+                razonSocial:
+                razon,
 
-        }
+                cuit:
+                cuitValor,
+
+                telefono:
+                telefonoValor,
+
+                email:
+                emailValor,
+
+                actualizado:
+                serverTimestamp()
+
+            },
+            {
+                merge:true
+            }
+        );
 
 
         logoActual =
         logoUrl;
 
-
         mostrarLogo(
             logoActual
         );
-
 
         logo.value =
         "";
@@ -1558,7 +1352,7 @@ async function guardarEmpresa(){
         ){
 
             mensajeError =
-            "Firebase rechazó la operación. Hay que revisar las reglas de Firestore.";
+            "Firebase rechazó la operación. Revisá las reglas de Firestore.";
 
         }
         else if(
@@ -1567,7 +1361,7 @@ async function guardarEmpresa(){
         ){
 
             mensajeError =
-            "Firebase Storage rechazó el logo. Hay que revisar las reglas de Storage.";
+            "Firebase rechazó el logo. Revisá las reglas de Storage.";
 
         }
         else if(
@@ -1601,21 +1395,6 @@ async function guardarEmpresa(){
 
 
 // =====================================================
-// REFERENCIA USUARIO
-// =====================================================
-
-function usuarioRefSeguro(){
-
-    return doc(
-        db,
-        "usuarios",
-        usuarioActual.uid
-    );
-
-}
-
-
-// =====================================================
 // BOTÓN GUARDAR
 // =====================================================
 
@@ -1644,13 +1423,39 @@ btnVolver.addEventListener(
 // AUTENTICACIÓN
 // =====================================================
 
+mostrarMensaje(
+    "Verificando sesión...",
+    "cargando"
+);
+
+
+let temporizador = setTimeout(
+    function(){
+
+        if(
+            !procesoTerminado
+        ){
+
+            mostrarMensaje(
+                "⚠️ Firebase no respondió a tiempo. Actualizá la página e intentá nuevamente.",
+                "error"
+            );
+
+        }
+
+    },
+    10000
+);
+
+
 onAuthStateChanged(
     auth,
     async function(usuario){
 
-        /*
-         * NO HAY SESIÓN
-         */
+        clearTimeout(
+            temporizador
+        );
+
 
         if(!usuario){
 
@@ -1668,7 +1473,7 @@ onAuthStateChanged(
                     );
 
                 },
-                800
+                1200
             );
 
 
@@ -1676,10 +1481,6 @@ onAuthStateChanged(
 
         }
 
-
-        /*
-         * SESIÓN CONFIRMADA
-         */
 
         usuarioActual =
         usuario;
@@ -1691,12 +1492,6 @@ onAuthStateChanged(
 
 
         try{
-
-            mostrarMensaje(
-                "Sesión verificada. Buscando empresa...",
-                "cargando"
-            );
-
 
             await cargarEmpresa();
 
@@ -1713,13 +1508,26 @@ onAuthStateChanged(
             "none";
 
 
+            let mensajeError =
+            error.message ||
+            error.code ||
+            "Error desconocido.";
+
+
+            if(
+                error.code ===
+                "permission-denied"
+            ){
+
+                mensajeError =
+                "Firebase rechazó el acceso a los datos.";
+
+            }
+
+
             mostrarMensaje(
                 "❌ No se pudo cargar la empresa: " +
-                (
-                    error.message ||
-                    error.code ||
-                    "error desconocido"
-                ),
+                mensajeError,
                 "error"
             );
 
