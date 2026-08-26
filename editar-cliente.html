@@ -146,6 +146,7 @@ textarea{
     padding:14px;
     border-radius:10px;
     margin-bottom:15px;
+    line-height:1.5;
 }
 
 .exito{
@@ -155,6 +156,7 @@ textarea{
     padding:14px;
     border-radius:10px;
     margin-bottom:15px;
+    line-height:1.5;
 }
 
 </style>
@@ -221,8 +223,6 @@ Cliente actualizado correctamente.
 >
 
 
-<!-- NOMBRE -->
-
 <div class="grupo">
 
 <label for="nombre">
@@ -233,12 +233,11 @@ Nombre / Empresa
     type="text"
     id="nombre"
     placeholder="Nombre del cliente o empresa"
+    autocomplete="name"
 >
 
 </div>
 
-
-<!-- CUIT -->
 
 <div class="grupo">
 
@@ -250,12 +249,11 @@ CUIT
     type="text"
     id="cuit"
     placeholder="20-12345678-9"
+    autocomplete="off"
 >
 
 </div>
 
-
-<!-- TELEFONO -->
 
 <div class="grupo">
 
@@ -267,12 +265,11 @@ Teléfono
     type="tel"
     id="telefono"
     placeholder="Teléfono del cliente"
+    autocomplete="tel"
 >
 
 </div>
 
-
-<!-- EMAIL -->
 
 <div class="grupo">
 
@@ -284,12 +281,11 @@ Email
     type="email"
     id="email"
     placeholder="correo@ejemplo.com"
+    autocomplete="email"
 >
 
 </div>
 
-
-<!-- DIRECCION -->
 
 <div class="grupo">
 
@@ -301,12 +297,11 @@ Dirección
     type="text"
     id="direccion"
     placeholder="Dirección"
+    autocomplete="street-address"
 >
 
 </div>
 
-
-<!-- LOCALIDAD -->
 
 <div class="grupo">
 
@@ -323,8 +318,6 @@ Localidad
 </div>
 
 
-<!-- PROVINCIA -->
-
 <div class="grupo">
 
 <label for="provincia">
@@ -339,8 +332,6 @@ Provincia
 
 </div>
 
-
-<!-- OBSERVACIONES -->
 
 <div class="grupo">
 
@@ -359,6 +350,7 @@ Observaciones
 <button
     id="btnGuardar"
     class="boton guardar"
+    type="button"
 >
 💾 GUARDAR CAMBIOS
 </button>
@@ -430,7 +422,6 @@ document.getElementById("formulario");
 const btnGuardar =
 document.getElementById("btnGuardar");
 
-
 const campoNombre =
 document.getElementById("nombre");
 
@@ -475,7 +466,7 @@ let datosCliente = null;
 
 
 // ==========================================
-// ERROR
+// MOSTRAR ERROR
 // ==========================================
 
 function mostrarError(mensaje){
@@ -501,15 +492,85 @@ function ocultarError(){
 
 
 // ==========================================
+// MOSTRAR ÉXITO
+// ==========================================
+
+function mostrarExito(mensaje){
+
+    exitoElemento.textContent =
+    mensaje;
+
+    exitoElemento.style.display =
+    "block";
+
+}
+
+
+// ==========================================
+// VERIFICAR PROPIETARIO DEL CLIENTE
+// ==========================================
+
+function clientePerteneceAlUsuario(datos){
+
+    if(!usuarioActual){
+        return false;
+    }
+
+    const uid =
+    usuarioActual.uid;
+
+
+    /*
+     * GESBASE puede tener clientes
+     * guardados con diferentes campos
+     * según la versión del módulo.
+     *
+     * Aceptamos:
+     *
+     * uid
+     * usuarioId
+     * empresaId
+     *
+     * cuando alguno coincide con
+     * el usuario autenticado.
+     */
+
+    return (
+        datos.uid === uid ||
+        datos.usuarioId === uid ||
+        datos.empresaId === uid
+    );
+
+}
+
+
+// ==========================================
 // CARGAR CLIENTE
 // ==========================================
 
 async function cargarCliente(){
 
+    ocultarError();
+
+
     if(!clienteId){
 
         mostrarError(
-            "No se recibió el ID del cliente."
+            "No se recibió el ID del cliente. Volvé a Clientes y seleccioná nuevamente el cliente."
+        );
+
+        cargando.style.display =
+        "none";
+
+        return;
+
+    }
+
+
+    if(!usuarioActual){
+
+        mostrarError(
+            "No hay un usuario autenticado."
         );
 
         cargando.style.display =
@@ -539,7 +600,7 @@ async function cargarCliente(){
         if(!resultado.exists()){
 
             mostrarError(
-                "El cliente no existe."
+                "El cliente no existe o fue eliminado."
             );
 
             cargando.style.display =
@@ -559,8 +620,9 @@ async function cargarCliente(){
         // ==================================
 
         if(
-            datosCliente.uid !==
-            usuarioActual.uid
+            !clientePerteneceAlUsuario(
+                datosCliente
+            )
         ){
 
             mostrarError(
@@ -576,32 +638,39 @@ async function cargarCliente(){
 
 
         // ==================================
-        // CARGAR CAMPOS
+        // CARGAR DATOS
         // ==================================
 
         campoNombre.value =
         datosCliente.nombre ||
         datosCliente.empresa ||
+        datosCliente.razonSocial ||
+        datosCliente.razon_social ||
         "";
 
 
         campoCuit.value =
         datosCliente.cuit ||
+        datosCliente.CUIT ||
         "";
 
 
         campoTelefono.value =
         datosCliente.telefono ||
+        datosCliente.tel ||
+        datosCliente.celular ||
         "";
 
 
         campoEmail.value =
         datosCliente.email ||
+        datosCliente.correo ||
         "";
 
 
         campoDireccion.value =
         datosCliente.direccion ||
+        datosCliente.domicilio ||
         "";
 
 
@@ -664,17 +733,11 @@ btnGuardar.addEventListener(
         ocultarError();
 
 
-        const nombre =
-        campoNombre.value.trim();
-
-
-        if(!nombre){
+        if(!usuarioActual){
 
             mostrarError(
-                "Ingresá el nombre o empresa del cliente."
+                "La sesión expiró. Volvé a iniciar sesión."
             );
-
-            campoNombre.focus();
 
             return;
 
@@ -692,9 +755,25 @@ btnGuardar.addEventListener(
         }
 
 
+        const nombre =
+        campoNombre.value.trim();
+
+
+        if(!nombre){
+
+            mostrarError(
+                "Ingresá el nombre o empresa del cliente."
+            );
+
+            campoNombre.focus();
+
+            return;
+
+        }
+
+
         btnGuardar.disabled =
         true;
-
 
         btnGuardar.textContent =
         "⏳ GUARDANDO...";
@@ -702,9 +781,9 @@ btnGuardar.addEventListener(
 
         try{
 
-            // ==============================
+            // ==================================
             // REFERENCIA
-            // ==============================
+            // ==================================
 
             const referencia =
             doc(
@@ -714,9 +793,9 @@ btnGuardar.addEventListener(
             );
 
 
-            // ==============================
-            // VERIFICAR NUEVAMENTE
-            // ==============================
+            // ==================================
+            // VERIFICACIÓN FINAL
+            // ==================================
 
             const resultado =
             await getDoc(
@@ -738,8 +817,9 @@ btnGuardar.addEventListener(
 
 
             if(
-                datos.uid !==
-                usuarioActual.uid
+                !clientePerteneceAlUsuario(
+                    datos
+                )
             ){
 
                 throw new Error(
@@ -749,59 +829,69 @@ btnGuardar.addEventListener(
             }
 
 
-            // ==============================
-            // ACTUALIZAR
-            // ==============================
+            // ==================================
+            // DATOS A GUARDAR
+            // ==================================
+
+            const datosActualizados = {
+
+                nombre:
+                nombre,
+
+                cuit:
+                campoCuit.value.trim(),
+
+                telefono:
+                campoTelefono.value.trim(),
+
+                email:
+                campoEmail.value.trim(),
+
+                direccion:
+                campoDireccion.value.trim(),
+
+                localidad:
+                campoLocalidad.value.trim(),
+
+                provincia:
+                campoProvincia.value.trim(),
+
+                observaciones:
+                campoObservaciones.value.trim(),
+
+                actualizado:
+                serverTimestamp()
+
+            };
+
+
+            // ==================================
+            // ACTUALIZAR FIRESTORE
+            // ==================================
 
             await updateDoc(
                 referencia,
-                {
-
-                    nombre:
-                    nombre,
-
-                    cuit:
-                    campoCuit.value.trim(),
-
-                    telefono:
-                    campoTelefono.value.trim(),
-
-                    email:
-                    campoEmail.value.trim(),
-
-                    direccion:
-                    campoDireccion.value.trim(),
-
-                    localidad:
-                    campoLocalidad.value.trim(),
-
-                    provincia:
-                    campoProvincia.value.trim(),
-
-                    observaciones:
-                    campoObservaciones.value.trim(),
-
-                    actualizado:
-                    serverTimestamp()
-
-                }
+                datosActualizados
             );
 
 
-            // ==============================
+            // ==================================
             // ÉXITO
-            // ==============================
+            // ==================================
 
-            exitoElemento.style.display =
-            "block";
+            mostrarExito(
+                "Cliente actualizado correctamente."
+            );
 
 
             btnGuardar.textContent =
             "✅ CAMBIOS GUARDADOS";
 
 
-            // Volver automáticamente
-            // después de guardar
+            /*
+             * Volvemos al listado después
+             * de guardar correctamente.
+             */
 
             setTimeout(
                 function(){
