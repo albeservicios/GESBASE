@@ -109,6 +109,11 @@ main{
     cursor:pointer;
 }
 
+.boton:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
 .boton-principal{
     background:#111827;
     color:#fff;
@@ -263,6 +268,7 @@ tr:hover{
     border-radius:10px;
     margin-bottom:15px;
     font-size:14px;
+    line-height:1.4;
 }
 
 .error{
@@ -273,6 +279,11 @@ tr:hover{
 .info{
     background:#eff6ff;
     color:#1e40af;
+}
+
+.exito{
+    background:#dcfce7;
+    color:#166534;
 }
 
 .cargando{
@@ -332,11 +343,10 @@ tr:hover{
 <h1>GESBASE</h1>
 
 <p>
-Panel de Administrador · Empleados
+Panel de Administrador · Empleados y Liquidación
 </p>
 
 </header>
-
 
 <main>
 
@@ -363,12 +373,11 @@ horas extra y montos a cobrar por cada empleado.
 
 </div>
 
-
 <div class="filtros">
 
 <div class="campo">
 
-<label>
+<label for="fechaDesde">
 Desde
 </label>
 
@@ -379,10 +388,9 @@ id="fechaDesde"
 
 </div>
 
-
 <div class="campo">
 
-<label>
+<label for="fechaHasta">
 Hasta
 </label>
 
@@ -395,11 +403,11 @@ id="fechaHasta"
 
 </div>
 
-
 <div class="botones">
 
 <button
 id="btnCalcular"
+type="button"
 class="boton boton-principal"
 >
 🔄 CALCULAR LIQUIDACIÓN
@@ -407,9 +415,18 @@ class="boton boton-principal"
 
 <button
 id="btnExportar"
+type="button"
 class="boton boton-verde"
 >
 📊 EXPORTAR
+</button>
+
+<button
+id="btnVolver"
+type="button"
+class="boton boton-gris"
+>
+⬅️ VOLVER
 </button>
 
 </div>
@@ -438,7 +455,6 @@ Empleados
 
 </div>
 
-
 <div class="resumen-item">
 
 <div
@@ -454,7 +470,6 @@ Horas trabajadas
 
 </div>
 
-
 <div class="resumen-item">
 
 <div
@@ -469,7 +484,6 @@ Horas extra
 </div>
 
 </div>
-
 
 <div class="resumen-item">
 
@@ -506,7 +520,6 @@ horas trabajadas, horas extra y total a cobrar.
 
 </div>
 
-
 <div
 id="tablaContenedor"
 class="tabla-contenedor"
@@ -517,7 +530,6 @@ Cargando empleados...
 </div>
 
 </div>
-
 
 <div class="total-general">
 
@@ -537,7 +549,6 @@ registrado ante ARCA.
 
 </div>
 
-
 <div
 id="totalGeneral"
 class="total-general-importe"
@@ -548,7 +559,6 @@ $0
 </div>
 
 </div>
-
 
 </main>
 
@@ -567,10 +577,16 @@ import {
 } from "./Js/firebase.js";
 
 
+/*
+ * IMPORTANTE:
+ * Todos los archivos de GESBASE utilizan
+ * Firebase 12.18.0.
+ */
+
 import {
     onAuthStateChanged
 } from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 
 import {
@@ -579,7 +595,7 @@ import {
     query,
     where
 } from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
 /* =========================================
@@ -597,6 +613,9 @@ document.getElementById("btnCalcular");
 
 const btnExportar =
 document.getElementById("btnExportar");
+
+const btnVolver =
+document.getElementById("btnVolver");
 
 const tablaContenedor =
 document.getElementById("tablaContenedor");
@@ -700,11 +719,22 @@ function mostrarMensaje(
 }
 
 
+function ocultarMensaje(){
+
+    mensaje.style.display =
+    "none";
+
+    mensaje.textContent =
+    "";
+
+}
+
+
 /* =========================================
    FECHAS
 ========================================= */
 
-function hoy(){
+function obtenerFechaLocal(){
 
     const fecha =
     new Date();
@@ -762,7 +792,7 @@ fechaDesde.value =
 primerDiaMes();
 
 fechaHasta.value =
-hoy();
+obtenerFechaLocal();
 
 
 /* =========================================
@@ -815,6 +845,11 @@ function minutosEntre(
     salidaMin - entradaMin;
 
 
+    /*
+     * Permite jornadas que pasan
+     * de medianoche.
+     */
+
     if(diferencia < 0){
 
         diferencia +=
@@ -828,9 +863,7 @@ function minutosEntre(
 }
 
 
-function formatoHoras(
-    minutos
-){
+function formatoHoras(minutos){
 
     minutos =
     Math.max(
@@ -861,7 +894,7 @@ function formatoHoras(
 
 
 /* =========================================
-   EMPRESA
+   OBTENER EMPRESA
 ========================================= */
 
 async function obtenerEmpresa(){
@@ -875,63 +908,93 @@ async function obtenerEmpresa(){
     }
 
 
+    empresaId = "";
+
+
     /*
-     * Se intenta obtener la empresa
-     * desde usuarios/{uid}.
+     * Primero buscamos usuarios/{uid}.
      */
 
-    const usuarios =
-    await getDocs(
+    try{
+
+        const referenciaUsuario =
+        collection(
+            db,
+            "usuarios"
+        );
+
+
+        const consultaUsuario =
         query(
-            collection(
-                db,
-                "usuarios"
-            ),
+            referenciaUsuario,
             where(
                 "__name__",
                 "==",
                 usuarioActual.uid
             )
-        )
-    );
+        );
 
 
-    if(
-        !usuarios.empty
-    ){
-
-        const datos =
-        usuarios.docs[0].data();
+        const snapshotUsuario =
+        await getDocs(
+            consultaUsuario
+        );
 
 
-        empresaId =
-        texto(
-            datos.empresaId
-        ).trim();
+        if(
+            !snapshotUsuario.empty
+        ){
 
+            const datos =
+            snapshotUsuario.docs[0].data();
 
-        if(!empresaId){
 
             empresaId =
             texto(
-                datos.empresa
+                datos.empresaId
             ).trim();
 
+
+            if(!empresaId){
+
+                empresaId =
+                texto(
+                    datos.empresa
+                ).trim();
+
+            }
+
         }
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo obtener empresa desde usuarios:",
+            error
+        );
 
     }
 
 
     /*
-     * Compatibilidad con cuentas donde
-     * la empresa utiliza directamente
-     * el UID del administrador.
+     * Compatibilidad con cuentas
+     * cuyo ID de empresa es el UID.
      */
 
     if(!empresaId){
 
         empresaId =
         usuarioActual.uid;
+
+    }
+
+
+    if(!empresaId){
+
+        throw new Error(
+            "No se pudo determinar la empresa del usuario."
+        );
 
     }
 
@@ -947,33 +1010,77 @@ async function cargarEmpleados(){
     empleados = [];
 
 
+    const referencia =
+    collection(
+        db,
+        "empleados"
+    );
+
+
+    const consulta =
+    query(
+        referencia,
+        where(
+            "empresaId",
+            "==",
+            empresaId
+        )
+    );
+
+
     const resultado =
     await getDocs(
-        query(
-            collection(
-                db,
-                "empleados"
-            ),
-            where(
-                "empresaId",
-                "==",
-                empresaId
-            )
-        )
+        consulta
     );
 
 
     resultado.forEach(
         documento => {
 
+            const datos =
+            documento.data();
+
+
             empleados.push({
 
                 id:
                 documento.id,
 
-                ...documento.data()
+                ...datos
 
             });
+
+        }
+    );
+
+
+    /*
+     * Orden alfabético.
+     */
+
+    empleados.sort(
+        (a,b) => {
+
+            const nombreA =
+            (
+                texto(a.nombre) +
+                " " +
+                texto(a.apellido)
+            ).trim().toLowerCase();
+
+
+            const nombreB =
+            (
+                texto(b.nombre) +
+                " " +
+                texto(b.apellido)
+            ).trim().toLowerCase();
+
+
+            return nombreA.localeCompare(
+                nombreB,
+                "es"
+            );
 
         }
     );
@@ -990,19 +1097,27 @@ async function cargarFichajes(){
     fichajes = [];
 
 
+    const referencia =
+    collection(
+        db,
+        "fichajes"
+    );
+
+
+    const consulta =
+    query(
+        referencia,
+        where(
+            "empresaId",
+            "==",
+            empresaId
+        )
+    );
+
+
     const resultado =
     await getDocs(
-        query(
-            collection(
-                db,
-                "fichajes"
-            ),
-            where(
-                "empresaId",
-                "==",
-                empresaId
-            )
-        )
+        consulta
     );
 
 
@@ -1025,7 +1140,7 @@ async function cargarFichajes(){
 
 
 /* =========================================
-   OBTENER EMPLEADO
+   BUSCAR EMPLEADO
 ========================================= */
 
 function buscarEmpleado(
@@ -1035,7 +1150,7 @@ function buscarEmpleado(
     const empleadoId =
     texto(
         fichaje.empleadoId
-    );
+    ).trim();
 
 
     if(empleadoId){
@@ -1056,10 +1171,14 @@ function buscarEmpleado(
     }
 
 
+    /*
+     * Compatibilidad con authUid.
+     */
+
     const authUid =
     texto(
         fichaje.authUid
-    );
+    ).trim();
 
 
     if(authUid){
@@ -1069,7 +1188,38 @@ function buscarEmpleado(
             empleado =>
             texto(
                 empleado.authUid
-            ) === authUid
+            ).trim() === authUid
+        );
+
+
+        if(encontrado){
+
+            return encontrado;
+
+        }
+
+    }
+
+
+    /*
+     * Compatibilidad adicional
+     * con usuarioId.
+     */
+
+    const usuarioId =
+    texto(
+        fichaje.usuarioId
+    ).trim();
+
+
+    if(usuarioId){
+
+        const encontrado =
+        empleados.find(
+            empleado =>
+            texto(
+                empleado.usuarioId
+            ).trim() === usuarioId
         );
 
 
@@ -1088,10 +1238,53 @@ function buscarEmpleado(
 
 
 /* =========================================
+   FECHA DEL FICHAJE
+========================================= */
+
+function obtenerFechaFichaje(
+    fichaje
+){
+
+    /*
+     * La estructura principal esperada
+     * es fichaje.fecha.
+     */
+
+    if(fichaje.fecha){
+
+        return texto(
+            fichaje.fecha
+        ).substring(0,10);
+
+    }
+
+
+    /*
+     * Compatibilidad con fechaTrabajo.
+     */
+
+    if(fichaje.fechaTrabajo){
+
+        return texto(
+            fichaje.fechaTrabajo
+        ).substring(0,10);
+
+    }
+
+
+    return "";
+
+}
+
+
+/* =========================================
    LIQUIDAR
 ========================================= */
 
 function calcularLiquidaciones(){
+
+    ocultarMensaje();
+
 
     const desde =
     fechaDesde.value;
@@ -1138,12 +1331,13 @@ function calcularLiquidaciones(){
                 fichaje => {
 
                     const fecha =
-                    texto(
-                        fichaje.fecha
+                    obtenerFechaFichaje(
+                        fichaje
                     );
 
 
                     if(
+                        !fecha ||
                         fecha < desde ||
                         fecha > hasta
                     ){
@@ -1193,6 +1387,11 @@ function calcularLiquidaciones(){
                     minutos;
 
 
+                    /*
+                     * Jornada normal:
+                     * 8 horas.
+                     */
+
                     if(minutos > 480){
 
                         minutosExtras +=
@@ -1230,9 +1429,10 @@ function calcularLiquidaciones(){
 
 
             /*
-             * Pago diario:
-             * se utiliza el valor almacenado
-             * en el empleado.
+             * Pago diario.
+             *
+             * Se acepta pagoDiario como
+             * estructura principal.
              */
 
             const pagoDiario =
@@ -1247,8 +1447,7 @@ function calcularLiquidaciones(){
 
 
             /*
-             * Hora extra:
-             * pago diario / 8 horas.
+             * Valor de hora normal.
              */
 
             const valorHora =
@@ -1257,6 +1456,10 @@ function calcularLiquidaciones(){
                 : 0;
 
 
+            /*
+             * Hora extra al 150%.
+             */
+
             const importeExtras =
             (minutosExtras / 60) *
             valorHora *
@@ -1264,11 +1467,15 @@ function calcularLiquidaciones(){
 
 
             const adicionales =
-            0;
+            numero(
+                empleado.adicionales
+            );
 
 
             const descuentos =
-            0;
+            numero(
+                empleado.descuentos
+            );
 
 
             const total =
@@ -1330,8 +1537,11 @@ function obtenerEstado(
     ){
 
         return {
+
             texto:"Ausente",
+
             clase:"estado-ausente"
+
         };
 
     }
@@ -1342,8 +1552,11 @@ function obtenerEstado(
     ){
 
         return {
+
             texto:"Horas extra",
+
             clase:"estado-extra"
+
         };
 
     }
@@ -1354,17 +1567,39 @@ function obtenerEstado(
     ){
 
         return {
+
             texto:"Llegada tarde",
+
             clase:"estado-tarde"
+
         };
 
     }
 
 
     return {
+
         texto:"Normal",
+
         clase:"estado-normal"
+
     };
+
+}
+
+
+/* =========================================
+   ESCAPAR HTML
+========================================= */
+
+function escapar(valor){
+
+    return texto(valor)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 
 }
 
@@ -1382,9 +1617,25 @@ function mostrarTabla(){
         tablaContenedor.innerHTML =
         `
         <div class="sin-datos">
-            No hay empleados registrados.
+            No hay empleados registrados para mostrar.
         </div>
         `;
+
+
+        cantidadEmpleados.textContent =
+        "0";
+
+        totalHoras.textContent =
+        "0:00";
+
+        totalExtras.textContent =
+        "0:00";
+
+        totalPagar.textContent =
+        "$0";
+
+        totalGeneral.textContent =
+        "$0";
 
         return;
 
@@ -1402,23 +1653,14 @@ function mostrarTabla(){
     <tr>
 
     <th>Empleado</th>
-
     <th>Período</th>
-
     <th>Días</th>
-
     <th>Horas trabajadas</th>
-
     <th>Horas extra</th>
-
     <th>Base</th>
-
     <th>Extras</th>
-
     <th>Total a cobrar</th>
-
     <th>Estado</th>
-
     <th>Recibo</th>
 
     </tr>
@@ -1489,13 +1731,11 @@ function mostrarTabla(){
             ${escapar(
                 texto(
                     empleado.puesto
-                ) ||
-                "-"
+                ) || "-"
             )}
             </span>
 
             </td>
-
 
             <td>
 
@@ -1511,11 +1751,9 @@ function mostrarTabla(){
 
             </td>
 
-
             <td>
             ${registro.diasTrabajados}
             </td>
-
 
             <td>
             ${formatoHoras(
@@ -1524,7 +1762,6 @@ function mostrarTabla(){
             hs
             </td>
 
-
             <td>
             ${formatoHoras(
                 registro.minutosExtras
@@ -1532,13 +1769,11 @@ function mostrarTabla(){
             hs
             </td>
 
-
             <td>
             ${moneda(
                 registro.base
             )}
             </td>
-
 
             <td>
             ${moneda(
@@ -1546,15 +1781,11 @@ function mostrarTabla(){
             )}
             </td>
 
-
             <td class="total">
-
             ${moneda(
                 registro.total
             )}
-
             </td>
-
 
             <td>
 
@@ -1566,10 +1797,10 @@ function mostrarTabla(){
 
             </td>
 
-
             <td>
 
             <button
+            type="button"
             class="boton-recibo"
             data-indice="${index}"
             >
@@ -1641,33 +1872,25 @@ function mostrarTabla(){
                     );
 
 
-                    generarRecibo(
-                        liquidaciones[
-                            indice
-                        ]
-                    );
+                    const registro =
+                    liquidaciones[
+                        indice
+                    ];
+
+
+                    if(registro){
+
+                        generarRecibo(
+                            registro
+                        );
+
+                    }
 
                 }
             );
 
         }
     );
-
-}
-
-
-/* =========================================
-   ESCAPAR HTML
-========================================= */
-
-function escapar(valor){
-
-    return texto(valor)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
 
 }
 
@@ -1873,6 +2096,11 @@ ${escapar(puesto)}
 </div>
 
 <div class="dato">
+<strong>Estado:</strong><br>
+${escapar(estado.texto)}
+</div>
+
+<div class="dato">
 <strong>Período:</strong><br>
 ${escapar(fechaDesde.value)}
  al
@@ -1884,7 +2112,7 @@ ${escapar(fechaHasta.value)}
 <table>
 
 <tr>
-<td>Sueldo / pago base</td>
+<td>Pago base</td>
 <td>${moneda(registro.base)}</td>
 </tr>
 
@@ -1914,6 +2142,7 @@ ${escapar(fechaHasta.value)}
 </tr>
 
 <tr>
+
 <td class="total">
 TOTAL A COBRAR
 </td>
@@ -1921,6 +2150,7 @@ TOTAL A COBRAR
 <td class="total">
 ${moneda(registro.total)}
 </td>
+
 </tr>
 
 </table>
@@ -1973,7 +2203,7 @@ window.onload = function(){
 
 
 /* =========================================
-   EXPORTAR
+   EXPORTAR CSV
 ========================================= */
 
 btnExportar.addEventListener(
@@ -1995,7 +2225,7 @@ btnExportar.addEventListener(
 
 
         let csv =
-        "Empleado;Puesto;Desde;Hasta;Días trabajados;Horas trabajadas;Horas extra;Base;Extras;Total;Estado\\n";
+        "Empleado;Puesto;Desde;Hasta;Días trabajados;Horas trabajadas;Horas extra;Base;Extras;Total;Estado\n";
 
 
         liquidaciones.forEach(
@@ -2023,26 +2253,41 @@ btnExportar.addEventListener(
                 );
 
 
-                csv +=
-                [
+                const fila = [
+
                     nombre,
+
                     texto(
                         empleado.puesto
                     ),
+
                     fechaDesde.value,
+
                     fechaHasta.value,
+
                     registro.diasTrabajados,
+
                     formatoHoras(
                         registro.minutosTrabajados
                     ),
+
                     formatoHoras(
                         registro.minutosExtras
                     ),
+
                     registro.base,
+
                     registro.importeExtras,
+
                     registro.total,
+
                     estado.texto
-                ]
+
+                ];
+
+
+                csv +=
+                fila
                 .map(
                     valor =>
                     '"' +
@@ -2054,7 +2299,7 @@ btnExportar.addEventListener(
                     '"'
                 )
                 .join(";") +
-                "\\n";
+                "\n";
 
             }
         );
@@ -2063,7 +2308,7 @@ btnExportar.addEventListener(
         const blob =
         new Blob(
             [
-                "\\ufeff" +
+                "\ufeff" +
                 csv
             ],
             {
@@ -2080,7 +2325,9 @@ btnExportar.addEventListener(
 
 
         const enlace =
-        document.createElement("a");
+        document.createElement(
+            "a"
+        );
 
 
         enlace.href =
@@ -2095,11 +2342,26 @@ btnExportar.addEventListener(
         ".csv";
 
 
+        document.body.appendChild(
+            enlace
+        );
+
+
         enlace.click();
 
 
-        URL.revokeObjectURL(
-            url
+        enlace.remove();
+
+
+        setTimeout(
+            function(){
+
+                URL.revokeObjectURL(
+                    url
+                );
+
+            },
+            1000
         );
 
     }
@@ -2115,6 +2377,21 @@ btnCalcular.addEventListener(
     function(){
 
         calcularLiquidaciones();
+
+    }
+);
+
+
+/* =========================================
+   VOLVER
+========================================= */
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "index.html";
 
     }
 );
@@ -2145,11 +2422,22 @@ onAuthStateChanged(
 
         try{
 
+            tablaContenedor.innerHTML =
+            `
+            <div class="cargando">
+                Cargando empleados...
+            </div>
+            `;
+
+
             await obtenerEmpresa();
+
 
             await cargarEmpleados();
 
+
             await cargarFichajes();
+
 
             calcularLiquidaciones();
 
@@ -2157,6 +2445,7 @@ onAuthStateChanged(
         catch(error){
 
             console.error(
+                "GESBASE - Error:",
                 error
             );
 
@@ -2169,9 +2458,16 @@ onAuthStateChanged(
             `;
 
 
+            cantidadEmpleados.textContent =
+            "0";
+
+
             mostrarMensaje(
-                "Error: " +
-                error.message,
+                "No se pudo cargar la información de empleados. " +
+                (
+                    error.message ||
+                    "Error desconocido."
+                ),
                 "error"
             );
 
