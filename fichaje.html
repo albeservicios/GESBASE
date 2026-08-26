@@ -4,8 +4,16 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111827">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
 
 <title>Fichaje - GESBASE</title>
 
@@ -18,7 +26,7 @@
 }
 
 body{
-    font-family:Arial,sans-serif;
+    font-family:Arial,Helvetica,sans-serif;
     background:#f3f4f6;
     color:#111827;
 }
@@ -262,6 +270,7 @@ main{
     border-radius:10px;
     margin-bottom:15px;
     display:none;
+    line-height:1.4;
 }
 
 .exito{
@@ -271,6 +280,7 @@ main{
     border-radius:10px;
     margin-bottom:15px;
     display:none;
+    line-height:1.4;
 }
 
 .oculto{
@@ -352,11 +362,18 @@ class="acceso-empleado"
 
 </header>
 
+
 <main>
 
-<div id="mensajeError" class="error"></div>
+<div
+id="mensajeError"
+class="error"
+></div>
 
-<div id="mensajeExito" class="exito"></div>
+<div
+id="mensajeExito"
+class="exito"
+></div>
 
 
 <!-- EMPLEADO -->
@@ -433,6 +450,7 @@ Al fichar se registrará la ubicación GPS del dispositivo.
 
 
 <button
+type="button"
 id="btnEntrada"
 class="boton boton-entrada"
 disabled
@@ -442,6 +460,7 @@ disabled
 
 
 <button
+type="button"
 id="btnSalida"
 class="boton boton-salida"
 disabled
@@ -622,6 +641,7 @@ Cargando historial...
 
 
 <button
+type="button"
 id="btnCerrarSesion"
 class="boton boton-cerrar"
 >
@@ -630,6 +650,7 @@ CERRAR SESIÓN
 
 
 <button
+type="button"
 id="btnVolver"
 class="boton boton-volver"
 >
@@ -643,16 +664,21 @@ class="boton boton-volver"
 
 <script type="module">
 
+/* ==================================================
+   FIREBASE
+================================================== */
+
 import {
     auth,
     db
 } from "./Js/firebase.js";
 
+
 import {
     onAuthStateChanged,
     signOut
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
 
 import {
     collection,
@@ -664,9 +690,12 @@ import {
     where,
     limit,
     serverTimestamp
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+
+/* ==================================================
+   ELEMENTOS
+================================================== */
 
 const empleadoNombre =
 document.getElementById("empleadoNombre");
@@ -741,15 +770,32 @@ const btnVolver =
 document.getElementById("btnVolver");
 
 
+/* ==================================================
+   VARIABLES
+================================================== */
+
 let usuarioActual = null;
+
 let empleado = null;
+
 let empleadoId = "";
+
 let empresaId = "";
+
 let fichajeActivo = null;
+
 let intervalo = null;
+
 let pagoDia = 0;
+
 let pagoHoraValor = 0;
 
+let inicializado = false;
+
+
+/* ==================================================
+   UTILIDADES
+================================================== */
 
 function texto(valor){
 
@@ -757,20 +803,31 @@ function texto(valor){
         valor === undefined ||
         valor === null
     ){
+
         return "";
+
     }
 
     return String(valor);
+
 }
 
 
 function numero(valor){
 
-    const n = Number(valor);
+    const resultado =
+        Number(valor);
 
-    return Number.isFinite(n)
-        ? n
-        : 0;
+    if(
+        Number.isFinite(resultado)
+    ){
+
+        return resultado;
+
+    }
+
+    return 0;
+
 }
 
 
@@ -790,94 +847,145 @@ function moneda(valor){
 }
 
 
-function mostrarError(mensaje){
+function mostrarError(textoMensaje){
 
-    mensajeError.textContent = mensaje;
-    mensajeError.style.display = "block";
-    mensajeExito.style.display = "none";
+    mensajeError.textContent =
+        textoMensaje;
+
+    mensajeError.style.display =
+        "block";
+
+    mensajeExito.style.display =
+        "none";
 
 }
 
 
-function mostrarExito(mensaje){
+function mostrarExito(textoMensaje){
 
-    mensajeExito.textContent = mensaje;
-    mensajeExito.style.display = "block";
-    mensajeError.style.display = "none";
+    mensajeExito.textContent =
+        textoMensaje;
+
+    mensajeExito.style.display =
+        "block";
+
+    mensajeError.style.display =
+        "none";
 
 }
 
 
 function limpiarMensajes(){
 
-    mensajeError.style.display = "none";
-    mensajeExito.style.display = "none";
+    mensajeError.style.display =
+        "none";
+
+    mensajeExito.style.display =
+        "none";
 
 }
 
+
+/* ==================================================
+   FECHA LOCAL
+================================================== */
 
 function fechaLocal(){
 
-    const ahora = new Date();
+    const ahora =
+        new Date();
 
-    return (
-        ahora.getFullYear() +
-        "-" +
+    const año =
+        ahora.getFullYear();
+
+    const mes =
         String(
             ahora.getMonth() + 1
-        ).padStart(2,"0") +
-        "-" +
+        ).padStart(2,"0");
+
+    const dia =
         String(
             ahora.getDate()
-        ).padStart(2,"0")
+        ).padStart(2,"0");
+
+    return (
+        año +
+        "-" +
+        mes +
+        "-" +
+        dia
     );
 
 }
 
+
+/* ==================================================
+   HORA LOCAL
+================================================== */
 
 function horaLocal(){
 
-    const ahora = new Date();
+    const ahora =
+        new Date();
 
-    return (
+    const horas =
         String(
             ahora.getHours()
-        ).padStart(2,"0") +
-        ":" +
+        ).padStart(2,"0");
+
+    const minutos =
         String(
             ahora.getMinutes()
-        ).padStart(2,"0") +
-        ":" +
+        ).padStart(2,"0");
+
+    const segundos =
         String(
             ahora.getSeconds()
-        ).padStart(2,"0")
+        ).padStart(2,"0");
+
+    return (
+        horas +
+        ":" +
+        minutos +
+        ":" +
+        segundos
     );
 
 }
 
 
+/* ==================================================
+   DURACIÓN
+================================================== */
+
 function formatearDuracion(ms){
 
-    if(
-        !Number.isFinite(ms) ||
-        ms < 0
-    ){
+    ms =
+        numero(ms);
+
+    if(ms < 0){
+
         ms = 0;
+
     }
 
     const segundos =
-    Math.floor(ms / 1000);
+        Math.floor(
+            ms / 1000
+        );
 
     const horas =
-    Math.floor(segundos / 3600);
+        Math.floor(
+            segundos / 3600
+        );
 
     const minutos =
-    Math.floor(
-        (segundos % 3600) / 60
-    );
+        Math.floor(
+            (segundos % 3600) / 60
+        );
 
     const segundosFinal =
-    segundos % 60;
+        segundos % 60;
 
     return (
         String(horas).padStart(2,"0") +
@@ -890,24 +998,41 @@ function formatearDuracion(ms){
 }
 
 
+/* ==================================================
+   FECHA FIREBASE
+================================================== */
+
 function convertirFecha(valor){
 
     if(!valor){
+
         return null;
+
     }
 
     if(
-        typeof valor.toDate === "function"
+        typeof valor.toDate ===
+        "function"
     ){
+
         return valor.toDate();
+
     }
 
-    if(valor instanceof Date){
+    if(
+        valor instanceof Date
+    ){
+
         return valor;
+
     }
 
-    if(typeof valor === "number"){
+    if(
+        typeof valor === "number"
+    ){
+
         return new Date(valor);
+
     }
 
     return null;
@@ -915,45 +1040,53 @@ function convertirFecha(valor){
 }
 
 
+/* ==================================================
+   UBICACIÓN GPS
+================================================== */
+
 function obtenerUbicacion(){
 
     return new Promise(
         function(resolve,reject){
 
-            if(!navigator.geolocation){
+            if(
+                !navigator.geolocation
+            ){
 
                 reject(
                     new Error(
-                        "Este dispositivo o navegador no permite obtener la ubicación."
+                        "Este dispositivo no permite obtener la ubicación GPS."
                     )
                 );
 
                 return;
+
             }
+
 
             navigator.geolocation.getCurrentPosition(
 
                 function(posicion){
 
                     const coordenadas =
-                    posicion.coords;
+                        posicion.coords;
 
                     resolve({
 
                         lat:
-                        Number(
-                            coordenadas.latitude
-                        ),
+                            Number(
+                                coordenadas.latitude
+                            ),
 
                         lng:
-                        Number(
-                            coordenadas.longitude
-                        ),
+                            Number(
+                                coordenadas.longitude
+                            ),
 
                         precision:
-                        Number(
-                            coordenadas.accuracy
-                        )
+                            Number(
+                                coordenadas.accuracy
+                            )
 
                     });
 
@@ -962,30 +1095,32 @@ function obtenerUbicacion(){
                 function(error){
 
                     let mensaje =
-                    "No se pudo obtener la ubicación.";
+                        "No se pudo obtener la ubicación.";
 
-                    switch(error.code){
+                    if(
+                        error.code === 1
+                    ){
 
-                        case 1:
-
-                            mensaje =
+                        mensaje =
                             "Debés permitir el acceso a la ubicación para poder fichar.";
 
-                            break;
+                    }
 
-                        case 2:
+                    else if(
+                        error.code === 2
+                    ){
 
-                            mensaje =
+                        mensaje =
                             "No se pudo determinar tu ubicación. Verificá que el GPS esté activado.";
 
-                            break;
+                    }
 
-                        case 3:
+                    else if(
+                        error.code === 3
+                    ){
 
-                            mensaje =
-                            "La ubicación tardó demasiado en responder. Intentá nuevamente.";
-
-                            break;
+                        mensaje =
+                            "La ubicación tardó demasiado. Intentá nuevamente.";
 
                     }
 
@@ -1009,37 +1144,45 @@ function obtenerUbicacion(){
 }
 
 
+/* ==================================================
+   CARGAR EMPLEADO
+================================================== */
+
 async function cargarEmpleado(){
 
     if(!usuarioActual){
 
         throw new Error(
-            "No hay una sesión de usuario activa."
+            "No hay una sesión activa."
         );
 
     }
 
-    const uid =
-    usuarioActual.uid;
 
     const consulta =
-    query(
-        collection(
-            db,
-            "empleados"
-        ),
-        where(
-            "authUid",
-            "==",
-            uid
-        ),
-        limit(1)
-    );
+        query(
+            collection(
+                db,
+                "empleados"
+            ),
+            where(
+                "authUid",
+                "==",
+                usuarioActual.uid
+            ),
+            limit(1)
+        );
+
 
     const resultados =
-    await getDocs(consulta);
+        await getDocs(
+            consulta
+        );
 
-    if(resultados.empty){
+
+    if(
+        resultados.empty
+    ){
 
         throw new Error(
             "No encontramos un empleado vinculado a esta cuenta."
@@ -1047,28 +1190,52 @@ async function cargarEmpleado(){
 
     }
 
+
     const documento =
-    resultados.docs[0];
+        resultados.docs[0];
+
 
     empleadoId =
-    documento.id;
+        documento.id;
+
 
     empleado = {
 
-        id:documento.id,
+        id:
+            documento.id,
 
         ...documento.data()
 
     };
 
+
     empresaId =
-    texto(
-        empleado.empresaId
-    ).trim();
+        texto(
+            empleado.empresaId
+        ).trim();
+
 
     if(
-        empleado.estado &&
-        empleado.estado !== "Activo"
+        !empresaId
+    ){
+
+        throw new Error(
+            "El empleado no tiene una empresa vinculada."
+        );
+
+    }
+
+
+    const estadoEmpleado =
+        texto(
+            empleado.estado
+        ).trim()
+        .toLowerCase();
+
+
+    if(
+        estadoEmpleado &&
+        estadoEmpleado !== "activo"
     ){
 
         throw new Error(
@@ -1077,239 +1244,381 @@ async function cargarEmpleado(){
 
     }
 
+
     return empleado;
 
 }
 
 
+/* ==================================================
+   MOSTRAR DATOS
+================================================== */
+
 function mostrarDatosEmpleado(){
 
     const nombre =
-    texto(empleado.nombre);
+        texto(
+            empleado.nombre
+        ).trim();
 
     const apellido =
-    texto(empleado.apellido);
+        texto(
+            empleado.apellido
+        ).trim();
 
     const nombreCompleto =
-    (
-        nombre +
-        " " +
-        apellido
-    ).trim();
+        (
+            nombre +
+            " " +
+            apellido
+        ).trim();
+
 
     empleadoNombre.textContent =
-    nombreCompleto || "Empleado";
+        nombreCompleto ||
+        "Empleado";
+
 
     empleadoPuesto.textContent =
-    texto(empleado.puesto) ||
-    "Empleado";
+        texto(
+            empleado.puesto
+        ).trim() ||
+        "Empleado";
 
 }
 
+
+/* ==================================================
+   PAGO
+================================================== */
 
 function cargarPago(){
 
     pagoDia =
-    numero(
-        empleado.pagoDiario
-    );
+        numero(
+            empleado.pagoDiario
+        );
+
 
     pagoHoraValor =
-    pagoDia / 8;
+        pagoDia / 8;
+
 
     pagoDiario.textContent =
-    moneda(pagoDia);
+        moneda(
+            pagoDia
+        );
+
 
     pagoHora.textContent =
-    moneda(pagoHoraValor);
+        moneda(
+            pagoHoraValor
+        );
+
 
     pagoQuincenal.textContent =
-    moneda(pagoDia * 15);
+        moneda(
+            pagoDia * 15
+        );
+
 
     pagoMensual.textContent =
-    moneda(pagoDia * 30);
+        moneda(
+            pagoDia * 30
+        );
 
 }
 
+
+/* ==================================================
+   BUSCAR FICHAJE ACTIVO
+================================================== */
 
 async function buscarFichajeActivo(){
 
     const consulta =
-    query(
-        collection(
-            db,
-            "fichajes"
-        ),
-        where(
-            "empleadoId",
-            "==",
-            empleadoId
-        ),
-        where(
-            "estado",
-            "==",
-            "abierto"
-        ),
-        limit(1)
-    );
+        query(
+            collection(
+                db,
+                "fichajes"
+            ),
+            where(
+                "empleadoId",
+                "==",
+                empleadoId
+            ),
+            limit(50)
+        );
+
 
     const resultados =
-    await getDocs(consulta);
+        await getDocs(
+            consulta
+        );
 
-    if(resultados.empty){
 
-        fichajeActivo = null;
+    fichajeActivo = null;
+
+
+    resultados.forEach(
+        documento => {
+
+            const datos =
+                documento.data();
+
+
+            if(
+                !fichajeActivo &&
+                datos.estado === "abierto"
+            ){
+
+                fichajeActivo = {
+
+                    id:
+                        documento.id,
+
+                    ...datos
+
+                };
+
+            }
+
+        }
+    );
+
+
+    if(
+        fichajeActivo
+    ){
+
+        mostrarFichajeActivo();
+
+    }
+    else{
 
         mostrarSinFichar();
 
-        return;
-
     }
-
-    const documento =
-    resultados.docs[0];
-
-    fichajeActivo = {
-
-        id:documento.id,
-
-        ...documento.data()
-
-    };
-
-    mostrarFichajeActivo();
 
 }
 
+
+/* ==================================================
+   SIN FICHAR
+================================================== */
 
 function mostrarSinFichar(){
 
-    estado.className = "estado";
+    detenerCronometro();
+
+
+    estado.className =
+        "estado";
+
 
     estadoTexto.textContent =
-    "SIN FICHAR";
+        "SIN FICHAR";
+
 
     estadoTexto.className =
-    "estado-texto";
+        "estado-texto";
+
 
     cronometro.textContent =
-    "00:00:00";
+        "00:00:00";
+
 
     cronometro.className =
-    "cronometro";
+        "cronometro";
 
-    btnEntrada.disabled = false;
 
-    btnSalida.disabled = true;
+    btnEntrada.disabled =
+        false;
 
-    datosJornada.classList.add("oculto");
 
-    horaEntrada.textContent = "-";
-    horaSalida.textContent = "-";
-    tiempoTrabajado.textContent = "-";
-    estadoUbicacion.textContent = "-";
+    btnSalida.disabled =
+        true;
+
+
+    datosJornada.classList.add(
+        "oculto"
+    );
+
+
+    horaEntrada.textContent =
+        "-";
+
+
+    horaSalida.textContent =
+        "-";
+
+
+    tiempoTrabajado.textContent =
+        "-";
+
+
+    estadoUbicacion.textContent =
+        "-";
+
 
     tiempoHoy.textContent =
-    "00:00:00";
+        "00:00:00";
+
 
     horasHoy.textContent =
-    "0.00 h";
+        "0.00 h";
+
 
     importeHoy.textContent =
-    "$0";
+        moneda(0);
 
 }
 
 
+/* ==================================================
+   FICHAJE ACTIVO
+================================================== */
+
 function mostrarFichajeActivo(){
 
-    estado.className = "estado";
+    estado.className =
+        "estado";
+
 
     estadoTexto.textContent =
-    "JORNADA EN CURSO";
+        "JORNADA EN CURSO";
+
 
     estadoTexto.className =
-    "estado-texto entrada";
+        "estado-texto entrada";
+
 
     cronometro.className =
-    "cronometro entrada";
+        "cronometro entrada";
 
-    btnEntrada.disabled = true;
 
-    btnSalida.disabled = false;
+    btnEntrada.disabled =
+        true;
 
-    datosJornada.classList.remove("oculto");
 
-    horaEntrada.textContent =
-    texto(
-        fichajeActivo.horaEntrada
+    btnSalida.disabled =
+        false;
+
+
+    datosJornada.classList.remove(
+        "oculto"
     );
 
-    horaSalida.textContent = "-";
+
+    horaEntrada.textContent =
+        texto(
+            fichajeActivo.horaEntrada
+        ) || "-";
+
+
+    horaSalida.textContent =
+        "-";
+
 
     tiempoTrabajado.textContent =
-    "En curso";
+        "En curso";
 
-    if(fichajeActivo.entradaUbicacion){
+
+    if(
+        fichajeActivo.entradaUbicacion
+    ){
 
         estadoUbicacion.textContent =
-        "📍 Registrada";
+            "📍 Registrada";
 
     }
     else{
 
         estadoUbicacion.textContent =
-        "No disponible";
+            "No disponible";
 
     }
+
 
     iniciarCronometro();
 
 }
 
 
+/* ==================================================
+   OBTENER INICIO
+================================================== */
+
 function obtenerInicioFichaje(){
 
-    if(!fichajeActivo){
+    if(
+        !fichajeActivo
+    ){
+
         return null;
+
     }
+
 
     const timestamp =
-    convertirFecha(
-        fichajeActivo.entradaTimestamp
-    );
+        convertirFecha(
+            fichajeActivo.entradaTimestamp
+        );
+
 
     if(timestamp){
+
         return timestamp;
+
     }
 
+
     const fecha =
-    texto(fichajeActivo.fecha);
+        texto(
+            fichajeActivo.fecha
+        );
+
 
     const hora =
-    texto(fichajeActivo.horaEntrada);
+        texto(
+            fichajeActivo.horaEntrada
+        );
 
-    if(fecha && hora){
+
+    if(
+        fecha &&
+        hora
+    ){
 
         const resultado =
-        new Date(
-            fecha + "T" + hora
-        );
+            new Date(
+                fecha +
+                "T" +
+                hora
+            );
+
 
         if(
             !isNaN(
                 resultado.getTime()
             )
         ){
+
             return resultado;
+
         }
 
     }
+
 
     return null;
 
 }
 
+
+/* ==================================================
+   CRONÓMETRO
+================================================== */
 
 function iniciarCronometro(){
 
@@ -1317,11 +1626,12 @@ function iniciarCronometro(){
 
     actualizarCronometro();
 
+
     intervalo =
-    setInterval(
-        actualizarCronometro,
-        1000
-    );
+        setInterval(
+            actualizarCronometro,
+            1000
+        );
 
 }
 
@@ -1330,7 +1640,9 @@ function detenerCronometro(){
 
     if(intervalo){
 
-        clearInterval(intervalo);
+        clearInterval(
+            intervalo
+        );
 
         intervalo = null;
 
@@ -1341,59 +1653,84 @@ function detenerCronometro(){
 
 function actualizarCronometro(){
 
-    if(!fichajeActivo){
+    if(
+        !fichajeActivo
+    ){
+
         return;
+
     }
 
+
     const inicio =
-    obtenerInicioFichaje();
+        obtenerInicioFichaje();
+
 
     if(!inicio){
 
         cronometro.textContent =
-        "EN CURSO";
+            "EN CURSO";
 
         return;
 
     }
 
-    const ahora = new Date();
+
+    const ahora =
+        new Date();
+
 
     const diferencia =
-    Math.max(
-        0,
-        ahora.getTime() -
-        inicio.getTime()
-    );
+        Math.max(
+            0,
+            ahora.getTime() -
+            inicio.getTime()
+        );
+
 
     const duracion =
-    formatearDuracion(diferencia);
+        formatearDuracion(
+            diferencia
+        );
+
 
     cronometro.textContent =
-    duracion;
+        duracion;
+
 
     tiempoTrabajado.textContent =
-    duracion;
+        duracion;
+
 
     const horas =
-    diferencia / 3600000;
+        diferencia /
+        3600000;
+
 
     horasHoy.textContent =
-    horas.toFixed(2) + " h";
+        horas.toFixed(2) +
+        " h";
+
 
     importeHoy.textContent =
-    moneda(
-        horas * pagoHoraValor
-    );
+        moneda(
+            horas *
+            pagoHoraValor
+        );
 
 }
 
+
+/* ==================================================
+   FICHAR ENTRADA
+================================================== */
 
 btnEntrada.addEventListener(
     "click",
     async function(){
 
         limpiarMensajes();
+
 
         if(
             !usuarioActual ||
@@ -1408,16 +1745,23 @@ btnEntrada.addEventListener(
 
         }
 
-        btnEntrada.disabled = true;
+
+        btnEntrada.disabled =
+            true;
+
 
         btnEntrada.textContent =
-        "📍 OBTENIENDO UBICACIÓN...";
+            "📍 OBTENIENDO UBICACIÓN...";
+
 
         try{
 
             await buscarFichajeActivo();
 
-            if(fichajeActivo){
+
+            if(
+                fichajeActivo
+            ){
 
                 mostrarError(
                     "Ya existe una jornada abierta."
@@ -1427,23 +1771,20 @@ btnEntrada.addEventListener(
 
             }
 
+
             const ubicacion =
-            await obtenerUbicacion();
+                await obtenerUbicacion();
+
 
             btnEntrada.textContent =
-            "REGISTRANDO...";
+                "REGISTRANDO...";
 
-            const ahora = new Date();
 
-            const datosFichaje = {
+            const ahora =
+                new Date();
 
-                empresaId:
-                empresaId,
 
-                empleadoId:
-                empleadoId,
-
-                empleadoNombre:
+            const nombreCompleto =
                 (
                     texto(
                         empleado.nombre
@@ -1452,81 +1793,105 @@ btnEntrada.addEventListener(
                     texto(
                         empleado.apellido
                     )
-                ).trim(),
+                ).trim();
+
+
+            const datosFichaje = {
+
+                empresaId:
+                    empresaId,
+
+                empleadoId:
+                    empleadoId,
+
+                empleadoNombre:
+                    nombreCompleto,
 
                 usuarioId:
-                usuarioActual.uid,
+                    usuarioActual.uid,
 
                 authUid:
-                usuarioActual.uid,
+                    usuarioActual.uid,
 
                 fecha:
-                fechaLocal(),
+                    fechaLocal(),
 
                 horaEntrada:
-                horaLocal(),
+                    horaLocal(),
 
                 entradaTimestamp:
-                serverTimestamp(),
+                    serverTimestamp(),
 
                 entradaUbicacion:{
 
                     lat:
-                    ubicacion.lat,
+                        ubicacion.lat,
 
                     lng:
-                    ubicacion.lng,
+                        ubicacion.lng,
 
                     precision:
-                    ubicacion.precision
+                        ubicacion.precision
 
                 },
 
-                horaSalida:"",
+                horaSalida:
+                    "",
 
-                salidaTimestamp:null,
+                salidaTimestamp:
+                    null,
 
-                salidaUbicacion:null,
+                salidaUbicacion:
+                    null,
 
-                estado:"abierto",
+                estado:
+                    "abierto",
 
-                duracionSegundos:0,
+                duracionSegundos:
+                    0,
 
-                horasTrabajadas:0,
+                horasTrabajadas:
+                    0,
 
-                importe:0,
+                importe:
+                    0,
 
                 creado:
-                serverTimestamp()
+                    serverTimestamp()
 
             };
 
+
             const referencia =
-            await addDoc(
-                collection(
-                    db,
-                    "fichajes"
-                ),
-                datosFichaje
-            );
+                await addDoc(
+                    collection(
+                        db,
+                        "fichajes"
+                    ),
+                    datosFichaje
+                );
+
 
             fichajeActivo = {
 
                 id:
-                referencia.id,
+                    referencia.id,
 
                 ...datosFichaje,
 
                 entradaTimestamp:
-                ahora
+                    ahora
 
             };
 
+
             mostrarFichajeActivo();
 
+
             mostrarExito(
-                "Entrada registrada correctamente con ubicación GPS."
+                "✅ Entrada registrada correctamente con ubicación GPS."
             );
+
 
             await cargarHistorial();
 
@@ -1534,23 +1899,35 @@ btnEntrada.addEventListener(
         catch(error){
 
             console.error(
-                "Error entrada:",
+                "Error registrando entrada:",
                 error
             );
 
+
+            fichajeActivo =
+                null;
+
+
             mostrarError(
-                error.message
+                error.message ||
+                "No se pudo registrar la entrada."
             );
-
-            fichajeActivo = null;
-
-            btnEntrada.disabled = false;
 
         }
         finally{
 
             btnEntrada.textContent =
-            "🟢 FICHAR ENTRADA";
+                "🟢 FICHAR ENTRADA";
+
+
+            if(
+                !fichajeActivo
+            ){
+
+                btnEntrada.disabled =
+                    false;
+
+            }
 
         }
 
@@ -1558,13 +1935,20 @@ btnEntrada.addEventListener(
 );
 
 
+/* ==================================================
+   FICHAR SALIDA
+================================================== */
+
 btnSalida.addEventListener(
     "click",
     async function(){
 
         limpiarMensajes();
 
-        if(!fichajeActivo){
+
+        if(
+            !fichajeActivo
+        ){
 
             mostrarError(
                 "No hay una jornada activa."
@@ -1574,58 +1958,79 @@ btnSalida.addEventListener(
 
         }
 
-        if(
-            !confirm(
+
+        const confirmar =
+            confirm(
                 "¿Confirmás la salida?"
-            )
-        ){
+            );
+
+
+        if(!confirmar){
+
             return;
+
         }
 
-        btnSalida.disabled = true;
+
+        btnSalida.disabled =
+            true;
+
 
         btnSalida.textContent =
-        "📍 OBTENIENDO UBICACIÓN...";
+            "📍 OBTENIENDO UBICACIÓN...";
+
 
         try{
 
             const ubicacion =
-            await obtenerUbicacion();
+                await obtenerUbicacion();
+
 
             btnSalida.textContent =
-            "REGISTRANDO...";
+                "REGISTRANDO...";
 
-            const ahora = new Date();
+
+            const ahora =
+                new Date();
+
 
             const inicio =
-            obtenerInicioFichaje();
+                obtenerInicioFichaje();
 
-            let duracionSegundos = 0;
+
+            let duracionSegundos =
+                0;
+
 
             if(inicio){
 
                 duracionSegundos =
-                Math.max(
-                    0,
-                    Math.floor(
-                        (
-                            ahora.getTime() -
-                            inicio.getTime()
-                        ) / 1000
-                    )
-                );
+                    Math.max(
+                        0,
+                        Math.floor(
+                            (
+                                ahora.getTime() -
+                                inicio.getTime()
+                            ) / 1000
+                        )
+                    );
 
             }
 
+
             const horasTrabajadas =
-            duracionSegundos / 3600;
+                duracionSegundos /
+                3600;
+
 
             const importe =
-            horasTrabajadas *
-            pagoHoraValor;
+                horasTrabajadas *
+                pagoHoraValor;
+
 
             const horaSalidaActual =
-            horaLocal();
+                horaLocal();
+
 
             await updateDoc(
                 doc(
@@ -1636,88 +2041,113 @@ btnSalida.addEventListener(
                 {
 
                     horaSalida:
-                    horaSalidaActual,
+                        horaSalidaActual,
 
                     salidaTimestamp:
-                    serverTimestamp(),
+                        serverTimestamp(),
 
                     salidaUbicacion:{
 
                         lat:
-                        ubicacion.lat,
+                            ubicacion.lat,
 
                         lng:
-                        ubicacion.lng,
+                            ubicacion.lng,
 
                         precision:
-                        ubicacion.precision
+                            ubicacion.precision
 
                     },
 
-                    estado:"cerrado",
+                    estado:
+                        "cerrado",
 
                     duracionSegundos:
-                    duracionSegundos,
+                        duracionSegundos,
 
                     horasTrabajadas:
-                    Number(
-                        horasTrabajadas.toFixed(4)
-                    ),
+                        Number(
+                            horasTrabajadas.toFixed(4)
+                        ),
 
                     importe:
-                    Number(
-                        importe.toFixed(2)
-                    )
+                        Number(
+                            importe.toFixed(2)
+                        )
 
                 }
             );
 
+
             detenerCronometro();
 
+
+            const duracionFinal =
+                formatearDuracion(
+                    duracionSegundos *
+                    1000
+                );
+
+
             cronometro.textContent =
-            formatearDuracion(
-                duracionSegundos * 1000
-            );
+                duracionFinal;
+
 
             cronometro.className =
-            "cronometro salida";
+                "cronometro salida";
+
 
             estado.className =
-            "estado";
+                "estado";
+
 
             estadoTexto.textContent =
-            "JORNADA FINALIZADA";
+                "JORNADA FINALIZADA";
+
 
             estadoTexto.className =
-            "estado-texto salida";
+                "estado-texto salida";
+
 
             horaSalida.textContent =
-            horaSalidaActual;
+                horaSalidaActual;
+
 
             tiempoTrabajado.textContent =
-            formatearDuracion(
-                duracionSegundos * 1000
-            );
+                duracionFinal;
+
 
             horasHoy.textContent =
-            horasTrabajadas.toFixed(2) +
-            " h";
+                horasTrabajadas.toFixed(2) +
+                " h";
+
 
             importeHoy.textContent =
-            moneda(importe);
+                moneda(
+                    importe
+                );
+
 
             estadoUbicacion.textContent =
-            "📍 Entrada y salida registradas";
+                "📍 Entrada y salida registradas";
 
-            fichajeActivo = null;
 
-            btnEntrada.disabled = false;
+            fichajeActivo =
+                null;
 
-            btnSalida.disabled = true;
+
+            btnEntrada.disabled =
+                false;
+
+
+            btnSalida.disabled =
+                true;
+
 
             mostrarExito(
-                "Salida registrada correctamente con ubicación GPS."
+                "✅ Salida registrada correctamente con ubicación GPS."
             );
+
 
             await cargarHistorial();
 
@@ -1725,21 +2155,25 @@ btnSalida.addEventListener(
         catch(error){
 
             console.error(
-                "Error salida:",
+                "Error registrando salida:",
                 error
             );
 
+
             mostrarError(
-                error.message
+                error.message ||
+                "No se pudo registrar la salida."
             );
 
-            btnSalida.disabled = false;
+
+            btnSalida.disabled =
+                false;
 
         }
         finally{
 
             btnSalida.textContent =
-            "🔴 FICHAR SALIDA";
+                "🔴 FICHAR SALIDA";
 
         }
 
@@ -1747,50 +2181,72 @@ btnSalida.addEventListener(
 );
 
 
+/* ==================================================
+   HISTORIAL
+================================================== */
+
 async function cargarHistorial(){
 
-    if(!empleadoId){
+    if(
+        !empleadoId
+    ){
+
         return;
+
     }
 
+
     historial.innerHTML = `
+
         <div class="cargando">
             Cargando historial...
         </div>
+
     `;
+
 
     try{
 
         const consulta =
-        query(
-            collection(
-                db,
-                "fichajes"
-            ),
-            where(
-                "empleadoId",
-                "==",
-                empleadoId
-            ),
-            limit(30)
-        );
+            query(
+                collection(
+                    db,
+                    "fichajes"
+                ),
+                where(
+                    "empleadoId",
+                    "==",
+                    empleadoId
+                ),
+                limit(50)
+            );
+
 
         const resultados =
-        await getDocs(consulta);
+            await getDocs(
+                consulta
+            );
 
-        if(resultados.empty){
+
+        if(
+            resultados.empty
+        ){
 
             historial.innerHTML = `
+
                 <div class="sin-registros">
                     Todavía no hay fichajes registrados.
                 </div>
+
             `;
 
             return;
 
         }
 
+
         const registros = [];
+
 
         resultados.forEach(
             documento => {
@@ -1798,7 +2254,7 @@ async function cargarHistorial(){
                 registros.push({
 
                     id:
-                    documento.id,
+                        documento.id,
 
                     ...documento.data()
 
@@ -1807,18 +2263,21 @@ async function cargarHistorial(){
             }
         );
 
+
         registros.sort(
-            (a,b) => {
+            function(a,b){
 
                 const fechaA =
-                texto(a.fecha) +
-                " " +
-                texto(a.horaEntrada);
+                    texto(a.fecha) +
+                    " " +
+                    texto(a.horaEntrada);
+
 
                 const fechaB =
-                texto(b.fecha) +
-                " " +
-                texto(b.horaEntrada);
+                    texto(b.fecha) +
+                    " " +
+                    texto(b.horaEntrada);
+
 
                 return fechaB.localeCompare(
                     fechaA
@@ -1827,119 +2286,198 @@ async function cargarHistorial(){
             }
         );
 
-        historial.innerHTML = "";
+
+        historial.innerHTML =
+            "";
+
 
         registros
         .slice(0,20)
         .forEach(
-            registro => {
+            function(registro){
 
                 const elemento =
-                document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
+
 
                 elemento.className =
-                "registro";
+                    "registro";
+
 
                 const fecha =
-                document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
+
 
                 fecha.className =
-                "registro-fecha";
+                    "registro-fecha";
+
 
                 fecha.textContent =
-                texto(
-                    registro.fecha
-                );
+                    formatearFecha(
+                        registro.fecha
+                    );
+
 
                 const entrada =
-                document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
+
 
                 entrada.className =
-                "registro-linea";
+                    "registro-linea";
+
 
                 entrada.textContent =
-                "Entrada: " +
-                (
-                    texto(
-                        registro.horaEntrada
-                    ) || "-"
-                );
+                    "Entrada: " +
+                    (
+                        texto(
+                            registro.horaEntrada
+                        ) ||
+                        "-"
+                    );
+
 
                 const salida =
-                document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
+
 
                 salida.className =
-                "registro-linea";
+                    "registro-linea";
+
 
                 salida.textContent =
-                "Salida: " +
-                (
-                    texto(
-                        registro.horaSalida
-                    ) ||
-                    "En curso"
-                );
+                    "Salida: " +
+                    (
+                        texto(
+                            registro.horaSalida
+                        ) ||
+                        "En curso"
+                    );
+
 
                 const tiempo =
-                document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
+
 
                 tiempo.className =
-                "registro-linea";
+                    "registro-linea";
+
 
                 const segundos =
-                numero(
-                    registro.duracionSegundos
-                );
+                    numero(
+                        registro.duracionSegundos
+                    );
+
 
                 tiempo.textContent =
-                "Tiempo: " +
-                formatearDuracion(
-                    segundos * 1000
-                );
+                    "Tiempo: " +
+                    formatearDuracion(
+                        segundos *
+                        1000
+                    );
+
 
                 const importe =
-                document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
+
 
                 importe.className =
-                "registro-linea";
+                    "registro-linea";
+
 
                 importe.textContent =
-                "Importe: " +
-                moneda(
-                    registro.importe
-                );
+                    "Importe: " +
+                    moneda(
+                        registro.importe
+                    );
+
 
                 const ubicacion =
-                document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
+
 
                 ubicacion.className =
-                "registro-linea";
+                    "registro-linea";
+
 
                 const tieneEntrada =
-                !!registro.entradaUbicacion;
+                    !!registro.entradaUbicacion;
+
 
                 const tieneSalida =
-                !!registro.salidaUbicacion;
+                    !!registro.salidaUbicacion;
 
-                ubicacion.textContent =
-                "Ubicación: " +
-                (
+
+                let textoUbicacion =
+                    "No disponible";
+
+
+                if(
                     tieneEntrada &&
                     tieneSalida
-                    ? "Entrada y salida registradas"
-                    : tieneEntrada
-                    ? "Entrada registrada"
-                    : "No disponible"
+                ){
+
+                    textoUbicacion =
+                        "📍 Entrada y salida registradas";
+
+                }
+
+                else if(
+                    tieneEntrada
+                ){
+
+                    textoUbicacion =
+                        "📍 Entrada registrada";
+
+                }
+
+
+                ubicacion.textContent =
+                    "Ubicación: " +
+                    textoUbicacion;
+
+
+                elemento.appendChild(
+                    fecha
                 );
 
-                elemento.appendChild(fecha);
-                elemento.appendChild(entrada);
-                elemento.appendChild(salida);
-                elemento.appendChild(tiempo);
-                elemento.appendChild(importe);
-                elemento.appendChild(ubicacion);
+                elemento.appendChild(
+                    entrada
+                );
 
-                historial.appendChild(elemento);
+                elemento.appendChild(
+                    salida
+                );
+
+                elemento.appendChild(
+                    tiempo
+                );
+
+                elemento.appendChild(
+                    importe
+                );
+
+                elemento.appendChild(
+                    ubicacion
+                );
+
+
+                historial.appendChild(
+                    elemento
+                );
 
             }
         );
@@ -1948,14 +2486,17 @@ async function cargarHistorial(){
     catch(error){
 
         console.error(
-            "Error historial:",
+            "Error cargando historial:",
             error
         );
 
+
         historial.innerHTML = `
+
             <div class="sin-registros">
                 No se pudo cargar el historial.
             </div>
+
         `;
 
     }
@@ -1963,29 +2504,84 @@ async function cargarHistorial(){
 }
 
 
+/* ==================================================
+   FORMATEAR FECHA
+================================================== */
+
+function formatearFecha(fecha){
+
+    if(!fecha){
+
+        return "Fecha desconocida";
+
+    }
+
+
+    const partes =
+        String(fecha).split("-");
+
+
+    if(
+        partes.length !== 3
+    ){
+
+        return fecha;
+
+    }
+
+
+    return (
+        partes[2] +
+        "/" +
+        partes[1] +
+        "/" +
+        partes[0]
+    );
+
+}
+
+
+/* ==================================================
+   CERRAR SESIÓN
+================================================== */
+
 btnCerrarSesion.addEventListener(
     "click",
     async function(){
 
-        if(
-            !confirm(
+        const confirmar =
+            confirm(
                 "¿Querés cerrar la sesión?"
-            )
-        ){
+            );
+
+
+        if(!confirmar){
+
             return;
+
         }
+
 
         detenerCronometro();
 
+
         try{
 
-            await signOut(auth);
+            await signOut(
+                auth
+            );
+
 
             window.location.href =
-            "empleado-login.html";
+                "empleado-login.html";
 
         }
         catch(error){
+
+            console.error(
+                error
+            );
+
 
             mostrarError(
                 "No se pudo cerrar la sesión: " +
@@ -1998,6 +2594,10 @@ btnCerrarSesion.addEventListener(
 );
 
 
+/* ==================================================
+   VOLVER
+================================================== */
+
 btnVolver.addEventListener(
     "click",
     function(){
@@ -2008,44 +2608,83 @@ btnVolver.addEventListener(
 );
 
 
+/* ==================================================
+   AUTENTICACIÓN
+   UN SOLO LISTENER
+================================================== */
+
 onAuthStateChanged(
     auth,
     async function(usuario){
 
-        if(!usuario){
-
-            window.location.href =
-            "empleado-login.html";
+        if(
+            inicializado
+        ){
 
             return;
 
         }
 
-        usuarioActual = usuario;
+
+        if(!usuario){
+
+            window.location.replace(
+                "empleado-login.html"
+            );
+
+            return;
+
+        }
+
+
+        inicializado =
+            true;
+
+
+        usuarioActual =
+            usuario;
+
 
         try{
 
             limpiarMensajes();
 
+
             empleadoNombre.textContent =
-            "Cargando empleado...";
+                "Cargando empleado...";
+
 
             empleadoPuesto.textContent =
-            "Verificando acceso...";
+                "Verificando acceso...";
+
 
             estadoTexto.textContent =
-            "VERIFICANDO...";
+                "VERIFICANDO...";
+
 
             estado.className =
-            "estado estado-cargando";
+                "estado estado-cargando";
+
+
+            btnEntrada.disabled =
+                true;
+
+
+            btnSalida.disabled =
+                true;
+
 
             await cargarEmpleado();
 
+
             mostrarDatosEmpleado();
+
 
             cargarPago();
 
+
             await buscarFichajeActivo();
+
 
             await cargarHistorial();
 
@@ -2057,20 +2696,30 @@ onAuthStateChanged(
                 error
             );
 
-            btnEntrada.disabled = true;
-            btnSalida.disabled = true;
+
+            btnEntrada.disabled =
+                true;
+
+
+            btnSalida.disabled =
+                true;
+
 
             estadoTexto.textContent =
-            "ERROR";
+                "ERROR";
+
 
             estado.className =
-            "estado";
+                "estado";
+
 
             empleadoPuesto.textContent =
-            "No se pudo cargar el empleado";
+                "No se pudo cargar el empleado";
+
 
             mostrarError(
-                error.message
+                error.message ||
+                "No se pudo iniciar el sistema de fichaje."
             );
 
         }
@@ -2078,6 +2727,10 @@ onAuthStateChanged(
     }
 );
 
+
+/* ==================================================
+   ACTUALIZAR AL VOLVER A LA PANTALLA
+================================================== */
 
 document.addEventListener(
     "visibilitychange",
@@ -2095,6 +2748,10 @@ document.addEventListener(
     }
 );
 
+
+/* ==================================================
+   LIMPIAR CRONÓMETRO
+================================================== */
 
 window.addEventListener(
     "beforeunload",
