@@ -4,8 +4,16 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111827">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
 
 <title>Panel de empleado - GESBASE</title>
 
@@ -311,6 +319,7 @@ main{
     border-radius:10px;
     margin-bottom:15px;
     display:none;
+    white-space:pre-line;
 }
 
 .aviso{
@@ -323,6 +332,35 @@ main{
 
 .oculto{
     display:none !important;
+}
+
+.info-vinculo{
+    margin-top:15px;
+    padding:12px;
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    font-size:12px;
+    line-height:1.7;
+    color:#4b5563;
+}
+
+.estado-activo{
+    background:#f0fdf4;
+    border-color:#bbf7d0;
+    color:#166534;
+}
+
+.estado-pendiente{
+    background:#fffbeb;
+    border-color:#fde68a;
+    color:#92400e;
+}
+
+.estado-inactivo{
+    background:#fef2f2;
+    border-color:#fecaca;
+    color:#991b1b;
 }
 
 @media(max-width:600px){
@@ -372,14 +410,14 @@ main{
     href="correo.html"
     class="acceso-flotante acceso-correo"
 >
-    ✉️ <span class="texto-acceso">Correo</span>
+    ✉️ <span>Correo</span>
 </a>
 
 <a
     href="fichaje.html"
     class="acceso-flotante acceso-fichaje"
 >
-    ⏱️ <span class="texto-acceso">Fichaje</span>
+    ⏱️ <span>Fichaje</span>
 </a>
 
 </div>
@@ -410,7 +448,9 @@ main{
 ></div>
 
 
-<!-- PERFIL -->
+<!-- =========================================
+     PERFIL
+========================================= -->
 
 <div class="tarjeta">
 
@@ -432,7 +472,10 @@ Cargando...
 Cargando...
 </div>
 
-<div class="estado">
+<div
+    id="estadoCaja"
+    class="estado estado-pendiente"
+>
 
 <div class="estado-titulo">
 Estado de acceso
@@ -447,10 +490,25 @@ VERIFICANDO...
 
 </div>
 
+
+<div class="info-vinculo">
+
+<strong>Cuenta:</strong>
+<span id="cuentaFirebase">Verificando...</span>
+
+<br>
+
+<strong>Empresa:</strong>
+<span id="empresaEmpleado">Verificando...</span>
+
+</div>
+
 </div>
 
 
-<!-- ACCESOS -->
+<!-- =========================================
+     ACCESOS
+========================================= -->
 
 <div class="tarjeta">
 
@@ -504,7 +562,9 @@ Entrada, salida y jornada
 </div>
 
 
-<!-- LIQUIDACIÓN -->
+<!-- =========================================
+     LIQUIDACIÓN
+========================================= -->
 
 <div class="tarjeta">
 
@@ -669,7 +729,9 @@ No hay registros todavía.
 </div>
 
 
-<!-- DATOS -->
+<!-- =========================================
+     DATOS
+========================================= -->
 
 <div class="tarjeta">
 
@@ -762,6 +824,8 @@ from
 
 import {
     collection,
+    doc,
+    getDoc,
     getDocs,
     query,
     where,
@@ -771,18 +835,24 @@ from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
+/* =====================================================
+   VARIABLES
+===================================================== */
+
 let usuarioActual = null;
 
 let empleadoActual = null;
 
 let fichajes = [];
 
+let empresaIdActual = "";
 
-/*
-================================================
-UTILIDADES
-================================================
-*/
+let inicioCompletado = false;
+
+
+/* =====================================================
+   UTILIDADES
+===================================================== */
 
 const $ = id =>
 document.getElementById(id);
@@ -885,11 +955,81 @@ function ocultarAviso(){
 }
 
 
-/*
-================================================
-FECHAS
-================================================
-*/
+/* =====================================================
+   ESTADO
+===================================================== */
+
+function mostrarEstado(estado){
+
+    let valor =
+    texto(estado).toLowerCase();
+
+    if(!valor){
+
+        valor = "activo";
+
+    }
+
+    const caja =
+    $("estadoCaja");
+
+    caja.classList.remove(
+        "estado-activo",
+        "estado-pendiente",
+        "estado-inactivo"
+    );
+
+
+    if(
+        valor === "activo" ||
+        valor === "habilitado" ||
+        valor === "habilitada"
+    ){
+
+        $("estadoEmpleado").textContent =
+        "ACTIVO";
+
+        caja.classList.add(
+            "estado-activo"
+        );
+
+        return;
+
+    }
+
+
+    if(
+        valor === "inactivo" ||
+        valor === "deshabilitado" ||
+        valor === "deshabilitada" ||
+        valor === "baja"
+    ){
+
+        $("estadoEmpleado").textContent =
+        "DESHABILITADO";
+
+        caja.classList.add(
+            "estado-inactivo"
+        );
+
+        return;
+
+    }
+
+
+    $("estadoEmpleado").textContent =
+    valor.toUpperCase();
+
+    caja.classList.add(
+        "estado-pendiente"
+    );
+
+}
+
+
+/* =====================================================
+   FECHAS
+===================================================== */
 
 function convertirFecha(fecha){
 
@@ -933,370 +1073,375 @@ function fechaPorDefecto(){
 }
 
 
-/*
-================================================
-CARGAR EMPLEADO
-================================================
+/* =====================================================
+   OBTENER EMPRESA DEL USUARIO
+===================================================== */
 
-Busca el empleado de varias formas.
+async function obtenerEmpresaDelUsuario(){
 
-IMPORTANTE:
-No se redirige automáticamente si una
-consulta secundaria falla.
+    if(!usuarioActual){
 
-================================================
-*/
-
-async function cargarEmpleado(usuario){
-
-    empleadoActual = null;
-
-
-    /*
-    ================================================
-    1. authUid
-    ================================================
-    */
-
-    try{
-
-        const consulta =
-        query(
-            collection(
-                db,
-                "empleados"
-            ),
-            where(
-                "authUid",
-                "==",
-                usuario.uid
-            ),
-            limit(1)
-        );
-
-
-        const resultado =
-        await getDocs(
-            consulta
-        );
-
-
-        if(
-            !resultado.empty
-        ){
-
-            const documento =
-            resultado.docs[0];
-
-
-            empleadoActual = {
-
-                id:
-                documento.id,
-
-                ...documento.data()
-
-            };
-
-
-            console.log(
-                "Empleado encontrado por authUid"
-            );
-
-
-            mostrarDatosEmpleado();
-
-            return;
-
-        }
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo buscar por authUid:",
-            error
+        throw new Error(
+            "No existe una sesión de Firebase."
         );
 
     }
 
 
-    /*
-    ================================================
-    2. uid
-    ================================================
-    */
+    const usuarioRef =
+    doc(
+        db,
+        "usuarios",
+        usuarioActual.uid
+    );
+
+
+    const usuarioDoc =
+    await getDoc(
+        usuarioRef
+    );
 
-    try{
-
-        const consulta =
-        query(
-            collection(
-                db,
-                "empleados"
-            ),
-            where(
-                "uid",
-                "==",
-                usuario.uid
-            ),
-            limit(1)
-        );
-
-
-        const resultado =
-        await getDocs(
-            consulta
-        );
-
-
-        if(
-            !resultado.empty
-        ){
-
-            const documento =
-            resultado.docs[0];
-
-
-            empleadoActual = {
-
-                id:
-                documento.id,
-
-                ...documento.data()
-
-            };
-
-
-            console.log(
-                "Empleado encontrado por uid"
-            );
-
-
-            mostrarDatosEmpleado();
-
-            return;
-
-        }
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo buscar por uid:",
-            error
-        );
-
-    }
-
-
-    /*
-    ================================================
-    3. usuarioId
-    ================================================
-    */
-
-    try{
-
-        const consulta =
-        query(
-            collection(
-                db,
-                "empleados"
-            ),
-            where(
-                "usuarioId",
-                "==",
-                usuario.uid
-            ),
-            limit(1)
-        );
-
-
-        const resultado =
-        await getDocs(
-            consulta
-        );
-
-
-        if(
-            !resultado.empty
-        ){
-
-            const documento =
-            resultado.docs[0];
-
-
-            empleadoActual = {
-
-                id:
-                documento.id,
-
-                ...documento.data()
-
-            };
-
-
-            console.log(
-                "Empleado encontrado por usuarioId"
-            );
-
-
-            mostrarDatosEmpleado();
-
-            return;
-
-        }
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo buscar por usuarioId:",
-            error
-        );
-
-    }
-
-
-    /*
-    ================================================
-    4. empleadoId
-    ================================================
-    */
-
-    try{
-
-        const consulta =
-        query(
-            collection(
-                db,
-                "empleados"
-            ),
-            where(
-                "empleadoId",
-                "==",
-                usuario.uid
-            ),
-            limit(1)
-        );
-
-
-        const resultado =
-        await getDocs(
-            consulta
-        );
-
-
-        if(
-            !resultado.empty
-        ){
-
-            const documento =
-            resultado.docs[0];
-
-
-            empleadoActual = {
-
-                id:
-                documento.id,
-
-                ...documento.data()
-
-            };
-
-
-            console.log(
-                "Empleado encontrado por empleadoId"
-            );
-
-
-            mostrarDatosEmpleado();
-
-            return;
-
-        }
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo buscar por empleadoId:",
-            error
-        );
-
-    }
-
-
-    /*
-    ================================================
-    5. EMAIL
-    ================================================
-    */
 
     if(
-        usuario.email
+        usuarioDoc.exists()
     ){
 
-        try{
-
-            const consulta =
-            query(
-                collection(
-                    db,
-                    "empleados"
-                ),
-                where(
-                    "email",
-                    "==",
-                    usuario.email
-                ),
-                limit(1)
-            );
+        const datos =
+        usuarioDoc.data();
 
 
-            const resultado =
-            await getDocs(
-                consulta
-            );
+        const posibles = [
+
+            datos.empresaId,
+
+            datos.empresaID,
+
+            datos.idEmpresa,
+
+            datos.empresa
+
+        ];
 
 
-            if(
-                !resultado.empty
-            ){
+        for(
+            const valor of posibles
+        ){
 
-                const documento =
-                resultado.docs[0];
-
-
-                empleadoActual = {
-
-                    id:
-                    documento.id,
-
-                    ...documento.data()
-
-                };
+            const id =
+            texto(valor);
 
 
-                console.log(
-                    "Empleado encontrado por email"
-                );
+            if(id){
 
+                empresaIdActual =
+                id;
 
-                mostrarDatosEmpleado();
-
-                return;
+                break;
 
             }
 
         }
-        catch(error){
 
-            console.warn(
-                "No se pudo buscar por email:",
-                error
+    }
+
+
+    /*
+     * Compatibilidad:
+     * si la cuenta todavía no tiene empresaId,
+     * no cerramos sesión.
+     *
+     * Usamos el UID como último recurso.
+     */
+
+    if(!empresaIdActual){
+
+        empresaIdActual =
+        usuarioActual.uid;
+
+        console.warn(
+            "La cuenta no tiene empresaId. Se utilizará el UID como respaldo:",
+            empresaIdActual
+        );
+
+    }
+
+
+    $("empresaEmpleado").textContent =
+    empresaIdActual;
+
+}
+
+
+/* =====================================================
+   BUSCAR EMPLEADO POR CAMPO
+===================================================== */
+
+async function buscarPorCampo(
+    campo,
+    valor
+){
+
+    if(!valor){
+
+        return null;
+
+    }
+
+
+    try{
+
+        const consulta =
+        query(
+            collection(
+                db,
+                "empleados"
+            ),
+            where(
+                campo,
+                "==",
+                valor
+            ),
+            limit(1)
+        );
+
+
+        const resultado =
+        await getDocs(
+            consulta
+        );
+
+
+        if(
+            !resultado.empty
+        ){
+
+            const documento =
+            resultado.docs[0];
+
+
+            return {
+
+                id:
+                documento.id,
+
+                ...documento.data()
+
+            };
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "Error buscando por " +
+            campo +
+            ":",
+            error
+        );
+
+    }
+
+
+    return null;
+
+}
+
+
+/* =====================================================
+   BUSCAR EMPLEADO
+===================================================== */
+
+async function cargarEmpleado(){
+
+    empleadoActual = null;
+
+
+    await obtenerEmpresaDelUsuario();
+
+
+    /*
+    =================================================
+    1. authUid
+    =================================================
+    */
+
+    empleadoActual =
+    await buscarPorCampo(
+        "authUid",
+        usuarioActual.uid
+    );
+
+
+    if(empleadoActual){
+
+        console.log(
+            "Empleado encontrado por authUid"
+        );
+
+        mostrarDatosEmpleado();
+
+        return;
+
+    }
+
+
+    /*
+    =================================================
+    2. uid
+    =================================================
+    */
+
+    empleadoActual =
+    await buscarPorCampo(
+        "uid",
+        usuarioActual.uid
+    );
+
+
+    if(empleadoActual){
+
+        console.log(
+            "Empleado encontrado por uid"
+        );
+
+        mostrarDatosEmpleado();
+
+        return;
+
+    }
+
+
+    /*
+    =================================================
+    3. usuarioId
+    =================================================
+    */
+
+    empleadoActual =
+    await buscarPorCampo(
+        "usuarioId",
+        usuarioActual.uid
+    );
+
+
+    if(empleadoActual){
+
+        console.log(
+            "Empleado encontrado por usuarioId"
+        );
+
+        mostrarDatosEmpleado();
+
+        return;
+
+    }
+
+
+    /*
+    =================================================
+    4. empleadoId
+    =================================================
+    */
+
+    empleadoActual =
+    await buscarPorCampo(
+        "empleadoId",
+        usuarioActual.uid
+    );
+
+
+    if(empleadoActual){
+
+        console.log(
+            "Empleado encontrado por empleadoId"
+        );
+
+        mostrarDatosEmpleado();
+
+        return;
+
+    }
+
+
+    /*
+    =================================================
+    5. usuarioUID
+    =================================================
+    */
+
+    empleadoActual =
+    await buscarPorCampo(
+        "usuarioUID",
+        usuarioActual.uid
+    );
+
+
+    if(empleadoActual){
+
+        console.log(
+            "Empleado encontrado por usuarioUID"
+        );
+
+        mostrarDatosEmpleado();
+
+        return;
+
+    }
+
+
+    /*
+    =================================================
+    6. empleadoUID
+    =================================================
+    */
+
+    empleadoActual =
+    await buscarPorCampo(
+        "empleadoUID",
+        usuarioActual.uid
+    );
+
+
+    if(empleadoActual){
+
+        console.log(
+            "Empleado encontrado por empleadoUID"
+        );
+
+        mostrarDatosEmpleado();
+
+        return;
+
+    }
+
+
+    /*
+    =================================================
+    7. EMAIL
+    =================================================
+    */
+
+    if(
+        usuarioActual.email
+    ){
+
+        empleadoActual =
+        await buscarPorCampo(
+            "email",
+            usuarioActual.email
+        );
+
+
+        if(empleadoActual){
+
+            console.log(
+                "Empleado encontrado por email"
             );
+
+            mostrarDatosEmpleado();
+
+            return;
 
         }
 
@@ -1304,24 +1449,28 @@ async function cargarEmpleado(usuario){
 
 
     /*
-    ================================================
+    =================================================
     NO ENCONTRADO
-    ================================================
+    =================================================
     */
 
     throw new Error(
-        "La cuenta está autenticada, pero GESBASE no encontró un empleado vinculado a esta cuenta.\n\n" +
-        "Verificá en Administración de empleados que el empleado tenga vinculada esta cuenta."
+        "La cuenta está correctamente iniciada en Firebase, pero no encontramos un registro de empleado vinculado.\n\n" +
+        "Cuenta: " +
+        (
+            usuarioActual.email ||
+            usuarioActual.uid
+        ) +
+        "\n\n" +
+        "La sesión NO se cerró."
     );
 
 }
 
 
-/*
-================================================
-MOSTRAR DATOS DEL EMPLEADO
-================================================
-*/
+/* =====================================================
+   MOSTRAR DATOS EMPLEADO
+===================================================== */
 
 function mostrarDatosEmpleado(){
 
@@ -1356,22 +1505,9 @@ function mostrarDatosEmpleado(){
     "Empleado";
 
 
-    let estado =
-    texto(
+    mostrarEstado(
         empleadoActual.estado
     );
-
-
-    if(!estado){
-
-        estado =
-        "activo";
-
-    }
-
-
-    $("estadoEmpleado").textContent =
-    estado.toUpperCase();
 
 
     $("datoNombre").textContent =
@@ -1407,6 +1543,9 @@ function mostrarDatosEmpleado(){
     texto(
         empleadoActual.dni
     ) ||
+    texto(
+        empleadoActual.DNI
+    ) ||
     "-";
 
 
@@ -1415,14 +1554,17 @@ function mostrarDatosEmpleado(){
         empleadoActual.fechaIngreso
     );
 
+
+    $("cuentaFirebase").textContent =
+    usuarioActual.email ||
+    usuarioActual.uid;
+
 }
 
 
-/*
-================================================
-FECHA SIMPLE
-================================================
-*/
+/* =====================================================
+   FECHA SIMPLE
+===================================================== */
 
 function formatearFechaSimple(valor){
 
@@ -1519,77 +1661,44 @@ function convertirFechaHumana(fecha){
 }
 
 
-/*
-================================================
-CARGAR FICHAJES
-================================================
-*/
+/* =====================================================
+   CARGAR FICHAJES
+===================================================== */
 
 async function cargarFichajes(){
 
     fichajes = [];
 
 
-    /*
-    authUid
-    */
+    const campos = [
 
-    try{
+        ["authUid",usuarioActual.uid],
 
-        const consulta =
-        query(
-            collection(
-                db,
-                "fichajes"
-            ),
-            where(
-                "authUid",
-                "==",
-                usuarioActual.uid
-            )
-        );
+        ["empleadoUID",usuarioActual.uid],
+
+        ["empleadoUid",usuarioActual.uid],
+
+        ["uid",usuarioActual.uid],
+
+        ["empleadoId",empleadoActual?.id]
+
+    ];
 
 
-        const resultado =
-        await getDocs(
-            consulta
-        );
-
-
-        resultado.forEach(
-            documento => {
-
-                fichajes.push({
-
-                    id:
-                    documento.id,
-
-                    ...documento.data()
-
-                });
-
-            }
-        );
-
-    }
-    catch(error){
-
-        console.warn(
-            "Error buscando fichajes por authUid:",
-            error
-        );
-
-    }
-
-
-    /*
-    empleadoId
-    */
-
-    if(
-        fichajes.length === 0 &&
-        empleadoActual?.id
+    for(
+        const [campo,valor]
+        of campos
     ){
+
+        if(
+            !valor ||
+            fichajes.length > 0
+        ){
+
+            continue;
+
+        }
+
 
         try{
 
@@ -1600,9 +1709,9 @@ async function cargarFichajes(){
                     "fichajes"
                 ),
                 where(
-                    "empleadoId",
+                    campo,
                     "==",
-                    empleadoActual.id
+                    valor
                 )
             );
 
@@ -1632,123 +1741,9 @@ async function cargarFichajes(){
         catch(error){
 
             console.warn(
-                "Error buscando fichajes por empleadoId:",
-                error
-            );
-
-        }
-
-    }
-
-
-    /*
-    empleadoUID
-    */
-
-    if(
-        fichajes.length === 0
-    ){
-
-        try{
-
-            const consulta =
-            query(
-                collection(
-                    db,
-                    "fichajes"
-                ),
-                where(
-                    "empleadoUID",
-                    "==",
-                    usuarioActual.uid
-                )
-            );
-
-
-            const resultado =
-            await getDocs(
-                consulta
-            );
-
-
-            resultado.forEach(
-                documento => {
-
-                    fichajes.push({
-
-                        id:
-                        documento.id,
-
-                        ...documento.data()
-
-                    });
-
-                }
-            );
-
-        }
-        catch(error){
-
-            console.warn(
-                "No se pudieron buscar fichajes por empleadoUID:",
-                error
-            );
-
-        }
-
-    }
-
-
-    /*
-    empleadoUid
-    */
-
-    if(
-        fichajes.length === 0
-    ){
-
-        try{
-
-            const consulta =
-            query(
-                collection(
-                    db,
-                    "fichajes"
-                ),
-                where(
-                    "empleadoUid",
-                    "==",
-                    usuarioActual.uid
-                )
-            );
-
-
-            const resultado =
-            await getDocs(
-                consulta
-            );
-
-
-            resultado.forEach(
-                documento => {
-
-                    fichajes.push({
-
-                        id:
-                        documento.id,
-
-                        ...documento.data()
-
-                    });
-
-                }
-            );
-
-        }
-        catch(error){
-
-            console.warn(
-                "No se pudieron buscar fichajes por empleadoUid:",
+                "No se pudieron buscar fichajes por " +
+                campo +
+                ":",
                 error
             );
 
@@ -1782,14 +1777,18 @@ async function cargarFichajes(){
         mapa.values()
     );
 
+
+    console.log(
+        "Fichajes encontrados:",
+        fichajes.length
+    );
+
 }
 
 
-/*
-================================================
-FECHA DEL FICHAJE
-================================================
-*/
+/* =====================================================
+   FECHA FICHAJE
+===================================================== */
 
 function obtenerFechaFichaje(fichaje){
 
@@ -1884,11 +1883,9 @@ function obtenerFechaFichaje(fichaje){
 }
 
 
-/*
-================================================
-HORA
-================================================
-*/
+/* =====================================================
+   HORA
+===================================================== */
 
 function obtenerHora(valor){
 
@@ -1973,11 +1970,9 @@ function obtenerHora(valor){
 }
 
 
-/*
-================================================
-HORAS
-================================================
-*/
+/* =====================================================
+   HORAS
+===================================================== */
 
 function obtenerHoras(fichaje){
 
@@ -2080,11 +2075,9 @@ function obtenerHoras(fichaje){
 }
 
 
-/*
-================================================
-FORMATO HORAS
-================================================
-*/
+/* =====================================================
+   FORMATO HORAS
+===================================================== */
 
 function formatoHoras(horas){
 
@@ -2113,11 +2106,9 @@ function formatoHoras(horas){
 }
 
 
-/*
-================================================
-LIQUIDACIÓN
-================================================
-*/
+/* =====================================================
+   LIQUIDACIÓN
+===================================================== */
 
 function calcularLiquidacion(){
 
@@ -2452,11 +2443,9 @@ function calcularLiquidacion(){
 }
 
 
-/*
-================================================
-DETALLE
-================================================
-*/
+/* =====================================================
+   DETALLE
+===================================================== */
 
 function mostrarDetalles(
     detalles,
@@ -2609,11 +2598,9 @@ function mostrarDetalles(
 }
 
 
-/*
-================================================
-BOTÓN CALCULAR
-================================================
-*/
+/* =====================================================
+   BOTÓN CALCULAR
+===================================================== */
 
 $("btnCalcular").addEventListener(
     "click",
@@ -2621,11 +2608,9 @@ $("btnCalcular").addEventListener(
 );
 
 
-/*
-================================================
-CERRAR SESIÓN
-================================================
-*/
+/* =====================================================
+   CERRAR SESIÓN
+===================================================== */
 
 $("btnCerrarSesion").addEventListener(
     "click",
@@ -2670,11 +2655,9 @@ $("btnCerrarSesion").addEventListener(
 );
 
 
-/*
-================================================
-VOLVER
-================================================
-*/
+/* =====================================================
+   VOLVER
+===================================================== */
 
 $("btnVolver").addEventListener(
     "click",
@@ -2698,22 +2681,16 @@ $("btnVolver").addEventListener(
 );
 
 
-/*
-================================================
-INICIO
-================================================
-*/
-
-let inicioCompletado =
-false;
-
+/* =====================================================
+   INICIO
+===================================================== */
 
 onAuthStateChanged(
     auth,
     async function(usuario){
 
         console.log(
-            "Estado de autenticación:",
+            "Firebase Auth:",
             usuario
                 ? usuario.uid
                 : "SIN USUARIO"
@@ -2721,20 +2698,27 @@ onAuthStateChanged(
 
 
         /*
-        IMPORTANTE:
-        Solo se manda al login si realmente
-        Firebase informa que NO hay usuario.
+        ==============================================
+        SI NO HAY SESIÓN
+        ==============================================
         */
 
         if(!usuario){
 
-            window.location.href =
-            "empleado-login.html";
+            window.location.replace(
+                "empleado-login.html"
+            );
 
             return;
 
         }
 
+
+        /*
+        ==============================================
+        EVITAR DOBLE EJECUCIÓN
+        ==============================================
+        */
 
         if(inicioCompletado){
 
@@ -2751,45 +2735,62 @@ onAuthStateChanged(
         usuario;
 
 
+        $("cuentaFirebase").textContent =
+        usuario.email ||
+        usuario.uid;
+
+
         ocultarError();
 
         ocultarAviso();
 
 
+        $("estadoEmpleado").textContent =
+        "CARGANDO...";
+
+
         try{
 
             /*
-            Primero cargamos el empleado.
+            ==========================================
+            1. EMPLEADO
+            ==========================================
             */
 
-            await cargarEmpleado(
-                usuario
-            );
+            await cargarEmpleado();
 
 
             /*
-            Después fichajes.
+            ==========================================
+            2. FICHAJES
+            ==========================================
             */
 
             await cargarFichajes();
 
 
             /*
-            Fechas.
+            ==========================================
+            3. FECHAS
+            ==========================================
             */
 
             fechaPorDefecto();
 
 
             /*
-            Liquidación.
+            ==========================================
+            4. LIQUIDACIÓN
+            ==========================================
             */
 
             calcularLiquidacion();
 
 
             /*
-            Aviso si no hay fichajes.
+            ==========================================
+            5. AVISO SI NO HAY FICHAJES
+            ==========================================
             */
 
             if(
@@ -2797,36 +2798,40 @@ onAuthStateChanged(
             ){
 
                 mostrarAviso(
-                    "Todavía no hay fichajes registrados para esta cuenta."
+                    "La cuenta está vinculada al empleado, pero todavía no hay fichajes registrados."
                 );
 
             }
+
 
         }
         catch(error){
 
             console.error(
-                "Error iniciando panel:",
+                "ERROR COMPLETO DEL PANEL:",
                 error
             );
 
+
+            /*
+            ==========================================
+            IMPORTANTE:
+            NO CERRAMOS SESIÓN.
+            ==========================================
+            */
 
             $("empleadoNombre").textContent =
             "Cuenta autenticada";
 
 
             $("empleadoPuesto").textContent =
-            "Empleado";
+            "Esperando vinculación";
 
 
-            $("estadoEmpleado").textContent =
-            "VERIFICACIÓN PENDIENTE";
+            mostrarEstado(
+                "pendiente"
+            );
 
-
-            /*
-            NO cerramos sesión.
-            NO mandamos al login.
-            */
 
             mostrarError(
                 error.message ||
@@ -2839,22 +2844,20 @@ onAuthStateChanged(
 );
 
 
-/*
-================================================
-CONTROL DE TIEMPO
-================================================
-*/
+/* =====================================================
+   CONTROL DE TIEMPO
+===================================================== */
 
 setTimeout(
     function(){
 
         if(
-            !empleadoActual &&
-            usuarioActual
+            usuarioActual &&
+            !empleadoActual
         ){
 
             mostrarAviso(
-                "La cuenta está iniciada, pero todavía no se encontró el registro del empleado. Revisá la vinculación desde Administración de empleados."
+                "La cuenta está iniciada correctamente. GESBASE todavía no encuentra el registro del empleado vinculado."
             );
 
         }
