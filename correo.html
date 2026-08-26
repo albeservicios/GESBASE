@@ -159,6 +159,16 @@ textarea:focus{
     color:#fff;
 }
 
+.boton-audio{
+    background:#7c3aed;
+    color:#fff;
+}
+
+.boton-detener{
+    background:#dc2626;
+    color:#fff;
+}
+
 .boton:disabled{
 
     opacity:.5;
@@ -213,6 +223,133 @@ textarea:focus{
     font-size:14px;
 
     line-height:1.6;
+}
+
+.archivos-panel{
+
+    border:1px dashed #9ca3af;
+
+    border-radius:12px;
+
+    padding:15px;
+
+    margin-top:5px;
+
+    margin-bottom:15px;
+
+    background:#f9fafb;
+}
+
+.archivos-titulo{
+
+    font-size:14px;
+
+    font-weight:bold;
+
+    margin-bottom:10px;
+}
+
+.archivos-lista{
+
+    margin-top:10px;
+}
+
+.archivo-item{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:10px;
+
+    padding:10px;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:9px;
+
+    background:#fff;
+
+    margin-bottom:7px;
+
+    font-size:13px;
+}
+
+.archivo-nombre{
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+    flex:1;
+}
+
+.archivo-eliminar{
+
+    border:none;
+
+    background:#fee2e2;
+
+    color:#991b1b;
+
+    border-radius:7px;
+
+    padding:7px 10px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+}
+
+.audio-panel{
+
+    border:1px solid #ddd6fe;
+
+    background:#f5f3ff;
+
+    border-radius:12px;
+
+    padding:15px;
+
+    margin-bottom:15px;
+}
+
+.audio-estado{
+
+    font-size:14px;
+
+    margin-bottom:10px;
+
+    color:#5b21b6;
+
+    font-weight:bold;
+}
+
+.audio-controles{
+
+    display:flex;
+
+    gap:8px;
+
+    flex-wrap:wrap;
+}
+
+.audio-controles button{
+
+    flex:1;
+
+    min-width:130px;
+}
+
+audio{
+
+    width:100%;
+
+    margin-top:12px;
 }
 
 .correo-item{
@@ -305,6 +442,34 @@ textarea:focus{
     background:#dbeafe;
 
     color:#1d4ed8;
+}
+
+.adjunto-correo{
+
+    margin-top:12px;
+
+    padding:12px;
+
+    border:1px solid #dbeafe;
+
+    background:#eff6ff;
+
+    border-radius:10px;
+}
+
+.adjunto-correo a{
+
+    color:#1d4ed8;
+
+    font-weight:bold;
+
+    text-decoration:none;
+
+}
+
+.adjunto-correo audio{
+
+    margin-top:5px;
 }
 
 .sin-registros,
@@ -474,6 +639,67 @@ Mensaje
 ></textarea>
 
 
+<!-- ==============================
+     ARCHIVOS
+============================== -->
+
+<div class="archivos-panel">
+
+<div class="archivos-titulo">
+📎 Archivos adjuntos
+</div>
+
+<input
+    type="file"
+    id="archivos"
+    multiple
+>
+
+<div
+    id="listaArchivos"
+    class="archivos-lista"
+>
+</div>
+
+</div>
+
+
+<!-- ==============================
+     AUDIO
+============================== -->
+
+<div class="audio-panel">
+
+<div class="audio-estado" id="audioEstado">
+🎙️ Audio
+</div>
+
+<div class="audio-controles">
+
+<button
+    type="button"
+    id="btnGrabarAudio"
+    class="boton boton-audio"
+>
+🎙️ GRABAR AUDIO
+</button>
+
+<button
+    type="button"
+    id="btnDetenerAudio"
+    class="boton boton-detener"
+    disabled
+>
+⏹️ DETENER
+</button>
+
+</div>
+
+<div id="audioPreview"></div>
+
+</div>
+
+
 <button
     id="btnEnviar"
     class="boton boton-enviar"
@@ -606,7 +832,9 @@ import {
 
     auth,
 
-    db
+    db,
+
+    storage
 
 }
 from "./Js/firebase.js";
@@ -650,6 +878,19 @@ from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
+import {
+
+    ref,
+
+    uploadBytes,
+
+    getDownloadURL
+
+}
+from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+
+
 /* =========================================
    ELEMENTOS
 ========================================= */
@@ -672,6 +913,36 @@ document.getElementById(
 const mensaje =
 document.getElementById(
     "mensaje"
+);
+
+const archivos =
+document.getElementById(
+    "archivos"
+);
+
+const listaArchivos =
+document.getElementById(
+    "listaArchivos"
+);
+
+const btnGrabarAudio =
+document.getElementById(
+    "btnGrabarAudio"
+);
+
+const btnDetenerAudio =
+document.getElementById(
+    "btnDetenerAudio"
+);
+
+const audioEstado =
+document.getElementById(
+    "audioEstado"
+);
+
+const audioPreview =
+document.getElementById(
+    "audioPreview"
 );
 
 const btnEnviar =
@@ -752,6 +1023,16 @@ let destinatarios = [];
 let correosRecibidos = [];
 
 let correosEnviados = [];
+
+let archivosSeleccionados = [];
+
+let mediaRecorder = null;
+
+let audioChunks = [];
+
+let audioBlob = null;
+
+let audioNombre = "";
 
 
 /* =========================================
@@ -911,7 +1192,7 @@ function fechaHora(valor){
 
 
 /* =========================================
-   BUSCAR USUARIO EN "usuarios"
+   BUSCAR USUARIO
 ========================================= */
 
 async function buscarUsuario(){
@@ -1095,10 +1376,6 @@ async function cargarPerfil(){
     }
 
 
-    /*
-     * PRIMERO EMPLEADOS
-     */
-
     const empleado =
     await buscarEmpleado();
 
@@ -1118,11 +1395,6 @@ async function cargarPerfil(){
 
     }
 
-
-    /*
-     * SI NO HAY EMPLEADO,
-     * BUSCAMOS EN USUARIOS
-     */
 
     if(!perfilActual){
 
@@ -1148,10 +1420,6 @@ async function cargarPerfil(){
     }
 
 
-    /*
-     * SI TODAVÍA NO HAY PERFIL
-     */
-
     if(!perfilActual){
 
         throw new Error(
@@ -1160,10 +1428,6 @@ async function cargarPerfil(){
 
     }
 
-
-    /*
-     * MOSTRAR INFORMACIÓN
-     */
 
     const nombre =
     nombreCompleto(
@@ -1239,16 +1503,10 @@ async function cargarPerfil(){
     `;
 
 
-    /*
-     * SI NO TIENE EMPRESA
-     */
-
     if(!empresaId){
 
         throw new Error(
-
-            "El usuario está creado, pero no tiene empresaId asignado. Debemos vincularlo a la empresa antes de cargar los destinatarios."
-
+            "El usuario está creado, pero no tiene empresaId asignado."
         );
 
     }
@@ -1257,7 +1515,7 @@ async function cargarPerfil(){
 
 
 /* =========================================
-   AGREGAR DESTINATARIO SIN DUPLICAR
+   DESTINATARIOS
 ========================================= */
 
 function agregarDestinatario(datos){
@@ -1282,9 +1540,7 @@ function agregarDestinatario(datos){
     }
 
 
-    if(
-        id === perfilId
-    ){
+    if(id === perfilId){
 
         return;
 
@@ -1380,10 +1636,6 @@ function agregarDestinatario(datos){
 }
 
 
-/* =========================================
-   CARGAR DESTINATARIOS DE EMPLEADOS
-========================================= */
-
 async function cargarEmpleadosDestinatarios(){
 
     try{
@@ -1446,10 +1698,6 @@ async function cargarEmpleadosDestinatarios(){
 }
 
 
-/* =========================================
-   CARGAR DESTINATARIOS DE USUARIOS
-========================================= */
-
 async function cargarUsuariosDestinatarios(){
 
     try{
@@ -1495,12 +1743,8 @@ async function cargarUsuariosDestinatarios(){
 
 
                 if(
-                    rol.includes(
-                        "admin"
-                    ) ||
-                    rol.includes(
-                        "administr"
-                    )
+                    rol.includes("admin") ||
+                    rol.includes("administr")
                 ){
 
                     tipo =
@@ -1536,10 +1780,6 @@ async function cargarUsuariosDestinatarios(){
 
 }
 
-
-/* =========================================
-   CARGAR ADMINISTRACIÓN
-========================================= */
 
 async function cargarAdministracion(){
 
@@ -1603,10 +1843,6 @@ async function cargarAdministracion(){
 }
 
 
-/* =========================================
-   CARGAR TODOS LOS DESTINATARIOS
-========================================= */
-
 async function cargarDestinatarios(){
 
     destinatarios = [];
@@ -1639,30 +1875,12 @@ async function cargarDestinatarios(){
     `;
 
 
-    /*
-     * EMPLEADOS
-     */
-
     await cargarEmpleadosDestinatarios();
-
-
-    /*
-     * USUARIOS
-     */
 
     await cargarUsuariosDestinatarios();
 
-
-    /*
-     * ADMINISTRACIÓN
-     */
-
     await cargarAdministracion();
 
-
-    /*
-     * SELECT
-     */
 
     destinatario.innerHTML = `
 
@@ -1693,10 +1911,6 @@ async function cargarDestinatarios(){
     }
 
 
-    /*
-     * ORDENAR
-     */
-
     destinatarios.sort(
         function(a,b){
 
@@ -1707,10 +1921,6 @@ async function cargarDestinatarios(){
         }
     );
 
-
-    /*
-     * MOSTRAR
-     */
 
     destinatarios.forEach(
         persona => {
@@ -1728,9 +1938,7 @@ async function cargarDestinatarios(){
             option.textContent =
 
             persona.nombre +
-
             " — " +
-
             persona.tipo;
 
 
@@ -1742,29 +1950,572 @@ async function cargarDestinatarios(){
     );
 
 
-    btnEnviar.disabled =
-    false;
+    actualizarEstadoEnviar();
 
 }
 
 
 /* =========================================
-   OBTENER DESTINATARIO
+   DESTINATARIO
 ========================================= */
 
 function obtenerDestinatario(){
-
-    const id =
-    destinatario.value;
-
 
     return destinatarios.find(
 
         persona =>
 
-        persona.id === id
+        persona.id ===
+        destinatario.value
 
     );
+
+}
+
+
+/* =========================================
+   ARCHIVOS
+========================================= */
+
+archivos.addEventListener(
+    "change",
+    function(){
+
+        const nuevos =
+        Array.from(
+            archivos.files
+        );
+
+
+        nuevos.forEach(
+            archivo => {
+
+                if(
+                    archivo.size >
+                    10 * 1024 * 1024
+                ){
+
+                    mostrarError(
+                        "El archivo " +
+                        archivo.name +
+                        " supera el límite de 10 MB."
+                    );
+
+                    return;
+
+                }
+
+
+                const existe =
+                archivosSeleccionados.some(
+                    a =>
+
+                    a.name === archivo.name &&
+                    a.size === archivo.size
+
+                );
+
+
+                if(!existe){
+
+                    archivosSeleccionados.push(
+                        archivo
+                    );
+
+                }
+
+            }
+        );
+
+
+        archivos.value =
+        "";
+
+
+        mostrarListaArchivos();
+
+        actualizarEstadoEnviar();
+
+    }
+);
+
+
+function mostrarListaArchivos(){
+
+    listaArchivos.innerHTML =
+    "";
+
+
+    if(
+        archivosSeleccionados.length === 0
+    ){
+
+        return;
+
+    }
+
+
+    archivosSeleccionados.forEach(
+        function(archivo,index){
+
+            const item =
+            document.createElement(
+                "div"
+            );
+
+
+            item.className =
+            "archivo-item";
+
+
+            item.innerHTML = `
+
+                <span class="archivo-nombre">
+
+                    📎
+                    ${escaparHTML(
+                        archivo.name
+                    )}
+
+                    (${(
+                        archivo.size / 1024 / 1024
+                    ).toFixed(2)} MB)
+
+                </span>
+
+                <button
+                    type="button"
+                    class="archivo-eliminar"
+                >
+                    ✕
+                </button>
+
+            `;
+
+
+            item
+            .querySelector(
+                ".archivo-eliminar"
+            )
+            .addEventListener(
+                "click",
+                function(){
+
+                    archivosSeleccionados.splice(
+                        index,
+                        1
+                    );
+
+                    mostrarListaArchivos();
+
+                    actualizarEstadoEnviar();
+
+                }
+            );
+
+
+            listaArchivos.appendChild(
+                item
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================
+   AUDIO
+========================================= */
+
+btnGrabarAudio.addEventListener(
+
+    "click",
+
+    async function(){
+
+        limpiarMensajes();
+
+
+        if(
+            !navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia
+        ){
+
+            mostrarError(
+                "Tu navegador no permite grabar audio."
+            );
+
+            return;
+
+        }
+
+
+        try{
+
+            const stream =
+            await navigator.mediaDevices.getUserMedia(
+                {
+                    audio:true
+                }
+            );
+
+
+            audioChunks = [];
+
+
+            let opciones = {};
+
+
+            if(
+                MediaRecorder.isTypeSupported(
+                    "audio/webm;codecs=opus"
+                )
+            ){
+
+                opciones.mimeType =
+                "audio/webm;codecs=opus";
+
+            }
+            else if(
+                MediaRecorder.isTypeSupported(
+                    "audio/webm"
+                )
+            ){
+
+                opciones.mimeType =
+                "audio/webm";
+
+            }
+
+
+            mediaRecorder =
+            new MediaRecorder(
+                stream,
+                opciones
+            );
+
+
+            mediaRecorder.ondataavailable =
+            function(event){
+
+                if(
+                    event.data &&
+                    event.data.size > 0
+                ){
+
+                    audioChunks.push(
+                        event.data
+                    );
+
+                }
+
+            };
+
+
+            mediaRecorder.onstop =
+            function(){
+
+                const tipo =
+                mediaRecorder.mimeType ||
+                "audio/webm";
+
+
+                audioBlob =
+                new Blob(
+                    audioChunks,
+                    {
+                        type:tipo
+                    }
+                );
+
+
+                audioNombre =
+                "audio-" +
+                Date.now() +
+                ".webm";
+
+
+                const url =
+                URL.createObjectURL(
+                    audioBlob
+                );
+
+
+                audioPreview.innerHTML = `
+
+                    <audio
+                        controls
+                        src="${url}"
+                    ></audio>
+
+                `;
+
+
+                audioEstado.textContent =
+                "✅ Audio listo para enviar";
+
+
+                stream
+                .getTracks()
+                .forEach(
+                    track =>
+                    track.stop()
+                );
+
+
+                actualizarEstadoEnviar();
+
+            };
+
+
+            mediaRecorder.start();
+
+
+            btnGrabarAudio.disabled =
+            true;
+
+            btnDetenerAudio.disabled =
+            false;
+
+
+            audioEstado.textContent =
+            "🔴 Grabando audio...";
+
+        }
+        catch(error){
+
+            console.error(
+                "ERROR AUDIO:",
+                error
+            );
+
+
+            mostrarError(
+                "No se pudo acceder al micrófono. Revisá los permisos del navegador."
+            );
+
+        }
+
+    }
+
+);
+
+
+btnDetenerAudio.addEventListener(
+
+    "click",
+
+    function(){
+
+        if(
+            mediaRecorder &&
+            mediaRecorder.state !==
+            "inactive"
+        ){
+
+            mediaRecorder.stop();
+
+        }
+
+
+        btnGrabarAudio.disabled =
+        false;
+
+        btnDetenerAudio.disabled =
+        true;
+
+    }
+
+);
+
+
+/* =========================================
+   ESTADO DEL BOTÓN ENVIAR
+========================================= */
+
+function actualizarEstadoEnviar(){
+
+    const tieneDestinatario =
+    !!obtenerDestinatario();
+
+
+    const tieneTexto =
+    mensaje.value.trim().length > 0;
+
+
+    const tieneArchivo =
+    archivosSeleccionados.length > 0;
+
+
+    const tieneAudio =
+    !!audioBlob;
+
+
+    btnEnviar.disabled = !(
+        tieneDestinatario &&
+        (
+            tieneTexto ||
+            tieneArchivo ||
+            tieneAudio
+        )
+    );
+
+}
+
+
+destinatario.addEventListener(
+    "change",
+    actualizarEstadoEnviar
+);
+
+mensaje.addEventListener(
+    "input",
+    actualizarEstadoEnviar
+);
+
+
+/* =========================================
+   SUBIR ARCHIVO A STORAGE
+========================================= */
+
+async function subirArchivo(
+    archivo
+){
+
+    const ruta =
+
+    "correos/" +
+
+    empresaId +
+
+    "/" +
+
+    usuarioSesion.uid +
+
+    "/" +
+
+    Date.now() +
+
+    "_" +
+
+    archivo.name;
+
+
+    const referencia =
+    ref(
+        storage,
+        ruta
+    );
+
+
+    await uploadBytes(
+        referencia,
+        archivo
+    );
+
+
+    const url =
+    await getDownloadURL(
+        referencia
+    );
+
+
+    return {
+
+        nombre:
+        archivo.name,
+
+        tipo:
+        archivo.type ||
+
+        "application/octet-stream",
+
+        tamaño:
+        archivo.size,
+
+        url:
+        url,
+
+        ruta:
+        ruta
+
+    };
+
+}
+
+
+/* =========================================
+   SUBIR AUDIO
+========================================= */
+
+async function subirAudio(){
+
+    if(!audioBlob){
+
+        return null;
+
+    }
+
+
+    const ruta =
+
+    "correos/" +
+
+    empresaId +
+
+    "/" +
+
+    usuarioSesion.uid +
+
+    "/audios/" +
+
+    audioNombre;
+
+
+    const referencia =
+    ref(
+        storage,
+        ruta
+    );
+
+
+    await uploadBytes(
+        referencia,
+        audioBlob,
+        {
+            contentType:
+            audioBlob.type
+        }
+    );
+
+
+    const url =
+    await getDownloadURL(
+        referencia
+    );
+
+
+    return {
+
+        nombre:
+        audioNombre,
+
+        tipo:
+        audioBlob.type ||
+
+        "audio/webm",
+
+        tamaño:
+        audioBlob.size,
+
+        url:
+        url,
+
+        ruta:
+        ruta
+
+    };
 
 }
 
@@ -1818,13 +2569,15 @@ btnEnviar.addEventListener(
         }
 
 
-        if(!mensajeTexto){
+        if(
+            !mensajeTexto &&
+            archivosSeleccionados.length === 0 &&
+            !audioBlob
+        ){
 
             mostrarError(
-                "Escribí el mensaje."
+                "Escribí un mensaje, adjuntá un archivo o grabá un audio."
             );
-
-            mensaje.focus();
 
             return;
 
@@ -1833,7 +2586,6 @@ btnEnviar.addEventListener(
 
         btnEnviar.disabled =
         true;
-
 
         btnEnviar.textContent =
         "📤 ENVIANDO...";
@@ -1865,11 +2617,50 @@ btnEnviar.addEventListener(
             );
 
 
-            /*
-             * ESTRUCTURA NUEVA
-             * + COMPATIBILIDAD CON
-             * LOS CAMPOS EXISTENTES
-             */
+            /* =========================
+               SUBIR ARCHIVOS
+            ========================= */
+
+            const adjuntos = [];
+
+
+            for(
+                const archivo
+                of archivosSeleccionados
+            ){
+
+                const resultado =
+                await subirArchivo(
+                    archivo
+                );
+
+
+                adjuntos.push(
+                    resultado
+                );
+
+            }
+
+
+            /* =========================
+               SUBIR AUDIO
+            ========================= */
+
+            let audioAdjunto =
+            null;
+
+
+            if(audioBlob){
+
+                audioAdjunto =
+                await subirAudio();
+
+            }
+
+
+            /* =========================
+               GUARDAR CORREO
+            ========================= */
 
             await addDoc(
 
@@ -1912,10 +2703,6 @@ btnEnviar.addEventListener(
                     persona.email,
 
 
-                    /*
-                     * CAMPOS EXISTENTES
-                     */
-
                     de:
                     emailRemitente,
 
@@ -1927,6 +2714,20 @@ btnEnviar.addEventListener(
 
                     mensaje:
                     mensajeTexto,
+
+                    adjuntos:
+                    adjuntos,
+
+                    audio:
+                    audioAdjunto,
+
+
+                    tieneAdjuntos:
+                    adjuntos.length > 0,
+
+                    tieneAudio:
+                    !!audioAdjunto,
+
 
                     carpeta:
                     "enviados",
@@ -1957,6 +2758,10 @@ btnEnviar.addEventListener(
             );
 
 
+            /* =========================
+               LIMPIAR
+            ========================= */
+
             asunto.value =
             "";
 
@@ -1966,13 +2771,33 @@ btnEnviar.addEventListener(
             destinatario.value =
             "";
 
+            archivosSeleccionados =
+            [];
+
+            audioBlob =
+            null;
+
+            audioNombre =
+            "";
+
+            listaArchivos.innerHTML =
+            "";
+
+            audioPreview.innerHTML =
+            "";
+
+            audioEstado.textContent =
+            "🎙️ Audio";
+
 
             mostrarExito(
-                "Mensaje enviado correctamente."
+                "Mensaje enviado correctamente con sus archivos."
             );
 
 
             await cargarEnviados();
+
+            actualizarEstadoEnviar();
 
         }
         catch(error){
@@ -1993,11 +2818,10 @@ btnEnviar.addEventListener(
         }
         finally{
 
-            btnEnviar.disabled =
-            false;
-
             btnEnviar.textContent =
             "📤 ENVIAR MENSAJE";
+
+            actualizarEstadoEnviar();
 
         }
 
@@ -2007,7 +2831,111 @@ btnEnviar.addEventListener(
 
 
 /* =========================================
-   CARGAR RECIBIDOS
+   MOSTRAR ADJUNTOS
+========================================= */
+
+function generarAdjuntosHTML(
+    correo
+){
+
+    let html = "";
+
+
+    const adjuntos =
+    Array.isArray(
+        correo.adjuntos
+    )
+    ?
+    correo.adjuntos
+    :
+    [];
+
+
+    if(
+        adjuntos.length > 0
+    ){
+
+        html += `
+
+            <div class="adjunto-correo">
+
+                <strong>
+                📎 Archivos adjuntos
+                </strong>
+
+        `;
+
+
+        adjuntos.forEach(
+            archivo => {
+
+                html += `
+
+                    <div style="margin-top:8px;">
+
+                        📄
+
+                        <a
+                            href="${escaparHTML(
+                                archivo.url
+                            )}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            ${escaparHTML(
+                                archivo.nombre
+                            )}
+                        </a>
+
+                    </div>
+
+                `;
+
+            }
+        );
+
+
+        html += `
+            </div>
+        `;
+
+    }
+
+
+    if(
+        correo.audio &&
+        correo.audio.url
+    ){
+
+        html += `
+
+            <div class="adjunto-correo">
+
+                <strong>
+                🎙️ Audio
+                </strong>
+
+                <audio
+                    controls
+                    src="${escaparHTML(
+                        correo.audio.url
+                    )}"
+                ></audio>
+
+            </div>
+
+        `;
+
+    }
+
+
+    return html;
+
+}
+
+
+/* =========================================
+   RECIBIDOS
 ========================================= */
 
 async function cargarRecibidos(){
@@ -2066,11 +2994,6 @@ async function cargarRecibidos(){
             }
         );
 
-
-        /*
-         * COMPATIBILIDAD CON
-         * CORREOS ANTIGUOS
-         */
 
         if(
             correosRecibidos.length === 0
@@ -2315,6 +3238,28 @@ function mostrarRecibidos(){
                 </div>
 
 
+                ${
+                    correo.tieneAdjuntos
+                    ?
+                    `<div style="margin-top:8px;">
+                    📎 Tiene archivos adjuntos
+                    </div>`
+                    :
+                    ""
+                }
+
+
+                ${
+                    correo.tieneAudio
+                    ?
+                    `<div style="margin-top:8px;">
+                    🎙️ Tiene un audio
+                    </div>`
+                    :
+                    ""
+                }
+
+
                 <span
                     class="estado-correo ${
                         correo.leido
@@ -2358,7 +3303,7 @@ function mostrarRecibidos(){
 
 
 /* =========================================
-   CARGAR ENVIADOS
+   ENVIADOS
 ========================================= */
 
 async function cargarEnviados(){
@@ -2417,11 +3362,6 @@ async function cargarEnviados(){
             }
         );
 
-
-        /*
-         * COMPATIBILIDAD CON
-         * CORREOS NUEVOS
-         */
 
         if(
             correosEnviados.length === 0
@@ -2641,6 +3581,28 @@ function mostrarEnviados(){
 
                 </div>
 
+
+                ${
+                    correo.tieneAdjuntos
+                    ?
+                    `<div style="margin-top:8px;">
+                    📎 Tiene archivos adjuntos
+                    </div>`
+                    :
+                    ""
+                }
+
+
+                ${
+                    correo.tieneAudio
+                    ?
+                    `<div style="margin-top:8px;">
+                    🎙️ Tiene un audio
+                    </div>`
+                    :
+                    ""
+                }
+
             `;
 
 
@@ -2773,6 +3735,11 @@ async function abrirCorreo(
             )}
 
         </div>
+
+
+        ${generarAdjuntosHTML(
+            correo
+        )}
 
     `;
 
@@ -2990,23 +3957,9 @@ onAuthStateChanged(
             "Cargando usuario...";
 
 
-            /*
-             * CARGAR PERFIL
-             */
-
             await cargarPerfil();
 
-
-            /*
-             * CARGAR DESTINATARIOS
-             */
-
             await cargarDestinatarios();
-
-
-            /*
-             * CARGAR RECIBIDOS
-             */
 
             await cargarRecibidos();
 
@@ -3014,7 +3967,6 @@ onAuthStateChanged(
             console.log(
                 "GESBASE CORREO INICIALIZADO"
             );
-
 
         }
         catch(error){
