@@ -15,6 +15,11 @@
     content="#111827"
 >
 
+<meta
+    name="description"
+    content="GESBASE - Mis presupuestos"
+>
+
 <title>Mis presupuestos - GESBASE</title>
 
 <style>
@@ -32,15 +37,16 @@ body{
 }
 
 .contenedor{
+    width:100%;
     max-width:700px;
     margin:auto;
     min-height:100vh;
-    background:white;
+    background:#fff;
 }
 
 header{
     background:#111827;
-    color:white;
+    color:#fff;
     padding:25px 20px;
 }
 
@@ -85,13 +91,13 @@ main{
 
 .boton-nuevo{
     background:#111827;
-    color:white;
+    color:#fff;
     text-decoration:none;
 }
 
 .boton-actualizar{
     background:#374151;
-    color:white;
+    color:#fff;
     border:none;
 }
 
@@ -125,7 +131,7 @@ main{
     border:1px solid #d1d5db;
     border-radius:14px;
     padding:18px;
-    background:white;
+    background:#fff;
     box-shadow:0 3px 10px rgba(0,0,0,.08);
 }
 
@@ -179,12 +185,12 @@ main{
 
 .boton-ver{
     background:#111827;
-    color:white;
+    color:#fff;
 }
 
 .boton-editar{
     background:#2563eb;
-    color:white;
+    color:#fff;
 }
 
 .boton-eliminar{
@@ -211,6 +217,18 @@ main{
     padding:14px;
     border-radius:10px;
     margin-bottom:15px;
+    line-height:1.5;
+    font-size:14px;
+}
+
+.exito{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado-ok{
+    background:#dcfce7;
+    color:#166534;
 }
 
 .boton-volver{
@@ -275,12 +293,6 @@ Verificando usuario...
 
 
 <div class="acciones">
-
-
-<!-- =====================================
-     NUEVO PRESUPUESTO
-     ENLACE DIRECTO - SIN JAVASCRIPT
-====================================== -->
 
 <a
     href="presupuesto.html"
@@ -355,10 +367,11 @@ No se encontraron presupuestos.
 
 <script type="module">
 
-
-// ==========================================
+// =====================================================
 // FIREBASE
-// ==========================================
+// IMPORTANTE:
+// MISMA VERSIÓN QUE presupuesto.html
+// =====================================================
 
 import {
     auth,
@@ -368,7 +381,7 @@ import {
 
 import {
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 
 import {
@@ -379,12 +392,12 @@ import {
     doc,
     getDoc,
     deleteDoc
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-// ==========================================
+// =====================================================
 // ELEMENTOS
-// ==========================================
+// =====================================================
 
 const usuarioElemento =
 document.getElementById("usuario");
@@ -411,18 +424,18 @@ const btnActualizar =
 document.getElementById("btnActualizar");
 
 
-// ==========================================
+// =====================================================
 // VARIABLES
-// ==========================================
+// =====================================================
 
 let usuarioActual = null;
 
 let presupuestos = [];
 
 
-// ==========================================
+// =====================================================
 // ESCAPAR HTML
-// ==========================================
+// =====================================================
 
 function escaparHTML(valor){
 
@@ -430,38 +443,77 @@ function escaparHTML(valor){
     document.createElement("div");
 
     div.textContent =
-    valor ?? "";
+    valor === undefined ||
+    valor === null
+        ? ""
+        : String(valor);
 
     return div.innerHTML;
 
 }
 
 
-// ==========================================
+// =====================================================
 // DINERO
-// ==========================================
+// =====================================================
 
 function dinero(valor){
 
-    return Number(valor || 0)
-        .toLocaleString(
-            "es-AR",
-            {
-                minimumFractionDigits:2,
-                maximumFractionDigits:2
-            }
-        );
+    const numero =
+    Number(valor);
+
+    if(
+        !Number.isFinite(numero)
+    ){
+
+        return "0,00";
+
+    }
+
+    return numero.toLocaleString(
+        "es-AR",
+        {
+            minimumFractionDigits:2,
+            maximumFractionDigits:2
+        }
+    );
 
 }
 
 
-// ==========================================
-// NÚMERO PRESUPUESTO
-// ==========================================
+// =====================================================
+// NÚMERO DE PRESUPUESTO
+// =====================================================
 
-function numeroPresupuesto(id){
+function numeroPresupuesto(
+    id,
+    datos
+){
+
+    /*
+     * Si en el futuro guardamos un número
+     * de presupuesto real, lo utilizamos.
+     */
+
+    if(
+        datos &&
+        datos.numeroPresupuesto
+    ){
+
+        return String(
+            datos.numeroPresupuesto
+        );
+
+    }
+
+
+    /*
+     * Por ahora utilizamos el mismo
+     * sistema que tenía GESBASE.
+     */
 
     let suma = 0;
+
 
     for(
         let i = 0;
@@ -474,6 +526,7 @@ function numeroPresupuesto(id){
 
     }
 
+
     return String(
         suma % 1000000
     ).padStart(
@@ -484,11 +537,13 @@ function numeroPresupuesto(id){
 }
 
 
-// ==========================================
+// =====================================================
 // MOSTRAR ERROR
-// ==========================================
+// =====================================================
 
-function mostrarError(mensaje){
+function mostrarError(
+    mensaje
+){
 
     errorElemento.textContent =
     mensaje;
@@ -499,14 +554,33 @@ function mostrarError(mensaje){
 }
 
 
-// ==========================================
-// ELIMINAR PRESUPUESTO
-// ==========================================
+// =====================================================
+// OCULTAR ERROR
+// =====================================================
 
-async function eliminarPresupuesto(id){
+function ocultarError(){
+
+    errorElemento.style.display =
+    "none";
+
+    errorElemento.textContent =
+    "";
+
+}
+
+
+// =====================================================
+// ELIMINAR PRESUPUESTO
+// =====================================================
+
+async function eliminarPresupuesto(
+    id
+){
 
     if(!usuarioActual){
+
         return;
+
     }
 
 
@@ -517,7 +591,9 @@ async function eliminarPresupuesto(id){
 
 
     if(!confirmar){
+
         return;
+
     }
 
 
@@ -537,7 +613,9 @@ async function eliminarPresupuesto(id){
         );
 
 
-        if(!resultado.exists()){
+        if(
+            !resultado.exists()
+        ){
 
             alert(
                 "El presupuesto ya no existe."
@@ -553,6 +631,12 @@ async function eliminarPresupuesto(id){
         const datos =
         resultado.data();
 
+
+        /*
+         * Seguridad:
+         * solamente puede eliminar el usuario
+         * propietario del presupuesto.
+         */
 
         if(
             datos.uid !==
@@ -584,14 +668,18 @@ async function eliminarPresupuesto(id){
     catch(error){
 
         console.error(
-            "Error eliminando presupuesto:",
+            "ERROR ELIMINANDO PRESUPUESTO:",
             error
         );
 
 
-        alert(
-            "No se pudo eliminar el presupuesto:\n" +
-            error.message
+        mostrarError(
+            "No se pudo eliminar el presupuesto.\n\n" +
+            "Código: " +
+            (error.code || "desconocido") +
+            "\n\n" +
+            "Detalle: " +
+            (error.message || "Error desconocido")
         );
 
     }
@@ -599,9 +687,9 @@ async function eliminarPresupuesto(id){
 }
 
 
-// ==========================================
+// =====================================================
 // CREAR TARJETA
-// ==========================================
+// =====================================================
 
 function crearTarjeta(
     datos,
@@ -616,7 +704,10 @@ function crearTarjeta(
 
 
     const numero =
-    numeroPresupuesto(id);
+    numeroPresupuesto(
+        id,
+        datos
+    );
 
 
     const cliente =
@@ -660,58 +751,48 @@ function crearTarjeta(
             PRESUPUESTO #${numero}
         </div>
 
-
         <div class="cliente">
             👤 ${cliente}
         </div>
-
 
         <div class="dato">
             📋 N.º de agenda:
             ${agenda}
         </div>
 
-
         <div class="dato">
             📅 Fecha:
             ${fecha}
         </div>
-
 
         <div class="dato">
             📍 Lugar:
             ${lugar}
         </div>
 
-
         <div class="descripcion">
             📝 ${descripcion}
         </div>
-
 
         <div class="dato">
             🧱 Materiales:
             $${dinero(datos.materiales)}
         </div>
 
-
         <div class="dato">
             🔨 Mano de obra:
             $${dinero(datos.manoObra)}
         </div>
-
 
         <div class="dato">
             🚗 Viáticos:
             $${dinero(datos.viaticos)}
         </div>
 
-
         <div class="total">
             TOTAL:
             $${dinero(datos.total)}
         </div>
-
 
         <a
             href="ver-presupuesto.html?id=${encodeURIComponent(id)}"
@@ -720,14 +801,12 @@ function crearTarjeta(
             👁️ VER PRESUPUESTO
         </a>
 
-
         <a
             href="editar-presupuesto.html?id=${encodeURIComponent(id)}"
             class="boton boton-editar"
         >
             ✏️ EDITAR PRESUPUESTO
         </a>
-
 
         <button
             type="button"
@@ -749,7 +828,9 @@ function crearTarjeta(
         "click",
         function(){
 
-            eliminarPresupuesto(id);
+            eliminarPresupuesto(
+                id
+            );
 
         }
     );
@@ -760,9 +841,9 @@ function crearTarjeta(
 }
 
 
-// ==========================================
+// =====================================================
 // MOSTRAR PRESUPUESTOS
-// ==========================================
+// =====================================================
 
 function mostrarPresupuestos(){
 
@@ -821,11 +902,19 @@ function mostrarPresupuestos(){
                 ).toLowerCase();
 
 
+                const fecha =
+                String(
+                    datos.fecha ||
+                    ""
+                ).toLowerCase();
+
+
                 return (
                     cliente.includes(termino) ||
                     agenda.includes(termino) ||
                     lugar.includes(termino) ||
-                    descripcion.includes(termino)
+                    descripcion.includes(termino) ||
+                    fecha.includes(termino)
                 );
 
             }
@@ -868,21 +957,22 @@ function mostrarPresupuestos(){
 }
 
 
-// ==========================================
+// =====================================================
 // CARGAR PRESUPUESTOS
-// ==========================================
+// =====================================================
 
 async function cargarPresupuestos(){
 
     if(!usuarioActual){
+
         return;
+
     }
 
 
     try{
 
-        errorElemento.style.display =
-        "none";
+        ocultarError();
 
 
         cargando.style.display =
@@ -908,6 +998,12 @@ async function cargarPresupuestos(){
             "Usuario autenticado"
         );
 
+
+        /*
+         * Buscamos solamente los presupuestos
+         * creados por el usuario actualmente
+         * autenticado.
+         */
 
         const referencia =
         collection(
@@ -953,6 +1049,10 @@ async function cargarPresupuestos(){
             }
         );
 
+
+        /*
+         * Ordenar por fecha más reciente.
+         */
 
         presupuestos.sort(
             function(a,b){
@@ -1000,9 +1100,38 @@ async function cargarPresupuestos(){
             sinPresupuestos.style.display =
             "block";
 
+            usuarioElemento.className =
+            "usuario estado-ok";
+
+            usuarioElemento.textContent =
+            "Sesión activa: " +
+            (
+                usuarioActual.email ||
+                "Usuario autenticado"
+            ) +
+            " — No hay presupuestos cargados.";
+
             return;
 
         }
+
+
+        usuarioElemento.className =
+        "usuario estado-ok";
+
+        usuarioElemento.textContent =
+        "Sesión activa: " +
+        (
+            usuarioActual.email ||
+            "Usuario autenticado"
+        ) +
+        " — " +
+        presupuestos.length +
+        (
+            presupuestos.length === 1
+                ? " presupuesto"
+                : " presupuestos"
+        );
 
 
         mostrarPresupuestos();
@@ -1011,7 +1140,7 @@ async function cargarPresupuestos(){
     catch(error){
 
         console.error(
-            "Error cargando presupuestos:",
+            "ERROR CARGANDO PRESUPUESTOS:",
             error
         );
 
@@ -1020,19 +1149,63 @@ async function cargarPresupuestos(){
         "none";
 
 
-        mostrarError(
-            "Error al cargar los presupuestos: " +
-            error.message
-        );
+        lista.innerHTML =
+        "";
+
+
+        if(
+            error.code ===
+            "permission-denied"
+        ){
+
+            mostrarError(
+                "Firebase rechazó el acceso a los presupuestos.\n\n" +
+                "Revisá las reglas de Firestore para la colección 'presupuestos'."
+            );
+
+        }
+        else if(
+            error.code ===
+            "failed-precondition"
+        ){
+
+            mostrarError(
+                "Firebase necesita un índice para esta consulta.\n\n" +
+                "Abrí el enlace que aparece en la consola de Firebase y creá el índice indicado."
+            );
+
+        }
+        else if(
+            error.code ===
+            "unavailable"
+        ){
+
+            mostrarError(
+                "Firebase no está disponible en este momento. Revisá tu conexión a Internet e intentá nuevamente."
+            );
+
+        }
+        else{
+
+            mostrarError(
+                "No se pudieron cargar los presupuestos.\n\n" +
+                "Código: " +
+                (error.code || "desconocido") +
+                "\n\n" +
+                "Detalle: " +
+                (error.message || "Error desconocido")
+            );
+
+        }
 
     }
 
 }
 
 
-// ==========================================
+// =====================================================
 // BUSCADOR
-// ==========================================
+// =====================================================
 
 buscador.addEventListener(
     "input",
@@ -1044,9 +1217,9 @@ buscador.addEventListener(
 );
 
 
-// ==========================================
+// =====================================================
 // ACTUALIZAR
-// ==========================================
+// =====================================================
 
 btnActualizar.addEventListener(
     "click",
@@ -1060,33 +1233,50 @@ btnActualizar.addEventListener(
         "⏳ CARGANDO...";
 
 
-        await cargarPresupuestos();
+        try{
+
+            await cargarPresupuestos();
+
+        }
+        finally{
+
+            btnActualizar.disabled =
+            false;
 
 
-        btnActualizar.disabled =
-        false;
+            btnActualizar.textContent =
+            "🔄 ACTUALIZAR";
 
-
-        btnActualizar.textContent =
-        "🔄 ACTUALIZAR";
+        }
 
     }
 );
 
 
-// ==========================================
+// =====================================================
 // AUTENTICACIÓN
-// ==========================================
+// =====================================================
 
 onAuthStateChanged(
     auth,
-    function(usuario){
+    async function(usuario){
+
+        console.log(
+            "Estado de autenticación:",
+            usuario
+        );
+
 
         if(!usuario){
 
+            usuarioElemento.textContent =
+            "Sesión no iniciada. Redirigiendo...";
+
+
             window.location.replace(
-                "login.html"
+                "./login.html"
             );
+
 
             return;
 
@@ -1097,7 +1287,15 @@ onAuthStateChanged(
         usuario;
 
 
-        cargarPresupuestos();
+        usuarioElemento.textContent =
+        "Sesión activa: " +
+        (
+            usuario.email ||
+            "Usuario autenticado"
+        );
+
+
+        await cargarPresupuestos();
 
     }
 );
