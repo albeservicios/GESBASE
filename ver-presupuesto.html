@@ -5,9 +5,15 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-<meta name="theme-color" content="#111827">
+<meta
+    name="theme-color"
+    content="#111827"
+>
 
 <title>Ver presupuesto - GESBASE</title>
 
@@ -196,6 +202,11 @@ button,
     color:white;
 }
 
+.trabajo{
+    background:#16a34a;
+    color:white;
+}
+
 .volver{
     background:#e5e7eb;
     color:#111827;
@@ -204,6 +215,17 @@ button,
 button:disabled{
     opacity:.6;
     cursor:not-allowed;
+}
+
+.relacion{
+    margin-top:15px;
+    padding:12px;
+    background:#ecfdf5;
+    border:1px solid #86efac;
+    border-radius:10px;
+    color:#166534;
+    font-size:13px;
+    line-height:1.5;
 }
 
 </style>
@@ -224,7 +246,10 @@ button:disabled{
 
 <main>
 
-<div id="cargando" class="cargando">
+<div
+    id="cargando"
+    class="cargando"
+>
 Cargando presupuesto...
 </div>
 
@@ -241,15 +266,17 @@ Cargando presupuesto...
 
 <div class="presupuesto">
 
-<!-- EMPRESA -->
+<!-- ==========================================
+     EMPRESA
+========================================== -->
 
 <div class="empresa">
 
 <img
     id="logoEmpresa"
     class="logo-empresa"
-    alt="Logo"
-/>
+    alt="Logo de empresa"
+>
 
 <div
     id="empresaNombre"
@@ -292,7 +319,10 @@ Mail: -
 PEDIDO DE PRESUPUESTO
 </div>
 
-<!-- CLIENTE -->
+
+<!-- ==========================================
+     CLIENTE
+========================================== -->
 
 <div class="seccion">
 
@@ -317,7 +347,10 @@ DATOS DEL CLIENTE
 
 </div>
 
-<!-- CONTRATISTA -->
+
+<!-- ==========================================
+     CONTRATISTA
+========================================== -->
 
 <div class="seccion">
 
@@ -352,7 +385,10 @@ DATOS DEL CONTRATISTA
 
 </div>
 
-<!-- DETALLE -->
+
+<!-- ==========================================
+     DETALLE
+========================================== -->
 
 <div class="seccion">
 
@@ -425,7 +461,10 @@ Otros:
 
 </div>
 
-<!-- IMPORTES -->
+
+<!-- ==========================================
+     IMPORTES
+========================================== -->
 
 <div class="seccion">
 
@@ -468,7 +507,10 @@ Indicar valores sin IVA
 
 </div>
 
-<!-- CONSIDERACIONES -->
+
+<!-- ==========================================
+     CONSIDERACIONES
+========================================== -->
 
 <div class="seccion">
 
@@ -485,7 +527,25 @@ VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE
 
 </div>
 
+
+<!-- ==========================================
+     RELACIÓN
+========================================== -->
+
+<div
+    id="relacionTrabajo"
+    class="relacion"
+    style="display:none;"
+>
+Este presupuesto está vinculado al cliente y puede utilizarse para crear un trabajo.
 </div>
+
+</div>
+
+
+<!-- ==========================================
+     BOTONES
+========================================== -->
 
 <button
     id="btnPDF"
@@ -494,6 +554,16 @@ VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE
 📄 GENERAR PDF
 </button>
 
+
+<a
+    id="btnTrabajo"
+    class="boton trabajo"
+    href="#"
+>
+🔧 CREAR TRABAJO DESDE ESTE PRESUPUESTO
+</a>
+
+
 <a
     id="btnEditar"
     class="boton editar"
@@ -501,6 +571,7 @@ VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE
 >
 ✏️ EDITAR PRESUPUESTO
 </a>
+
 
 <a
     href="presupuestos.html"
@@ -515,9 +586,9 @@ VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE
 
 </div>
 
-<!-- JSPDF -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 
 <script type="module">
 
@@ -631,9 +702,15 @@ document.getElementById("btnPDF");
 const btnEditar =
 document.getElementById("btnEditar");
 
+const btnTrabajo =
+document.getElementById("btnTrabajo");
+
+const relacionTrabajo =
+document.getElementById("relacionTrabajo");
+
 
 /* ==========================================
-   ID
+   ID DEL PRESUPUESTO
 ========================================== */
 
 const parametros =
@@ -645,15 +722,23 @@ const presupuestoId =
 parametros.get("id");
 
 
+/* ==========================================
+   VARIABLES
+========================================== */
+
 let datosPresupuesto = {};
 
 let datosUsuario = {};
 
 let datosEmpresa = {};
 
+let datosCliente = {};
+
+let clienteIdReal = "";
+
 
 /* ==========================================
-   FUNCIONES
+   TEXTO
 ========================================== */
 
 function texto(valor){
@@ -673,9 +758,65 @@ function texto(valor){
 }
 
 
+/* ==========================================
+   DINERO
+========================================== */
+
+function numero(valor){
+
+    if(
+        typeof valor === "number"
+    ){
+
+        return valor;
+
+    }
+
+    if(
+        valor === undefined ||
+        valor === null ||
+        valor === ""
+    ){
+
+        return 0;
+
+    }
+
+    let textoValor =
+    String(valor)
+    .replace(/\s/g,"")
+    .replace(/\$/g,"");
+
+    /*
+     * Soporta formatos:
+     * 1500
+     * 1500.50
+     * 1.500,50
+     */
+
+    if(
+        textoValor.includes(",")
+    ){
+
+        textoValor =
+        textoValor
+        .replace(/\./g,"")
+        .replace(",",".");
+    }
+
+    const resultado =
+    Number(textoValor);
+
+    return Number.isFinite(resultado)
+        ? resultado
+        : 0;
+
+}
+
+
 function dinero(valor){
 
-    return Number(valor || 0)
+    return numero(valor)
     .toLocaleString(
         "es-AR",
         {
@@ -686,6 +827,10 @@ function dinero(valor){
 
 }
 
+
+/* ==========================================
+   NUMERO PRESUPUESTO
+========================================== */
 
 function numeroPresupuesto(id){
 
@@ -742,70 +887,12 @@ function mostrarError(mensaje){
 
 
 /* ==========================================
-   MOSTRAR MATERIALES
-========================================== */
-
-function mostrarMateriales(lista){
-
-    materialesLista.innerHTML = "";
-
-    if(
-        !Array.isArray(lista) ||
-        lista.length === 0
-    ){
-
-        materialesLista.textContent =
-        "Sin materiales cargados.";
-
-        return;
-
-    }
-
-    lista.forEach(
-        function(material){
-
-            const linea =
-            document.createElement("div");
-
-            linea.className =
-            "material-linea";
-
-            const tipo =
-            document.createElement("span");
-
-            tipo.textContent =
-            texto(
-                material?.tipo
-            );
-
-            const cantidad =
-            document.createElement("span");
-
-            cantidad.textContent =
-            "Cantidad: " +
-            texto(
-                material?.cantidad
-            );
-
-            linea.appendChild(tipo);
-
-            linea.appendChild(cantidad);
-
-            materialesLista.appendChild(
-                linea
-            );
-
-        }
-    );
-
-}
-
-
-/* ==========================================
    CARGAR USUARIO
 ========================================== */
 
 async function cargarUsuario(usuario){
+
+    datosUsuario = {};
 
     const referencia =
     doc(
@@ -840,6 +927,7 @@ async function cargarEmpresa(){
     datosEmpresa = {};
 
     const empresaId =
+    datosPresupuesto.empresaId ||
     datosUsuario.empresaId ||
     "";
 
@@ -876,7 +964,7 @@ async function cargarEmpresa(){
     catch(error){
 
         console.warn(
-            "Empresa no disponible:",
+            "No se pudo cargar empresa:",
             error
         );
 
@@ -886,7 +974,110 @@ async function cargarEmpresa(){
 
 
 /* ==========================================
-   MOSTRAR DATOS DE EMPRESA
+   OBTENER ID CLIENTE
+========================================== */
+
+function obtenerClienteId(){
+
+    return (
+        datosPresupuesto.clienteId ||
+        datosPresupuesto.idCliente ||
+        datosPresupuesto.clienteID ||
+        ""
+    );
+
+}
+
+
+/* ==========================================
+   CARGAR CLIENTE
+========================================== */
+
+async function cargarCliente(){
+
+    datosCliente = {};
+
+    clienteIdReal =
+    obtenerClienteId();
+
+    if(!clienteIdReal){
+
+        /*
+         * Presupuestos antiguos pueden
+         * tener solamente el nombre.
+         */
+
+        return;
+
+    }
+
+    try{
+
+        const referencia =
+        doc(
+            db,
+            "clientes",
+            clienteIdReal
+        );
+
+        const resultado =
+        await getDoc(
+            referencia
+        );
+
+        if(
+            resultado.exists()
+        ){
+
+            datosCliente =
+            resultado.data();
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo cargar cliente:",
+            error
+        );
+
+    }
+
+}
+
+
+/* ==========================================
+   NOMBRE CLIENTE
+========================================== */
+
+function obtenerNombreCliente(){
+
+    const nombre =
+    [
+        datosCliente.nombre,
+        datosCliente.apellido
+    ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+    return (
+        nombre ||
+        datosCliente.empresa ||
+        datosCliente.razonSocial ||
+        datosCliente.razon_social ||
+        datosPresupuesto.cliente ||
+        datosPresupuesto.nombreCliente ||
+        datosPresupuesto.clienteNombre ||
+        "Cliente"
+    );
+
+}
+
+
+/* ==========================================
+   MOSTRAR EMPRESA
 ========================================== */
 
 function mostrarEmpresa(usuario){
@@ -970,6 +1161,7 @@ function mostrarEmpresa(usuario){
 
     const logoUrl =
     datosEmpresa.logoUrl ||
+    datosEmpresa.logo ||
     "";
 
     if(logoUrl){
@@ -981,6 +1173,122 @@ function mostrarEmpresa(usuario){
         "block";
 
     }
+
+}
+
+
+/* ==========================================
+   MOSTRAR MATERIALES
+========================================== */
+
+function mostrarMateriales(lista){
+
+    materialesLista.innerHTML = "";
+
+    if(
+        !Array.isArray(lista) ||
+        lista.length === 0
+    ){
+
+        materialesLista.textContent =
+        "Sin materiales cargados.";
+
+        return;
+
+    }
+
+    lista.forEach(
+        function(material){
+
+            const linea =
+            document.createElement("div");
+
+            linea.className =
+            "material-linea";
+
+            const tipo =
+            document.createElement("span");
+
+            tipo.textContent =
+            texto(
+                material?.tipo ||
+                material?.nombre ||
+                material?.descripcion
+            );
+
+            const cantidad =
+            document.createElement("span");
+
+            cantidad.textContent =
+            "Cantidad: " +
+            texto(
+                material?.cantidad
+            );
+
+            linea.appendChild(tipo);
+
+            linea.appendChild(cantidad);
+
+            materialesLista.appendChild(
+                linea
+            );
+
+        }
+    );
+
+}
+
+
+/* ==========================================
+   VALIDAR PROPIETARIO
+========================================== */
+
+function perteneceAlUsuario(usuario){
+
+    const propietario =
+    datosPresupuesto.uid ||
+    datosPresupuesto.usuarioId ||
+    "";
+
+    const empresaId =
+    datosPresupuesto.empresaId ||
+    "";
+
+    /*
+     * Presupuestos nuevos:
+     * usuarioId + empresaId
+     */
+
+    if(
+        propietario &&
+        propietario === usuario.uid
+    ){
+
+        return true;
+
+    }
+
+    /*
+     * También permitimos empresaId
+     * cuando la estructura de GESBASE
+     * utiliza el UID como empresa.
+     */
+
+    if(
+        empresaId &&
+        empresaId === usuario.uid
+    ){
+
+        return true;
+
+    }
+
+    /*
+     * Si el documento no tiene propietario
+     * no permitimos acceso.
+     */
+
+    return false;
 
 }
 
@@ -1051,12 +1359,11 @@ async function cargarPresupuesto(usuario){
         /* SEGURIDAD */
 
         if(
-            datosPresupuesto.uid &&
-            datosPresupuesto.uid !== usuario.uid
+            !perteneceAlUsuario(usuario)
         ){
 
             mostrarError(
-                "Este presupuesto pertenece a otro usuario."
+                "Este presupuesto pertenece a otro usuario o empresa."
             );
 
             return;
@@ -1088,19 +1395,24 @@ async function cargarPresupuesto(usuario){
         await cargarEmpresa();
 
 
+        /* CLIENTE */
+
+        await cargarCliente();
+
+
+        /* MOSTRAR EMPRESA */
+
         mostrarEmpresa(
             usuario
         );
 
 
-        /* CLIENTE */
+        /* ==================================
+           DATOS CLIENTE
+        ================================== */
 
         cliente.textContent =
-        texto(
-            datosPresupuesto.cliente ||
-            datosPresupuesto.nombreCliente ||
-            datosPresupuesto.clienteNombre
-        );
+        obtenerNombreCliente();
 
 
         numeroAgenda.textContent =
@@ -1111,24 +1423,27 @@ async function cargarPresupuesto(usuario){
         );
 
 
-        /* FECHA */
-
         fecha.textContent =
         texto(
             datosPresupuesto.fecha
         );
 
 
-        /* DESCRIPCIÓN */
+        /* ==================================
+           DESCRIPCIÓN
+        ================================== */
 
         descripcion.textContent =
         texto(
             datosPresupuesto.descripcion ||
-            datosPresupuesto.tareas
+            datosPresupuesto.tareas ||
+            datosPresupuesto.concepto
         );
 
 
-        /* LUGAR */
+        /* ==================================
+           LUGAR
+        ================================== */
 
         lugarTrabajo.textContent =
         texto(
@@ -1137,7 +1452,9 @@ async function cargarPresupuesto(usuario){
         );
 
 
-        /* OTROS */
+        /* ==================================
+           OTROS
+        ================================== */
 
         otros.textContent =
         texto(
@@ -1145,41 +1462,71 @@ async function cargarPresupuesto(usuario){
         );
 
 
-        /* MATERIALES */
+        /* ==================================
+           MATERIALES
+        ================================== */
 
         mostrarMateriales(
             datosPresupuesto.materialesLista
         );
 
 
-        /* IMPORTES */
+        /* ==================================
+           IMPORTES
+        ================================== */
 
         const materiales =
-        Number(
-            datosPresupuesto.materiales
-        ) || 0;
+        numero(
+            datosPresupuesto.materiales ||
+            datosPresupuesto.importeMaterial
+        );
+
 
         const manoObra =
-        Number(
-            datosPresupuesto.manoObra
-        ) || 0;
+        numero(
+            datosPresupuesto.manoObra ||
+            datosPresupuesto.importeManoObra
+        );
+
 
         const viaticos =
-        Number(
-            datosPresupuesto.viaticos
-        ) || 0;
+        numero(
+            datosPresupuesto.viaticos ||
+            datosPresupuesto.importeViaticos
+        );
+
 
         const flete =
-        Number(
-            datosPresupuesto.flete
-        ) || 0;
+        numero(
+            datosPresupuesto.flete ||
+            datosPresupuesto.importeFlete
+        );
 
 
-        const total =
+        /*
+         * Si existe total guardado,
+         * se toma como referencia.
+         * Si no existe, se calcula.
+         */
+
+        const totalCalculado =
         materiales +
         manoObra +
         viaticos +
         flete;
+
+
+        const totalGuardado =
+        numero(
+            datosPresupuesto.total ||
+            datosPresupuesto.totalFinal
+        );
+
+
+        const total =
+        totalGuardado > 0
+            ? totalGuardado
+            : totalCalculado;
 
 
         importeMaterial.textContent =
@@ -1203,7 +1550,25 @@ async function cargarPresupuesto(usuario){
         dinero(manoObra);
 
 
-        /* EDITAR */
+        /* ==================================
+           CONSIDERACIONES
+        ================================== */
+
+        if(
+            datosPresupuesto.consideraciones
+        ){
+
+            document.getElementById(
+                "consideraciones"
+            ).textContent =
+            datosPresupuesto.consideraciones;
+
+        }
+
+
+        /* ==================================
+           EDITAR
+        ================================== */
 
         btnEditar.href =
         "editar-presupuesto.html?id=" +
@@ -1212,7 +1577,45 @@ async function cargarPresupuesto(usuario){
         );
 
 
-        /* MOSTRAR */
+        /* ==================================
+           CREAR TRABAJO
+        ================================== */
+
+        const parametrosTrabajo =
+        new URLSearchParams();
+
+        parametrosTrabajo.set(
+            "presupuestoId",
+            presupuestoId
+        );
+
+
+        if(clienteIdReal){
+
+            parametrosTrabajo.set(
+                "clienteId",
+                clienteIdReal
+            );
+
+        }
+
+
+        btnTrabajo.href =
+        "trabajo.html?" +
+        parametrosTrabajo.toString();
+
+
+        if(clienteIdReal){
+
+            relacionTrabajo.style.display =
+            "block";
+
+        }
+
+
+        /* ==================================
+           MOSTRAR
+        ================================== */
 
         cargando.style.display =
         "none";
@@ -1472,12 +1875,11 @@ btnPDF.addEventListener(
                 10
             );
 
+
             pdf.text(
                 "CLIENTE: " +
                 texto(
-                    datosPresupuesto.cliente ||
-                    datosPresupuesto.nombreCliente ||
-                    datosPresupuesto.clienteNombre
+                    obtenerNombreCliente()
                 ),
                 margen,
                 y
@@ -1489,7 +1891,9 @@ btnPDF.addEventListener(
             pdf.text(
                 "N.º DE AGENDA: " +
                 texto(
-                    datosPresupuesto.numeroAgenda
+                    datosPresupuesto.numeroAgenda ||
+                    datosPresupuesto.agendaNumero ||
+                    datosPresupuesto.numero
                 ),
                 margen,
                 y
@@ -1630,7 +2034,8 @@ btnPDF.addEventListener(
             const tareas =
             pdf.splitTextToSize(
                 texto(
-                    datosPresupuesto.descripcion
+                    datosPresupuesto.descripcion ||
+                    datosPresupuesto.tareas
                 ),
                 ancho
             );
@@ -1697,7 +2102,9 @@ btnPDF.addEventListener(
                         pdf.text(
                             "• " +
                             texto(
-                                material?.tipo
+                                material?.tipo ||
+                                material?.nombre ||
+                                material?.descripcion
                             ),
                             margen + 4,
                             y
@@ -1794,7 +2201,8 @@ btnPDF.addEventListener(
             const lugar =
             pdf.splitTextToSize(
                 texto(
-                    datosPresupuesto.lugarTrabajo
+                    datosPresupuesto.lugarTrabajo ||
+                    datosPresupuesto.lugar
                 ),
                 ancho
             );
@@ -1860,27 +2268,42 @@ btnPDF.addEventListener(
 
 
             const materiales =
-            Number(
-                datosPresupuesto.materiales
-            ) || 0;
+            numero(
+                datosPresupuesto.materiales ||
+                datosPresupuesto.importeMaterial
+            );
 
             const manoObra =
-            Number(
-                datosPresupuesto.manoObra
-            ) || 0;
+            numero(
+                datosPresupuesto.manoObra ||
+                datosPresupuesto.importeManoObra
+            );
 
             const viaticos =
-            Number(
-                datosPresupuesto.viaticos
-            ) || 0;
+            numero(
+                datosPresupuesto.viaticos ||
+                datosPresupuesto.importeViaticos
+            );
 
             const flete =
-            Number(
-                datosPresupuesto.flete
-            ) || 0;
+            numero(
+                datosPresupuesto.flete ||
+                datosPresupuesto.importeFlete
+            );
+
+
+            const totalGuardado =
+            numero(
+                datosPresupuesto.total ||
+                datosPresupuesto.totalFinal
+            );
 
 
             const total =
+            totalGuardado > 0
+            ?
+            totalGuardado
+            :
             materiales +
             manoObra +
             viaticos +
@@ -2045,6 +2468,7 @@ btnPDF.addEventListener(
 
 
             const consideraciones =
+            datosPresupuesto.consideraciones ||
             "VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE REVISAR DICHA COTIZACIÓN.";
 
 
@@ -2064,7 +2488,7 @@ btnPDF.addEventListener(
 
             /* GUARDAR */
 
-            const numero =
+            const numeroPDF =
             numeroPresupuesto(
                 presupuestoId
             );
@@ -2072,7 +2496,7 @@ btnPDF.addEventListener(
 
             pdf.save(
                 "Pedido-de-Presupuesto-" +
-                numero +
+                numeroPDF +
                 ".pdf"
             );
 
