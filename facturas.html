@@ -45,6 +45,7 @@ header h1{
 header p{
     margin:6px 0 0;
     color:#d1d5db;
+    font-size:14px;
 }
 
 .container{
@@ -63,7 +64,7 @@ header p{
 }
 
 .card h2{
-    margin-top:0;
+    margin:0 0 18px;
     font-size:20px;
 }
 
@@ -85,6 +86,7 @@ header p{
 label{
     font-weight:bold;
     margin-bottom:6px;
+    font-size:14px;
 }
 
 input,
@@ -95,6 +97,7 @@ select{
     border-radius:8px;
     font-size:16px;
     background:white;
+    color:#111827;
 }
 
 input:focus,
@@ -105,6 +108,11 @@ select:focus{
 
 input[readonly]{
     background:#f3f4f6;
+    color:#374151;
+}
+
+input[type="file"]{
+    padding:10px;
 }
 
 .buttons{
@@ -185,7 +193,7 @@ button:disabled{
 table{
     width:100%;
     border-collapse:collapse;
-    min-width:900px;
+    min-width:950px;
 }
 
 th,
@@ -193,18 +201,25 @@ td{
     padding:12px;
     border-bottom:1px solid #e5e7eb;
     text-align:left;
+    vertical-align:middle;
 }
 
 th{
     background:#f9fafb;
+    font-size:13px;
+}
+
+td{
+    font-size:14px;
 }
 
 .estado{
     display:inline-block;
     padding:5px 9px;
     border-radius:20px;
-    font-size:13px;
+    font-size:12px;
     font-weight:bold;
+    white-space:nowrap;
 }
 
 .pendiente{
@@ -232,6 +247,8 @@ th{
     padding:12px;
     margin-bottom:15px;
     border-radius:6px;
+    font-size:14px;
+    line-height:1.5;
 }
 
 .mensaje{
@@ -240,6 +257,7 @@ th{
     border-radius:8px;
     margin-bottom:15px;
     font-weight:bold;
+    line-height:1.5;
 }
 
 .mensaje.exito{
@@ -277,6 +295,23 @@ th{
     color:#6b7280;
 }
 
+.sin-datos{
+    text-align:center;
+    padding:25px;
+    color:#6b7280;
+}
+
+.acciones-tabla{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+}
+
+.acciones-tabla button{
+    padding:8px 10px;
+    font-size:12px;
+}
+
 @media(max-width:700px){
 
     .grid{
@@ -299,7 +334,15 @@ th{
         padding:15px;
     }
 
-    button{
+    .buttons{
+        flex-direction:column;
+    }
+
+    .buttons button{
+        width:100%;
+    }
+
+    .btn-back{
         width:100%;
     }
 
@@ -333,15 +376,20 @@ th{
 
     <button
         type="button"
+        id="btnVolver"
         class="btn-back"
-        onclick="window.location.href='index.html'"
     >
         ← Volver al panel
     </button>
 
 
     <div class="usuario">
-        Cuenta: <strong id="emailUsuario">Cargando...</strong>
+
+        Cuenta:
+        <strong id="emailUsuario">
+            Cargando...
+        </strong>
+
     </div>
 
 
@@ -357,12 +405,15 @@ th{
 
     <div class="card">
 
-        <h2>➕ Nueva factura</h2>
+        <h2>
+            ➕ Nueva factura
+        </h2>
 
         <div class="aviso">
 
             Seleccioná en cuántos días querés cobrar.
-            GESBASE calculará automáticamente la fecha.
+            GESBASE calculará automáticamente la fecha
+            prevista de cobro.
 
         </div>
 
@@ -383,6 +434,7 @@ th{
                         type="text"
                         id="numeroFactura"
                         placeholder="Ej: A-0002-00001234"
+                        maxlength="50"
                         required
                     >
 
@@ -414,6 +466,7 @@ th{
                         type="text"
                         id="cliente"
                         placeholder="Nombre del cliente"
+                        maxlength="150"
                         required
                     >
 
@@ -430,6 +483,7 @@ th{
                         type="text"
                         id="cuit"
                         placeholder="CUIT del cliente"
+                        maxlength="20"
                     >
 
                 </div>
@@ -488,7 +542,7 @@ th{
                 <div class="field">
 
                     <label for="fechaCobro">
-                        Fecha de cobro
+                        Fecha prevista de cobro
                     </label>
 
                     <input
@@ -530,8 +584,17 @@ th{
                     <input
                         type="file"
                         id="pdfFactura"
-                        accept="application/pdf"
+                        accept="application/pdf,.pdf"
                     >
+
+                    <small
+                        style="
+                        margin-top:6px;
+                        color:#6b7280;
+                        "
+                    >
+                        Opcional. Solo archivos PDF.
+                    </small>
 
                 </div>
 
@@ -552,8 +615,8 @@ th{
 
                 <button
                     type="button"
+                    id="btnLimpiar"
                     class="btn-secondary"
-                    onclick="limpiarFormulario()"
                 >
                     Limpiar
                 </button>
@@ -572,7 +635,9 @@ th{
 
     <div class="card">
 
-        <h2>📊 Resumen</h2>
+        <h2>
+            📊 Resumen
+        </h2>
 
 
         <div class="resumen">
@@ -666,7 +731,7 @@ th{
                         </th>
 
                         <th>
-                            Fecha de cobro
+                            Fecha cobro
                         </th>
 
                         <th>
@@ -686,9 +751,7 @@ th{
                 </thead>
 
 
-                <tbody id="tablaFacturas">
-
-                </tbody>
+                <tbody id="tablaFacturas"></tbody>
 
             </table>
 
@@ -703,17 +766,27 @@ th{
 <script type="module">
 
 
-/* ==========================================
-   FIREBASE
-========================================== */
+// =====================================================
+// FIREBASE
+// =====================================================
 
 import {
 
     auth,
-    db,
-    almacenamiento
+    db
 
 } from "./Js/firebase.js";
+
+
+import {
+
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 
 
 import {
@@ -741,52 +814,86 @@ import {
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
-import {
+// =====================================================
+// STORAGE
+// =====================================================
 
-    ref,
-    uploadBytes,
-    getDownloadURL
-
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+const almacenamiento =
+    getStorage();
 
 
-/* ==========================================
-   VARIABLES
-========================================== */
+// =====================================================
+// VARIABLES
+// =====================================================
 
 let usuarioActual = null;
 
 let facturas = [];
 
 
-/* ==========================================
-   ELEMENTOS
-========================================== */
+// =====================================================
+// ELEMENTOS
+// =====================================================
 
 const formulario =
-document.getElementById("formFactura");
+    document.getElementById(
+        "formFactura"
+    );
 
 const tabla =
-document.getElementById("tablaFacturas");
+    document.getElementById(
+        "tablaFacturas"
+    );
 
 const cargando =
-document.getElementById("cargandoFacturas");
+    document.getElementById(
+        "cargandoFacturas"
+    );
 
 const mensaje =
-document.getElementById("mensaje");
+    document.getElementById(
+        "mensaje"
+    );
 
 const btnGuardar =
-document.getElementById("btnGuardar");
+    document.getElementById(
+        "btnGuardar"
+    );
+
+const btnLimpiar =
+    document.getElementById(
+        "btnLimpiar"
+    );
+
+const btnVolver =
+    document.getElementById(
+        "btnVolver"
+    );
+
+const fechaFactura =
+    document.getElementById(
+        "fechaFactura"
+    );
+
+const diasCobro =
+    document.getElementById(
+        "diasCobro"
+    );
+
+const fechaCobro =
+    document.getElementById(
+        "fechaCobro"
+    );
 
 
-/* ==========================================
-   FECHA ACTUAL
-========================================== */
+// =====================================================
+// FECHA HOY
+// =====================================================
 
 function fechaHoy(){
 
-    const fecha = new Date();
+    const fecha =
+        new Date();
 
     const año =
         fecha.getFullYear();
@@ -794,142 +901,245 @@ function fechaHoy(){
     const mes =
         String(
             fecha.getMonth() + 1
-        ).padStart(2,"0");
+        ).padStart(
+            2,
+            "0"
+        );
 
     const dia =
         String(
             fecha.getDate()
-        ).padStart(2,"0");
+        ).padStart(
+            2,
+            "0"
+        );
 
     return `${año}-${mes}-${dia}`;
 
 }
 
 
-/* ==========================================
-   MOSTRAR MENSAJE
-========================================== */
+// =====================================================
+// MOSTRAR MENSAJE
+// =====================================================
 
-function mostrarMensaje(texto, tipo){
+function mostrarMensaje(
+    texto,
+    tipo
+){
 
-    mensaje.textContent = texto;
+    mensaje.textContent =
+        texto;
 
     mensaje.className =
         "mensaje " + tipo;
 
-    setTimeout(() => {
 
-        mensaje.className = "mensaje";
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
 
-        mensaje.textContent = "";
 
-    },5000);
+    setTimeout(
+        function(){
+
+            mensaje.className =
+                "mensaje";
+
+            mensaje.textContent =
+                "";
+
+        },
+        5000
+    );
 
 }
 
 
-/* ==========================================
-   CALCULAR FECHA COBRO
-========================================== */
+// =====================================================
+// ESCAPAR HTML
+// =====================================================
+
+function escapeHTML(
+    texto
+){
+
+    return String(
+        texto ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+
+// =====================================================
+// CALCULAR FECHA DE COBRO
+// =====================================================
 
 function calcularFechaCobro(){
 
-    const fechaFactura =
-        document.getElementById(
-            "fechaFactura"
-        ).value;
+    const fecha =
+        fechaFactura.value;
 
 
     const dias =
         Number(
-            document.getElementById(
-                "diasCobro"
-            ).value
+            diasCobro.value
         );
 
 
-    if(!fechaFactura){
+    if(!fecha){
+
+        fechaCobro.value =
+            "";
 
         return;
 
     }
 
 
-    const fecha =
+    if(!Number.isFinite(dias)){
+
+        fechaCobro.value =
+            "";
+
+        return;
+
+    }
+
+
+    const resultado =
         new Date(
-            fechaFactura + "T00:00:00"
+            fecha + "T00:00:00"
         );
 
 
-    fecha.setDate(
-        fecha.getDate() + dias
+    resultado.setDate(
+        resultado.getDate() + dias
     );
 
 
     const año =
-        fecha.getFullYear();
+        resultado.getFullYear();
 
     const mes =
         String(
-            fecha.getMonth() + 1
-        ).padStart(2,"0");
+            resultado.getMonth() + 1
+        ).padStart(
+            2,
+            "0"
+        );
 
     const dia =
         String(
-            fecha.getDate()
-        ).padStart(2,"0");
+            resultado.getDate()
+        ).padStart(
+            2,
+            "0"
+        );
 
 
-    document.getElementById(
-        "fechaCobro"
-    ).value =
+    fechaCobro.value =
         `${año}-${mes}-${dia}`;
 
 }
 
 
-/* ==========================================
-   INICIALIZAR
-========================================== */
+// =====================================================
+// LIMPIAR FORMULARIO
+// =====================================================
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
+function limpiarFormulario(){
 
-        document.getElementById(
-            "fechaFactura"
-        ).value = fechaHoy();
+    formulario.reset();
 
 
-        calcularFechaCobro();
+    fechaFactura.value =
+        fechaHoy();
 
 
-        document.getElementById(
-            "fechaFactura"
-        ).addEventListener(
-            "change",
-            calcularFechaCobro
-        );
+    diasCobro.value =
+        "1";
 
 
-        document.getElementById(
-            "diasCobro"
-        ).addEventListener(
-            "change",
-            calcularFechaCobro
-        );
+    document.getElementById(
+        "estado"
+    ).value =
+        "pendiente";
+
+
+    calcularFechaCobro();
+
+}
+
+
+// =====================================================
+// INICIALIZAR FORMULARIO
+// =====================================================
+
+fechaFactura.value =
+    fechaHoy();
+
+
+calcularFechaCobro();
+
+
+fechaFactura.addEventListener(
+    "change",
+    calcularFechaCobro
+);
+
+
+diasCobro.addEventListener(
+    "change",
+    calcularFechaCobro
+);
+
+
+btnLimpiar.addEventListener(
+    "click",
+    limpiarFormulario
+);
+
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+            "index.html";
 
     }
 );
 
 
-/* ==========================================
-   SESIÓN
-========================================== */
+// =====================================================
+// AUTENTICACIÓN
+// =====================================================
 
 onAuthStateChanged(
     auth,
-    async (usuario) => {
+    async function(usuario){
 
         if(!usuario){
 
@@ -942,7 +1152,8 @@ onAuthStateChanged(
         }
 
 
-        usuarioActual = usuario;
+        usuarioActual =
+            usuario;
 
 
         document.getElementById(
@@ -958,15 +1169,25 @@ onAuthStateChanged(
 );
 
 
-/* ==========================================
-   CARGAR FACTURAS FIRESTORE
-========================================== */
+// =====================================================
+// CARGAR FACTURAS
+// =====================================================
 
 async function cargarFacturas(){
 
-    cargando.style.display = "block";
+    if(!usuarioActual){
 
-    tabla.innerHTML = "";
+        return;
+
+    }
+
+
+    cargando.style.display =
+        "block";
+
+
+    tabla.innerHTML =
+        "";
 
 
     try{
@@ -981,11 +1202,13 @@ async function cargarFacturas(){
         const consulta =
             query(
                 referencia,
+
                 where(
                     "uid",
                     "==",
                     usuarioActual.uid
                 ),
+
                 orderBy(
                     "fechaCobro",
                     "asc"
@@ -994,18 +1217,22 @@ async function cargarFacturas(){
 
 
         const resultado =
-            await getDocs(consulta);
+            await getDocs(
+                consulta
+            );
 
 
-        facturas = [];
+        facturas =
+            [];
 
 
         resultado.forEach(
-            documento => {
+            function(documento){
 
                 facturas.push({
 
-                    id: documento.id,
+                    id:
+                        documento.id,
 
                     ...documento.data()
 
@@ -1015,25 +1242,22 @@ async function cargarFacturas(){
         );
 
 
-        mostrarFacturas();
-
-        actualizarResumen();
-
-
     }
     catch(error){
 
-        console.error(
-            "Error cargando facturas:",
+        console.warn(
+            "Consulta ordenada no disponible:",
             error
         );
 
 
         /*
-           Si todavía no existe el índice
-           de Firestore, hacemos una segunda
-           consulta sin orderBy.
-        */
+         * Segunda consulta.
+         *
+         * Esto permite trabajar aunque
+         * Firebase todavía no tenga creado
+         * el índice compuesto.
+         */
 
         try{
 
@@ -1047,6 +1271,7 @@ async function cargarFacturas(){
             const consulta =
                 query(
                     referencia,
+
                     where(
                         "uid",
                         "==",
@@ -1056,18 +1281,22 @@ async function cargarFacturas(){
 
 
             const resultado =
-                await getDocs(consulta);
+                await getDocs(
+                    consulta
+                );
 
 
-            facturas = [];
+            facturas =
+                [];
 
 
             resultado.forEach(
-                documento => {
+                function(documento){
 
                     facturas.push({
 
-                        id: documento.id,
+                        id:
+                            documento.id,
 
                         ...documento.data()
 
@@ -1078,54 +1307,61 @@ async function cargarFacturas(){
 
 
             facturas.sort(
-                (a,b) =>
-                    String(
+                function(a,b){
+
+                    return String(
                         a.fechaCobro || ""
                     ).localeCompare(
                         String(
                             b.fechaCobro || ""
                         )
-                    )
+                    );
+
+                }
             );
-
-
-            mostrarFacturas();
-
-            actualizarResumen();
-
 
         }
         catch(error2){
 
             console.error(
+                "Error cargando facturas:",
                 error2
             );
 
 
             mostrarMensaje(
-                "No se pudieron cargar las facturas.",
+                "No se pudieron cargar las facturas. " +
+                obtenerMensajeError(error2),
                 "error"
             );
+
+
+            facturas =
+                [];
 
         }
 
     }
-    finally{
 
-        cargando.style.display = "none";
 
-    }
+    mostrarFacturas();
+
+    actualizarResumen();
+
+
+    cargando.style.display =
+        "none";
 
 }
 
 
-/* ==========================================
-   GUARDAR FACTURA
-========================================== */
+// =====================================================
+// GUARDAR FACTURA
+// =====================================================
 
 formulario.addEventListener(
     "submit",
-    async (evento) => {
+    async function(evento){
 
         evento.preventDefault();
 
@@ -1142,7 +1378,216 @@ formulario.addEventListener(
         }
 
 
-        btnGuardar.disabled = true;
+        calcularFechaCobro();
+
+
+        const numero =
+            document.getElementById(
+                "numeroFactura"
+            ).value.trim();
+
+
+        const fechaFacturaValor =
+            document.getElementById(
+                "fechaFactura"
+            ).value;
+
+
+        const cliente =
+            document.getElementById(
+                "cliente"
+            ).value.trim();
+
+
+        const cuit =
+            document.getElementById(
+                "cuit"
+            ).value.trim();
+
+
+        const importe =
+            Number(
+                document.getElementById(
+                    "importe"
+                ).value
+            );
+
+
+        const dias =
+            Number(
+                document.getElementById(
+                    "diasCobro"
+                ).value
+            );
+
+
+        const fechaCobroValor =
+            document.getElementById(
+                "fechaCobro"
+            ).value;
+
+
+        const estado =
+            document.getElementById(
+                "estado"
+            ).value;
+
+
+        const archivo =
+            document.getElementById(
+                "pdfFactura"
+            ).files[0];
+
+
+        // =============================================
+        // VALIDACIONES
+        // =============================================
+
+        if(!numero){
+
+            mostrarMensaje(
+                "Ingresá el número de factura.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if(!fechaFacturaValor){
+
+            mostrarMensaje(
+                "Seleccioná la fecha de factura.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if(!cliente){
+
+            mostrarMensaje(
+                "Ingresá el cliente.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if(
+            !Number.isFinite(importe) ||
+            importe <= 0
+        ){
+
+            mostrarMensaje(
+                "Ingresá un importe válido.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if(
+            !Number.isFinite(dias) ||
+            dias < 0
+        ){
+
+            mostrarMensaje(
+                "El plazo de cobro no es válido.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if(!fechaCobroValor){
+
+            mostrarMensaje(
+                "No se pudo calcular la fecha de cobro.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if(
+            estado !== "pendiente" &&
+            estado !== "cobrada"
+        ){
+
+            mostrarMensaje(
+                "El estado de la factura no es válido.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        // =============================================
+        // VALIDAR PDF
+        // =============================================
+
+        if(archivo){
+
+            const esPDF =
+                archivo.type ===
+                "application/pdf"
+                ||
+                archivo.name
+                    .toLowerCase()
+                    .endsWith(".pdf");
+
+
+            if(!esPDF){
+
+                mostrarMensaje(
+                    "El archivo seleccionado no es un PDF.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            /*
+             * Límite de 10 MB para evitar
+             * archivos demasiado grandes.
+             */
+
+            if(
+                archivo.size >
+                10 * 1024 * 1024
+            ){
+
+                mostrarMensaje(
+                    "El PDF no puede superar los 10 MB.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+        }
+
+
+        btnGuardar.disabled =
+            true;
+
 
         btnGuardar.textContent =
             "Guardando...";
@@ -1150,114 +1595,15 @@ formulario.addEventListener(
 
         try{
 
-            calcularFechaCobro();
+            let urlPDF =
+                "";
 
 
-            const numero =
-                document.getElementById(
-                    "numeroFactura"
-                ).value.trim();
-
-
-            const fechaFactura =
-                document.getElementById(
-                    "fechaFactura"
-                ).value;
-
-
-            const cliente =
-                document.getElementById(
-                    "cliente"
-                ).value.trim();
-
-
-            const cuit =
-                document.getElementById(
-                    "cuit"
-                ).value.trim();
-
-
-            const importe =
-                Number(
-                    document.getElementById(
-                        "importe"
-                    ).value
-                );
-
-
-            const diasCobro =
-                Number(
-                    document.getElementById(
-                        "diasCobro"
-                    ).value
-                );
-
-
-            const fechaCobro =
-                document.getElementById(
-                    "fechaCobro"
-                ).value;
-
-
-            const estado =
-                document.getElementById(
-                    "estado"
-                ).value;
-
-
-            const archivo =
-                document.getElementById(
-                    "pdfFactura"
-                ).files[0];
-
-
-            if(!numero){
-
-                throw new Error(
-                    "Ingresá el número de factura."
-                );
-
-            }
-
-
-            if(!cliente){
-
-                throw new Error(
-                    "Ingresá el cliente."
-                );
-
-            }
-
-
-            if(!importe || importe <= 0){
-
-                throw new Error(
-                    "Ingresá un importe válido."
-                );
-
-            }
-
-
-            let urlPDF = "";
-
-
-            /* =================================
-               SUBIR PDF A FIREBASE STORAGE
-            ================================= */
+            // =========================================
+            // SUBIR PDF
+            // =========================================
 
             if(archivo){
-
-                if(
-                    archivo.type !==
-                    "application/pdf"
-                ){
-
-                    throw new Error(
-                        "El archivo debe ser PDF."
-                    );
-
-                }
-
 
                 const nombreSeguro =
                     archivo.name
@@ -1268,7 +1614,12 @@ formulario.addEventListener(
 
 
                 const ruta =
-                    `facturas/${usuarioActual.uid}/${Date.now()}_${nombreSeguro}`;
+                    "facturas/" +
+                    usuarioActual.uid +
+                    "/" +
+                    Date.now() +
+                    "_" +
+                    nombreSeguro;
 
 
                 const referenciaArchivo =
@@ -1280,7 +1631,11 @@ formulario.addEventListener(
 
                 await uploadBytes(
                     referenciaArchivo,
-                    archivo
+                    archivo,
+                    {
+                        contentType:
+                            "application/pdf"
+                    }
                 );
 
 
@@ -1292,9 +1647,9 @@ formulario.addEventListener(
             }
 
 
-            /* =================================
-               GUARDAR EN FIRESTORE
-            ================================= */
+            // =========================================
+            // GUARDAR FIRESTORE
+            // =========================================
 
             await addDoc(
                 collection(
@@ -1307,46 +1662,42 @@ formulario.addEventListener(
                         usuarioActual.uid,
 
                     emailUsuario:
-                        usuarioActual.email || "",
+                        usuarioActual.email ||
+                        "",
 
                     numero:
-
                         numero,
 
                     fechaFactura:
-
-                        fechaFactura,
+                        fechaFacturaValor,
 
                     cliente:
-
                         cliente,
 
                     cuit:
-
                         cuit,
 
                     importe:
-
                         importe,
 
                     diasCobro:
-
-                        diasCobro,
+                        dias,
 
                     fechaCobro:
-
-                        fechaCobro,
+                        fechaCobroValor,
 
                     estado:
-
                         estado,
 
                     urlPDF:
-
                         urlPDF,
 
-                    creado:
+                    fechaCobrado:
+                        estado === "cobrada"
+                            ? fechaHoy()
+                            : "",
 
+                    creado:
                         serverTimestamp()
 
                 }
@@ -1354,7 +1705,7 @@ formulario.addEventListener(
 
 
             mostrarMensaje(
-                "Factura guardada correctamente.",
+                "✅ Factura guardada correctamente.",
                 "exito"
             );
 
@@ -1364,26 +1715,27 @@ formulario.addEventListener(
 
             await cargarFacturas();
 
-
         }
         catch(error){
 
             console.error(
-                "Error guardando factura:",
+                "ERROR GUARDANDO FACTURA:",
                 error
             );
 
 
             mostrarMensaje(
-                "No se pudo guardar la factura: " +
-                error.message,
+                "No se pudo guardar la factura. " +
+                obtenerMensajeError(error),
                 "error"
             );
 
         }
         finally{
 
-            btnGuardar.disabled = false;
+            btnGuardar.disabled =
+                false;
+
 
             btnGuardar.textContent =
                 "💾 Guardar factura";
@@ -1394,13 +1746,14 @@ formulario.addEventListener(
 );
 
 
-/* ==========================================
-   MOSTRAR FACTURAS
-========================================== */
+// =====================================================
+// MOSTRAR FACTURAS
+// =====================================================
 
 function mostrarFacturas(){
 
-    tabla.innerHTML = "";
+    tabla.innerHTML =
+        "";
 
 
     if(facturas.length === 0){
@@ -1409,10 +1762,11 @@ function mostrarFacturas(){
 
             <tr>
 
-                <td colspan="8">
-
+                <td
+                    colspan="8"
+                    class="sin-datos"
+                >
                     No hay facturas cargadas.
-
                 </td>
 
             </tr>
@@ -1425,8 +1779,7 @@ function mostrarFacturas(){
 
 
     facturas.forEach(
-        factura => {
-
+        function(factura){
 
             const hoy =
                 new Date(
@@ -1435,28 +1788,43 @@ function mostrarFacturas(){
                 );
 
 
-            const fechaCobro =
+            const fechaCobroFactura =
+                factura.fechaCobro
+                ?
                 new Date(
                     factura.fechaCobro +
                     "T00:00:00"
-                );
+                )
+                :
+                null;
 
 
             let estadoTexto =
-                factura.estado === "cobrada"
-                ? "Cobrada"
-                : "Pendiente";
+                "Pendiente";
 
 
             let claseEstado =
-                factura.estado === "cobrada"
-                ? "cobrada"
-                : "pendiente";
+                "pendiente";
 
 
             if(
-                factura.estado !== "cobrada" &&
-                fechaCobro < hoy
+                factura.estado ===
+                "cobrada"
+            ){
+
+                estadoTexto =
+                    "Cobrada";
+
+                claseEstado =
+                    "cobrada";
+
+            }
+            else if(
+                fechaCobroFactura &&
+                !isNaN(
+                    fechaCobroFactura.getTime()
+                ) &&
+                fechaCobroFactura < hoy
             ){
 
                 estadoTexto =
@@ -1468,49 +1836,71 @@ function mostrarFacturas(){
             }
 
 
-            const pdf =
-                factura.urlPDF
-
-                ?
-
-                `
-                <a
-                    class="pdf-link"
-                    href="${escapeHTML(
-                        factura.urlPDF
-                    )}"
-                    target="_blank"
-                    rel="noopener"
-                >
-                    📎 Ver
-                </a>
-                `
-
-                :
-
+            let pdfHTML =
                 "—";
 
 
-            const botonCobrar =
-                factura.estado !== "cobrada"
+            if(factura.urlPDF){
 
-                ?
+                pdfHTML = `
 
-                `
+                    <a
+                        class="pdf-link"
+                        href="${escapeHTML(
+                            factura.urlPDF
+                        )}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        📎 Ver PDF
+                    </a>
+
+                `;
+
+            }
+
+
+            let acciones =
+                "";
+
+
+            if(
+                factura.estado !==
+                "cobrada"
+            ){
+
+                acciones += `
+
+                    <button
+                        type="button"
+                        class="btn-success"
+                        data-id="${escapeHTML(
+                            factura.id
+                        )}"
+                        data-accion="cobrada"
+                    >
+                        ✓ Cobrada
+                    </button>
+
+                `;
+
+            }
+
+
+            acciones += `
+
                 <button
-                    class="btn-success"
+                    type="button"
+                    class="btn-danger"
                     data-id="${escapeHTML(
                         factura.id
                     )}"
-                    data-accion="cobrada"
+                    data-accion="eliminar"
                 >
-                    ✓ Cobrada
+                    🗑 Eliminar
                 </button>
-                `
 
-                :
-
-                "";
+            `;
 
 
             tabla.innerHTML += `
@@ -1569,9 +1959,7 @@ function mostrarFacturas(){
                         <span
                             class="estado ${claseEstado}"
                         >
-
                             ${estadoTexto}
-
                         </span>
 
                     </td>
@@ -1579,25 +1967,18 @@ function mostrarFacturas(){
 
                     <td>
 
-                        ${pdf}
+                        ${pdfHTML}
 
                     </td>
 
 
                     <td>
 
-                        ${botonCobrar}
+                        <div class="acciones-tabla">
 
+                            ${acciones}
 
-                        <button
-                            class="btn-danger"
-                            data-id="${escapeHTML(
-                                factura.id
-                            )}"
-                            data-accion="eliminar"
-                        >
-                            🗑
-                        </button>
+                        </div>
 
                     </td>
 
@@ -1611,13 +1992,13 @@ function mostrarFacturas(){
 }
 
 
-/* ==========================================
-   ACCIONES TABLA
-========================================== */
+// =====================================================
+// ACCIONES DE TABLA
+// =====================================================
 
 tabla.addEventListener(
     "click",
-    async (evento) => {
+    async function(evento){
 
         const boton =
             evento.target.closest(
@@ -1640,32 +2021,62 @@ tabla.addEventListener(
             boton.dataset.accion;
 
 
-        if(
-            accion === "cobrada"
-        ){
+        if(!id){
 
-            await marcarCobrada(id);
+            return;
 
         }
 
 
+        boton.disabled =
+            true;
+
+
         if(
-            accion === "eliminar"
+            accion ===
+            "cobrada"
         ){
 
-            await eliminarFactura(id);
+            await marcarCobrada(
+                id
+            );
 
         }
+
+
+        else if(
+            accion ===
+            "eliminar"
+        ){
+
+            await eliminarFactura(
+                id
+            );
+
+        }
+
+
+        boton.disabled =
+            false;
 
     }
 );
 
 
-/* ==========================================
-   MARCAR COBRADA
-========================================== */
+// =====================================================
+// MARCAR COBRADA
+// =====================================================
 
-async function marcarCobrada(id){
+async function marcarCobrada(
+    id
+){
+
+    if(!usuarioActual){
+
+        return;
+
+    }
+
 
     try{
 
@@ -1688,7 +2099,7 @@ async function marcarCobrada(id){
 
 
         mostrarMensaje(
-            "Factura marcada como cobrada.",
+            "✅ Factura marcada como cobrada.",
             "exito"
         );
 
@@ -1698,10 +2109,15 @@ async function marcarCobrada(id){
     }
     catch(error){
 
-        console.error(error);
+        console.error(
+            "ERROR MARCANDO COBRADA:",
+            error
+        );
+
 
         mostrarMensaje(
-            "No se pudo actualizar la factura.",
+            "No se pudo actualizar la factura. " +
+            obtenerMensajeError(error),
             "error"
         );
 
@@ -1710,15 +2126,45 @@ async function marcarCobrada(id){
 }
 
 
-/* ==========================================
-   ELIMINAR FACTURA
-========================================== */
+// =====================================================
+// ELIMINAR FACTURA
+// =====================================================
 
-async function eliminarFactura(id){
+async function eliminarFactura(
+    id
+){
+
+    if(!usuarioActual){
+
+        return;
+
+    }
+
+
+    const factura =
+        facturas.find(
+            function(item){
+
+                return item.id === id;
+
+            }
+        );
+
+
+    const numero =
+        factura
+        ?
+        factura.numero
+        :
+        "esta factura";
+
 
     const confirmar =
         confirm(
-            "¿Querés eliminar esta factura?"
+            "¿Querés eliminar " +
+            numero +
+            "?\n\n" +
+            "La ficha de la factura se eliminará de GESBASE."
         );
 
 
@@ -1741,7 +2187,7 @@ async function eliminarFactura(id){
 
 
         mostrarMensaje(
-            "Factura eliminada.",
+            "✅ Factura eliminada correctamente.",
             "exito"
         );
 
@@ -1751,10 +2197,15 @@ async function eliminarFactura(id){
     }
     catch(error){
 
-        console.error(error);
+        console.error(
+            "ERROR ELIMINANDO FACTURA:",
+            error
+        );
+
 
         mostrarMensaje(
-            "No se pudo eliminar la factura.",
+            "No se pudo eliminar la factura. " +
+            obtenerMensajeError(error),
             "error"
         );
 
@@ -1763,21 +2214,24 @@ async function eliminarFactura(id){
 }
 
 
-/* ==========================================
-   RESUMEN
-========================================== */
+// =====================================================
+// RESUMEN
+// =====================================================
 
 function actualizarResumen(){
 
-    let facturado = 0;
+    let facturado =
+        0;
 
-    let cobrado = 0;
+    let cobrado =
+        0;
 
-    let pendiente = 0;
+    let pendiente =
+        0;
 
 
     facturas.forEach(
-        factura => {
+        function(factura){
 
             const importe =
                 Number(
@@ -1835,43 +2289,19 @@ function actualizarResumen(){
 }
 
 
-/* ==========================================
-   LIMPIAR
-========================================== */
+// =====================================================
+// FORMATEAR DINERO
+// =====================================================
 
-function limpiarFormulario(){
+function formatearDinero(
+    valor
+){
 
-    formulario.reset();
+    const numero =
+        Number(
+            valor
+        ) || 0;
 
-
-    document.getElementById(
-        "fechaFactura"
-    ).value =
-        fechaHoy();
-
-
-    document.getElementById(
-        "diasCobro"
-    ).value =
-        "1";
-
-
-    document.getElementById(
-        "estado"
-    ).value =
-        "pendiente";
-
-
-    calcularFechaCobro();
-
-}
-
-
-/* ==========================================
-   DINERO
-========================================== */
-
-function formatearDinero(valor){
 
     return new Intl.NumberFormat(
         "es-AR",
@@ -1883,79 +2313,153 @@ function formatearDinero(valor){
             currency:
                 "ARS",
 
+            minimumFractionDigits:
+                2,
+
             maximumFractionDigits:
                 2
 
         }
-    ).format(valor);
+    ).format(
+        numero
+    );
 
 }
 
 
-/* ==========================================
-   FECHA
-========================================== */
+// =====================================================
+// FORMATEAR FECHA
+// =====================================================
 
-function formatearFecha(fecha){
+function formatearFecha(
+    fecha
+){
 
     if(!fecha){
 
-        return "";
+        return "—";
 
     }
 
 
     const partes =
-        String(fecha).split("-");
+        String(
+            fecha
+        ).split("-");
 
 
     if(
         partes.length !== 3
     ){
 
-        return fecha;
+        return escapeHTML(
+            fecha
+        );
 
     }
 
 
-    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    return (
+        partes[2] +
+        "/" +
+        partes[1] +
+        "/" +
+        partes[0]
+    );
 
 }
 
 
-/* ==========================================
-   SEGURIDAD
-========================================== */
+// =====================================================
+// MENSAJES DE ERROR FIREBASE
+// =====================================================
 
-function escapeHTML(text){
+function obtenerMensajeError(
+    error
+){
 
-    return String(
-        text ?? ""
-    )
-    .replace(
-        /&/g,
-        "&amp;"
-    )
-    .replace(
-        /</g,
-        "&lt;"
-    )
-    .replace(
-        />/g,
-        "&gt;"
-    )
-    .replace(
-        /"/g,
-        "&quot;"
-    )
-    .replace(
-        /'/g,
-        "&#039;"
+    if(!error){
+
+        return "Error desconocido.";
+
+    }
+
+
+    const codigo =
+        error.code ||
+        "";
+
+
+    if(
+        codigo ===
+        "permission-denied"
+    ){
+
+        return "Firebase rechazó la operación por permisos. Revisá las reglas de Firestore.";
+
+    }
+
+
+    if(
+        codigo ===
+        "storage/unauthorized"
+    ){
+
+        return "Firebase Storage rechazó el archivo por permisos. Revisá las reglas de Storage.";
+
+    }
+
+
+    if(
+        codigo ===
+        "storage/canceled"
+    ){
+
+        return "La carga del archivo fue cancelada.";
+
+    }
+
+
+    if(
+        codigo ===
+        "storage/quota-exceeded"
+    ){
+
+        return "Se alcanzó el límite de almacenamiento.";
+
+    }
+
+
+    if(
+        codigo ===
+        "failed-precondition"
+    ){
+
+        return "Firebase requiere una configuración o índice adicional.";
+
+    }
+
+
+    if(
+        codigo ===
+        "unavailable"
+    ){
+
+        return "Firebase no está disponible temporalmente. Intentá nuevamente.";
+
+    }
+
+
+    return (
+        error.message ||
+        error.code ||
+        "Error desconocido."
     );
 
 }
 
 </script>
+
 
 </body>
 
