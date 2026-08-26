@@ -15,8 +15,12 @@
     content="#111827"
 >
 
-<title>Clientes - GESBASE</title>
+<meta
+    name="description"
+    content="GESBASE - Clientes"
+>
 
+<title>Clientes - GESBASE</title>
 
 <style>
 
@@ -27,12 +31,13 @@
 }
 
 body{
-    font-family:Arial,sans-serif;
+    font-family:Arial,Helvetica,sans-serif;
     background:#f3f4f6;
     color:#111827;
 }
 
 .contenedor{
+    width:100%;
     max-width:700px;
     margin:auto;
     min-height:100vh;
@@ -60,7 +65,9 @@ main{
 }
 
 
-/* USUARIO */
+/* ==========================================
+   USUARIO
+========================================== */
 
 .usuario{
     background:#f3f4f6;
@@ -71,7 +78,9 @@ main{
 }
 
 
-/* ACCIONES */
+/* ==========================================
+   ACCIONES
+========================================== */
 
 .acciones{
     display:flex;
@@ -102,8 +111,23 @@ main{
     border:none;
 }
 
+.boton-nuevo:hover{
+    background:#1f2937;
+}
 
-/* BUSCADOR */
+.boton-actualizar:hover{
+    background:#1f2937;
+}
+
+.boton-actualizar:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+
+/* ==========================================
+   BUSCADOR
+========================================== */
 
 .buscador{
     width:100%;
@@ -113,6 +137,7 @@ main{
     font-size:15px;
     margin-bottom:18px;
     outline:none;
+    background:white;
 }
 
 .buscador:focus{
@@ -120,7 +145,9 @@ main{
 }
 
 
-/* CARGANDO */
+/* ==========================================
+   CARGANDO
+========================================== */
 
 .cargando{
     text-align:center;
@@ -129,7 +156,9 @@ main{
 }
 
 
-/* LISTA */
+/* ==========================================
+   LISTA
+========================================== */
 
 .lista{
     display:flex;
@@ -138,7 +167,9 @@ main{
 }
 
 
-/* CLIENTE */
+/* ==========================================
+   CLIENTE
+========================================== */
 
 .cliente{
     border:1px solid #d1d5db;
@@ -152,12 +183,14 @@ main{
     font-size:20px;
     font-weight:bold;
     margin-bottom:12px;
+    word-break:break-word;
 }
 
 .dato{
     margin-top:7px;
     font-size:14px;
     color:#4b5563;
+    line-height:1.4;
 }
 
 .observaciones{
@@ -167,10 +200,13 @@ main{
     font-size:14px;
     line-height:1.5;
     color:#374151;
+    white-space:pre-wrap;
 }
 
 
-/* BOTONES CLIENTE */
+/* ==========================================
+   BOTONES CLIENTE
+========================================== */
 
 .boton{
     display:block;
@@ -185,24 +221,23 @@ main{
     cursor:pointer;
 }
 
-
-/* VER CLIENTE */
-
 .boton-ver{
     background:#111827;
     color:white;
 }
 
-
-/* EDITAR */
+.boton-ver:hover{
+    background:#1f2937;
+}
 
 .boton-editar{
     background:#2563eb;
     color:white;
 }
 
-
-/* ELIMINAR */
+.boton-editar:hover{
+    background:#1d4ed8;
+}
 
 .boton-eliminar{
     background:#fee2e2;
@@ -210,8 +245,14 @@ main{
     border:1px solid #fecaca;
 }
 
+.boton-eliminar:hover{
+    background:#fecaca;
+}
 
-/* SIN CLIENTES */
+
+/* ==========================================
+   SIN CLIENTES
+========================================== */
 
 .sin-clientes{
     text-align:center;
@@ -227,7 +268,9 @@ main{
 }
 
 
-/* ERROR */
+/* ==========================================
+   ERROR
+========================================== */
 
 .error{
     display:none;
@@ -236,10 +279,13 @@ main{
     padding:14px;
     border-radius:10px;
     margin-bottom:15px;
+    line-height:1.5;
 }
 
 
-/* VOLVER */
+/* ==========================================
+   VOLVER
+========================================== */
 
 .boton-volver{
     display:block;
@@ -255,8 +301,14 @@ main{
     font-weight:bold;
 }
 
+.boton-volver:hover{
+    background:#d1d5db;
+}
 
-/* MÓVIL */
+
+/* ==========================================
+   MÓVIL
+========================================== */
 
 @media(max-width:480px){
 
@@ -266,6 +318,10 @@ main{
 
     .acciones{
         flex-direction:column;
+    }
+
+    .cliente{
+        padding:16px;
     }
 
 }
@@ -323,6 +379,7 @@ Verificando usuario...
 
 
 <button
+    type="button"
     id="btnActualizar"
     class="boton-actualizar"
 >
@@ -338,6 +395,7 @@ Verificando usuario...
     id="buscador"
     class="buscador"
     placeholder="🔎 Buscar cliente..."
+    autocomplete="off"
 >
 
 
@@ -388,9 +446,10 @@ No se encontraron clientes.
 <script type="module">
 
 
-// ==========================================
+// =====================================================
 // FIREBASE
-// ==========================================
+// MISMA VERSIÓN EN TODA LA APP: 12.18.0
+// =====================================================
 
 import {
     auth,
@@ -400,8 +459,7 @@ import {
 
 import {
     onAuthStateChanged
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 
 import {
@@ -412,13 +470,12 @@ import {
     doc,
     getDoc,
     deleteDoc
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-// ==========================================
+// =====================================================
 // ELEMENTOS
-// ==========================================
+// =====================================================
 
 const usuarioElemento =
 document.getElementById("usuario");
@@ -445,18 +502,18 @@ const btnActualizar =
 document.getElementById("btnActualizar");
 
 
-// ==========================================
+// =====================================================
 // VARIABLES
-// ==========================================
+// =====================================================
 
 let usuarioActual = null;
 
 let clientes = [];
 
 
-// ==========================================
+// =====================================================
 // ESCAPAR HTML
-// ==========================================
+// =====================================================
 
 function escaparHTML(valor){
 
@@ -471,9 +528,9 @@ function escaparHTML(valor){
 }
 
 
-// ==========================================
-// ERROR
-// ==========================================
+// =====================================================
+// MOSTRAR ERROR
+// =====================================================
 
 function mostrarError(mensaje){
 
@@ -486,6 +543,10 @@ function mostrarError(mensaje){
 }
 
 
+// =====================================================
+// OCULTAR ERROR
+// =====================================================
+
 function ocultarError(){
 
     errorElemento.textContent =
@@ -497,25 +558,33 @@ function ocultarError(){
 }
 
 
-// ==========================================
+// =====================================================
 // ELIMINAR CLIENTE
-// ==========================================
+// =====================================================
 
 async function eliminarCliente(id){
 
     if(!usuarioActual){
+
+        mostrarError(
+            "No hay una sesión activa."
+        );
+
         return;
+
     }
 
 
     const confirmar =
-    confirm(
+    window.confirm(
         "¿Seguro que querés eliminar este cliente?\n\nEsta acción no se puede deshacer."
     );
 
 
     if(!confirmar){
+
         return;
+
     }
 
 
@@ -541,6 +610,7 @@ async function eliminarCliente(id){
                 "El cliente ya no existe."
             );
 
+
             await cargarClientes();
 
             return;
@@ -551,6 +621,13 @@ async function eliminarCliente(id){
         const datos =
         resultado.data();
 
+
+        /*
+         * Seguridad adicional:
+         * solamente se puede eliminar
+         * un cliente perteneciente al
+         * usuario actualmente autenticado.
+         */
 
         if(
             datos.uid !==
@@ -587,8 +664,8 @@ async function eliminarCliente(id){
         );
 
 
-        alert(
-            "No se pudo eliminar el cliente:\n" +
+        mostrarError(
+            "No se pudo eliminar el cliente: " +
             error.message
         );
 
@@ -597,9 +674,9 @@ async function eliminarCliente(id){
 }
 
 
-// ==========================================
-// CREAR TARJETA
-// ==========================================
+// =====================================================
+// CREAR TARJETA DE CLIENTE
+// =====================================================
 
 function crearTarjeta(
     datos,
@@ -670,7 +747,8 @@ function crearTarjeta(
     );
 
 
-    let ubicacion = "-";
+    let ubicacion =
+    "-";
 
 
     if(
@@ -679,16 +757,14 @@ function crearTarjeta(
     ){
 
         ubicacion =
+        localidad +
         (
-            localidad +
-            (
-                localidad &&
-                provincia
-                ? ", "
-                : ""
-            ) +
+            localidad &&
             provincia
-        );
+            ? ", "
+            : ""
+        ) +
+        provincia;
 
     }
 
@@ -760,6 +836,7 @@ function crearTarjeta(
 
 
         <button
+            type="button"
             class="boton boton-eliminar"
         >
             🗑️ ELIMINAR CLIENTE
@@ -789,9 +866,9 @@ function crearTarjeta(
 }
 
 
-// ==========================================
+// =====================================================
 // MOSTRAR CLIENTES
-// ==========================================
+// =====================================================
 
 function mostrarClientes(){
 
@@ -857,12 +934,28 @@ function mostrarClientes(){
                 ).toLowerCase();
 
 
+                const direccion =
+                String(
+                    datos.direccion ||
+                    ""
+                ).toLowerCase();
+
+
+                const localidad =
+                String(
+                    datos.localidad ||
+                    ""
+                ).toLowerCase();
+
+
                 return (
                     nombre.includes(termino) ||
                     empresa.includes(termino) ||
                     cuit.includes(termino) ||
                     telefono.includes(termino) ||
-                    email.includes(termino)
+                    email.includes(termino) ||
+                    direccion.includes(termino) ||
+                    localidad.includes(termino)
                 );
 
             }
@@ -905,14 +998,16 @@ function mostrarClientes(){
 }
 
 
-// ==========================================
+// =====================================================
 // CARGAR CLIENTES
-// ==========================================
+// =====================================================
 
 async function cargarClientes(){
 
     if(!usuarioActual){
+
         return;
+
     }
 
 
@@ -990,9 +1085,9 @@ async function cargarClientes(){
         );
 
 
-        // ==================================
+        // =================================================
         // ORDEN ALFABÉTICO
-        // ==================================
+        // =================================================
 
         clientes.sort(
             function(a,b){
@@ -1063,9 +1158,9 @@ async function cargarClientes(){
 }
 
 
-// ==========================================
+// =====================================================
 // BUSCADOR
-// ==========================================
+// =====================================================
 
 buscador.addEventListener(
     "input",
@@ -1077,13 +1172,24 @@ buscador.addEventListener(
 );
 
 
-// ==========================================
+// =====================================================
 // ACTUALIZAR
-// ==========================================
+// =====================================================
 
 btnActualizar.addEventListener(
     "click",
     async function(){
+
+        if(!usuarioActual){
+
+            mostrarError(
+                "Esperá unos segundos mientras se verifica la sesión."
+            );
+
+            return;
+
+        }
+
 
         btnActualizar.disabled =
         true;
@@ -1107,9 +1213,9 @@ btnActualizar.addEventListener(
 );
 
 
-// ==========================================
+// =====================================================
 // AUTENTICACIÓN
-// ==========================================
+// =====================================================
 
 onAuthStateChanged(
     auth,
