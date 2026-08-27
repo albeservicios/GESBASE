@@ -315,6 +315,16 @@ th{
     margin-bottom:12px;
 }
 
+.estado-cuenta{
+    text-align:center;
+    background:#fef3c7;
+    color:#92400e;
+    padding:10px;
+    border-radius:8px;
+    margin-bottom:15px;
+    display:none;
+}
+
 @media(max-width:700px){
 
     .container{
@@ -389,6 +399,11 @@ Cargando...
 </strong>
 
 </div>
+
+<div
+    id="estadoCuenta"
+    class="estado-cuenta"
+></div>
 
 <div
     id="mensaje"
@@ -577,7 +592,7 @@ Presupuesto seleccionado
 
 
 <!-- =====================================================
-     ÍTEMS
+     ITEMS
 ===================================================== -->
 
 <div
@@ -689,7 +704,7 @@ Limpiar firma
 
 
 <!-- =====================================================
-     CERTIFICACIONES
+     HISTORIAL
 ===================================================== -->
 
 <div class="card">
@@ -713,29 +728,17 @@ Cargando certificaciones...
 
 <tr>
 
-<th>
-Cliente
-</th>
+<th>Cliente</th>
 
-<th>
-Presupuesto
-</th>
+<th>Presupuesto</th>
 
-<th>
-Período
-</th>
+<th>Período</th>
 
-<th>
-Fecha
-</th>
+<th>Fecha</th>
 
-<th>
-Importe
-</th>
+<th>Importe</th>
 
-<th>
-PDF
-</th>
+<th>PDF</th>
 
 </tr>
 
@@ -752,11 +755,12 @@ PDF
 </div>
 
 
-<!-- =====================================================
-     FIREBASE + PDF
-===================================================== -->
-
 <script type="module">
+
+
+/* =====================================================
+   FIREBASE
+===================================================== */
 
 import {
     auth,
@@ -813,6 +817,8 @@ let itemsPresupuesto = [];
 
 let firmaRealizada = false;
 
+let ctx = null;
+
 
 /* =====================================================
    ELEMENTOS
@@ -842,15 +848,18 @@ document.getElementById("mensaje");
 const canvas =
 document.getElementById("firmaCanvas");
 
-const ctx =
+ctx =
 canvas.getContext("2d");
 
 
 /* =====================================================
-   MENSAJES
+   MENSAJE
 ===================================================== */
 
-function mostrarMensaje(texto,tipo){
+function mostrarMensaje(
+    texto,
+    tipo
+){
 
     mensaje.textContent =
         texto;
@@ -891,9 +900,13 @@ function fechaHoy(){
     return (
         d.getFullYear() +
         "-" +
-        String(d.getMonth()+1).padStart(2,"0") +
+        String(
+            d.getMonth()+1
+        ).padStart(2,"0") +
         "-" +
-        String(d.getDate()).padStart(2,"0")
+        String(
+            d.getDate()
+        ).padStart(2,"0")
     );
 
 }
@@ -905,7 +918,9 @@ function fechaHoy(){
 
 function dinero(valor){
 
-    return Number(valor || 0).toLocaleString(
+    return Number(
+        valor || 0
+    ).toLocaleString(
         "es-AR",
         {
             style:"currency",
@@ -923,7 +938,9 @@ function dinero(valor){
 
 function escapeHTML(texto){
 
-    return String(texto ?? "")
+    return String(
+        texto ?? ""
+    )
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
@@ -934,75 +951,57 @@ function escapeHTML(texto){
 
 
 /* =====================================================
-   OBTENER NOMBRE
-===================================================== */
-
-function obtenerNombreCliente(cliente){
-
-    if(!cliente){
-        return "Cliente";
-    }
-
-    return (
-        cliente.nombre ||
-        cliente.nombreCliente ||
-        cliente.razonSocial ||
-        cliente.empresa ||
-        "Cliente"
-    );
-
-}
-
-
-/* =====================================================
-   OBTENER NÚMERO PRESUPUESTO
-===================================================== */
-
-function obtenerNumeroPresupuesto(presupuesto){
-
-    if(!presupuesto){
-        return "Presupuesto";
-    }
-
-    return (
-        presupuesto.numero ||
-        presupuesto.numeroPresupuesto ||
-        presupuesto.codigo ||
-        presupuesto.nro ||
-        presupuesto.numeracion ||
-        presupuesto.id ||
-        "Presupuesto"
-    );
-
-}
-
-
-/* =====================================================
-   FIREBASE AUTH
+   AUTENTICACIÓN
 ===================================================== */
 
 onAuthStateChanged(
     auth,
     async usuario => {
 
+        console.log(
+            "Estado de autenticación:",
+            usuario
+        );
+
+
         if(!usuario){
 
-            window.location.replace(
-                "login.html"
+            document.getElementById(
+                "emailUsuario"
+            ).textContent =
+                "Sin sesión";
+
+            mostrarMensaje(
+                "La sesión no está iniciada. Redirigiendo al login...",
+                "error"
+            );
+
+            setTimeout(
+                () => {
+
+                    window.location.replace(
+                        "login.html"
+                    );
+
+                },
+                1000
             );
 
             return;
 
         }
 
+
         usuarioActual =
             usuario;
+
 
         document.getElementById(
             "emailUsuario"
         ).textContent =
             usuario.email ||
             "Usuario";
+
 
         try{
 
@@ -1016,6 +1015,11 @@ onAuthStateChanged(
 
             await cargarCertificaciones();
 
+
+            console.log(
+                "Certificación cargada correctamente."
+            );
+
         }
         catch(error){
 
@@ -1025,8 +1029,11 @@ onAuthStateChanged(
             );
 
             mostrarMensaje(
-                "No se pudo cargar Certificación: " +
-                (error.message || "Error desconocido"),
+                "Error al cargar Certificación: " +
+                (
+                    error.message ||
+                    "Error desconocido"
+                ),
                 "error"
             );
 
@@ -1037,39 +1044,84 @@ onAuthStateChanged(
 
 
 /* =====================================================
-   EMPRESA
+   OBTENER EMPRESA
 ===================================================== */
 
 async function obtenerEmpresa(){
 
-    const referencia =
-        doc(
-            db,
-            "usuarios",
-            usuarioActual.uid
+    if(!usuarioActual){
+
+        throw new Error(
+            "No existe usuario autenticado."
         );
-
-    const documento =
-        await getDoc(
-            referencia
-        );
-
-    let datos = {};
-
-    if(documento.exists()){
-
-        datos =
-            documento.data();
 
     }
 
-    empresaIdActual =
-        String(
-            datos.empresaId ||
-            datos.empresa ||
-            datos.idEmpresa ||
-            usuarioActual.uid
-        ).trim();
+
+    try{
+
+        const referencia =
+            doc(
+                db,
+                "usuarios",
+                usuarioActual.uid
+            );
+
+
+        const documento =
+            await getDoc(
+                referencia
+            );
+
+
+        if(documento.exists()){
+
+            const datos =
+                documento.data();
+
+
+            empresaIdActual =
+                String(
+                    datos.empresaId ||
+                    datos.empresa ||
+                    datos.idEmpresa ||
+                    usuarioActual.uid
+                ).trim();
+
+
+        }
+        else{
+
+            empresaIdActual =
+                usuarioActual.uid;
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo leer usuarios/" +
+            usuarioActual.uid,
+            error
+        );
+
+
+        /*
+         * Si no puede acceder al documento del usuario,
+         * usamos el UID como empresa.
+         */
+
+        empresaIdActual =
+            usuarioActual.uid;
+
+    }
+
+
+    console.log(
+        "empresaIdActual:",
+        empresaIdActual
+    );
 
 }
 
@@ -1082,34 +1134,22 @@ async function cargarClientes(){
 
     clientes = [];
 
-    const referencia =
-        collection(
-            db,
-            "clientes"
-        );
 
-    let snapshot;
+    clienteSelect.innerHTML =
+        `<option value="">Cargando clientes...</option>`;
+
 
     try{
 
-        snapshot =
-            await getDocs(
-                query(
-                    referencia,
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
-                )
+        const referencia =
+            collection(
+                db,
+                "clientes"
             );
 
-    }
-    catch(error){
 
-        console.warn(
-            "Buscando clientes por uid..."
-        );
+        let snapshot;
+
 
         try{
 
@@ -1118,67 +1158,162 @@ async function cargarClientes(){
                     query(
                         referencia,
                         where(
-                            "uid",
+                            "empresaId",
                             "==",
-                            usuarioActual.uid
+                            empresaIdActual
                         )
                     )
                 );
 
         }
-        catch(error2){
+        catch(errorEmpresa){
 
-            console.error(
-                "ERROR CLIENTES:",
-                error2
+            console.warn(
+                "Búsqueda por empresaId falló.",
+                errorEmpresa
             );
 
-            throw error2;
 
-        }
+            try{
 
-    }
+                snapshot =
+                    await getDocs(
+                        query(
+                            referencia,
+                            where(
+                                "uid",
+                                "==",
+                                usuarioActual.uid
+                            )
+                        )
+                    );
 
+            }
+            catch(errorUid){
 
-    snapshot.forEach(
-        documento => {
-
-            clientes.push({
-                id:documento.id,
-                ...documento.data()
-            });
-
-        }
-    );
-
-
-    clienteSelect.innerHTML =
-        `<option value="">Seleccioná un cliente</option>`;
-
-
-    clientes.forEach(
-        cliente => {
-
-            const nombre =
-                obtenerNombreCliente(
-                    cliente
+                console.warn(
+                    "Búsqueda por uid falló.",
+                    errorUid
                 );
 
-            clienteSelect.innerHTML +=
+
+                /*
+                 * Último intento:
+                 * cargar clientes y filtrar localmente.
+                 */
+
+                snapshot =
+                    await getDocs(
+                        referencia
+                    );
+
+            }
+
+        }
+
+
+        snapshot.forEach(
+            documento => {
+
+                const datos =
+                    documento.data();
+
+
+                /*
+                 * Si existe empresaId diferente,
+                 * se filtra.
+                 */
+
+                if(
+                    datos.empresaId &&
+                    String(
+                        datos.empresaId
+                    ) !== String(
+                        empresaIdActual
+                    )
+                ){
+
+                    return;
+
+                }
+
+
+                clientes.push({
+
+                    id:
+                        documento.id,
+
+                    ...datos
+
+                });
+
+            }
+        );
+
+
+        clienteSelect.innerHTML =
+            `<option value="">Seleccioná un cliente</option>`;
+
+
+        clientes.forEach(
+            cliente => {
+
+                const nombre =
+                    cliente.nombre ||
+                    cliente.nombreCliente ||
+                    cliente.razonSocial ||
+                    cliente.empresa ||
+                    "Cliente sin nombre";
+
+
+                clienteSelect.innerHTML +=
+                    `
+                    <option value="${escapeHTML(cliente.id)}">
+                        ${escapeHTML(nombre)}
+                    </option>
+                    `;
+
+            }
+        );
+
+
+        if(
+            clientes.length === 0
+        ){
+
+            clienteSelect.innerHTML =
                 `
-                <option value="${escapeHTML(cliente.id)}">
-                    ${escapeHTML(nombre)}
+                <option value="">
+                    No hay clientes cargados
                 </option>
                 `;
 
         }
-    );
 
 
-    if(clientes.length === 0){
+        console.log(
+            "Clientes cargados:",
+            clientes.length
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "ERROR CARGANDO CLIENTES:",
+            error
+        );
+
 
         clienteSelect.innerHTML =
-            `<option value="">No hay clientes cargados</option>`;
+            `
+            <option value="">
+                Error al cargar clientes
+            </option>
+            `;
+
+
+        throw error;
 
     }
 
@@ -1193,34 +1328,18 @@ async function cargarPresupuestos(){
 
     presupuestos = [];
 
-    const referencia =
-        collection(
-            db,
-            "presupuestos"
-        );
-
-    let snapshot;
 
     try{
 
-        snapshot =
-            await getDocs(
-                query(
-                    referencia,
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
-                )
+        const referencia =
+            collection(
+                db,
+                "presupuestos"
             );
 
-    }
-    catch(error){
 
-        console.warn(
-            "Buscando presupuestos por uid..."
-        );
+        let snapshot;
+
 
         try{
 
@@ -1229,38 +1348,97 @@ async function cargarPresupuestos(){
                     query(
                         referencia,
                         where(
-                            "uid",
+                            "empresaId",
                             "==",
-                            usuarioActual.uid
+                            empresaIdActual
                         )
                     )
                 );
 
         }
-        catch(error2){
+        catch(errorEmpresa){
 
-            console.error(
-                "ERROR PRESUPUESTOS:",
-                error2
+            console.warn(
+                "Presupuestos por empresaId falló.",
+                errorEmpresa
             );
 
-            throw error2;
+
+            try{
+
+                snapshot =
+                    await getDocs(
+                        query(
+                            referencia,
+                            where(
+                                "uid",
+                                "==",
+                                usuarioActual.uid
+                            )
+                        )
+                    );
+
+            }
+            catch(errorUid){
+
+                snapshot =
+                    await getDocs(
+                        referencia
+                    );
+
+            }
 
         }
+
+
+        snapshot.forEach(
+            documento => {
+
+                const datos =
+                    documento.data();
+
+
+                if(
+                    datos.empresaId &&
+                    String(
+                        datos.empresaId
+                    ) !== String(
+                        empresaIdActual
+                    )
+                ){
+
+                    return;
+
+                }
+
+
+                presupuestos.push({
+
+                    id:
+                        documento.id,
+
+                    ...datos
+
+                });
+
+            }
+        );
+
+
+        console.log(
+            "Presupuestos cargados:",
+            presupuestos.length
+        );
 
     }
+    catch(error){
 
+        console.error(
+            "ERROR CARGANDO PRESUPUESTOS:",
+            error
+        );
 
-    snapshot.forEach(
-        documento => {
-
-            presupuestos.push({
-                id:documento.id,
-                ...documento.data()
-            });
-
-        }
-    );
+    }
 
 }
 
@@ -1273,32 +1451,100 @@ async function cargarTrabajos(){
 
     trabajos = [];
 
+
     try{
 
-        const snapshot =
-            await getDocs(
-                query(
-                    collection(
-                        db,
-                        "trabajos"
-                    ),
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
-                )
+        const referencia =
+            collection(
+                db,
+                "trabajos"
             );
+
+
+        let snapshot;
+
+
+        try{
+
+            snapshot =
+                await getDocs(
+                    query(
+                        referencia,
+                        where(
+                            "empresaId",
+                            "==",
+                            empresaIdActual
+                        )
+                    )
+                );
+
+        }
+        catch(errorEmpresa){
+
+            try{
+
+                snapshot =
+                    await getDocs(
+                        query(
+                            referencia,
+                            where(
+                                "uid",
+                                "==",
+                                usuarioActual.uid
+                            )
+                        )
+                    );
+
+            }
+            catch(errorUid){
+
+                snapshot =
+                    await getDocs(
+                        referencia
+                    );
+
+            }
+
+        }
+
 
         snapshot.forEach(
             documento => {
 
+                const datos =
+                    documento.data();
+
+
+                if(
+                    datos.empresaId &&
+                    String(
+                        datos.empresaId
+                    ) !== String(
+                        empresaIdActual
+                    )
+                ){
+
+                    return;
+
+                }
+
+
                 trabajos.push({
-                    id:documento.id,
-                    ...documento.data()
+
+                    id:
+                        documento.id,
+
+                    ...datos
+
                 });
 
             }
+        );
+
+
+        console.log(
+            "Trabajos cargados:",
+            trabajos.length
         );
 
     }
@@ -1308,44 +1554,6 @@ async function cargarTrabajos(){
             "No se pudieron cargar trabajos:",
             error
         );
-
-        try{
-
-            const snapshot =
-                await getDocs(
-                    query(
-                        collection(
-                            db,
-                            "trabajos"
-                        ),
-                        where(
-                            "uid",
-                            "==",
-                            usuarioActual.uid
-                        )
-                    )
-                );
-
-            snapshot.forEach(
-                documento => {
-
-                    trabajos.push({
-                        id:documento.id,
-                        ...documento.data()
-                    });
-
-                }
-            );
-
-        }
-        catch(error2){
-
-            console.warn(
-                "No se pudieron cargar trabajos por uid:",
-                error2
-            );
-
-        }
 
     }
 
@@ -1363,22 +1571,28 @@ clienteSelect.addEventListener(
         const clienteId =
             this.value;
 
+
         presupuestoSelect.innerHTML =
             `<option value="">Seleccioná un presupuesto</option>`;
+
 
         trabajoSelect.innerHTML =
             `<option value="">Seleccioná un presupuesto</option>`;
 
+
         cardItems.style.display =
             "none";
 
+
         listaItems.innerHTML =
             "";
+
 
         document.getElementById(
             "datosCliente"
         ).style.display =
             "none";
+
 
         document.getElementById(
             "datosPresupuesto"
@@ -1396,40 +1610,52 @@ clienteSelect.addEventListener(
         const cliente =
             clientes.find(
                 item =>
-                    item.id === clienteId
+                    item.id ===
+                    clienteId
             );
 
 
         if(cliente){
 
             const nombre =
-                obtenerNombreCliente(
-                    cliente
-                );
+                cliente.nombre ||
+                cliente.nombreCliente ||
+                cliente.razonSocial ||
+                "Cliente";
+
 
             const cuit =
                 cliente.cuit ||
                 cliente.CUIT ||
                 "";
 
+
             const telefono =
                 cliente.telefono ||
                 cliente.telefonoCliente ||
-                cliente.tel ||
                 "";
+
 
             document.getElementById(
                 "nombreClienteInfo"
             ).textContent =
                 nombre;
 
+
             document.getElementById(
                 "datosClienteInfo"
             ).textContent =
                 (
-                    (cuit ? "CUIT: " + cuit : "") +
-                    (telefono ? " | Tel: " + telefono : "")
+                    (cuit
+                        ? "CUIT: " + cuit
+                        : "") +
+                    (
+                        telefono
+                        ? " | Tel: " + telefono
+                        : ""
+                    )
                 );
+
 
             document.getElementById(
                 "datosCliente"
@@ -1446,19 +1672,16 @@ clienteSelect.addEventListener(
                     return (
                         String(
                             presupuesto.clienteId || ""
-                        ) === clienteId ||
+                        ) === String(clienteId) ||
 
                         String(
                             presupuesto.idCliente || ""
-                        ) === clienteId ||
+                        ) === String(clienteId) ||
 
                         String(
                             presupuesto.cliente || ""
-                        ) === clienteId ||
+                        ) === String(clienteId)
 
-                        String(
-                            presupuesto.clienteID || ""
-                        ) === clienteId
                     );
 
                 }
@@ -1469,9 +1692,12 @@ clienteSelect.addEventListener(
             presupuesto => {
 
                 const numero =
-                    obtenerNumeroPresupuesto(
-                        presupuesto
-                    );
+                    presupuesto.numero ||
+                    presupuesto.numeroPresupuesto ||
+                    presupuesto.codigo ||
+                    presupuesto.nro ||
+                    presupuesto.id;
+
 
                 const descripcion =
                     presupuesto.descripcion ||
@@ -1479,10 +1705,13 @@ clienteSelect.addEventListener(
                     presupuesto.nombre ||
                     "Presupuesto";
 
+
                 presupuestoSelect.innerHTML +=
                     `
                     <option value="${escapeHTML(presupuesto.id)}">
-                        ${escapeHTML(String(numero))} - ${escapeHTML(String(descripcion))}
+                        ${escapeHTML(String(numero))}
+                        -
+                        ${escapeHTML(String(descripcion))}
                     </option>
                     `;
 
@@ -1490,10 +1719,16 @@ clienteSelect.addEventListener(
         );
 
 
-        if(lista.length === 0){
+        if(
+            lista.length === 0
+        ){
 
             presupuestoSelect.innerHTML =
-                `<option value="">No hay presupuestos para este cliente</option>`;
+                `
+                <option value="">
+                    No hay presupuestos para este cliente
+                </option>
+                `;
 
         }
 
@@ -1512,11 +1747,14 @@ presupuestoSelect.addEventListener(
         const presupuestoId =
             this.value;
 
+
         cardItems.style.display =
             "none";
 
+
         listaItems.innerHTML =
             "";
+
 
         trabajoSelect.innerHTML =
             `<option value="">Seleccioná trabajo</option>`;
@@ -1538,16 +1776,20 @@ presupuestoSelect.addEventListener(
         const presupuesto =
             presupuestos.find(
                 item =>
-                    item.id === presupuestoId
+                    item.id ===
+                    presupuestoId
             );
 
 
         if(presupuesto){
 
             const numero =
-                obtenerNumeroPresupuesto(
-                    presupuesto
-                );
+                presupuesto.numero ||
+                presupuesto.numeroPresupuesto ||
+                presupuesto.codigo ||
+                presupuesto.nro ||
+                presupuesto.id;
+
 
             const total =
                 Number(
@@ -1558,6 +1800,7 @@ presupuestoSelect.addEventListener(
                     0
                 );
 
+
             document.getElementById(
                 "datosPresupuestoInfo"
             ).textContent =
@@ -1565,6 +1808,7 @@ presupuestoSelect.addEventListener(
                 numero +
                 " | Total: " +
                 dinero(total);
+
 
             document.getElementById(
                 "datosPresupuesto"
@@ -1586,19 +1830,16 @@ presupuestoSelect.addEventListener(
                     return (
                         String(
                             trabajo.presupuestoId || ""
-                        ) === presupuestoId ||
+                        ) === String(presupuestoId) ||
 
                         String(
                             trabajo.idPresupuesto || ""
-                        ) === presupuestoId ||
+                        ) === String(presupuestoId) ||
 
                         String(
                             trabajo.presupuesto || ""
-                        ) === presupuestoId ||
+                        ) === String(presupuestoId)
 
-                        String(
-                            trabajo.presupuestoID || ""
-                        ) === presupuestoId
                     );
 
                 }
@@ -1613,6 +1854,7 @@ presupuestoSelect.addEventListener(
                     trabajo.descripcion ||
                     trabajo.titulo ||
                     "Trabajo";
+
 
                 trabajoSelect.innerHTML +=
                     `
@@ -1629,7 +1871,7 @@ presupuestoSelect.addEventListener(
 
 
 /* =====================================================
-   OBTENER ÍTEMS DEL PRESUPUESTO
+   CARGAR ITEMS
 ===================================================== */
 
 function cargarItemsPresupuesto(
@@ -1648,7 +1890,9 @@ function cargarItemsPresupuesto(
         [];
 
 
-    if(!Array.isArray(items)){
+    if(
+        !Array.isArray(items)
+    ){
 
         items = [];
 
@@ -1667,6 +1911,7 @@ function cargarItemsPresupuesto(
                     0
                 );
 
+
             const precio =
                 Number(
                     item.precio ??
@@ -1675,12 +1920,18 @@ function cargarItemsPresupuesto(
                     0
                 );
 
+
+            const importeCalculado =
+                cantidad *
+                precio;
+
+
             const importe =
                 Number(
                     item.importe ??
                     item.subtotal ??
                     item.total ??
-                    (cantidad * precio)
+                    importeCalculado
                 );
 
 
@@ -1692,7 +1943,9 @@ function cargarItemsPresupuesto(
                     item.descripcion ||
                     item.nombre ||
                     item.detalle ||
-                    "Ítem " + (index + 1),
+                    "Ítem " + (
+                        index + 1
+                    ),
 
                 unidad:
                     item.unidad ||
@@ -1728,7 +1981,7 @@ function cargarItemsPresupuesto(
 
 
 /* =====================================================
-   MOSTRAR ÍTEMS
+   MOSTRAR ITEMS
 ===================================================== */
 
 function mostrarItems(){
@@ -1737,17 +1990,28 @@ function mostrarItems(){
         "";
 
 
-    if(itemsPresupuesto.length === 0){
+    if(
+        itemsPresupuesto.length === 0
+    ){
 
         listaItems.innerHTML =
             `
             <div class="sin-datos">
+
                 Este presupuesto no tiene ítems cargados.
+
+                <br><br>
+
+                Revisá que el presupuesto tenga
+                el campo <strong>items</strong>.
+
             </div>
             `;
 
+
         cardItems.style.display =
             "block";
+
 
         return;
 
@@ -1774,7 +2038,8 @@ function mostrarItems(){
                             </div>
 
                             <div class="item-dato">
-                                Unidad: ${escapeHTML(item.unidad)}
+                                Unidad:
+                                ${escapeHTML(item.unidad)}
                             </div>
 
                         </div>
@@ -1870,7 +2135,7 @@ function mostrarItems(){
 
 
 /* =====================================================
-   CALCULAR CERTIFICACIÓN
+   CALCULAR
 ===================================================== */
 
 function calcularCertificacion(){
@@ -1891,8 +2156,10 @@ function calcularCertificacion(){
                     input.dataset.index
                 );
 
+
             const item =
                 itemsPresupuesto[index];
+
 
             if(!item){
 
@@ -1907,7 +2174,9 @@ function calcularCertificacion(){
                 ) || 0;
 
 
-            if(ejecutada < 0){
+            if(
+                ejecutada < 0
+            ){
 
                 ejecutada = 0;
 
@@ -1936,10 +2205,16 @@ function calcularCertificacion(){
                 0;
 
 
-            if(item.cantidad > 0){
+            if(
+                item.cantidad > 0
+            ){
 
                 porcentaje =
-                    (ejecutada / item.cantidad) * 100;
+                    (
+                        ejecutada /
+                        item.cantidad
+                    ) *
+                    100;
 
             }
 
@@ -1948,13 +2223,17 @@ function calcularCertificacion(){
                 item.cantidad > 0
                 ?
                 item.importe *
-                (ejecutada / item.cantidad)
+                (
+                    ejecutada /
+                    item.cantidad
+                )
                 :
                 0;
 
 
             item.porcentaje =
                 porcentaje;
+
 
             item.importeCertificado =
                 importe;
@@ -1972,7 +2251,9 @@ function calcularCertificacion(){
                 );
 
 
-            if(porcentajeElemento){
+            if(
+                porcentajeElemento
+            ){
 
                 porcentajeElemento.textContent =
                     porcentaje.toFixed(2) +
@@ -1981,7 +2262,9 @@ function calcularCertificacion(){
             }
 
 
-            if(importeElemento){
+            if(
+                importeElemento
+            ){
 
                 importeElemento.textContent =
                     dinero(
@@ -2005,7 +2288,7 @@ function calcularCertificacion(){
 
 
 /* =====================================================
-   FIRMA - CANVAS
+   CANVAS FIRMA
 ===================================================== */
 
 let dibujando =
@@ -2017,15 +2300,23 @@ function prepararCanvas(){
     const rect =
         canvas.getBoundingClientRect();
 
+
     const ratio =
         window.devicePixelRatio || 1;
 
 
     canvas.width =
-        rect.width * ratio;
+        rect.width *
+        ratio;
+
 
     canvas.height =
-        rect.height * ratio;
+        220 *
+        ratio;
+
+
+    ctx =
+        canvas.getContext("2d");
 
 
     ctx.setTransform(
@@ -2041,11 +2332,14 @@ function prepararCanvas(){
     ctx.lineWidth =
         2;
 
+
     ctx.lineCap =
         "round";
 
+
     ctx.lineJoin =
         "round";
+
 
     ctx.strokeStyle =
         "#111827";
@@ -2057,10 +2351,13 @@ function prepararCanvas(){
    POSICIÓN FIRMA
 ===================================================== */
 
-function posicionFirma(evento){
+function posicionFirma(
+    evento
+){
 
     const rect =
         canvas.getBoundingClientRect();
+
 
     return {
 
@@ -2078,7 +2375,7 @@ function posicionFirma(evento){
 
 
 /* =====================================================
-   FIRMA POINTER DOWN
+   POINTER DOWN
 ===================================================== */
 
 canvas.addEventListener(
@@ -2087,22 +2384,28 @@ canvas.addEventListener(
 
         evento.preventDefault();
 
+
         dibujando =
             true;
+
 
         firmaRealizada =
             true;
 
+
         canvas.setPointerCapture(
             evento.pointerId
         );
+
 
         const posicion =
             posicionFirma(
                 evento
             );
 
+
         ctx.beginPath();
+
 
         ctx.moveTo(
             posicion.x,
@@ -2114,7 +2417,7 @@ canvas.addEventListener(
 
 
 /* =====================================================
-   FIRMA POINTER MOVE
+   POINTER MOVE
 ===================================================== */
 
 canvas.addEventListener(
@@ -2127,17 +2430,21 @@ canvas.addEventListener(
 
         }
 
+
         evento.preventDefault();
+
 
         const posicion =
             posicionFirma(
                 evento
             );
 
+
         ctx.lineTo(
             posicion.x,
             posicion.y
         );
+
 
         ctx.stroke();
 
@@ -2146,7 +2453,7 @@ canvas.addEventListener(
 
 
 /* =====================================================
-   FIRMA POINTER UP
+   POINTER UP
 ===================================================== */
 
 canvas.addEventListener(
@@ -2155,6 +2462,7 @@ canvas.addEventListener(
 
         dibujando =
             false;
+
 
         ctx.closePath();
 
@@ -2168,6 +2476,7 @@ canvas.addEventListener(
 
         dibujando =
             false;
+
 
         ctx.closePath();
 
@@ -2194,6 +2503,7 @@ document
             canvas.height
         );
 
+
         firmaRealizada =
             false;
 
@@ -2202,12 +2512,12 @@ document
 
 
 /* =====================================================
-   INICIALIZAR FIRMA
+   INICIALIZAR CANVAS
 ===================================================== */
 
 setTimeout(
     prepararCanvas,
-    100
+    300
 );
 
 
@@ -2215,7 +2525,9 @@ window.addEventListener(
     "resize",
     function(){
 
-        if(!firmaRealizada){
+        if(
+            !firmaRealizada
+        ){
 
             prepararCanvas();
 
@@ -2226,52 +2538,27 @@ window.addEventListener(
 
 
 /* =====================================================
-   GENERAR PDF NUEVO
+   VALIDAR DATOS
 ===================================================== */
 
-async function generarPDF(){
-
-    if(!usuarioActual){
-
-        mostrarMensaje(
-            "No hay una sesión activa.",
-            "error"
-        );
-
-        return;
-
-    }
-
+function obtenerDatosFormulario(){
 
     const clienteId =
         clienteSelect.value;
+
 
     const presupuestoId =
         presupuestoSelect.value;
 
 
-    if(!clienteId){
-
-        mostrarMensaje(
-            "Seleccioná un cliente.",
-            "error"
-        );
-
-        return;
-
-    }
+    const trabajoId =
+        trabajoSelect.value;
 
 
-    if(!presupuestoId){
-
-        mostrarMensaje(
-            "Seleccioná un presupuesto.",
-            "error"
-        );
-
-        return;
-
-    }
+    const periodo =
+        document.getElementById(
+            "periodo"
+        ).value;
 
 
     const fechaDesde =
@@ -2279,10 +2566,12 @@ async function generarPDF(){
             "fechaDesde"
         ).value;
 
+
     const fechaHasta =
         document.getElementById(
             "fechaHasta"
         ).value;
+
 
     const descripcion =
         document.getElementById(
@@ -2290,50 +2579,50 @@ async function generarPDF(){
         ).value.trim();
 
 
-    if(!fechaDesde || !fechaHasta){
+    if(!clienteId){
 
-        mostrarMensaje(
-            "Ingresá el período de certificación.",
-            "error"
+        throw new Error(
+            "Seleccioná un cliente."
         );
-
-        return;
 
     }
 
 
-    if(fechaDesde > fechaHasta){
+    if(!presupuestoId){
 
-        mostrarMensaje(
-            "La fecha desde no puede ser posterior a la fecha hasta.",
-            "error"
+        throw new Error(
+            "Seleccioná un presupuesto."
         );
 
-        return;
+    }
+
+
+    if(!fechaDesde || !fechaHasta){
+
+        throw new Error(
+            "Ingresá las fechas del período."
+        );
+
+    }
+
+
+    if(
+        fechaHasta <
+        fechaDesde
+    ){
+
+        throw new Error(
+            "La fecha hasta no puede ser anterior a la fecha desde."
+        );
 
     }
 
 
     if(!descripcion){
 
-        mostrarMensaje(
-            "Describí los trabajos realizados.",
-            "error"
+        throw new Error(
+            "Describí los trabajos realizados."
         );
-
-        return;
-
-    }
-
-
-    if(!firmaRealizada){
-
-        mostrarMensaje(
-            "Firmá la certificación desde el celular.",
-            "error"
-        );
-
-        return;
 
     }
 
@@ -2341,9 +2630,74 @@ async function generarPDF(){
     calcularCertificacion();
 
 
+    const itemsCertificados =
+        itemsPresupuesto
+        .filter(
+            item =>
+                Number(
+                    item.ejecutada || 0
+                ) > 0
+        )
+        .map(
+            item => ({
+
+                nombre:
+                    item.nombre,
+
+                unidad:
+                    item.unidad,
+
+                cantidadPresupuestada:
+                    Number(
+                        item.cantidad || 0
+                    ),
+
+                cantidadEjecutada:
+                    Number(
+                        item.ejecutada || 0
+                    ),
+
+                porcentaje:
+                    Number(
+                        item.porcentaje || 0
+                    ),
+
+                precioUnitario:
+                    Number(
+                        item.precio || 0
+                    ),
+
+                importePresupuesto:
+                    Number(
+                        item.importe || 0
+                    ),
+
+                importeCertificado:
+                    Number(
+                        item.importeCertificado || 0
+                    )
+
+            })
+        );
+
+
+    if(
+        itemsCertificados.length === 0
+    ){
+
+        throw new Error(
+            "Ingresá al menos una cantidad ejecutada."
+        );
+
+    }
+
+
     const total =
-        itemsPresupuesto.reduce(
-            (suma,item) =>
+        itemsCertificados.reduce(
+            (
+                suma,
+                item
+            ) =>
                 suma +
                 Number(
                     item.importeCertificado || 0
@@ -2354,12 +2708,54 @@ async function generarPDF(){
 
     if(total <= 0){
 
-        mostrarMensaje(
-            "La certificación debe tener al menos un ítem ejecutado.",
-            "error"
+        throw new Error(
+            "La certificación debe tener un importe mayor a cero."
         );
 
-        return;
+    }
+
+
+    return {
+
+        clienteId,
+        presupuestoId,
+        trabajoId,
+        periodo,
+        fechaDesde,
+        fechaHasta,
+        descripcion,
+        itemsCertificados,
+        total
+
+    };
+
+}
+
+
+/* =====================================================
+   GENERAR PDF
+===================================================== */
+
+async function generarPDF(){
+
+    if(!usuarioActual){
+
+        throw new Error(
+            "No hay una sesión activa."
+        );
+
+    }
+
+
+    const datos =
+        obtenerDatosFormulario();
+
+
+    if(!firmaRealizada){
+
+        throw new Error(
+            "Firmá la certificación desde el celular."
+        );
 
     }
 
@@ -2367,28 +2763,32 @@ async function generarPDF(){
     const cliente =
         clientes.find(
             item =>
-                item.id === clienteId
+                item.id ===
+                datos.clienteId
         );
 
 
     const presupuesto =
         presupuestos.find(
             item =>
-                item.id === presupuestoId
+                item.id ===
+                datos.presupuestoId
         );
 
 
     const trabajo =
         trabajos.find(
             item =>
-                item.id === trabajoSelect.value
+                item.id ===
+                datos.trabajoId
         );
 
 
     const nombreCliente =
-        obtenerNombreCliente(
-            cliente
-        );
+        cliente?.nombre ||
+        cliente?.nombreCliente ||
+        cliente?.razonSocial ||
+        "Cliente";
 
 
     const cuitCliente =
@@ -2398,15 +2798,11 @@ async function generarPDF(){
 
 
     const numeroPresupuesto =
-        obtenerNumeroPresupuesto(
-            presupuesto
-        );
-
-
-    const periodo =
-        document.getElementById(
-            "periodo"
-        ).value;
+        presupuesto?.numero ||
+        presupuesto?.numeroPresupuesto ||
+        presupuesto?.codigo ||
+        presupuesto?.nro ||
+        datos.presupuestoId;
 
 
     const pdf =
@@ -2419,12 +2815,16 @@ async function generarPDF(){
 
     /* CABECERA */
 
-    pdf.setFontSize(20);
+    pdf.setFontSize(
+        20
+    );
+
 
     pdf.setFont(
         "helvetica",
         "bold"
     );
+
 
     pdf.text(
         "GESBASE",
@@ -2436,7 +2836,10 @@ async function generarPDF(){
     y += 9;
 
 
-    pdf.setFontSize(14);
+    pdf.setFontSize(
+        14
+    );
+
 
     pdf.text(
         "CERTIFICACIÓN DE TRABAJOS",
@@ -2448,7 +2851,10 @@ async function generarPDF(){
     y += 12;
 
 
-    pdf.setFontSize(10);
+    pdf.setFontSize(
+        10
+    );
+
 
     pdf.setFont(
         "helvetica",
@@ -2464,25 +2870,25 @@ async function generarPDF(){
     );
 
 
-    y += 6;
+    y += 7;
 
 
     pdf.text(
         "Período: " +
-        periodo,
+        datos.fechaDesde +
+        " al " +
+        datos.fechaHasta,
         20,
         y
     );
 
 
-    y += 6;
+    y += 7;
 
 
     pdf.text(
-        "Desde: " +
-        fechaDesde +
-        " | Hasta: " +
-        fechaHasta,
+        "Tipo: " +
+        datos.periodo,
         20,
         y
     );
@@ -2497,6 +2903,7 @@ async function generarPDF(){
         "helvetica",
         "bold"
     );
+
 
     pdf.text(
         "CLIENTE",
@@ -2516,7 +2923,7 @@ async function generarPDF(){
 
     pdf.text(
         "Nombre / Empresa: " +
-        String(nombreCliente),
+        nombreCliente,
         20,
         y
     );
@@ -2529,10 +2936,11 @@ async function generarPDF(){
 
         pdf.text(
             "CUIT: " +
-            String(cuitCliente),
+            cuitCliente,
             20,
             y
         );
+
 
         y += 6;
 
@@ -2541,7 +2949,7 @@ async function generarPDF(){
 
     pdf.text(
         "Presupuesto: " +
-        String(numeroPresupuesto),
+        numeroPresupuesto,
         20,
         y
     );
@@ -2554,7 +2962,7 @@ async function generarPDF(){
 
         pdf.text(
             "Trabajo: " +
-            String(
+            (
                 trabajo.nombre ||
                 trabajo.descripcion ||
                 trabajo.titulo ||
@@ -2564,6 +2972,7 @@ async function generarPDF(){
             y
         );
 
+
         y += 6;
 
     }
@@ -2572,12 +2981,13 @@ async function generarPDF(){
     y += 8;
 
 
-    /* DESCRIPCIÓN */
+    /* TRABAJOS */
 
     pdf.setFont(
         "helvetica",
         "bold"
     );
+
 
     pdf.text(
         "TRABAJOS REALIZADOS",
@@ -2597,7 +3007,7 @@ async function generarPDF(){
 
     const lineas =
         pdf.splitTextToSize(
-            descripcion,
+            datos.descripcion,
             170
         );
 
@@ -2615,12 +3025,13 @@ async function generarPDF(){
         10;
 
 
-    /* TABLA */
+    /* DETALLE */
 
     pdf.setFont(
         "helvetica",
         "bold"
     );
+
 
     pdf.text(
         "DETALLE DE CERTIFICACIÓN",
@@ -2632,7 +3043,9 @@ async function generarPDF(){
     y += 8;
 
 
-    pdf.setFontSize(9);
+    pdf.setFontSize(
+        8
+    );
 
 
     pdf.text(
@@ -2641,27 +3054,31 @@ async function generarPDF(){
         y
     );
 
+
     pdf.text(
         "Presup.",
-        90,
+        85,
         y
     );
+
 
     pdf.text(
         "Ejecut.",
-        115,
+        110,
         y
     );
+
 
     pdf.text(
         "%",
-        140,
+        135,
         y
     );
 
+
     pdf.text(
         "Importe",
-        160,
+        155,
         y
     );
 
@@ -2675,21 +3092,12 @@ async function generarPDF(){
     );
 
 
-    itemsPresupuesto.forEach(
+    datos.itemsCertificados.forEach(
         item => {
 
             if(
-                Number(
-                    item.ejecutada || 0
-                ) <= 0
+                y > 265
             ){
-
-                return;
-
-            }
-
-
-            if(y > 265){
 
                 pdf.addPage();
 
@@ -2700,8 +3108,8 @@ async function generarPDF(){
 
             const nombre =
                 pdf.splitTextToSize(
-                    String(item.nombre),
-                    65
+                    item.nombre,
+                    60
                 );
 
 
@@ -2714,30 +3122,28 @@ async function generarPDF(){
 
             pdf.text(
                 String(
-                    item.cantidad
+                    item.cantidadPresupuestada
                 ),
-                90,
+                85,
                 y
             );
 
 
             pdf.text(
                 String(
-                    item.ejecutada
+                    item.cantidadEjecutada
                 ),
-                115,
+                110,
                 y
             );
 
 
             pdf.text(
-                (
-                    Number(
-                        item.porcentaje || 0
-                    ).toFixed(2)
-                ) +
+                Number(
+                    item.porcentaje
+                ).toFixed(2) +
                 "%",
-                137,
+                132,
                 y
             );
 
@@ -2746,7 +3152,7 @@ async function generarPDF(){
                 dinero(
                     item.importeCertificado
                 ),
-                160,
+                155,
                 y
             );
 
@@ -2754,14 +3160,15 @@ async function generarPDF(){
             y +=
                 Math.max(
                     6,
-                    nombre.length * 5
+                    nombre.length *
+                    5
                 );
 
         }
     );
 
 
-    y += 6;
+    y += 8;
 
 
     pdf.setFont(
@@ -2772,14 +3179,16 @@ async function generarPDF(){
 
     pdf.text(
         "TOTAL CERTIFICADO:",
-        110,
+        105,
         y
     );
 
 
     pdf.text(
-        dinero(total),
-        160,
+        dinero(
+            datos.total
+        ),
+        155,
         y
     );
 
@@ -2789,7 +3198,9 @@ async function generarPDF(){
 
     /* FIRMA */
 
-    if(y > 220){
+    if(
+        y > 220
+    ){
 
         pdf.addPage();
 
@@ -2851,9 +3262,10 @@ async function generarPDF(){
     );
 
 
-    /* PIE */
+    pdf.setFontSize(
+        8
+    );
 
-    pdf.setFontSize(8);
 
     pdf.text(
         "Documento generado automáticamente por GESBASE.",
@@ -2879,16 +3291,6 @@ async function generarPDF(){
         nombreArchivo
     );
 
-
-    return {
-        nombreCliente,
-        numeroPresupuesto,
-        fechaDesde,
-        fechaHasta,
-        descripcion,
-        total
-    };
-
 }
 
 
@@ -2907,15 +3309,24 @@ document
         const boton =
             this;
 
+
         boton.disabled =
             true;
+
 
         boton.textContent =
             "Generando PDF...";
 
+
         try{
 
             await generarPDF();
+
+
+            mostrarMensaje(
+                "✅ PDF generado correctamente.",
+                "exito"
+            );
 
         }
         catch(error){
@@ -2925,9 +3336,10 @@ document
                 error
             );
 
+
             mostrarMensaje(
-                "No se pudo generar el PDF: " +
-                (error.message || "Error desconocido"),
+                error.message ||
+                "No se pudo generar el PDF.",
                 "error"
             );
 
@@ -2936,6 +3348,7 @@ document
 
             boton.disabled =
                 false;
+
 
             boton.textContent =
                 "📄 Generar PDF";
@@ -2958,6 +3371,10 @@ document
     "click",
     async function(){
 
+        const boton =
+            this;
+
+
         if(!usuarioActual){
 
             mostrarMensaje(
@@ -2970,88 +3387,19 @@ document
         }
 
 
-        const clienteId =
-            clienteSelect.value;
-
-        const presupuestoId =
-            presupuestoSelect.value;
-
-        const trabajoId =
-            trabajoSelect.value;
-
-        const periodo =
-            document.getElementById(
-                "periodo"
-            ).value;
-
-        const fechaDesde =
-            document.getElementById(
-                "fechaDesde"
-            ).value;
-
-        const fechaHasta =
-            document.getElementById(
-                "fechaHasta"
-            ).value;
-
-        const descripcion =
-            document.getElementById(
-                "descripcion"
-            ).value.trim();
+        let datos;
 
 
-        if(!clienteId){
+        try{
 
-            mostrarMensaje(
-                "Seleccioná un cliente.",
-                "error"
-            );
-
-            return;
+            datos =
+                obtenerDatosFormulario();
 
         }
-
-
-        if(!presupuestoId){
+        catch(error){
 
             mostrarMensaje(
-                "Seleccioná un presupuesto.",
-                "error"
-            );
-
-            return;
-
-        }
-
-
-        if(!fechaDesde || !fechaHasta){
-
-            mostrarMensaje(
-                "Ingresá las fechas del período.",
-                "error"
-            );
-
-            return;
-
-        }
-
-
-        if(fechaDesde > fechaHasta){
-
-            mostrarMensaje(
-                "La fecha desde no puede ser posterior a la fecha hasta.",
-                "error"
-            );
-
-            return;
-
-        }
-
-
-        if(!descripcion){
-
-            mostrarMensaje(
-                "Ingresá los trabajos realizados.",
+                error.message,
                 "error"
             );
 
@@ -3072,84 +3420,9 @@ document
         }
 
 
-        calcularCertificacion();
-
-
-        const itemsCertificados =
-            itemsPresupuesto
-            .filter(
-                item =>
-                    Number(
-                        item.ejecutada || 0
-                    ) > 0
-            )
-            .map(
-                item => ({
-
-                    nombre:
-                        item.nombre,
-
-                    unidad:
-                        item.unidad,
-
-                    cantidadPresupuestada:
-                        item.cantidad,
-
-                    cantidadEjecutada:
-                        item.ejecutada,
-
-                    porcentaje:
-                        Number(
-                            item.porcentaje || 0
-                        ),
-
-                    precioUnitario:
-                        item.precio,
-
-                    importePresupuesto:
-                        item.importe,
-
-                    importeCertificado:
-                        Number(
-                            item.importeCertificado || 0
-                        )
-
-                })
-            );
-
-
-        if(
-            itemsCertificados.length === 0
-        ){
-
-            mostrarMensaje(
-                "Ingresá al menos una cantidad ejecutada.",
-                "error"
-            );
-
-            return;
-
-        }
-
-
-        const total =
-            itemsCertificados.reduce(
-                (
-                    suma,
-                    item
-                ) =>
-                    suma +
-                    item.importeCertificado,
-                0
-            );
-
-
-        const boton =
-            this;
-
-
         boton.disabled =
             true;
+
 
         boton.textContent =
             "Guardando...";
@@ -3171,35 +3444,36 @@ document
                         empresaIdActual,
 
                     clienteId:
-                        clienteId,
+                        datos.clienteId,
 
                     presupuestoId:
-                        presupuestoId,
+                        datos.presupuestoId,
 
                     trabajoId:
-                        trabajoId || "",
+                        datos.trabajoId ||
+                        "",
 
                     periodo:
-                        periodo,
+                        datos.periodo,
 
                     fechaDesde:
-                        fechaDesde,
+                        datos.fechaDesde,
 
                     fechaHasta:
-                        fechaHasta,
+                        datos.fechaHasta,
 
                     descripcion:
-                        descripcion,
+                        datos.descripcion,
 
                     items:
-                        itemsCertificados,
+                        datos.itemsCertificados,
 
                     importeTotal:
-                        total,
+                        datos.total,
 
                     porcentajeTotal:
                         calcularPorcentajeGlobal(
-                            itemsCertificados
+                            datos.itemsCertificados
                         ),
 
                     firma:
@@ -3233,9 +3507,13 @@ document
                 error
             );
 
+
             mostrarMensaje(
                 "No se pudo guardar la certificación: " +
-                (error.message || "Error desconocido"),
+                (
+                    error.message ||
+                    "Error desconocido"
+                ),
                 "error"
             );
 
@@ -3244,6 +3522,7 @@ document
 
             boton.disabled =
                 false;
+
 
             boton.textContent =
                 "💾 Guardar certificación";
@@ -3255,7 +3534,7 @@ document
 
 
 /* =====================================================
-   PORCENTAJE TOTAL
+   PORCENTAJE GLOBAL
 ===================================================== */
 
 function calcularPorcentajeGlobal(
@@ -3264,6 +3543,7 @@ function calcularPorcentajeGlobal(
 
     let totalPresupuesto =
         0;
+
 
     let totalCertificado =
         0;
@@ -3274,19 +3554,24 @@ function calcularPorcentajeGlobal(
 
             totalPresupuesto +=
                 Number(
-                    item.importePresupuesto || 0
+                    item.importePresupuesto ||
+                    0
                 );
+
 
             totalCertificado +=
                 Number(
-                    item.importeCertificado || 0
+                    item.importeCertificado ||
+                    0
                 );
 
         }
     );
 
 
-    if(totalPresupuesto <= 0){
+    if(
+        totalPresupuesto <= 0
+    ){
 
         return 0;
 
@@ -3296,13 +3581,14 @@ function calcularPorcentajeGlobal(
     return (
         totalCertificado /
         totalPresupuesto
-    ) * 100;
+    ) *
+    100;
 
 }
 
 
 /* =====================================================
-   CARGAR CERTIFICACIONES
+   CARGAR HISTORIAL
 ===================================================== */
 
 async function cargarCertificaciones(){
@@ -3311,6 +3597,7 @@ async function cargarCertificaciones(){
         document.getElementById(
             "cargandoCertificaciones"
         );
+
 
     const tabla =
         document.getElementById(
@@ -3321,28 +3608,62 @@ async function cargarCertificaciones(){
     cargando.style.display =
         "block";
 
+
     tabla.innerHTML =
         "";
+
 
     certificaciones = [];
 
 
     try{
 
-        const snapshot =
-            await getDocs(
-                query(
-                    collection(
-                        db,
-                        "certificaciones"
-                    ),
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
-                )
+        const referencia =
+            collection(
+                db,
+                "certificaciones"
             );
+
+
+        let snapshot;
+
+
+        try{
+
+            snapshot =
+                await getDocs(
+                    query(
+                        referencia,
+                        where(
+                            "empresaId",
+                            "==",
+                            empresaIdActual
+                        )
+                    )
+                );
+
+        }
+        catch(error){
+
+            console.warn(
+                "Búsqueda por empresaId falló.",
+                error
+            );
+
+
+            snapshot =
+                await getDocs(
+                    query(
+                        referencia,
+                        where(
+                            "uid",
+                            "==",
+                            usuarioActual.uid
+                        )
+                    )
+                );
+
+        }
 
 
         snapshot.forEach(
@@ -3368,17 +3689,21 @@ async function cargarCertificaciones(){
             tabla.innerHTML =
                 `
                 <tr>
+
                     <td
                         colspan="6"
                         class="sin-datos"
                     >
                         No hay certificaciones realizadas.
                     </td>
+
                 </tr>
                 `;
 
+
             cargando.style.display =
                 "none";
+
 
             return;
 
@@ -3417,15 +3742,19 @@ async function cargarCertificaciones(){
 
 
                 const nombreCliente =
-                    obtenerNombreCliente(
-                        cliente
-                    );
+                    cliente?.nombre ||
+                    cliente?.nombreCliente ||
+                    cliente?.razonSocial ||
+                    "Cliente";
 
 
                 const numero =
-                    obtenerNumeroPresupuesto(
-                        presupuesto
-                    );
+                    presupuesto?.numero ||
+                    presupuesto?.numeroPresupuesto ||
+                    presupuesto?.codigo ||
+                    presupuesto?.nro ||
+                    certificacion.presupuestoId ||
+                    "Presupuesto";
 
 
                 tabla.innerHTML +=
@@ -3433,11 +3762,15 @@ async function cargarCertificaciones(){
                     <tr>
 
                         <td>
-                            ${escapeHTML(nombreCliente)}
+                            ${escapeHTML(
+                                nombreCliente
+                            )}
                         </td>
 
                         <td>
-                            ${escapeHTML(String(numero))}
+                            ${escapeHTML(
+                                String(numero)
+                            )}
                         </td>
 
                         <td>
@@ -3478,7 +3811,6 @@ async function cargarCertificaciones(){
             }
         );
 
-
     }
     catch(error){
 
@@ -3491,14 +3823,19 @@ async function cargarCertificaciones(){
         tabla.innerHTML =
             `
             <tr>
+
                 <td
                     colspan="6"
                     class="sin-datos"
                 >
                     No se pudieron cargar las certificaciones.
-                    <br>
-                    ${escapeHTML(error.message || "")}
+                    <br><br>
+                    ${escapeHTML(
+                        error.message ||
+                        ""
+                    )}
                 </td>
+
             </tr>
             `;
 
@@ -3569,13 +3906,16 @@ document
         catch(error){
 
             console.error(
-                "ERROR PDF HISTORIAL:",
                 error
             );
 
+
             mostrarMensaje(
-                "No se pudo generar el PDF: " +
-                (error.message || "Error desconocido"),
+                "No se pudo generar el PDF guardado: " +
+                (
+                    error.message ||
+                    ""
+                ),
                 "error"
             );
 
@@ -3586,7 +3926,7 @@ document
 
 
 /* =====================================================
-   PDF CERTIFICACIÓN GUARDADA
+   PDF GUARDADO
 ===================================================== */
 
 function generarPDFDesdeGuardada(
@@ -3610,15 +3950,19 @@ function generarPDFDesdeGuardada(
 
 
     const nombreCliente =
-        obtenerNombreCliente(
-            cliente
-        );
+        cliente?.nombre ||
+        cliente?.nombreCliente ||
+        cliente?.razonSocial ||
+        "Cliente";
 
 
     const numeroPresupuesto =
-        obtenerNumeroPresupuesto(
-            presupuesto
-        );
+        presupuesto?.numero ||
+        presupuesto?.numeroPresupuesto ||
+        presupuesto?.codigo ||
+        presupuesto?.nro ||
+        certificacion.presupuestoId ||
+        "Presupuesto";
 
 
     const pdf =
@@ -3629,12 +3973,16 @@ function generarPDFDesdeGuardada(
         20;
 
 
-    pdf.setFontSize(20);
+    pdf.setFontSize(
+        20
+    );
+
 
     pdf.setFont(
         "helvetica",
         "bold"
     );
+
 
     pdf.text(
         "GESBASE",
@@ -3646,7 +3994,10 @@ function generarPDFDesdeGuardada(
     y += 9;
 
 
-    pdf.setFontSize(14);
+    pdf.setFontSize(
+        14
+    );
+
 
     pdf.text(
         "CERTIFICACIÓN DE TRABAJOS",
@@ -3658,7 +4009,10 @@ function generarPDFDesdeGuardada(
     y += 12;
 
 
-    pdf.setFontSize(10);
+    pdf.setFontSize(
+        10
+    );
+
 
     pdf.setFont(
         "helvetica",
@@ -3667,22 +4021,8 @@ function generarPDFDesdeGuardada(
 
 
     pdf.text(
-        "Fecha de emisión: " +
-        String(
-            certificacion.fecha ||
-            fechaHoy()
-        ),
-        20,
-        y
-    );
-
-
-    y += 6;
-
-
-    pdf.text(
         "Cliente: " +
-        String(nombreCliente),
+        nombreCliente,
         20,
         y
     );
@@ -3693,7 +4033,7 @@ function generarPDFDesdeGuardada(
 
     pdf.text(
         "Presupuesto: " +
-        String(numeroPresupuesto),
+        numeroPresupuesto,
         20,
         y
     );
@@ -3704,8 +4044,13 @@ function generarPDFDesdeGuardada(
 
     pdf.text(
         "Período: " +
-        String(
-            certificacion.periodo ||
+        (
+            certificacion.fechaDesde ||
+            ""
+        ) +
+        " al " +
+        (
+            certificacion.fechaHasta ||
             ""
         ),
         20,
@@ -3717,14 +4062,9 @@ function generarPDFDesdeGuardada(
 
 
     pdf.text(
-        "Desde: " +
-        String(
-            certificacion.fechaDesde ||
-            ""
-        ) +
-        " | Hasta: " +
-        String(
-            certificacion.fechaHasta ||
+        "Tipo: " +
+        (
+            certificacion.periodo ||
             ""
         ),
         20,
@@ -3735,12 +4075,11 @@ function generarPDFDesdeGuardada(
     y += 10;
 
 
-    /* TRABAJOS */
-
     pdf.setFont(
         "helvetica",
         "bold"
     );
+
 
     pdf.text(
         "TRABAJOS REALIZADOS",
@@ -3760,10 +4099,8 @@ function generarPDFDesdeGuardada(
 
     const descripcion =
         pdf.splitTextToSize(
-            String(
-                certificacion.descripcion ||
-                ""
-            ),
+            certificacion.descripcion ||
+            "",
             170
         );
 
@@ -3781,12 +4118,11 @@ function generarPDFDesdeGuardada(
         10;
 
 
-    /* DETALLE */
-
     pdf.setFont(
         "helvetica",
         "bold"
     );
+
 
     pdf.text(
         "DETALLE DE CERTIFICACIÓN",
@@ -3798,7 +4134,10 @@ function generarPDFDesdeGuardada(
     y += 8;
 
 
-    pdf.setFontSize(9);
+    pdf.setFontSize(
+        8
+    );
+
 
     pdf.text(
         "Ítem",
@@ -3806,27 +4145,31 @@ function generarPDFDesdeGuardada(
         y
     );
 
+
     pdf.text(
         "Presup.",
-        90,
+        85,
         y
     );
+
 
     pdf.text(
         "Ejecut.",
-        115,
+        110,
         y
     );
+
 
     pdf.text(
         "%",
-        140,
+        135,
         y
     );
 
+
     pdf.text(
         "Importe",
-        160,
+        155,
         y
     );
 
@@ -3846,7 +4189,9 @@ function generarPDFDesdeGuardada(
     ).forEach(
         item => {
 
-            if(y > 265){
+            if(
+                y > 265
+            ){
 
                 pdf.addPage();
 
@@ -3857,11 +4202,9 @@ function generarPDFDesdeGuardada(
 
             const nombre =
                 pdf.splitTextToSize(
-                    String(
-                        item.nombre ||
-                        "Ítem"
-                    ),
-                    65
+                    item.nombre ||
+                    "Ítem",
+                    60
                 );
 
 
@@ -3877,7 +4220,7 @@ function generarPDFDesdeGuardada(
                     item.cantidadPresupuestada ||
                     0
                 ),
-                90,
+                85,
                 y
             );
 
@@ -3887,7 +4230,7 @@ function generarPDFDesdeGuardada(
                     item.cantidadEjecutada ||
                     0
                 ),
-                115,
+                110,
                 y
             );
 
@@ -3898,7 +4241,7 @@ function generarPDFDesdeGuardada(
                     0
                 ).toFixed(2) +
                 "%",
-                137,
+                132,
                 y
             );
 
@@ -3907,7 +4250,7 @@ function generarPDFDesdeGuardada(
                 dinero(
                     item.importeCertificado
                 ),
-                160,
+                155,
                 y
             );
 
@@ -3915,14 +4258,15 @@ function generarPDFDesdeGuardada(
             y +=
                 Math.max(
                     6,
-                    nombre.length * 5
+                    nombre.length *
+                    5
                 );
 
         }
     );
 
 
-    y += 6;
+    y += 8;
 
 
     pdf.setFont(
@@ -3933,7 +4277,7 @@ function generarPDFDesdeGuardada(
 
     pdf.text(
         "TOTAL CERTIFICADO:",
-        110,
+        105,
         y
     );
 
@@ -3942,7 +4286,7 @@ function generarPDFDesdeGuardada(
         dinero(
             certificacion.importeTotal
         ),
-        160,
+        155,
         y
     );
 
@@ -3950,9 +4294,9 @@ function generarPDFDesdeGuardada(
     y += 15;
 
 
-    /* FIRMA */
-
-    if(y > 220){
+    if(
+        y > 220
+    ){
 
         pdf.addPage();
 
@@ -3971,7 +4315,9 @@ function generarPDFDesdeGuardada(
     y += 8;
 
 
-    if(certificacion.firma){
+    if(
+        certificacion.firma
+    ){
 
         pdf.addImage(
             certificacion.firma,
@@ -3981,6 +4327,7 @@ function generarPDFDesdeGuardada(
             75,
             35
         );
+
 
         y += 42;
 
@@ -4011,7 +4358,10 @@ function generarPDFDesdeGuardada(
     );
 
 
-    pdf.setFontSize(8);
+    pdf.setFontSize(
+        8
+    );
+
 
     pdf.text(
         "Documento generado automáticamente por GESBASE.",
@@ -4072,6 +4422,7 @@ document.getElementById(
     "fechaHasta"
 ).value =
     fechaHoy();
+
 
 </script>
 
