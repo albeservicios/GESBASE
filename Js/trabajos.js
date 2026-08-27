@@ -1,6 +1,7 @@
 // ==========================================
 // GESBASE - TRABAJOS
 // CLIENTE → PRESUPUESTO → TRABAJO
+// Firebase 12.18.0
 // ==========================================
 
 import {
@@ -10,14 +11,14 @@ import {
 
 import {
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
     collection,
     getDocs,
     addDoc,
     serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
 // ==========================================
@@ -25,7 +26,7 @@ import {
 // ==========================================
 
 let usuarioActual = null;
-let empresaActual = "";
+let empresaActualId = "";
 
 let clientes = [];
 let presupuestos = [];
@@ -50,17 +51,34 @@ const presupuestoSelect =
 
 
 // ==========================================
+// VALIDAR FIREBASE
+// ==========================================
+
+if (!db) {
+
+    console.error(
+        "GESBASE: Firestore no está disponible."
+    );
+
+}
+
+
+// ==========================================
 // FORMULARIO
 // ==========================================
 
 window.mostrarFormulario = function(){
 
     const formularioTrabajo =
-        document.getElementById("formularioTrabajo");
+        document.getElementById(
+            "formularioTrabajo"
+        );
 
     if(formularioTrabajo){
 
-        formularioTrabajo.classList.remove("hidden");
+        formularioTrabajo.classList.remove(
+            "hidden"
+        );
 
         window.scrollTo({
             top: 0,
@@ -75,11 +93,15 @@ window.mostrarFormulario = function(){
 window.ocultarFormulario = function(){
 
     const formularioTrabajo =
-        document.getElementById("formularioTrabajo");
+        document.getElementById(
+            "formularioTrabajo"
+        );
 
     if(formularioTrabajo){
 
-        formularioTrabajo.classList.add("hidden");
+        formularioTrabajo.classList.add(
+            "hidden"
+        );
 
     }
 
@@ -92,9 +114,21 @@ window.ocultarFormulario = function(){
 
 window.volverPanel = function(){
 
-    window.location.href = "index.html";
+    window.location.href =
+        "index.html";
 
 };
+
+
+// ==========================================
+// MENSAJE
+// ==========================================
+
+function mostrarMensaje(texto){
+
+    alert(texto);
+
+}
 
 
 // ==========================================
@@ -114,18 +148,7 @@ function escapar(valor){
 
 
 // ==========================================
-// MENSAJE
-// ==========================================
-
-function mostrarMensaje(texto){
-
-    alert(texto);
-
-}
-
-
-// ==========================================
-// OBTENER EMPRESA
+// OBTENER EMPRESA ID
 // ==========================================
 
 function obtenerEmpresaId(datos){
@@ -142,68 +165,144 @@ function obtenerEmpresaId(datos){
 
 
 // ==========================================
-// COMPROBAR PERTENENCIA
+// DETERMINAR EMPRESA DEL USUARIO
 // ==========================================
 
-function perteneceAlUsuario(datos){
+async function obtenerEmpresaActual(){
 
     if(!usuarioActual){
-        return false;
+
+        return "";
+
     }
+
+    try{
+
+        const usuarioId =
+            usuarioActual.uid;
+
+        /*
+         * Primero buscamos el documento
+         * del usuario.
+         */
+
+        const {
+            doc,
+            getDoc
+        } =
+        await import(
+            "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js"
+        );
+
+
+        const referencia =
+            doc(
+                db,
+                "usuarios",
+                usuarioId
+            );
+
+
+        const documento =
+            await getDoc(
+                referencia
+            );
+
+
+        if(documento.exists()){
+
+            const datos =
+                documento.data();
+
+            const empresaId =
+                obtenerEmpresaId(datos);
+
+            if(empresaId){
+
+                return empresaId;
+
+            }
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo obtener empresa desde usuarios:",
+            error
+        );
+
+    }
+
+
+    /*
+     * Si no existe empresaId,
+     * utilizamos el UID como estructura
+     * compatible con GESBASE actual.
+     */
+
+    return usuarioActual.uid;
+
+}
+
+
+// ==========================================
+// COMPROBAR PROPIEDAD
+// ==========================================
+
+function perteneceALaEmpresa(datos){
+
+    if(!usuarioActual){
+
+        return false;
+
+    }
+
 
     const uid =
         usuarioActual.uid;
 
+
+    const empresaId =
+        empresaActualId;
+
+
     /*
-     * Primero comprobamos empresa.
+     * Si tiene empresaId,
+     * primero comprobamos empresa.
      */
 
-    const idEmpresa =
-        obtenerEmpresaId(datos);
+    if(empresaId){
 
-    if(
-        empresaActual &&
-        idEmpresa &&
-        idEmpresa === empresaActual
-    ){
+        const empresaDato =
+            obtenerEmpresaId(datos);
 
-        return true;
+        if(
+            empresaDato &&
+            empresaDato === empresaId
+        ){
+
+            return true;
+
+        }
 
     }
 
 
     /*
-     * Después comprobamos usuario.
+     * Compatibilidad con documentos
+     * antiguos de GESBASE.
      */
 
-    if(
+    return (
         datos.usuarioId === uid ||
         datos.uid === uid ||
         datos.ownerId === uid ||
         datos.creadoPor === uid ||
-        datos.usuario === uid
-    ){
-
-        return true;
-
-    }
-
-
-    /*
-     * Compatibilidad con registros
-     * antiguos que tengan empresaId = UID.
-     */
-
-    if(
+        datos.usuario === uid ||
         datos.empresaId === uid
-    ){
-
-        return true;
-
-    }
-
-
-    return false;
+    );
 
 }
 
@@ -220,14 +319,19 @@ async function cargarClientes(){
         </option>
     `;
 
+
     try{
+
+        const referencia =
+            collection(
+                db,
+                "clientes"
+            );
+
 
         const snapshot =
             await getDocs(
-                collection(
-                    db,
-                    "clientes"
-                )
+                referencia
             );
 
 
@@ -248,14 +352,10 @@ async function cargarClientes(){
                     documento.data();
 
 
-                /*
-                 * IMPORTANTE:
-                 * Si el cliente pertenece a la
-                 * empresa actual, se muestra.
-                 */
-
                 if(
-                    !perteneceAlUsuario(datos)
+                    !perteneceALaEmpresa(
+                        datos
+                    )
                 ){
 
                     return;
@@ -279,7 +379,6 @@ async function cargarClientes(){
                     datos.nombreEmpresa ||
                     datos.razonSocial ||
                     datos.razon_social ||
-                    datos.nombreCliente ||
                     "Cliente";
 
 
@@ -333,7 +432,7 @@ async function cargarClientes(){
     catch(error){
 
         console.error(
-            "GESBASE ERROR CLIENTES:",
+            "GESBASE - Error cargando clientes:",
             error
         );
 
@@ -343,20 +442,6 @@ async function cargarClientes(){
                 Error cargando clientes
             </option>
         `;
-
-        /*
-         * Mostrar el error real.
-         */
-
-        console.error(
-            "Código:",
-            error.code
-        );
-
-        console.error(
-            "Mensaje:",
-            error.message
-        );
 
     }
 
@@ -380,7 +465,10 @@ function obtenerNombreCliente(clienteId){
         clientes.find(
             function(item){
 
-                return item.id === clienteId;
+                return (
+                    item.id ===
+                    clienteId
+                );
 
             }
         );
@@ -441,14 +529,19 @@ async function cargarPresupuestos(){
         </option>
     `;
 
+
     try{
+
+        const referencia =
+            collection(
+                db,
+                "presupuestos"
+            );
+
 
         const snapshot =
             await getDocs(
-                collection(
-                    db,
-                    "presupuestos"
-                )
+                referencia
             );
 
 
@@ -470,7 +563,9 @@ async function cargarPresupuestos(){
 
 
                 if(
-                    !perteneceAlUsuario(datos)
+                    !perteneceALaEmpresa(
+                        datos
+                    )
                 ){
 
                     return;
@@ -559,7 +654,9 @@ async function cargarPresupuestos(){
 
                     texto +=
                         " — " +
-                        formatoMoneda(total);
+                        formatoMoneda(
+                            total
+                        );
 
                 }
 
@@ -604,7 +701,7 @@ async function cargarPresupuestos(){
     catch(error){
 
         console.error(
-            "GESBASE ERROR PRESUPUESTOS:",
+            "GESBASE - Error cargando presupuestos:",
             error
         );
 
@@ -615,23 +712,13 @@ async function cargarPresupuestos(){
             </option>
         `;
 
-        console.error(
-            "Código:",
-            error.code
-        );
-
-        console.error(
-            "Mensaje:",
-            error.message
-        );
-
     }
 
 }
 
 
 // ==========================================
-// CAMBIO PRESUPUESTO
+// CAMBIO DE PRESUPUESTO
 // ==========================================
 
 presupuestoSelect.addEventListener(
@@ -697,40 +784,6 @@ presupuestoSelect.addEventListener(
 
 
 // ==========================================
-// CLIENTE DEL TRABAJO
-// ==========================================
-
-function obtenerClienteDelTrabajo(trabajo){
-
-    return (
-        trabajo.clienteId ||
-        trabajo.idCliente ||
-        trabajo.clienteID ||
-        trabajo.cliente_id ||
-        ""
-    );
-
-}
-
-
-// ==========================================
-// PRESUPUESTO DEL TRABAJO
-// ==========================================
-
-function obtenerPresupuestoDelTrabajo(trabajo){
-
-    return (
-        trabajo.presupuestoId ||
-        trabajo.idPresupuesto ||
-        trabajo.presupuestoID ||
-        trabajo.presupuesto_id ||
-        ""
-    );
-
-}
-
-
-// ==========================================
 // CARGAR TRABAJOS
 // ==========================================
 
@@ -745,12 +798,22 @@ async function cargarTrabajos(){
 
     try{
 
+        const referencia =
+            collection(
+                db,
+                "trabajos"
+            );
+
+
+        console.log(
+            "GESBASE: cargando colección trabajos",
+            referencia
+        );
+
+
         const snapshot =
             await getDocs(
-                collection(
-                    db,
-                    "trabajos"
-                )
+                referencia
             );
 
 
@@ -764,15 +827,16 @@ async function cargarTrabajos(){
                     documento.data();
 
 
-                console.log(
-                    "Trabajo:",
-                    documento.id,
-                    datos
-                );
-
+                /*
+                 * IMPORTANTE:
+                 * mostramos únicamente los trabajos
+                 * pertenecientes a la empresa.
+                 */
 
                 if(
-                    !perteneceAlUsuario(datos)
+                    !perteneceALaEmpresa(
+                        datos
+                    )
                 ){
 
                     return;
@@ -785,19 +849,31 @@ async function cargarTrabajos(){
                     id:
                         documento.id,
 
-                    ...datos,
-
-                    clienteId:
-                        obtenerClienteDelTrabajo(
-                            datos
-                        ),
-
-                    presupuestoId:
-                        obtenerPresupuestoDelTrabajo(
-                            datos
-                        )
+                    ...datos
 
                 });
+
+            }
+        );
+
+
+        /*
+         * Ordenar por fecha de creación
+         * cuando exista timestamp.
+         */
+
+        trabajos.sort(
+            function(a,b){
+
+                const fechaA =
+                    a.creado?.seconds ||
+                    0;
+
+                const fechaB =
+                    b.creado?.seconds ||
+                    0;
+
+                return fechaB - fechaA;
 
             }
         );
@@ -811,16 +887,16 @@ async function cargarTrabajos(){
     catch(error){
 
         console.error(
-            "GESBASE ERROR TRABAJOS:",
+            "GESBASE - Error cargando trabajos:",
             error
         );
 
 
         listaTrabajos.innerHTML = `
             <div class="message">
-
-                No se pudieron cargar
-                los trabajos.
+                <strong>
+                    No se pudieron cargar los trabajos.
+                </strong>
 
                 <br><br>
 
@@ -836,7 +912,6 @@ async function cargarTrabajos(){
                     error.message ||
                     "Error desconocido"
                 )}
-
             </div>
         `;
 
@@ -939,13 +1014,15 @@ function mostrarTrabajos(lista){
 
             const cliente =
                 obtenerNombreCliente(
-                    trabajo.clienteId
+                    trabajo.clienteId ||
+                    trabajo.idCliente
                 );
 
 
             const presupuesto =
                 obtenerNombrePresupuesto(
-                    trabajo.presupuestoId
+                    trabajo.presupuestoId ||
+                    trabajo.idPresupuesto
                 );
 
 
@@ -965,7 +1042,6 @@ function mostrarTrabajos(lista){
                         </div>
 
                     </div>
-
 
                     <span class="status">
 
@@ -1085,7 +1161,7 @@ function mostrarTrabajos(lista){
 
 
 // ==========================================
-// FILTRAR
+// FILTROS
 // ==========================================
 
 window.filtrarTrabajos =
@@ -1125,18 +1201,14 @@ function(){
                     (
                         item.descripcion ||
                         ""
-                    ).toLowerCase() +
+                    )
+                    .toLowerCase() +
                     " " +
                     (
                         item.lugar ||
                         ""
-                    ).toLowerCase() +
-                    " " +
-                    (
-                        obtenerNombreCliente(
-                            item.clienteId
-                        ) || ""
-                    ).toLowerCase();
+                    )
+                    .toLowerCase();
 
 
                 const coincideTexto =
@@ -1291,54 +1363,49 @@ formulario.addEventListener(
         }
 
 
-        const datosTrabajo = {
-
-            usuarioId:
-                usuarioActual.uid,
-
-            uid:
-                usuarioActual.uid,
-
-            ownerId:
-                usuarioActual.uid,
-
-            creadoPor:
-                usuarioActual.uid,
-
-            empresaId:
-                empresaActual,
-
-            clienteId:
-                clienteFinal || "",
-
-            presupuestoId:
-                presupuestoId || "",
-
-            descripcion:
-                descripcion,
-
-            lugar:
-                lugar,
-
-            estado:
-                estado,
-
-            fechaInicio:
-                fechaInicio,
-
-            fechaFin:
-                fechaFin,
-
-            observaciones:
-                observaciones,
-
-            creado:
-                serverTimestamp()
-
-        };
-
-
         try{
+
+            const datosTrabajo = {
+
+                usuarioId:
+                    usuarioActual.uid,
+
+                uid:
+                    usuarioActual.uid,
+
+                empresaId:
+                    empresaActualId ||
+                    usuarioActual.uid,
+
+                clienteId:
+                    clienteFinal || "",
+
+                presupuestoId:
+                    presupuestoId || "",
+
+                descripcion:
+                    descripcion,
+
+                lugar:
+                    lugar,
+
+                estado:
+                    estado,
+
+                fechaInicio:
+                    fechaInicio,
+
+                fechaFin:
+                    fechaFin,
+
+                observaciones:
+                    observaciones,
+
+                creado:
+                    serverTimestamp()
+
+            };
+
 
             await addDoc(
                 collection(
@@ -1374,13 +1441,19 @@ formulario.addEventListener(
         catch(error){
 
             console.error(
-                "GESBASE ERROR GUARDANDO:",
+                "GESBASE - Error guardando trabajo:",
                 error
             );
 
 
             mostrarMensaje(
                 "No se pudo guardar el trabajo.\n\n" +
+                "Código: " +
+                (
+                    error.code ||
+                    "sin código"
+                ) +
+                "\n\n" +
                 error.message
             );
 
@@ -1413,39 +1486,31 @@ onAuthStateChanged(
             usuario;
 
 
-        /*
-         * La empresa principal de GESBASE
-         * actualmente está vinculada al UID.
-         */
-
-        empresaActual =
-            usuario.uid;
-
-
-        console.log(
-            "================================="
-        );
-
-        console.log(
-            "GESBASE TRABAJOS"
-        );
-
-        console.log(
-            "Usuario:",
-            usuario.uid
-        );
-
-        console.log(
-            "Empresa:",
-            empresaActual
-        );
-
-        console.log(
-            "================================="
-        );
-
-
         try{
+
+            console.log(
+                "GESBASE UID:",
+                usuario.uid
+            );
+
+
+            /*
+             * Obtener empresa.
+             */
+
+            empresaActualId =
+                await obtenerEmpresaActual();
+
+
+            console.log(
+                "GESBASE empresaId:",
+                empresaActualId
+            );
+
+
+            /*
+             * Cargar en orden.
+             */
 
             await cargarClientes();
 
@@ -1457,18 +1522,33 @@ onAuthStateChanged(
         catch(error){
 
             console.error(
-                "Error inicializando Trabajos:",
+                "GESBASE - Error inicializando Trabajos:",
                 error
             );
 
 
             listaTrabajos.innerHTML = `
                 <div class="message">
-                    Error inicializando Trabajos.
+
+                    <strong>
+                        No se pudo inicializar el módulo Trabajos.
+                    </strong>
+
                     <br><br>
+
+                    Código:
                     ${escapar(
-                        error.message
+                        error.code ||
+                        "sin código"
                     )}
+
+                    <br><br>
+
+                    ${escapar(
+                        error.message ||
+                        "Error desconocido"
+                    )}
+
                 </div>
             `;
 
