@@ -1,1048 +1,665 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-
-<meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<meta
-    name="theme-color"
-    content="#111827"
->
-
-<meta
-    name="description"
-    content="GESBASE - Mis presupuestos"
->
-
-<title>Mis presupuestos - GESBASE</title>
-
-<style>
-
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-}
-
-body{
-    font-family:Arial,sans-serif;
-    background:#f3f4f6;
-    color:#111827;
-}
-
-.contenedor{
-    width:100%;
-    max-width:700px;
-    margin:auto;
-    min-height:100vh;
-    background:#fff;
-}
-
-header{
-    background:#111827;
-    color:#fff;
-    padding:25px 20px;
-}
-
-header h1{
-    font-size:25px;
-}
-
-header p{
-    margin-top:6px;
-    color:#d1d5db;
-    font-size:14px;
-}
-
-main{
-    padding:20px;
-}
-
-.usuario{
-    background:#f3f4f6;
-    padding:13px;
-    border-radius:10px;
-    margin-bottom:15px;
-    font-size:14px;
-}
-
-.acciones{
-    display:flex;
-    gap:10px;
-    margin-bottom:15px;
-}
-
-.boton-nuevo,
-.boton-actualizar{
-    flex:1;
-    padding:14px;
-    border-radius:10px;
-    font-size:15px;
-    font-weight:bold;
-    text-align:center;
-    cursor:pointer;
-}
-
-.boton-nuevo{
-    background:#111827;
-    color:#fff;
-    text-decoration:none;
-}
-
-.boton-actualizar{
-    background:#374151;
-    color:#fff;
-    border:none;
-}
-
-.buscador{
-    width:100%;
-    padding:14px;
-    border:1px solid #d1d5db;
-    border-radius:10px;
-    font-size:15px;
-    margin-bottom:18px;
-    outline:none;
-}
-
-.buscador:focus{
-    border-color:#2563eb;
-}
-
-.cargando{
-    text-align:center;
-    padding:35px;
-    color:#6b7280;
-}
-
-.lista{
-    display:flex;
-    flex-direction:column;
-    gap:15px;
-}
-
-.presupuesto{
-    border:1px solid #d1d5db;
-    border-radius:14px;
-    padding:18px;
-    background:#fff;
-    box-shadow:0 3px 10px rgba(0,0,0,.08);
-}
-
-.numero{
-    font-size:14px;
-    font-weight:bold;
-    color:#6b7280;
-    margin-bottom:8px;
-}
-
-.cliente{
-    font-size:21px;
-    font-weight:bold;
-    margin-bottom:12px;
-}
-
-.dato{
-    margin-top:7px;
-    font-size:14px;
-    color:#4b5563;
-}
-
-.descripcion{
-    margin-top:12px;
-    padding-top:12px;
-    border-top:1px solid #e5e7eb;
-    line-height:1.5;
-    color:#374151;
-}
-
-.total{
-    margin-top:15px;
-    padding-top:13px;
-    border-top:2px solid #111827;
-    font-size:21px;
-    font-weight:bold;
-}
-
-.boton{
-    display:block;
-    width:100%;
-    margin-top:10px;
-    padding:14px;
-    border-radius:10px;
-    text-align:center;
-    text-decoration:none;
-    font-size:15px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-.boton-ver{
-    background:#111827;
-    color:#fff;
-}
-
-.boton-editar{
-    background:#2563eb;
-    color:#fff;
-}
-
-.boton-eliminar{
-    background:#fee2e2;
-    color:#991b1b;
-    border:1px solid #fecaca;
-}
-
-.sin-presupuestos,
-.sin-busqueda{
-    text-align:center;
-    padding:35px 20px;
-    color:#6b7280;
-}
-
-.sin-busqueda{
-    display:none;
-}
-
-.error{
-    display:none;
-    background:#fee2e2;
-    color:#991b1b;
-    padding:14px;
-    border-radius:10px;
-    margin-bottom:15px;
-    line-height:1.5;
-    font-size:14px;
-}
-
-.exito{
-    background:#dcfce7;
-    color:#166534;
-}
-
-.estado-ok{
-    background:#dcfce7;
-    color:#166534;
-}
-
-.boton-volver{
-    display:block;
-    width:100%;
-    padding:15px;
-    margin-top:20px;
-    border-radius:10px;
-    background:#e5e7eb;
-    color:#111827;
-    text-align:center;
-    text-decoration:none;
-    font-size:16px;
-    font-weight:bold;
-}
-
-@media(max-width:480px){
-
-    main{
-        padding:15px;
-    }
-
-    .acciones{
-        flex-direction:column;
-    }
-
-}
-
-</style>
-
-</head>
-
-
-<body>
-
-<div class="contenedor">
-
-<header>
-
-<h1>Mis presupuestos</h1>
-
-<p>GESBASE</p>
-
-</header>
-
-
-<main>
-
-
-<div
-    id="usuario"
-    class="usuario"
->
-Verificando usuario...
-</div>
-
-
-<div
-    id="error"
-    class="error"
-></div>
-
-
-<div class="acciones">
-
-<a
-    href="presupuesto.html"
-    class="boton-nuevo"
->
-+ NUEVO PRESUPUESTO
-</a>
-
-
-<button
-    type="button"
-    id="btnActualizar"
-    class="boton-actualizar"
->
-🔄 ACTUALIZAR
-</button>
-
-</div>
-
-
-<input
-    type="search"
-    id="buscador"
-    class="buscador"
-    placeholder="🔎 Buscar por cliente, agenda o lugar..."
->
-
-
-<div
-    id="cargando"
-    class="cargando"
->
-Cargando presupuestos...
-</div>
-
-
-<div
-    id="lista"
-    class="lista"
-></div>
-
-
-<div
-    id="sinPresupuestos"
-    class="sin-presupuestos"
-    style="display:none;"
->
-Todavía no tenés presupuestos.
-</div>
-
-
-<div
-    id="sinBusqueda"
-    class="sin-busqueda"
->
-No se encontraron presupuestos.
-</div>
-
-
-<a
-    href="index.html"
-    class="boton-volver"
->
-⬅️ VOLVER A GESBASE
-</a>
-
-
-</main>
-
-</div>
-
-
-<script type="module">
-
-// =====================================================
-// FIREBASE
-// IMPORTANTE:
-// MISMA VERSIÓN QUE presupuesto.html
-// =====================================================
+// ==========================================
+// GESBASE - TRABAJOS
+// CLIENTE → PRESUPUESTO → TRABAJO
+// VERSIÓN CORREGIDA
+// ==========================================
 
 import {
     auth,
     db
-} from "./Js/firebase.js";
-
+} from "./firebase.js";
 
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-
 
 import {
     collection,
     query,
     where,
     getDocs,
-    doc,
-    getDoc,
-    deleteDoc
+    addDoc,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-// =====================================================
-// ELEMENTOS
-// =====================================================
-
-const usuarioElemento =
-document.getElementById("usuario");
-
-const cargando =
-document.getElementById("cargando");
-
-const lista =
-document.getElementById("lista");
-
-const sinPresupuestos =
-document.getElementById("sinPresupuestos");
-
-const sinBusqueda =
-document.getElementById("sinBusqueda");
-
-const errorElemento =
-document.getElementById("error");
-
-const buscador =
-document.getElementById("buscador");
-
-const btnActualizar =
-document.getElementById("btnActualizar");
-
-
-// =====================================================
+// ==========================================
 // VARIABLES
-// =====================================================
+// ==========================================
 
 let usuarioActual = null;
 
+let clientes = [];
+
 let presupuestos = [];
 
+let trabajos = [];
 
-// =====================================================
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const formulario =
+    document.getElementById("trabajoForm");
+
+const listaTrabajos =
+    document.getElementById("listaTrabajos");
+
+const clienteSelect =
+    document.getElementById("clienteId");
+
+const presupuestoSelect =
+    document.getElementById("presupuestoId");
+
+
+// ==========================================
+// MOSTRAR FORMULARIO
+// ==========================================
+
+window.mostrarFormulario = function(){
+
+    const formularioTrabajo =
+        document.getElementById("formularioTrabajo");
+
+    if(formularioTrabajo){
+
+        formularioTrabajo.classList.remove("hidden");
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+    }
+
+};
+
+
+// ==========================================
+// OCULTAR FORMULARIO
+// ==========================================
+
+window.ocultarFormulario = function(){
+
+    const formularioTrabajo =
+        document.getElementById("formularioTrabajo");
+
+    if(formularioTrabajo){
+
+        formularioTrabajo.classList.add("hidden");
+
+    }
+
+};
+
+
+// ==========================================
+// VOLVER
+// ==========================================
+
+window.volverPanel = function(){
+
+    window.location.href =
+        "index.html";
+
+};
+
+
+// ==========================================
 // ESCAPAR HTML
-// =====================================================
+// ==========================================
 
-function escaparHTML(valor){
+function escapar(valor){
 
-    const div =
-    document.createElement("div");
-
-    div.textContent =
-    valor === undefined ||
-    valor === null
-        ? ""
-        : String(valor);
-
-    return div.innerHTML;
+    return String(valor ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
 
 }
 
 
-// =====================================================
-// DINERO
-// =====================================================
+// ==========================================
+// MENSAJE
+// ==========================================
 
-function dinero(valor){
+function mostrarMensaje(texto){
 
-    const numero =
-    Number(valor);
+    alert(texto);
 
-    if(
-        !Number.isFinite(numero)
-    ){
+}
 
-        return "0,00";
 
-    }
+// ==========================================
+// FORMATO MONEDA
+// ==========================================
 
-    return numero.toLocaleString(
+function formatoMoneda(valor){
+
+    return Number(valor || 0).toLocaleString(
         "es-AR",
         {
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
+            style:"currency",
+            currency:"ARS"
         }
     );
 
 }
 
 
-// =====================================================
-// NÚMERO DE PRESUPUESTO
-// =====================================================
-
-function numeroPresupuesto(
-    id,
-    datos
-){
-
-    /*
-     * Si en el futuro guardamos un número
-     * de presupuesto real, lo utilizamos.
-     */
-
-    if(
-        datos &&
-        datos.numeroPresupuesto
-    ){
-
-        return String(
-            datos.numeroPresupuesto
-        );
-
-    }
-
-
-    /*
-     * Por ahora utilizamos el mismo
-     * sistema que tenía GESBASE.
-     */
-
-    let suma = 0;
-
-
-    for(
-        let i = 0;
-        i < id.length;
-        i++
-    ){
-
-        suma +=
-        id.charCodeAt(i);
-
-    }
-
-
-    return String(
-        suma % 1000000
-    ).padStart(
-        6,
-        "0"
-    );
-
-}
-
-
-// =====================================================
-// MOSTRAR ERROR
-// =====================================================
-
-function mostrarError(
-    mensaje
-){
-
-    errorElemento.textContent =
-    mensaje;
-
-    errorElemento.style.display =
-    "block";
-
-}
-
-
-// =====================================================
-// OCULTAR ERROR
-// =====================================================
-
-function ocultarError(){
-
-    errorElemento.style.display =
-    "none";
-
-    errorElemento.textContent =
-    "";
-
-}
-
-
-// =====================================================
-// ELIMINAR PRESUPUESTO
-// =====================================================
-
-async function eliminarPresupuesto(
-    id
-){
-
-    if(!usuarioActual){
-
-        return;
-
-    }
-
-
-    const confirmar =
-    confirm(
-        "¿Seguro que querés eliminar este presupuesto?\n\nEsta acción no se puede deshacer."
-    );
-
-
-    if(!confirmar){
-
-        return;
-
-    }
-
-
-    try{
-
-        const referencia =
-        doc(
-            db,
-            "presupuestos",
-            id
-        );
-
-
-        const resultado =
-        await getDoc(
-            referencia
-        );
-
-
-        if(
-            !resultado.exists()
-        ){
-
-            alert(
-                "El presupuesto ya no existe."
-            );
-
-            await cargarPresupuestos();
-
-            return;
-
-        }
-
-
-        const datos =
-        resultado.data();
-
-
-        /*
-         * Seguridad:
-         * solamente puede eliminar el usuario
-         * propietario del presupuesto.
-         */
-
-        if(
-            datos.uid !==
-            usuarioActual.uid
-        ){
-
-            alert(
-                "No tenés permiso para eliminar este presupuesto."
-            );
-
-            return;
-
-        }
-
-
-        await deleteDoc(
-            referencia
-        );
-
-
-        alert(
-            "Presupuesto eliminado correctamente."
-        );
-
-
-        await cargarPresupuestos();
-
-    }
-    catch(error){
-
-        console.error(
-            "ERROR ELIMINANDO PRESUPUESTO:",
-            error
-        );
-
-
-        mostrarError(
-            "No se pudo eliminar el presupuesto.\n\n" +
-            "Código: " +
-            (error.code || "desconocido") +
-            "\n\n" +
-            "Detalle: " +
-            (error.message || "Error desconocido")
-        );
-
-    }
-
-}
-
-
-// =====================================================
-// CREAR TARJETA
-// =====================================================
-
-function crearTarjeta(
-    datos,
-    id
-){
-
-    const tarjeta =
-    document.createElement("div");
-
-    tarjeta.className =
-    "presupuesto";
-
-
-    const numero =
-    numeroPresupuesto(
-        id,
-        datos
-    );
-
-
-    const cliente =
-    escaparHTML(
-        datos.cliente ||
-        "Cliente sin nombre"
-    );
-
-
-    const fecha =
-    escaparHTML(
-        datos.fecha ||
-        "-"
-    );
-
-
-    const agenda =
-    escaparHTML(
-        datos.numeroAgenda ||
-        "-"
-    );
-
-
-    const lugar =
-    escaparHTML(
-        datos.lugarTrabajo ||
-        "-"
-    );
-
-
-    const descripcion =
-    escaparHTML(
-        datos.descripcion ||
-        "Sin descripción"
-    );
-
-
-    tarjeta.innerHTML = `
-
-        <div class="numero">
-            PRESUPUESTO #${numero}
-        </div>
-
-        <div class="cliente">
-            👤 ${cliente}
-        </div>
-
-        <div class="dato">
-            📋 N.º de agenda:
-            ${agenda}
-        </div>
-
-        <div class="dato">
-            📅 Fecha:
-            ${fecha}
-        </div>
-
-        <div class="dato">
-            📍 Lugar:
-            ${lugar}
-        </div>
-
-        <div class="descripcion">
-            📝 ${descripcion}
-        </div>
-
-        <div class="dato">
-            🧱 Materiales:
-            $${dinero(datos.materiales)}
-        </div>
-
-        <div class="dato">
-            🔨 Mano de obra:
-            $${dinero(datos.manoObra)}
-        </div>
-
-        <div class="dato">
-            🚗 Viáticos:
-            $${dinero(datos.viaticos)}
-        </div>
-
-        <div class="total">
-            TOTAL:
-            $${dinero(datos.total)}
-        </div>
-
-        <a
-            href="ver-presupuesto.html?id=${encodeURIComponent(id)}"
-            class="boton boton-ver"
-        >
-            👁️ VER PRESUPUESTO
-        </a>
-
-        <a
-            href="editar-presupuesto.html?id=${encodeURIComponent(id)}"
-            class="boton boton-editar"
-        >
-            ✏️ EDITAR PRESUPUESTO
-        </a>
-
-        <button
-            type="button"
-            class="boton boton-eliminar"
-        >
-            🗑️ ELIMINAR PRESUPUESTO
-        </button>
-
+// ==========================================
+// CARGAR CLIENTES
+// MISMA ESTRUCTURA QUE CLIENTES.HTML
+// ==========================================
+
+async function cargarClientes(){
+
+    clienteSelect.innerHTML = `
+        <option value="">
+            Cargando clientes...
+        </option>
     `;
 
-
-    const botonEliminar =
-    tarjeta.querySelector(
-        ".boton-eliminar"
-    );
-
-
-    botonEliminar.addEventListener(
-        "click",
-        function(){
-
-            eliminarPresupuesto(
-                id
-            );
-
-        }
-    );
-
-
-    return tarjeta;
-
-}
-
-
-// =====================================================
-// MOSTRAR PRESUPUESTOS
-// =====================================================
-
-function mostrarPresupuestos(){
-
-    lista.innerHTML =
-    "";
-
-    sinBusqueda.style.display =
-    "none";
-
-
-    const termino =
-    buscador.value
-        .trim()
-        .toLowerCase();
-
-
-    let filtrados =
-    presupuestos;
-
-
-    if(termino){
-
-        filtrados =
-        presupuestos.filter(
-            function(item){
-
-                const datos =
-                item.datos;
-
-
-                const cliente =
-                String(
-                    datos.cliente ||
-                    ""
-                ).toLowerCase();
-
-
-                const agenda =
-                String(
-                    datos.numeroAgenda ||
-                    ""
-                ).toLowerCase();
-
-
-                const lugar =
-                String(
-                    datos.lugarTrabajo ||
-                    ""
-                ).toLowerCase();
-
-
-                const descripcion =
-                String(
-                    datos.descripcion ||
-                    ""
-                ).toLowerCase();
-
-
-                const fecha =
-                String(
-                    datos.fecha ||
-                    ""
-                ).toLowerCase();
-
-
-                return (
-                    cliente.includes(termino) ||
-                    agenda.includes(termino) ||
-                    lugar.includes(termino) ||
-                    descripcion.includes(termino) ||
-                    fecha.includes(termino)
-                );
-
-            }
-        );
-
-    }
-
-
-    if(
-        filtrados.length === 0
-    ){
-
-        if(
-            presupuestos.length > 0
-        ){
-
-            sinBusqueda.style.display =
-            "block";
-
-        }
-
-        return;
-
-    }
-
-
-    filtrados.forEach(
-        function(item){
-
-            lista.appendChild(
-                crearTarjeta(
-                    item.datos,
-                    item.id
-                )
-            );
-
-        }
-    );
-
-}
-
-
-// =====================================================
-// CARGAR PRESUPUESTOS
-// =====================================================
-
-async function cargarPresupuestos(){
-
-    if(!usuarioActual){
-
-        return;
-
-    }
-
-
     try{
 
-        ocultarError();
-
-
-        cargando.style.display =
-        "block";
-
-
-        lista.innerHTML =
-        "";
-
-
-        sinPresupuestos.style.display =
-        "none";
-
-
-        sinBusqueda.style.display =
-        "none";
-
-
-        usuarioElemento.textContent =
-        "Usuario: " +
-        (
-            usuarioActual.email ||
-            "Usuario autenticado"
-        );
-
-
-        /*
-         * Buscamos solamente los presupuestos
-         * creados por el usuario actualmente
-         * autenticado.
-         */
-
         const referencia =
-        collection(
-            db,
-            "presupuestos"
-        );
+            collection(
+                db,
+                "clientes"
+            );
 
 
         const consulta =
-        query(
-            referencia,
-            where(
-                "uid",
-                "==",
-                usuarioActual.uid
-            )
-        );
+            query(
+                referencia,
+                where(
+                    "uid",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
 
 
         const resultado =
-        await getDocs(
-            consulta
-        );
+            await getDocs(
+                consulta
+            );
 
 
-        presupuestos =
-        [];
+        clientes = [];
+
+
+        clienteSelect.innerHTML = `
+            <option value="">
+                Seleccionar cliente
+            </option>
+        `;
 
 
         resultado.forEach(
             function(documento){
 
-                presupuestos.push({
+                const datos =
+                    documento.data();
+
+
+                const nombre =
+                    String(
+                        datos.nombre ||
+                        datos.empresa ||
+                        datos.nombreEmpresa ||
+                        datos.razonSocial ||
+                        "Cliente"
+                    ).trim();
+
+
+                clientes.push({
 
                     id:
-                    documento.id,
+                        documento.id,
+
+                    nombre:
+                        nombre,
 
                     datos:
-                    documento.data()
+                        datos
+
+                });
+
+
+                const opcion =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                opcion.value =
+                    documento.id;
+
+
+                opcion.textContent =
+                    nombre;
+
+
+                clienteSelect.appendChild(
+                    opcion
+                );
+
+            }
+        );
+
+
+        if(!clientes.length){
+
+            clienteSelect.innerHTML = `
+                <option value="">
+                    No hay clientes registrados
+                </option>
+            `;
+
+        }
+
+    }
+    catch(error){
+
+        console.error(
+            "ERROR CLIENTES:",
+            error
+        );
+
+
+        clienteSelect.innerHTML = `
+            <option value="">
+                Error cargando clientes
+            </option>
+        `;
+
+    }
+
+}
+
+
+// ==========================================
+// NOMBRE CLIENTE
+// ==========================================
+
+function obtenerNombreCliente(clienteId){
+
+    if(!clienteId){
+
+        return "Sin cliente";
+
+    }
+
+
+    const cliente =
+        clientes.find(
+            function(item){
+
+                return item.id === clienteId;
+
+            }
+        );
+
+
+    if(cliente){
+
+        return cliente.nombre;
+
+    }
+
+
+    return "Cliente asociado";
+
+}
+
+
+// ==========================================
+// CLIENTE DEL PRESUPUESTO
+// ==========================================
+
+function obtenerClienteDelPresupuesto(datos){
+
+    return (
+        datos.clienteId ||
+        datos.idCliente ||
+        datos.clienteID ||
+        datos.cliente_id ||
+        ""
+    );
+
+}
+
+
+// ==========================================
+// CARGAR PRESUPUESTOS
+// ==========================================
+
+async function cargarPresupuestos(){
+
+    presupuestoSelect.innerHTML = `
+        <option value="">
+            Cargando presupuestos...
+        </option>
+    `;
+
+
+    try{
+
+        const referencia =
+            collection(
+                db,
+                "presupuestos"
+            );
+
+
+        /*
+         * Igual que CLIENTES:
+         * buscamos por UID.
+         */
+
+        const consulta =
+            query(
+                referencia,
+                where(
+                    "uid",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
+
+
+        const resultado =
+            await getDocs(
+                consulta
+            );
+
+
+        presupuestos = [];
+
+
+        presupuestoSelect.innerHTML = `
+            <option value="">
+                Sin presupuesto asociado
+            </option>
+        `;
+
+
+        resultado.forEach(
+            function(documento){
+
+                const datos =
+                    documento.data();
+
+
+                const clienteId =
+                    obtenerClienteDelPresupuesto(
+                        datos
+                    );
+
+
+                const numero =
+                    datos.numero ||
+                    datos.numeroPresupuesto ||
+                    datos.codigo ||
+                    datos.nro ||
+                    "";
+
+
+                const descripcion =
+                    datos.descripcion ||
+                    datos.titulo ||
+                    datos.concepto ||
+                    datos.detalle ||
+                    "Presupuesto";
+
+
+                const total =
+                    Number(
+                        datos.total ??
+                        datos.totalFinal ??
+                        datos.importe ??
+                        datos.monto ??
+                        0
+                    );
+
+
+                const item = {
+
+                    id:
+                        documento.id,
+
+                    clienteId:
+                        clienteId,
+
+                    numero:
+                        numero,
+
+                    descripcion:
+                        descripcion,
+
+                    total:
+                        total,
+
+                    datos:
+                        datos
+
+                };
+
+
+                presupuestos.push(
+                    item
+                );
+
+
+                let texto = "";
+
+
+                if(numero){
+
+                    texto +=
+                        "N.º " +
+                        numero +
+                        " — ";
+
+                }
+
+
+                texto +=
+                    descripcion;
+
+
+                if(total > 0){
+
+                    texto +=
+                        " — " +
+                        formatoMoneda(total);
+
+                }
+
+
+                const opcion =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                opcion.value =
+                    documento.id;
+
+
+                opcion.textContent =
+                    texto;
+
+
+                presupuestoSelect.appendChild(
+                    opcion
+                );
+
+            }
+        );
+
+
+        if(!presupuestos.length){
+
+            presupuestoSelect.innerHTML = `
+                <option value="">
+                    No hay presupuestos disponibles
+                </option>
+            `;
+
+        }
+
+    }
+    catch(error){
+
+        console.error(
+            "ERROR PRESUPUESTOS:",
+            error
+        );
+
+
+        presupuestoSelect.innerHTML = `
+            <option value="">
+                Error cargando presupuestos
+            </option>
+        `;
+
+    }
+
+}
+
+
+// ==========================================
+// CAMBIO DE PRESUPUESTO
+// ==========================================
+
+presupuestoSelect.addEventListener(
+    "change",
+    function(){
+
+        const presupuestoId =
+            this.value;
+
+
+        if(!presupuestoId){
+
+            return;
+
+        }
+
+
+        const presupuesto =
+            presupuestos.find(
+                function(item){
+
+                    return (
+                        item.id ===
+                        presupuestoId
+                    );
+
+                }
+            );
+
+
+        if(
+            !presupuesto ||
+            !presupuesto.clienteId
+        ){
+
+            return;
+
+        }
+
+
+        const existe =
+            clientes.some(
+                function(cliente){
+
+                    return (
+                        cliente.id ===
+                        presupuesto.clienteId
+                    );
+
+                }
+            );
+
+
+        if(existe){
+
+            clienteSelect.value =
+                presupuesto.clienteId;
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// CARGAR TRABAJOS
+// ==========================================
+
+async function cargarTrabajos(){
+
+    listaTrabajos.innerHTML = `
+        <div class="message">
+            Cargando trabajos...
+        </div>
+    `;
+
+
+    try{
+
+        const referencia =
+            collection(
+                db,
+                "trabajos"
+            );
+
+
+        /*
+         * IMPORTANTE:
+         *
+         * Los trabajos nuevos se guardan
+         * con uid = usuarioActual.uid.
+         *
+         * Ahora los recuperamos exactamente
+         * con ese mismo campo.
+         */
+
+        const consulta =
+            query(
+                referencia,
+                where(
+                    "uid",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
+
+
+        const resultado =
+            await getDocs(
+                consulta
+            );
+
+
+        trabajos = [];
+
+
+        resultado.forEach(
+            function(documento){
+
+                trabajos.push({
+
+                    id:
+                        documento.id,
+
+                    ...documento.data()
 
                 });
 
@@ -1051,201 +668,602 @@ async function cargarPresupuestos(){
 
 
         /*
-         * Ordenar por fecha más reciente.
+         * Ordenar por fecha de creación
          */
 
-        presupuestos.sort(
+        trabajos.sort(
             function(a,b){
 
                 const fechaA =
-                String(
-                    a.datos.fecha ||
-                    ""
-                );
-
+                    a.creado?.seconds ||
+                    0;
 
                 const fechaB =
-                String(
-                    b.datos.fecha ||
-                    ""
-                );
+                    b.creado?.seconds ||
+                    0;
 
-
-                if(
-                    fechaA === fechaB
-                ){
-
-                    return 0;
-
-                }
-
-
-                return fechaA >
-                    fechaB
-                    ? -1
-                    : 1;
+                return fechaB - fechaA;
 
             }
         );
 
 
-        cargando.style.display =
-        "none";
-
-
-        if(
-            presupuestos.length === 0
-        ){
-
-            sinPresupuestos.style.display =
-            "block";
-
-            usuarioElemento.className =
-            "usuario estado-ok";
-
-            usuarioElemento.textContent =
-            "Sesión activa: " +
-            (
-                usuarioActual.email ||
-                "Usuario autenticado"
-            ) +
-            " — No hay presupuestos cargados.";
-
-            return;
-
-        }
-
-
-        usuarioElemento.className =
-        "usuario estado-ok";
-
-        usuarioElemento.textContent =
-        "Sesión activa: " +
-        (
-            usuarioActual.email ||
-            "Usuario autenticado"
-        ) +
-        " — " +
-        presupuestos.length +
-        (
-            presupuestos.length === 1
-                ? " presupuesto"
-                : " presupuestos"
+        mostrarTrabajos(
+            trabajos
         );
-
-
-        mostrarPresupuestos();
 
     }
     catch(error){
 
         console.error(
-            "ERROR CARGANDO PRESUPUESTOS:",
+            "ERROR CARGANDO TRABAJOS:",
             error
         );
 
 
-        cargando.style.display =
-        "none";
-
-
-        lista.innerHTML =
-        "";
-
-
-        if(
-            error.code ===
-            "permission-denied"
-        ){
-
-            mostrarError(
-                "Firebase rechazó el acceso a los presupuestos.\n\n" +
-                "Revisá las reglas de Firestore para la colección 'presupuestos'."
-            );
-
-        }
-        else if(
-            error.code ===
-            "failed-precondition"
-        ){
-
-            mostrarError(
-                "Firebase necesita un índice para esta consulta.\n\n" +
-                "Abrí el enlace que aparece en la consola de Firebase y creá el índice indicado."
-            );
-
-        }
-        else if(
-            error.code ===
-            "unavailable"
-        ){
-
-            mostrarError(
-                "Firebase no está disponible en este momento. Revisá tu conexión a Internet e intentá nuevamente."
-            );
-
-        }
-        else{
-
-            mostrarError(
-                "No se pudieron cargar los presupuestos.\n\n" +
-                "Código: " +
-                (error.code || "desconocido") +
-                "\n\n" +
-                "Detalle: " +
-                (error.message || "Error desconocido")
-            );
-
-        }
+        listaTrabajos.innerHTML = `
+            <div class="message">
+                No se pudieron cargar los trabajos.
+                <br><br>
+                <strong>
+                    ${escapar(
+                        error.message
+                    )}
+                </strong>
+            </div>
+        `;
 
     }
 
 }
 
 
-// =====================================================
-// BUSCADOR
-// =====================================================
+// ==========================================
+// NOMBRE PRESUPUESTO
+// ==========================================
 
-buscador.addEventListener(
-    "input",
-    function(){
+function obtenerNombrePresupuesto(
+    presupuestoId
+){
 
-        mostrarPresupuestos();
+    if(!presupuestoId){
+
+        return "Sin presupuesto asociado";
 
     }
-);
 
 
-// =====================================================
-// ACTUALIZAR
-// =====================================================
+    const presupuesto =
+        presupuestos.find(
+            function(item){
 
-btnActualizar.addEventListener(
-    "click",
-    async function(){
+                return (
+                    item.id ===
+                    presupuestoId
+                );
 
-        btnActualizar.disabled =
-        true;
+            }
+        );
 
 
-        btnActualizar.textContent =
-        "⏳ CARGANDO...";
+    if(!presupuesto){
+
+        return "Presupuesto asociado";
+
+    }
+
+
+    let texto = "";
+
+
+    if(presupuesto.numero){
+
+        texto =
+            "N.º " +
+            presupuesto.numero +
+            " — ";
+
+    }
+
+
+    texto +=
+        presupuesto.descripcion;
+
+
+    return texto;
+
+}
+
+
+// ==========================================
+// MOSTRAR TRABAJOS
+// ==========================================
+
+function mostrarTrabajos(lista){
+
+    if(!lista.length){
+
+        listaTrabajos.innerHTML = `
+            <div class="message">
+                Todavía no hay trabajos registrados.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    listaTrabajos.innerHTML = "";
+
+
+    lista.forEach(
+        function(trabajo){
+
+            const elemento =
+                document.createElement(
+                    "article"
+                );
+
+
+            elemento.className =
+                "job";
+
+
+            const cliente =
+                obtenerNombreCliente(
+                    trabajo.clienteId
+                );
+
+
+            const presupuesto =
+                obtenerNombrePresupuesto(
+                    trabajo.presupuestoId
+                );
+
+
+            elemento.innerHTML = `
+
+                <div class="job-header">
+
+                    <div>
+
+                        <div class="job-title">
+
+                            ${escapar(
+                                trabajo.descripcion ||
+                                "Trabajo sin descripción"
+                            )}
+
+                        </div>
+
+                    </div>
+
+
+                    <span class="status">
+
+                        ${escapar(
+                            trabajo.estado ||
+                            "Pendiente"
+                        )}
+
+                    </span>
+
+                </div>
+
+
+                <div class="job-info">
+
+                    <div>
+
+                        <strong>
+                            Cliente:
+                        </strong>
+
+                        ${escapar(cliente)}
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Presupuesto:
+                        </strong>
+
+                        ${escapar(presupuesto)}
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Lugar:
+                        </strong>
+
+                        ${escapar(
+                            trabajo.lugar ||
+                            "No indicado"
+                        )}
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Fecha inicio:
+                        </strong>
+
+                        ${escapar(
+                            trabajo.fechaInicio ||
+                            "No indicada"
+                        )}
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Fecha fin:
+                        </strong>
+
+                        ${escapar(
+                            trabajo.fechaFin ||
+                            "No indicada"
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                ${
+                    trabajo.observaciones
+                    ?
+                    `
+                    <div style="
+                        margin-top:12px;
+                        color:#6b7280;
+                        font-size:14px;
+                    ">
+
+                        <strong>
+                            Observaciones:
+                        </strong>
+
+                        <br>
+
+                        ${escapar(
+                            trabajo.observaciones
+                        )}
+
+                    </div>
+                    `
+                    :
+                    ""
+                }
+
+            `;
+
+
+            listaTrabajos.appendChild(
+                elemento
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// FILTROS
+// ==========================================
+
+window.filtrarTrabajos =
+function(){
+
+    const input =
+        document.getElementById(
+            "buscarTrabajo"
+        );
+
+
+    const filtro =
+        document.getElementById(
+            "filtroEstado"
+        );
+
+
+    const texto =
+        input
+        ? input.value
+            .toLowerCase()
+            .trim()
+        : "";
+
+
+    const estado =
+        filtro
+        ? filtro.value
+        : "";
+
+
+    const resultado =
+        trabajos.filter(
+            function(item){
+
+                const contenido =
+                    (
+                        item.descripcion ||
+                        ""
+                    ).toLowerCase()
+                    +
+                    " " +
+                    (
+                        item.lugar ||
+                        ""
+                    ).toLowerCase();
+
+
+                const coincideTexto =
+                    !texto ||
+                    contenido.includes(
+                        texto
+                    );
+
+
+                const coincideEstado =
+                    !estado ||
+                    item.estado === estado;
+
+
+                return (
+                    coincideTexto &&
+                    coincideEstado
+                );
+
+            }
+        );
+
+
+    mostrarTrabajos(
+        resultado
+    );
+
+};
+
+
+// ==========================================
+// GUARDAR TRABAJO
+// ==========================================
+
+formulario.addEventListener(
+    "submit",
+    async function(event){
+
+        event.preventDefault();
+
+
+        if(!usuarioActual){
+
+            mostrarMensaje(
+                "No hay una sesión activa."
+            );
+
+            return;
+
+        }
+
+
+        const clienteId =
+            clienteSelect.value;
+
+
+        const presupuestoId =
+            presupuestoSelect.value;
+
+
+        const descripcion =
+            document
+            .getElementById(
+                "descripcion"
+            )
+            .value
+            .trim();
+
+
+        const lugar =
+            document
+            .getElementById(
+                "lugar"
+            )
+            .value
+            .trim();
+
+
+        const estado =
+            document
+            .getElementById(
+                "estado"
+            )
+            .value;
+
+
+        const fechaInicio =
+            document
+            .getElementById(
+                "fechaInicio"
+            )
+            .value;
+
+
+        const fechaFin =
+            document
+            .getElementById(
+                "fechaFin"
+            )
+            .value;
+
+
+        const observaciones =
+            document
+            .getElementById(
+                "observaciones"
+            )
+            .value
+            .trim();
+
+
+        if(!descripcion){
+
+            mostrarMensaje(
+                "Ingresá la descripción del trabajo."
+            );
+
+            return;
+
+        }
+
+
+        /*
+         * Si hay presupuesto,
+         * tomamos automáticamente
+         * el cliente del presupuesto.
+         */
+
+        let clienteFinal =
+            clienteId;
+
+
+        if(presupuestoId){
+
+            const presupuesto =
+                presupuestos.find(
+                    function(item){
+
+                        return (
+                            item.id ===
+                            presupuestoId
+                        );
+
+                    }
+                );
+
+
+            if(
+                presupuesto &&
+                presupuesto.clienteId
+            ){
+
+                clienteFinal =
+                    presupuesto.clienteId;
+
+            }
+
+        }
 
 
         try{
 
-            await cargarPresupuestos();
+            /*
+             * IMPORTANTE:
+             *
+             * UID es el identificador
+             * principal de pertenencia.
+             *
+             * También guardamos empresaId
+             * para compatibilidad con el resto
+             * de GESBASE.
+             */
+
+            const datosTrabajo = {
+
+                uid:
+                    usuarioActual.uid,
+
+                usuarioId:
+                    usuarioActual.uid,
+
+                empresaId:
+                    usuarioActual.uid,
+
+                clienteId:
+                    clienteFinal || "",
+
+                presupuestoId:
+                    presupuestoId || "",
+
+                descripcion:
+                    descripcion,
+
+                lugar:
+                    lugar,
+
+                estado:
+                    estado,
+
+                fechaInicio:
+                    fechaInicio,
+
+                fechaFin:
+                    fechaFin,
+
+                observaciones:
+                    observaciones,
+
+                creado:
+                    serverTimestamp()
+
+            };
+
+
+            await addDoc(
+                collection(
+                    db,
+                    "trabajos"
+                ),
+                datosTrabajo
+            );
+
+
+            mostrarMensaje(
+                "Trabajo guardado correctamente."
+            );
+
+
+            formulario.reset();
+
+
+            clienteSelect.value =
+                "";
+
+
+            presupuestoSelect.value =
+                "";
+
+
+            window.ocultarFormulario();
+
+
+            await cargarTrabajos();
 
         }
-        finally{
+        catch(error){
 
-            btnActualizar.disabled =
-            false;
+            console.error(
+                "ERROR GUARDANDO TRABAJO:",
+                error
+            );
 
 
-            btnActualizar.textContent =
-            "🔄 ACTUALIZAR";
+            mostrarMensaje(
+                "No se pudo guardar el trabajo:\n\n" +
+                error.message
+            );
 
         }
 
@@ -1253,30 +1271,19 @@ btnActualizar.addEventListener(
 );
 
 
-// =====================================================
-// AUTENTICACIÓN
-// =====================================================
+// ==========================================
+// INICIO
+// ==========================================
 
 onAuthStateChanged(
     auth,
     async function(usuario){
 
-        console.log(
-            "Estado de autenticación:",
-            usuario
-        );
-
-
         if(!usuario){
 
-            usuarioElemento.textContent =
-            "Sesión no iniciada. Redirigiendo...";
-
-
             window.location.replace(
-                "./login.html"
+                "login.html"
             );
-
 
             return;
 
@@ -1284,24 +1291,49 @@ onAuthStateChanged(
 
 
         usuarioActual =
-        usuario;
+            usuario;
 
 
-        usuarioElemento.textContent =
-        "Sesión activa: " +
-        (
-            usuario.email ||
-            "Usuario autenticado"
+        console.log(
+            "GESBASE - Usuario:",
+            usuarioActual.uid
         );
 
 
-        await cargarPresupuestos();
+        try{
+
+            /*
+             * Cargar en este orden:
+             *
+             * 1. Clientes
+             * 2. Presupuestos
+             * 3. Trabajos
+             */
+
+            await cargarClientes();
+
+            await cargarPresupuestos();
+
+            await cargarTrabajos();
+
+        }
+        catch(error){
+
+            console.error(
+                "ERROR INICIALIZANDO TRABAJOS:",
+                error
+            );
+
+
+            listaTrabajos.innerHTML = `
+                <div class="message">
+                    No se pudo inicializar el módulo Trabajos.
+                    <br><br>
+                    ${escapar(error.message)}
+                </div>
+            `;
+
+        }
 
     }
 );
-
-</script>
-
-</body>
-
-</html>
