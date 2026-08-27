@@ -15,6 +15,11 @@
     content="#111827"
 >
 
+<meta
+    name="description"
+    content="GESBASE - Facturas y control de cobros"
+>
+
 <title>Facturas - GESBASE</title>
 
 <style>
@@ -279,6 +284,10 @@ td{
     margin-bottom:10px;
 }
 
+.estado-ok{
+    color:#166534;
+}
+
 .pdf-link{
     color:#2563eb;
     text-decoration:none;
@@ -310,6 +319,12 @@ td{
 .acciones-tabla button{
     padding:8px 10px;
     font-size:12px;
+}
+
+.info-cliente{
+    margin-top:6px;
+    color:#6b7280;
+    font-size:13px;
 }
 
 @media(max-width:700px){
@@ -409,6 +424,7 @@ td{
             ➕ Nueva factura
         </h2>
 
+
         <div class="aviso">
 
             Seleccioná en cuántos días querés cobrar.
@@ -423,6 +439,8 @@ td{
 
             <div class="grid">
 
+
+                <!-- NÚMERO -->
 
                 <div class="field">
 
@@ -441,6 +459,8 @@ td{
                 </div>
 
 
+                <!-- FECHA -->
+
                 <div class="field">
 
                     <label for="fechaFactura">
@@ -456,22 +476,40 @@ td{
                 </div>
 
 
+                <!-- CLIENTE -->
+
                 <div class="field">
 
                     <label for="cliente">
+
                         Cliente
+
                     </label>
 
-                    <input
-                        type="text"
+
+                    <select
                         id="cliente"
-                        placeholder="Nombre del cliente"
-                        maxlength="150"
                         required
                     >
 
+                        <option value="">
+                            Cargando clientes...
+                        </option>
+
+                    </select>
+
+
+                    <div
+                        id="infoCliente"
+                        class="info-cliente"
+                    >
+                        Seleccioná un cliente para completar el CUIT.
+                    </div>
+
                 </div>
 
+
+                <!-- CUIT -->
 
                 <div class="field">
 
@@ -484,10 +522,13 @@ td{
                         id="cuit"
                         placeholder="CUIT del cliente"
                         maxlength="20"
+                        readonly
                     >
 
                 </div>
 
+
+                <!-- IMPORTE -->
 
                 <div class="field">
 
@@ -506,6 +547,8 @@ td{
 
                 </div>
 
+
+                <!-- DÍAS -->
 
                 <div class="field">
 
@@ -539,6 +582,8 @@ td{
                 </div>
 
 
+                <!-- FECHA COBRO -->
+
                 <div class="field">
 
                     <label for="fechaCobro">
@@ -553,6 +598,8 @@ td{
 
                 </div>
 
+
+                <!-- ESTADO -->
 
                 <div class="field">
 
@@ -574,6 +621,8 @@ td{
 
                 </div>
 
+
+                <!-- PDF -->
 
                 <div class="field full">
 
@@ -768,6 +817,7 @@ td{
 
 // =====================================================
 // FIREBASE
+// MISMA VERSIÓN: 12.18.0
 // =====================================================
 
 import {
@@ -786,7 +836,7 @@ import {
     getDownloadURL
 
 } from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js";
 
 
 import {
@@ -794,7 +844,7 @@ import {
     onAuthStateChanged
 
 } from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 
 import {
@@ -811,7 +861,7 @@ import {
     serverTimestamp
 
 } from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
 // =====================================================
@@ -829,6 +879,8 @@ const almacenamiento =
 let usuarioActual = null;
 
 let facturas = [];
+
+let clientes = [];
 
 
 // =====================================================
@@ -885,6 +937,21 @@ const fechaCobro =
         "fechaCobro"
     );
 
+const clienteSelect =
+    document.getElementById(
+        "cliente"
+    );
+
+const cuitInput =
+    document.getElementById(
+        "cuit"
+    );
+
+const infoCliente =
+    document.getElementById(
+        "infoCliente"
+    );
+
 
 // =====================================================
 // FECHA HOY
@@ -920,7 +987,7 @@ function fechaHoy(){
 
 
 // =====================================================
-// MOSTRAR MENSAJE
+// MENSAJE
 // =====================================================
 
 function mostrarMensaje(
@@ -993,7 +1060,7 @@ function escapeHTML(
 
 
 // =====================================================
-// CALCULAR FECHA DE COBRO
+// CALCULAR FECHA COBRO
 // =====================================================
 
 function calcularFechaCobro(){
@@ -1066,6 +1133,285 @@ function calcularFechaCobro(){
 
 
 // =====================================================
+// CARGAR CLIENTES
+// =====================================================
+
+async function cargarClientes(){
+
+    if(!usuarioActual){
+
+        return;
+
+    }
+
+
+    clienteSelect.innerHTML = `
+
+        <option value="">
+            Cargando clientes...
+        </option>
+
+    `;
+
+
+    try{
+
+        const referencia =
+            collection(
+                db,
+                "clientes"
+            );
+
+
+        const consulta =
+            query(
+                referencia,
+
+                where(
+                    "uid",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
+
+
+        const resultado =
+            await getDocs(
+                consulta
+            );
+
+
+        clientes =
+            [];
+
+
+        resultado.forEach(
+            function(documento){
+
+                const datos =
+                    documento.data();
+
+
+                clientes.push({
+
+                    id:
+                        documento.id,
+
+                    ...datos
+
+                });
+
+            }
+        );
+
+
+        // =============================================
+        // ORDEN ALFABÉTICO
+        // =============================================
+
+        clientes.sort(
+            function(a,b){
+
+                const nombreA =
+                    String(
+                        a.nombre ||
+                        a.empresa ||
+                        ""
+                    ).toLowerCase();
+
+
+                const nombreB =
+                    String(
+                        b.nombre ||
+                        b.empresa ||
+                        ""
+                    ).toLowerCase();
+
+
+                return nombreA.localeCompare(
+                    nombreB,
+                    "es"
+                );
+
+            }
+        );
+
+
+        clienteSelect.innerHTML = `
+
+            <option value="">
+                Seleccioná un cliente
+            </option>
+
+        `;
+
+
+        if(
+            clientes.length === 0
+        ){
+
+            clienteSelect.innerHTML = `
+
+                <option value="">
+                    No tenés clientes registrados
+                </option>
+
+            `;
+
+
+            infoCliente.textContent =
+                "Primero registrá un cliente en GESBASE.";
+
+            return;
+
+        }
+
+
+        clientes.forEach(
+            function(cliente){
+
+                const nombre =
+                    cliente.nombre ||
+                    cliente.empresa ||
+                    "Cliente sin nombre";
+
+
+                const opcion =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                opcion.value =
+                    cliente.id;
+
+
+                opcion.textContent =
+                    nombre;
+
+
+                clienteSelect.appendChild(
+                    opcion
+                );
+
+            }
+        );
+
+
+        infoCliente.textContent =
+            clientes.length +
+            (
+                clientes.length === 1
+                    ? " cliente disponible."
+                    : " clientes disponibles."
+            );
+
+    }
+    catch(error){
+
+        console.error(
+            "ERROR CARGANDO CLIENTES:",
+            error
+        );
+
+
+        clienteSelect.innerHTML = `
+
+            <option value="">
+                No se pudieron cargar los clientes
+            </option>
+
+        `;
+
+
+        infoCliente.textContent =
+            obtenerMensajeError(
+                error
+            );
+
+
+        mostrarMensaje(
+            "No se pudieron cargar los clientes. " +
+            obtenerMensajeError(error),
+            "error"
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// CLIENTE SELECCIONADO
+// =====================================================
+
+clienteSelect.addEventListener(
+    "change",
+    function(){
+
+        const id =
+            clienteSelect.value;
+
+
+        cuitInput.value =
+            "";
+
+
+        if(!id){
+
+            infoCliente.textContent =
+                "Seleccioná un cliente para completar el CUIT.";
+
+            return;
+
+        }
+
+
+        const cliente =
+            clientes.find(
+                function(item){
+
+                    return item.id === id;
+
+                }
+            );
+
+
+        if(!cliente){
+
+            infoCliente.textContent =
+                "No se encontró la información del cliente.";
+
+            return;
+
+        }
+
+
+        const nombre =
+            cliente.nombre ||
+            cliente.empresa ||
+            "Cliente";
+
+
+        const cuit =
+            cliente.cuit ||
+            "";
+
+
+        cuitInput.value =
+            cuit;
+
+
+        infoCliente.textContent =
+            cuit
+                ? nombre + " — CUIT: " + cuit
+                : nombre + " — Sin CUIT registrado.";
+
+    }
+);
+
+
+// =====================================================
 // LIMPIAR FORMULARIO
 // =====================================================
 
@@ -1088,13 +1434,32 @@ function limpiarFormulario(){
         "pendiente";
 
 
+    clienteSelect.value =
+        "";
+
+
+    cuitInput.value =
+        "";
+
+
+    infoCliente.textContent =
+        clientes.length
+            ? clientes.length +
+              (
+                  clientes.length === 1
+                      ? " cliente disponible."
+                      : " clientes disponibles."
+              )
+            : "Primero registrá un cliente en GESBASE.";
+
+
     calcularFechaCobro();
 
 }
 
 
 // =====================================================
-// INICIALIZAR FORMULARIO
+// INICIALIZAR
 // =====================================================
 
 fechaFactura.value =
@@ -1162,6 +1527,8 @@ onAuthStateChanged(
             usuario.email ||
             "Usuario";
 
+
+        await cargarClientes();
 
         await cargarFacturas();
 
@@ -1241,7 +1608,6 @@ async function cargarFacturas(){
             }
         );
 
-
     }
     catch(error){
 
@@ -1250,14 +1616,6 @@ async function cargarFacturas(){
             error
         );
 
-
-        /*
-         * Segunda consulta.
-         *
-         * Esto permite trabajar aunque
-         * Firebase todavía no tenga creado
-         * el índice compuesto.
-         */
 
         try{
 
@@ -1324,9 +1682,13 @@ async function cargarFacturas(){
         catch(error2){
 
             console.error(
-                "Error cargando facturas:",
+                "ERROR CARGANDO FACTURAS:",
                 error2
             );
+
+
+            facturas =
+                [];
 
 
             mostrarMensaje(
@@ -1334,10 +1696,6 @@ async function cargarFacturas(){
                 obtenerMensajeError(error2),
                 "error"
             );
-
-
-            facturas =
-                [];
 
         }
 
@@ -1393,16 +1751,34 @@ formulario.addEventListener(
             ).value;
 
 
+        const clienteId =
+            clienteSelect.value;
+
+
+        const clienteSeleccionado =
+            clientes.find(
+                function(item){
+
+                    return item.id === clienteId;
+
+                }
+            );
+
+
         const cliente =
-            document.getElementById(
-                "cliente"
-            ).value.trim();
+            clienteSeleccionado
+                ?
+                (
+                    clienteSeleccionado.nombre ||
+                    clienteSeleccionado.empresa ||
+                    ""
+                )
+                :
+                "";
 
 
         const cuit =
-            document.getElementById(
-                "cuit"
-            ).value.trim();
+            cuitInput.value.trim();
 
 
         const importe =
@@ -1467,10 +1843,22 @@ formulario.addEventListener(
         }
 
 
+        if(!clienteId || !clienteSeleccionado){
+
+            mostrarMensaje(
+                "Seleccioná un cliente.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
         if(!cliente){
 
             mostrarMensaje(
-                "Ingresá el cliente.",
+                "El cliente seleccionado no tiene nombre.",
                 "error"
             );
 
@@ -1562,11 +1950,6 @@ formulario.addEventListener(
 
             }
 
-
-            /*
-             * Límite de 10 MB para evitar
-             * archivos demasiado grandes.
-             */
 
             if(
                 archivo.size >
@@ -1665,17 +2048,20 @@ formulario.addEventListener(
                         usuarioActual.email ||
                         "",
 
-                    numero:
-                        numero,
-
-                    fechaFactura:
-                        fechaFacturaValor,
+                    clienteId:
+                        clienteId,
 
                     cliente:
                         cliente,
 
                     cuit:
                         cuit,
+
+                    numero:
+                        numero,
+
+                    fechaFactura:
+                        fechaFacturaValor,
 
                     importe:
                         importe,
@@ -1993,7 +2379,7 @@ function mostrarFacturas(){
 
 
 // =====================================================
-// ACCIONES DE TABLA
+// ACCIONES TABLA
 // =====================================================
 
 tabla.addEventListener(
@@ -2080,6 +2466,32 @@ async function marcarCobrada(
 
     try{
 
+        const factura =
+            facturas.find(
+                function(item){
+
+                    return item.id === id;
+
+                }
+            );
+
+
+        if(
+            !factura ||
+            factura.uid !==
+            usuarioActual.uid
+        ){
+
+            mostrarMensaje(
+                "No tenés permiso para modificar esta factura.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
         await updateDoc(
             doc(
                 db,
@@ -2151,11 +2563,24 @@ async function eliminarFactura(
         );
 
 
+    if(
+        !factura ||
+        factura.uid !==
+        usuarioActual.uid
+    ){
+
+        mostrarMensaje(
+            "No tenés permiso para eliminar esta factura.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
     const numero =
-        factura
-        ?
-        factura.numero
-        :
+        factura.numero ||
         "esta factura";
 
 
@@ -2371,7 +2796,7 @@ function formatearFecha(
 
 
 // =====================================================
-// MENSAJES DE ERROR FIREBASE
+// ERRORES FIREBASE
 // =====================================================
 
 function obtenerMensajeError(
