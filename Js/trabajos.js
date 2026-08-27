@@ -1,7 +1,6 @@
 // ==========================================
 // GESBASE - TRABAJOS
 // CLIENTE → PRESUPUESTO → TRABAJO
-// VERSIÓN CORREGIDA
 // ==========================================
 
 import {
@@ -11,14 +10,14 @@ import {
 
 import {
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 import {
     collection,
     getDocs,
     addDoc,
     serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
 // ==========================================
@@ -26,13 +25,10 @@ import {
 // ==========================================
 
 let usuarioActual = null;
-
 let empresaActual = "";
 
 let clientes = [];
-
 let presupuestos = [];
-
 let trabajos = [];
 
 
@@ -91,26 +87,14 @@ window.ocultarFormulario = function(){
 
 
 // ==========================================
-// VOLVER AL PANEL
+// VOLVER
 // ==========================================
 
 window.volverPanel = function(){
 
-    window.location.href =
-        "index.html";
+    window.location.href = "index.html";
 
 };
-
-
-// ==========================================
-// MENSAJE
-// ==========================================
-
-function mostrarMensaje(texto){
-
-    alert(texto);
-
-}
 
 
 // ==========================================
@@ -125,6 +109,17 @@ function escapar(valor){
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+
+}
+
+
+// ==========================================
+// MENSAJE
+// ==========================================
+
+function mostrarMensaje(texto){
+
+    alert(texto);
 
 }
 
@@ -147,7 +142,7 @@ function obtenerEmpresaId(datos){
 
 
 // ==========================================
-// COMPROBAR PROPIEDAD
+// COMPROBAR PERTENENCIA
 // ==========================================
 
 function perteneceAlUsuario(datos){
@@ -159,13 +154,27 @@ function perteneceAlUsuario(datos){
     const uid =
         usuarioActual.uid;
 
-    const empresaId =
-        empresaActual;
+    /*
+     * Primero comprobamos empresa.
+     */
+
+    const idEmpresa =
+        obtenerEmpresaId(datos);
+
+    if(
+        empresaActual &&
+        idEmpresa &&
+        idEmpresa === empresaActual
+    ){
+
+        return true;
+
+    }
 
 
-    // --------------------------------------
-    // 1. PERTENECE DIRECTAMENTE AL USUARIO
-    // --------------------------------------
+    /*
+     * Después comprobamos usuario.
+     */
 
     if(
         datos.usuarioId === uid ||
@@ -180,17 +189,13 @@ function perteneceAlUsuario(datos){
     }
 
 
-    // --------------------------------------
-    // 2. PERTENECE A LA EMPRESA
-    // --------------------------------------
+    /*
+     * Compatibilidad con registros
+     * antiguos que tengan empresaId = UID.
+     */
 
     if(
-        empresaId &&
-        (
-            datos.empresaId === empresaId ||
-            datos.idEmpresa === empresaId ||
-            datos.empresaID === empresaId
-        )
+        datos.empresaId === uid
     ){
 
         return true;
@@ -243,6 +248,12 @@ async function cargarClientes(){
                     documento.data();
 
 
+                /*
+                 * IMPORTANTE:
+                 * Si el cliente pertenece a la
+                 * empresa actual, se muestra.
+                 */
+
                 if(
                     !perteneceAlUsuario(datos)
                 ){
@@ -268,6 +279,7 @@ async function cargarClientes(){
                     datos.nombreEmpresa ||
                     datos.razonSocial ||
                     datos.razon_social ||
+                    datos.nombreCliente ||
                     "Cliente";
 
 
@@ -321,7 +333,7 @@ async function cargarClientes(){
     catch(error){
 
         console.error(
-            "Error cargando clientes:",
+            "GESBASE ERROR CLIENTES:",
             error
         );
 
@@ -332,13 +344,27 @@ async function cargarClientes(){
             </option>
         `;
 
+        /*
+         * Mostrar el error real.
+         */
+
+        console.error(
+            "Código:",
+            error.code
+        );
+
+        console.error(
+            "Mensaje:",
+            error.message
+        );
+
     }
 
 }
 
 
 // ==========================================
-// OBTENER NOMBRE CLIENTE
+// NOMBRE CLIENTE
 // ==========================================
 
 function obtenerNombreCliente(clienteId){
@@ -368,7 +394,7 @@ function obtenerNombreCliente(clienteId){
 
 
 // ==========================================
-// FORMATO MONEDA
+// MONEDA
 // ==========================================
 
 function formatoMoneda(valor){
@@ -387,7 +413,7 @@ function formatoMoneda(valor){
 
 
 // ==========================================
-// OBTENER CLIENTE DEL PRESUPUESTO
+// CLIENTE DEL PRESUPUESTO
 // ==========================================
 
 function obtenerClienteDelPresupuesto(datos){
@@ -414,7 +440,6 @@ async function cargarPresupuestos(){
             Cargando presupuestos...
         </option>
     `;
-
 
     try{
 
@@ -579,7 +604,7 @@ async function cargarPresupuestos(){
     catch(error){
 
         console.error(
-            "Error cargando presupuestos:",
+            "GESBASE ERROR PRESUPUESTOS:",
             error
         );
 
@@ -590,13 +615,23 @@ async function cargarPresupuestos(){
             </option>
         `;
 
+        console.error(
+            "Código:",
+            error.code
+        );
+
+        console.error(
+            "Mensaje:",
+            error.message
+        );
+
     }
 
 }
 
 
 // ==========================================
-// CAMBIO DE PRESUPUESTO
+// CAMBIO PRESUPUESTO
 // ==========================================
 
 presupuestoSelect.addEventListener(
@@ -662,7 +697,7 @@ presupuestoSelect.addEventListener(
 
 
 // ==========================================
-// OBTENER CLIENTE ID DEL TRABAJO
+// CLIENTE DEL TRABAJO
 // ==========================================
 
 function obtenerClienteDelTrabajo(trabajo){
@@ -679,7 +714,7 @@ function obtenerClienteDelTrabajo(trabajo){
 
 
 // ==========================================
-// OBTENER PRESUPUESTO ID DEL TRABAJO
+// PRESUPUESTO DEL TRABAJO
 // ==========================================
 
 function obtenerPresupuestoDelTrabajo(trabajo){
@@ -730,7 +765,7 @@ async function cargarTrabajos(){
 
 
                 console.log(
-                    "Trabajo encontrado:",
+                    "Trabajo:",
                     documento.id,
                     datos
                 );
@@ -776,18 +811,32 @@ async function cargarTrabajos(){
     catch(error){
 
         console.error(
-            "Error cargando trabajos:",
+            "GESBASE ERROR TRABAJOS:",
             error
         );
 
 
         listaTrabajos.innerHTML = `
             <div class="message">
-                No se pudieron cargar los trabajos.
+
+                No se pudieron cargar
+                los trabajos.
+
                 <br><br>
+
+                Código:
                 ${escapar(
-                    error.message
+                    error.code ||
+                    "sin código"
                 )}
+
+                <br><br>
+
+                ${escapar(
+                    error.message ||
+                    "Error desconocido"
+                )}
+
             </div>
         `;
 
@@ -888,23 +937,15 @@ function mostrarTrabajos(lista){
                 "job";
 
 
-            const clienteId =
-                trabajo.clienteId;
-
-
-            const presupuestoId =
-                trabajo.presupuestoId;
-
-
             const cliente =
                 obtenerNombreCliente(
-                    clienteId
+                    trabajo.clienteId
                 );
 
 
             const presupuesto =
                 obtenerNombrePresupuesto(
-                    presupuestoId
+                    trabajo.presupuestoId
                 );
 
 
@@ -1044,7 +1085,7 @@ function mostrarTrabajos(lista){
 
 
 // ==========================================
-// FILTROS
+// FILTRAR
 // ==========================================
 
 window.filtrarTrabajos =
@@ -1084,21 +1125,18 @@ function(){
                     (
                         item.descripcion ||
                         ""
-                    )
-                    .toLowerCase() +
+                    ).toLowerCase() +
                     " " +
                     (
                         item.lugar ||
                         ""
-                    )
-                    .toLowerCase() +
+                    ).toLowerCase() +
                     " " +
                     (
                         obtenerNombreCliente(
                             item.clienteId
                         ) || ""
-                    )
-                    .toLowerCase();
+                    ).toLowerCase();
 
 
                 const coincideTexto =
@@ -1221,10 +1259,6 @@ formulario.addEventListener(
         }
 
 
-        // --------------------------------------
-        // CLIENTE DEL PRESUPUESTO
-        // --------------------------------------
-
         let clienteFinal =
             clienteId;
 
@@ -1256,10 +1290,6 @@ formulario.addEventListener(
 
         }
 
-
-        // --------------------------------------
-        // DATOS DEL TRABAJO
-        // --------------------------------------
 
         const datosTrabajo = {
 
@@ -1344,13 +1374,13 @@ formulario.addEventListener(
         catch(error){
 
             console.error(
-                "Error guardando trabajo:",
+                "GESBASE ERROR GUARDANDO:",
                 error
             );
 
 
             mostrarMensaje(
-                "No se pudo guardar el trabajo:\n\n" +
+                "No se pudo guardar el trabajo.\n\n" +
                 error.message
             );
 
@@ -1384,13 +1414,8 @@ onAuthStateChanged(
 
 
         /*
-         * IMPORTANTE:
-         *
-         * En GESBASE la empresa principal
-         * está vinculada al usuario.
-         *
-         * Por eso usamos el UID como
-         * empresaId cuando corresponde.
+         * La empresa principal de GESBASE
+         * actualmente está vinculada al UID.
          */
 
         empresaActual =
@@ -1398,36 +1423,33 @@ onAuthStateChanged(
 
 
         console.log(
-            "GESBASE usuario:",
-            usuarioActual.uid
+            "================================="
         );
 
+        console.log(
+            "GESBASE TRABAJOS"
+        );
 
         console.log(
-            "GESBASE empresa actual:",
+            "Usuario:",
+            usuario.uid
+        );
+
+        console.log(
+            "Empresa:",
             empresaActual
+        );
+
+        console.log(
+            "================================="
         );
 
 
         try{
 
-            // ------------------------------
-            // 1. CLIENTES
-            // ------------------------------
-
             await cargarClientes();
 
-
-            // ------------------------------
-            // 2. PRESUPUESTOS
-            // ------------------------------
-
             await cargarPresupuestos();
-
-
-            // ------------------------------
-            // 3. TRABAJOS
-            // ------------------------------
 
             await cargarTrabajos();
 
@@ -1442,8 +1464,7 @@ onAuthStateChanged(
 
             listaTrabajos.innerHTML = `
                 <div class="message">
-                    No se pudo inicializar
-                    el módulo Trabajos.
+                    Error inicializando Trabajos.
                     <br><br>
                     ${escapar(
                         error.message
