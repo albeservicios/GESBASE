@@ -1,13 +1,9 @@
 // ==========================================
 // GESBASE - TRABAJOS
-// CLIENTE → PRESUPUESTO → TRABAJO
-// Firebase 12.18.0
+// VERSIÓN CORREGIDA
 // ==========================================
 
-import {
-    auth,
-    db
-} from "./firebase.js";
+import { auth, db } from "./firebase.js";
 
 import {
     onAuthStateChanged
@@ -17,6 +13,8 @@ import {
     collection,
     getDocs,
     addDoc,
+    query,
+    where,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
@@ -26,8 +24,7 @@ import {
 // ==========================================
 
 let usuarioActual = null;
-let empresaActualId = "";
-
+let empresaIdActual = "";
 let clientes = [];
 let presupuestos = [];
 let trabajos = [];
@@ -51,34 +48,17 @@ const presupuestoSelect =
 
 
 // ==========================================
-// VALIDAR FIREBASE
-// ==========================================
-
-if (!db) {
-
-    console.error(
-        "GESBASE: Firestore no está disponible."
-    );
-
-}
-
-
-// ==========================================
-// FORMULARIO
+// FUNCIONES DEL HTML
 // ==========================================
 
 window.mostrarFormulario = function(){
 
     const formularioTrabajo =
-        document.getElementById(
-            "formularioTrabajo"
-        );
+        document.getElementById("formularioTrabajo");
 
     if(formularioTrabajo){
 
-        formularioTrabajo.classList.remove(
-            "hidden"
-        );
+        formularioTrabajo.classList.remove("hidden");
 
         window.scrollTo({
             top: 0,
@@ -93,42 +73,74 @@ window.mostrarFormulario = function(){
 window.ocultarFormulario = function(){
 
     const formularioTrabajo =
-        document.getElementById(
-            "formularioTrabajo"
-        );
+        document.getElementById("formularioTrabajo");
 
     if(formularioTrabajo){
 
-        formularioTrabajo.classList.add(
-            "hidden"
-        );
+        formularioTrabajo.classList.add("hidden");
 
     }
 
 };
 
 
-// ==========================================
-// VOLVER
-// ==========================================
-
 window.volverPanel = function(){
 
-    window.location.href =
-        "index.html";
+    window.location.href = "index.html";
 
 };
 
 
-// ==========================================
-// MENSAJE
-// ==========================================
+window.filtrarTrabajos = function(){
 
-function mostrarMensaje(texto){
+    const input =
+        document.getElementById("buscarTrabajo");
 
-    alert(texto);
+    const filtro =
+        document.getElementById("filtroEstado");
 
-}
+    const texto =
+        input
+        ? input.value.toLowerCase().trim()
+        : "";
+
+    const estado =
+        filtro
+        ? filtro.value
+        : "";
+
+    const resultado =
+        trabajos.filter(trabajo => {
+
+            const descripcion =
+                String(
+                    trabajo.descripcion || ""
+                ).toLowerCase();
+
+            const lugar =
+                String(
+                    trabajo.lugar || ""
+                ).toLowerCase();
+
+            const coincideTexto =
+                !texto ||
+                descripcion.includes(texto) ||
+                lugar.includes(texto);
+
+            const coincideEstado =
+                !estado ||
+                trabajo.estado === estado;
+
+            return (
+                coincideTexto &&
+                coincideEstado
+            );
+
+        });
+
+    mostrarTrabajos(resultado);
+
+};
 
 
 // ==========================================
@@ -138,90 +150,56 @@ function mostrarMensaje(texto){
 function escapar(valor){
 
     return String(valor ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
 
 }
 
 
 // ==========================================
-// OBTENER EMPRESA ID
+// OBTENER EMPRESA
 // ==========================================
 
-function obtenerEmpresaId(datos){
-
-    return String(
-        datos?.empresaId ||
-        datos?.idEmpresa ||
-        datos?.empresaID ||
-        datos?.empresa ||
-        ""
-    ).trim();
-
-}
-
-
-// ==========================================
-// DETERMINAR EMPRESA DEL USUARIO
-// ==========================================
-
-async function obtenerEmpresaActual(){
+async function obtenerEmpresa(){
 
     if(!usuarioActual){
-
         return "";
-
     }
 
     try{
 
-        const usuarioId =
-            usuarioActual.uid;
-
-        /*
-         * Primero buscamos el documento
-         * del usuario.
-         */
-
-        const {
-            doc,
-            getDoc
-        } =
-        await import(
-            "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js"
-        );
-
-
         const referencia =
-            doc(
-                db,
-                "usuarios",
-                usuarioId
+            await getDocs(
+                query(
+                    collection(
+                        db,
+                        "usuarios"
+                    ),
+                    where(
+                        "__name__",
+                        "==",
+                        usuarioActual.uid
+                    )
+                )
             );
 
-
-        const documento =
-            await getDoc(
-                referencia
-            );
-
-
-        if(documento.exists()){
+        if(
+            !referencia.empty
+        ){
 
             const datos =
-                documento.data();
+                referencia.docs[0].data();
 
-            const empresaId =
-                obtenerEmpresaId(datos);
-
-            if(empresaId){
-
-                return empresaId;
-
-            }
+            return String(
+                datos.empresaId ||
+                datos.idEmpresa ||
+                datos.empresaID ||
+                datos.empresa ||
+                usuarioActual.uid
+            ).trim();
 
         }
 
@@ -229,80 +207,13 @@ async function obtenerEmpresaActual(){
     catch(error){
 
         console.warn(
-            "No se pudo obtener empresa desde usuarios:",
+            "No se pudo obtener empresa:",
             error
         );
 
     }
 
-
-    /*
-     * Si no existe empresaId,
-     * utilizamos el UID como estructura
-     * compatible con GESBASE actual.
-     */
-
     return usuarioActual.uid;
-
-}
-
-
-// ==========================================
-// COMPROBAR PROPIEDAD
-// ==========================================
-
-function perteneceALaEmpresa(datos){
-
-    if(!usuarioActual){
-
-        return false;
-
-    }
-
-
-    const uid =
-        usuarioActual.uid;
-
-
-    const empresaId =
-        empresaActualId;
-
-
-    /*
-     * Si tiene empresaId,
-     * primero comprobamos empresa.
-     */
-
-    if(empresaId){
-
-        const empresaDato =
-            obtenerEmpresaId(datos);
-
-        if(
-            empresaDato &&
-            empresaDato === empresaId
-        ){
-
-            return true;
-
-        }
-
-    }
-
-
-    /*
-     * Compatibilidad con documentos
-     * antiguos de GESBASE.
-     */
-
-    return (
-        datos.usuarioId === uid ||
-        datos.uid === uid ||
-        datos.ownerId === uid ||
-        datos.creadoPor === uid ||
-        datos.usuario === uid ||
-        datos.empresaId === uid
-    );
 
 }
 
@@ -319,23 +230,51 @@ async function cargarClientes(){
         </option>
     `;
 
+    clientes = [];
 
     try{
 
-        const referencia =
-            collection(
-                db,
-                "clientes"
+        /*
+         * Primero intentamos cargar
+         * los clientes de la empresa.
+         */
+
+        let snapshot;
+
+        try{
+
+            snapshot =
+                await getDocs(
+                    query(
+                        collection(
+                            db,
+                            "clientes"
+                        ),
+                        where(
+                            "empresaId",
+                            "==",
+                            empresaIdActual
+                        )
+                    )
+                );
+
+        }
+        catch(error){
+
+            console.warn(
+                "Filtro empresaId falló. Cargando clientes generales.",
+                error
             );
 
+            snapshot =
+                await getDocs(
+                    collection(
+                        db,
+                        "clientes"
+                    )
+                );
 
-        const snapshot =
-            await getDocs(
-                referencia
-            );
-
-
-        clientes = [];
+        }
 
 
         clienteSelect.innerHTML = `
@@ -345,77 +284,77 @@ async function cargarClientes(){
         `;
 
 
-        snapshot.forEach(
-            function(documento){
+        snapshot.forEach(documento => {
 
-                const datos =
-                    documento.data();
+            const datos =
+                documento.data();
 
+            /*
+             * Si el documento tiene empresaId,
+             * verificamos que corresponda.
+             *
+             * Si no tiene empresaId,
+             * también lo mostramos para no
+             * perder clientes existentes.
+             */
 
-                if(
-                    !perteneceALaEmpresa(
-                        datos
-                    )
-                ){
+            if(
+                datos.empresaId &&
+                String(datos.empresaId) !==
+                String(empresaIdActual)
+            ){
 
-                    return;
-
-                }
-
-
-                const nombreCompleto =
-                    [
-                        datos.nombre,
-                        datos.apellido
-                    ]
-                    .filter(Boolean)
-                    .join(" ")
-                    .trim();
-
-
-                const nombreFinal =
-                    nombreCompleto ||
-                    datos.empresa ||
-                    datos.nombreEmpresa ||
-                    datos.razonSocial ||
-                    datos.razon_social ||
-                    "Cliente";
-
-
-                clientes.push({
-
-                    id:
-                        documento.id,
-
-                    nombre:
-                        nombreFinal,
-
-                    datos:
-                        datos
-
-                });
-
-
-                const opcion =
-                    document.createElement(
-                        "option"
-                    );
-
-
-                opcion.value =
-                    documento.id;
-
-
-                opcion.textContent =
-                    nombreFinal;
-
-
-                clienteSelect.appendChild(
-                    opcion
-                );
+                return;
 
             }
-        );
+
+
+            const nombre =
+                [
+                    datos.nombre,
+                    datos.apellido
+                ]
+                .filter(Boolean)
+                .join(" ")
+                .trim();
+
+
+            const nombreFinal =
+                nombre ||
+                datos.nombreEmpresa ||
+                datos.empresa ||
+                datos.razonSocial ||
+                datos.razon_social ||
+                "Cliente";
+
+
+            clientes.push({
+
+                id: documento.id,
+
+                nombre: nombreFinal,
+
+                datos: datos
+
+            });
+
+
+            const opcion =
+                document.createElement("option");
+
+
+            opcion.value =
+                documento.id;
+
+            opcion.textContent =
+                nombreFinal;
+
+
+            clienteSelect.appendChild(
+                opcion
+            );
+
+        });
 
 
         if(!clientes.length){
@@ -432,10 +371,9 @@ async function cargarClientes(){
     catch(error){
 
         console.error(
-            "GESBASE - Error cargando clientes:",
+            "ERROR CLIENTES:",
             error
         );
-
 
         clienteSelect.innerHTML = `
             <option value="">
@@ -444,75 +382,6 @@ async function cargarClientes(){
         `;
 
     }
-
-}
-
-
-// ==========================================
-// NOMBRE CLIENTE
-// ==========================================
-
-function obtenerNombreCliente(clienteId){
-
-    if(!clienteId){
-
-        return "Sin cliente";
-
-    }
-
-
-    const cliente =
-        clientes.find(
-            function(item){
-
-                return (
-                    item.id ===
-                    clienteId
-                );
-
-            }
-        );
-
-
-    return cliente
-        ? cliente.nombre
-        : "Cliente asociado";
-
-}
-
-
-// ==========================================
-// MONEDA
-// ==========================================
-
-function formatoMoneda(valor){
-
-    return Number(
-        valor || 0
-    ).toLocaleString(
-        "es-AR",
-        {
-            style: "currency",
-            currency: "ARS"
-        }
-    );
-
-}
-
-
-// ==========================================
-// CLIENTE DEL PRESUPUESTO
-// ==========================================
-
-function obtenerClienteDelPresupuesto(datos){
-
-    return (
-        datos.clienteId ||
-        datos.idCliente ||
-        datos.clienteID ||
-        datos.cliente_id ||
-        ""
-    );
 
 }
 
@@ -529,23 +398,46 @@ async function cargarPresupuestos(){
         </option>
     `;
 
+    presupuestos = [];
 
     try{
 
-        const referencia =
-            collection(
-                db,
-                "presupuestos"
+        let snapshot;
+
+        try{
+
+            snapshot =
+                await getDocs(
+                    query(
+                        collection(
+                            db,
+                            "presupuestos"
+                        ),
+                        where(
+                            "empresaId",
+                            "==",
+                            empresaIdActual
+                        )
+                    )
+                );
+
+        }
+        catch(error){
+
+            console.warn(
+                "Filtro de presupuestos falló.",
+                error
             );
 
+            snapshot =
+                await getDocs(
+                    collection(
+                        db,
+                        "presupuestos"
+                    )
+                );
 
-        const snapshot =
-            await getDocs(
-                referencia
-            );
-
-
-        presupuestos = [];
+        }
 
 
         presupuestoSelect.innerHTML = `
@@ -555,136 +447,124 @@ async function cargarPresupuestos(){
         `;
 
 
-        snapshot.forEach(
-            function(documento){
+        snapshot.forEach(documento => {
 
-                const datos =
-                    documento.data();
-
-
-                if(
-                    !perteneceALaEmpresa(
-                        datos
-                    )
-                ){
-
-                    return;
-
-                }
+            const datos =
+                documento.data();
 
 
-                const clienteId =
-                    obtenerClienteDelPresupuesto(
-                        datos
-                    );
+            if(
+                datos.empresaId &&
+                String(datos.empresaId) !==
+                String(empresaIdActual)
+            ){
 
-
-                const numero =
-                    datos.numero ||
-                    datos.numeroPresupuesto ||
-                    datos.codigo ||
-                    datos.nro ||
-                    "";
-
-
-                const descripcion =
-                    datos.descripcion ||
-                    datos.titulo ||
-                    datos.concepto ||
-                    datos.detalle ||
-                    "Presupuesto";
-
-
-                const total =
-                    Number(
-                        datos.total ??
-                        datos.totalFinal ??
-                        datos.importe ??
-                        datos.monto ??
-                        0
-                    );
-
-
-                const item = {
-
-                    id:
-                        documento.id,
-
-                    clienteId:
-                        clienteId,
-
-                    numero:
-                        numero,
-
-                    descripcion:
-                        descripcion,
-
-                    total:
-                        total,
-
-                    datos:
-                        datos
-
-                };
-
-
-                presupuestos.push(
-                    item
-                );
-
-
-                let texto = "";
-
-
-                if(numero){
-
-                    texto +=
-                        "N.º " +
-                        numero +
-                        " — ";
-
-                }
-
-
-                texto +=
-                    descripcion;
-
-
-                if(total > 0){
-
-                    texto +=
-                        " — " +
-                        formatoMoneda(
-                            total
-                        );
-
-                }
-
-
-                const opcion =
-                    document.createElement(
-                        "option"
-                    );
-
-
-                opcion.value =
-                    documento.id;
-
-
-                opcion.textContent =
-                    texto;
-
-
-                opcion.dataset.clienteId =
-                    clienteId;
-
-
-                presupuestoSelect.appendChild(
-                    opcion
-                );
+                return;
 
             }
-        );
+
+
+            const clienteId =
+                datos.clienteId ||
+                datos.idCliente ||
+                datos.clienteID ||
+                datos.cliente_id ||
+                "";
+
+
+            const numero =
+                datos.numero ||
+                datos.numeroPresupuesto ||
+                datos.codigo ||
+                datos.nro ||
+                "";
+
+
+            const descripcion =
+                datos.descripcion ||
+                datos.titulo ||
+                datos.concepto ||
+                datos.detalle ||
+                "Presupuesto";
+
+
+            const total =
+                Number(
+                    datos.total ??
+                    datos.totalFinal ??
+                    datos.importe ??
+                    datos.monto ??
+                    0
+                );
+
+
+            presupuestos.push({
+
+                id: documento.id,
+
+                clienteId: clienteId,
+
+                numero: numero,
+
+                descripcion: descripcion,
+
+                total: total,
+
+                datos: datos
+
+            });
+
+
+            let texto = "";
+
+
+            if(numero){
+
+                texto +=
+                    "N.º " +
+                    numero +
+                    " — ";
+
+            }
+
+
+            texto += descripcion;
+
+
+            if(total > 0){
+
+                texto +=
+                    " — " +
+                    Number(total).toLocaleString(
+                        "es-AR",
+                        {
+                            style:"currency",
+                            currency:"ARS"
+                        }
+                    );
+
+            }
+
+
+            const opcion =
+                document.createElement("option");
+
+
+            opcion.value =
+                documento.id;
+
+            opcion.textContent =
+                texto;
+
+            opcion.dataset.clienteId =
+                clienteId;
+
+
+            presupuestoSelect.appendChild(
+                opcion
+            );
+
+        });
 
 
         if(!presupuestos.length){
@@ -701,10 +581,9 @@ async function cargarPresupuestos(){
     catch(error){
 
         console.error(
-            "GESBASE - Error cargando presupuestos:",
+            "ERROR PRESUPUESTOS:",
             error
         );
-
 
         presupuestoSelect.innerHTML = `
             <option value="">
@@ -718,64 +597,39 @@ async function cargarPresupuestos(){
 
 
 // ==========================================
-// CAMBIO DE PRESUPUESTO
+// PRESUPUESTO → CLIENTE
 // ==========================================
 
 presupuestoSelect.addEventListener(
     "change",
     function(){
 
-        const presupuestoId =
-            this.value;
-
-
-        if(!presupuestoId){
-
-            return;
-
-        }
-
-
         const presupuesto =
             presupuestos.find(
-                function(item){
-
-                    return (
-                        item.id ===
-                        presupuestoId
-                    );
-
-                }
+                item =>
+                    item.id === this.value
             );
 
 
         if(
-            !presupuesto ||
-            !presupuesto.clienteId
+            presupuesto &&
+            presupuesto.clienteId
         ){
 
-            return;
-
-        }
-
-
-        const clienteExiste =
-            clientes.some(
-                function(item){
-
-                    return (
-                        item.id ===
+            const existe =
+                clientes.some(
+                    cliente =>
+                        cliente.id ===
                         presupuesto.clienteId
-                    );
-
-                }
-            );
+                );
 
 
-        if(clienteExiste){
+            if(existe){
 
-            clienteSelect.value =
-                presupuesto.clienteId;
+                clienteSelect.value =
+                    presupuesto.clienteId;
+
+            }
 
         }
 
@@ -784,144 +638,36 @@ presupuestoSelect.addEventListener(
 
 
 // ==========================================
-// CARGAR TRABAJOS
+// OBTENER NOMBRE CLIENTE
 // ==========================================
 
-async function cargarTrabajos(){
+function obtenerNombreCliente(
+    clienteId
+){
 
-    listaTrabajos.innerHTML = `
-        <div class="message">
-            Cargando trabajos...
-        </div>
-    `;
+    if(!clienteId){
 
-
-    try{
-
-        const referencia =
-            collection(
-                db,
-                "trabajos"
-            );
-
-
-        console.log(
-            "GESBASE: cargando colección trabajos",
-            referencia
-        );
-
-
-        const snapshot =
-            await getDocs(
-                referencia
-            );
-
-
-        trabajos = [];
-
-
-        snapshot.forEach(
-            function(documento){
-
-                const datos =
-                    documento.data();
-
-
-                /*
-                 * IMPORTANTE:
-                 * mostramos únicamente los trabajos
-                 * pertenecientes a la empresa.
-                 */
-
-                if(
-                    !perteneceALaEmpresa(
-                        datos
-                    )
-                ){
-
-                    return;
-
-                }
-
-
-                trabajos.push({
-
-                    id:
-                        documento.id,
-
-                    ...datos
-
-                });
-
-            }
-        );
-
-
-        /*
-         * Ordenar por fecha de creación
-         * cuando exista timestamp.
-         */
-
-        trabajos.sort(
-            function(a,b){
-
-                const fechaA =
-                    a.creado?.seconds ||
-                    0;
-
-                const fechaB =
-                    b.creado?.seconds ||
-                    0;
-
-                return fechaB - fechaA;
-
-            }
-        );
-
-
-        mostrarTrabajos(
-            trabajos
-        );
+        return "Sin cliente";
 
     }
-    catch(error){
 
-        console.error(
-            "GESBASE - Error cargando trabajos:",
-            error
+
+    const cliente =
+        clientes.find(
+            item =>
+                item.id === clienteId
         );
 
 
-        listaTrabajos.innerHTML = `
-            <div class="message">
-                <strong>
-                    No se pudieron cargar los trabajos.
-                </strong>
-
-                <br><br>
-
-                Código:
-                ${escapar(
-                    error.code ||
-                    "sin código"
-                )}
-
-                <br><br>
-
-                ${escapar(
-                    error.message ||
-                    "Error desconocido"
-                )}
-            </div>
-        `;
-
-    }
+    return cliente
+        ? cliente.nombre
+        : "Cliente asociado";
 
 }
 
 
 // ==========================================
-// NOMBRE PRESUPUESTO
+// OBTENER NOMBRE PRESUPUESTO
 // ==========================================
 
 function obtenerNombrePresupuesto(
@@ -937,14 +683,8 @@ function obtenerNombrePresupuesto(
 
     const presupuesto =
         presupuestos.find(
-            function(item){
-
-                return (
-                    item.id ===
-                    presupuestoId
-                );
-
-            }
+            item =>
+                item.id === presupuestoId
         );
 
 
@@ -978,6 +718,146 @@ function obtenerNombrePresupuesto(
 
 
 // ==========================================
+// CARGAR TRABAJOS
+// ==========================================
+
+async function cargarTrabajos(){
+
+    listaTrabajos.innerHTML = `
+        <div class="message">
+            Cargando trabajos...
+        </div>
+    `;
+
+    trabajos = [];
+
+    try{
+
+        /*
+         * IMPORTANTE:
+         * collection() recibe directamente
+         * db + nombre de colección.
+         */
+
+        const referencia =
+            collection(
+                db,
+                "trabajos"
+            );
+
+
+        const snapshot =
+            await getDocs(
+                referencia
+            );
+
+
+        snapshot.forEach(documento => {
+
+            const datos =
+                documento.data();
+
+
+            /*
+             * Aceptamos trabajos antiguos
+             * y nuevos.
+             */
+
+            const perteneceEmpresa =
+                !datos.empresaId ||
+                String(datos.empresaId) ===
+                String(empresaIdActual);
+
+
+            const perteneceUsuario =
+                !datos.usuarioId ||
+                String(datos.usuarioId) ===
+                String(usuarioActual.uid);
+
+
+            if(
+                !perteneceEmpresa &&
+                !perteneceUsuario
+            ){
+
+                return;
+
+            }
+
+
+            trabajos.push({
+
+                id: documento.id,
+
+                ...datos
+
+            });
+
+        });
+
+
+        /*
+         * Ordenar del más reciente
+         * al más antiguo.
+         */
+
+        trabajos.sort(
+            (a,b) => {
+
+                const fechaA =
+                    a.creado?.seconds ||
+                    a.createdAt?.seconds ||
+                    0;
+
+                const fechaB =
+                    b.creado?.seconds ||
+                    b.createdAt?.seconds ||
+                    0;
+
+                return fechaB - fechaA;
+
+            }
+        );
+
+
+        mostrarTrabajos(
+            trabajos
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "ERROR CARGANDO TRABAJOS:",
+            error
+        );
+
+        listaTrabajos.innerHTML = `
+            <div class="message"
+                 style="background:#fee2e2;color:#991b1b;">
+
+                <strong>
+                    No se pudieron cargar los trabajos.
+                </strong>
+
+                <br><br>
+
+                Código:
+                ${escapar(error.code || "sin código")}
+
+                <br>
+
+                ${escapar(error.message || "")}
+
+            </div>
+        `;
+
+    }
+
+}
+
+
+// ==========================================
 // MOSTRAR TRABAJOS
 // ==========================================
 
@@ -999,468 +879,363 @@ function mostrarTrabajos(lista){
     listaTrabajos.innerHTML = "";
 
 
-    lista.forEach(
-        function(trabajo){
+    lista.forEach(trabajo => {
 
-            const elemento =
-                document.createElement(
-                    "article"
-                );
+        const elemento =
+            document.createElement("article");
 
 
-            elemento.className =
-                "job";
+        elemento.className =
+            "job";
 
 
-            const cliente =
-                obtenerNombreCliente(
-                    trabajo.clienteId ||
-                    trabajo.idCliente
-                );
-
-
-            const presupuesto =
-                obtenerNombrePresupuesto(
-                    trabajo.presupuestoId ||
-                    trabajo.idPresupuesto
-                );
-
-
-            elemento.innerHTML = `
-
-                <div class="job-header">
-
-                    <div>
-
-                        <div class="job-title">
-
-                            ${escapar(
-                                trabajo.descripcion ||
-                                "Trabajo sin descripción"
-                            )}
-
-                        </div>
-
-                    </div>
-
-                    <span class="status">
-
-                        ${escapar(
-                            trabajo.estado ||
-                            "Pendiente"
-                        )}
-
-                    </span>
-
-                </div>
-
-
-                <div class="job-info">
-
-                    <div>
-
-                        <strong>
-                            Cliente:
-                        </strong>
-
-                        ${escapar(cliente)}
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            Presupuesto:
-                        </strong>
-
-                        ${escapar(presupuesto)}
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            Lugar:
-                        </strong>
-
-                        ${escapar(
-                            trabajo.lugar ||
-                            "No indicado"
-                        )}
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            Fecha inicio:
-                        </strong>
-
-                        ${escapar(
-                            trabajo.fechaInicio ||
-                            "No indicada"
-                        )}
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            Fecha fin:
-                        </strong>
-
-                        ${escapar(
-                            trabajo.fechaFin ||
-                            "No indicada"
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                ${
-                    trabajo.observaciones
-                    ? `
-                        <div style="
-                            margin-top:12px;
-                            color:#6b7280;
-                            font-size:14px;
-                        ">
-
-                            <strong>
-                                Observaciones:
-                            </strong>
-
-                            <br>
-
-                            ${escapar(
-                                trabajo.observaciones
-                            )}
-
-                        </div>
-                    `
-                    : ""
-                }
-
-            `;
-
-
-            listaTrabajos.appendChild(
-                elemento
+        const cliente =
+            obtenerNombreCliente(
+                trabajo.clienteId ||
+                trabajo.idCliente ||
+                ""
             );
 
-        }
-    );
+
+        const presupuesto =
+            obtenerNombrePresupuesto(
+                trabajo.presupuestoId ||
+                trabajo.idPresupuesto ||
+                ""
+            );
+
+
+        elemento.innerHTML = `
+
+            <div class="job-header">
+
+                <div>
+
+                    <div class="job-title">
+
+                        ${escapar(
+                            trabajo.descripcion ||
+                            trabajo.titulo ||
+                            "Trabajo sin descripción"
+                        )}
+
+                    </div>
+
+                </div>
+
+                <span class="status">
+
+                    ${escapar(
+                        trabajo.estado ||
+                        "Pendiente"
+                    )}
+
+                </span>
+
+            </div>
+
+
+            <div class="job-info">
+
+                <div>
+
+                    <strong>
+                        Cliente:
+                    </strong>
+
+                    ${escapar(cliente)}
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Presupuesto:
+                    </strong>
+
+                    ${escapar(presupuesto)}
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Lugar:
+                    </strong>
+
+                    ${escapar(
+                        trabajo.lugar ||
+                        trabajo.direccion ||
+                        "No indicado"
+                    )}
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Fecha inicio:
+                    </strong>
+
+                    ${escapar(
+                        trabajo.fechaInicio ||
+                        "No indicada"
+                    )}
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Fecha fin:
+                    </strong>
+
+                    ${escapar(
+                        trabajo.fechaFin ||
+                        "No indicada"
+                    )}
+
+                </div>
+
+            </div>
+
+
+            ${
+                trabajo.observaciones
+                ? `
+
+                    <div style="
+                        margin-top:12px;
+                        color:#6b7280;
+                        font-size:14px;
+                    ">
+
+                        <strong>
+                            Observaciones:
+                        </strong>
+
+                        <br>
+
+                        ${escapar(
+                            trabajo.observaciones
+                        )}
+
+                    </div>
+
+                `
+                : ""
+            }
+
+        `;
+
+
+        listaTrabajos.appendChild(
+            elemento
+        );
+
+    });
 
 }
-
-
-// ==========================================
-// FILTROS
-// ==========================================
-
-window.filtrarTrabajos =
-function(){
-
-    const input =
-        document.getElementById(
-            "buscarTrabajo"
-        );
-
-
-    const filtro =
-        document.getElementById(
-            "filtroEstado"
-        );
-
-
-    const texto =
-        input
-        ? input.value
-            .toLowerCase()
-            .trim()
-        : "";
-
-
-    const estado =
-        filtro
-        ? filtro.value
-        : "";
-
-
-    const resultado =
-        trabajos.filter(
-            function(item){
-
-                const contenido =
-                    (
-                        item.descripcion ||
-                        ""
-                    )
-                    .toLowerCase() +
-                    " " +
-                    (
-                        item.lugar ||
-                        ""
-                    )
-                    .toLowerCase();
-
-
-                const coincideTexto =
-                    !texto ||
-                    contenido.includes(
-                        texto
-                    );
-
-
-                const coincideEstado =
-                    !estado ||
-                    item.estado === estado;
-
-
-                return (
-                    coincideTexto &&
-                    coincideEstado
-                );
-
-            }
-        );
-
-
-    mostrarTrabajos(
-        resultado
-    );
-
-};
 
 
 // ==========================================
 // GUARDAR TRABAJO
 // ==========================================
 
-formulario.addEventListener(
-    "submit",
-    async function(event){
+if(formulario){
 
-        event.preventDefault();
+    formulario.addEventListener(
+        "submit",
+        async function(event){
 
-
-        if(!usuarioActual){
-
-            mostrarMensaje(
-                "No hay una sesión activa."
-            );
-
-            return;
-
-        }
+            event.preventDefault();
 
 
-        const clienteId =
-            clienteSelect.value;
+            if(!usuarioActual){
+
+                alert(
+                    "No hay una sesión activa."
+                );
+
+                return;
+
+            }
 
 
-        const presupuestoId =
-            presupuestoSelect.value;
+            const clienteId =
+                clienteSelect.value;
 
 
-        const descripcion =
-            document
-            .getElementById(
-                "descripcion"
-            )
-            .value
-            .trim();
+            const presupuestoId =
+                presupuestoSelect.value;
 
 
-        const lugar =
-            document
-            .getElementById(
-                "lugar"
-            )
-            .value
-            .trim();
+            const descripcion =
+                document
+                .getElementById("descripcion")
+                .value
+                .trim();
 
 
-        const estado =
-            document
-            .getElementById(
-                "estado"
-            )
-            .value;
+            const lugar =
+                document
+                .getElementById("lugar")
+                .value
+                .trim();
 
 
-        const fechaInicio =
-            document
-            .getElementById(
-                "fechaInicio"
-            )
-            .value;
+            const estado =
+                document
+                .getElementById("estado")
+                .value;
 
 
-        const fechaFin =
-            document
-            .getElementById(
-                "fechaFin"
-            )
-            .value;
+            const fechaInicio =
+                document
+                .getElementById("fechaInicio")
+                .value;
 
 
-        const observaciones =
-            document
-            .getElementById(
-                "observaciones"
-            )
-            .value
-            .trim();
+            const fechaFin =
+                document
+                .getElementById("fechaFin")
+                .value;
 
 
-        if(!descripcion){
-
-            mostrarMensaje(
-                "Ingresá la descripción del trabajo."
-            );
-
-            return;
-
-        }
+            const observaciones =
+                document
+                .getElementById("observaciones")
+                .value
+                .trim();
 
 
-        let clienteFinal =
-            clienteId;
+            if(!descripcion){
+
+                alert(
+                    "Ingresá la descripción del trabajo."
+                );
+
+                return;
+
+            }
 
 
-        if(presupuestoId){
+            let clienteFinal =
+                clienteId;
 
-            const presupuesto =
-                presupuestos.find(
-                    function(item){
 
-                        return (
+            if(presupuestoId){
+
+                const presupuesto =
+                    presupuestos.find(
+                        item =>
                             item.id ===
                             presupuestoId
-                        );
+                    );
 
-                    }
+
+                if(
+                    presupuesto &&
+                    presupuesto.clienteId
+                ){
+
+                    clienteFinal =
+                        presupuesto.clienteId;
+
+                }
+
+            }
+
+
+            try{
+
+                const datosTrabajo = {
+
+                    usuarioId:
+                        usuarioActual.uid,
+
+                    uid:
+                        usuarioActual.uid,
+
+                    empresaId:
+                        empresaIdActual,
+
+                    clienteId:
+                        clienteFinal || "",
+
+                    presupuestoId:
+                        presupuestoId || "",
+
+                    descripcion:
+                        descripcion,
+
+                    lugar:
+                        lugar,
+
+                    estado:
+                        estado,
+
+                    fechaInicio:
+                        fechaInicio,
+
+                    fechaFin:
+                        fechaFin,
+
+                    observaciones:
+                        observaciones,
+
+                    creado:
+                        serverTimestamp()
+
+                };
+
+
+                await addDoc(
+                    collection(
+                        db,
+                        "trabajos"
+                    ),
+                    datosTrabajo
                 );
 
 
-            if(
-                presupuesto &&
-                presupuesto.clienteId
-            ){
+                alert(
+                    "Trabajo guardado correctamente."
+                );
 
-                clienteFinal =
-                    presupuesto.clienteId;
+
+                formulario.reset();
+
+
+                window.ocultarFormulario();
+
+
+                await cargarTrabajos();
+
+            }
+            catch(error){
+
+                console.error(
+                    "ERROR GUARDANDO TRABAJO:",
+                    error
+                );
+
+
+                alert(
+                    "No se pudo guardar el trabajo.\n\n" +
+                    error.message
+                );
 
             }
 
         }
+    );
 
-
-        try{
-
-            const datosTrabajo = {
-
-                usuarioId:
-                    usuarioActual.uid,
-
-                uid:
-                    usuarioActual.uid,
-
-                empresaId:
-                    empresaActualId ||
-                    usuarioActual.uid,
-
-                clienteId:
-                    clienteFinal || "",
-
-                presupuestoId:
-                    presupuestoId || "",
-
-                descripcion:
-                    descripcion,
-
-                lugar:
-                    lugar,
-
-                estado:
-                    estado,
-
-                fechaInicio:
-                    fechaInicio,
-
-                fechaFin:
-                    fechaFin,
-
-                observaciones:
-                    observaciones,
-
-                creado:
-                    serverTimestamp()
-
-            };
-
-
-            await addDoc(
-                collection(
-                    db,
-                    "trabajos"
-                ),
-                datosTrabajo
-            );
-
-
-            mostrarMensaje(
-                "Trabajo guardado correctamente."
-            );
-
-
-            formulario.reset();
-
-
-            clienteSelect.value =
-                "";
-
-
-            presupuestoSelect.value =
-                "";
-
-
-            window.ocultarFormulario();
-
-
-            await cargarTrabajos();
-
-        }
-        catch(error){
-
-            console.error(
-                "GESBASE - Error guardando trabajo:",
-                error
-            );
-
-
-            mostrarMensaje(
-                "No se pudo guardar el trabajo.\n\n" +
-                "Código: " +
-                (
-                    error.code ||
-                    "sin código"
-                ) +
-                "\n\n" +
-                error.message
-            );
-
-        }
-
-    }
-);
+}
 
 
 // ==========================================
@@ -1488,28 +1263,28 @@ onAuthStateChanged(
 
         try{
 
-            console.log(
-                "GESBASE UID:",
-                usuario.uid
-            );
-
-
             /*
-             * Obtener empresa.
+             * Obtenemos empresa.
              */
 
-            empresaActualId =
-                await obtenerEmpresaActual();
+            empresaIdActual =
+                await obtenerEmpresa();
+
+
+            console.log(
+                "GESBASE UID:",
+                usuarioActual.uid
+            );
 
 
             console.log(
                 "GESBASE empresaId:",
-                empresaActualId
+                empresaIdActual
             );
 
 
             /*
-             * Cargar en orden.
+             * Cargar información.
              */
 
             await cargarClientes();
@@ -1522,25 +1297,18 @@ onAuthStateChanged(
         catch(error){
 
             console.error(
-                "GESBASE - Error inicializando Trabajos:",
+                "ERROR INICIANDO TRABAJOS:",
                 error
             );
 
 
             listaTrabajos.innerHTML = `
-                <div class="message">
+                <div class="message"
+                     style="background:#fee2e2;color:#991b1b;">
 
                     <strong>
-                        No se pudo inicializar el módulo Trabajos.
+                        Error inicializando Trabajos
                     </strong>
-
-                    <br><br>
-
-                    Código:
-                    ${escapar(
-                        error.code ||
-                        "sin código"
-                    )}
 
                     <br><br>
 
