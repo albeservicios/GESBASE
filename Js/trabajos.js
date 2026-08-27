@@ -1,6 +1,7 @@
 // ==========================================
 // GESBASE - TRABAJOS
 // CLIENTE → PRESUPUESTO → TRABAJO
+// VERSIÓN CORREGIDA
 // ==========================================
 
 import {
@@ -10,14 +11,14 @@ import {
 
 import {
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
     collection,
     getDocs,
     addDoc,
     serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
 // ==========================================
@@ -25,6 +26,8 @@ import {
 // ==========================================
 
 let usuarioActual = null;
+
+let empresaActual = "";
 
 let clientes = [];
 
@@ -127,17 +130,18 @@ function escapar(valor){
 
 
 // ==========================================
-// OBTENER ID DE EMPRESA
+// OBTENER EMPRESA
 // ==========================================
 
 function obtenerEmpresaId(datos){
 
-    return (
-        datos.empresaId ||
-        datos.idEmpresa ||
-        datos.empresaID ||
+    return String(
+        datos?.empresaId ||
+        datos?.idEmpresa ||
+        datos?.empresaID ||
+        datos?.empresa ||
         ""
-    );
+    ).trim();
 
 }
 
@@ -148,26 +152,53 @@ function obtenerEmpresaId(datos){
 
 function perteneceAlUsuario(datos){
 
-    const uid =
-        usuarioActual?.uid;
-
-    if(!uid){
+    if(!usuarioActual){
         return false;
     }
 
-    /*
-     * Aceptamos las estructuras
-     * utilizadas actualmente en GESBASE.
-     */
+    const uid =
+        usuarioActual.uid;
 
-    return (
+    const empresaId =
+        empresaActual;
+
+
+    // --------------------------------------
+    // 1. PERTENECE DIRECTAMENTE AL USUARIO
+    // --------------------------------------
+
+    if(
         datos.usuarioId === uid ||
         datos.uid === uid ||
         datos.ownerId === uid ||
         datos.creadoPor === uid ||
-        datos.usuario === uid ||
-        datos.empresaId === uid
-    );
+        datos.usuario === uid
+    ){
+
+        return true;
+
+    }
+
+
+    // --------------------------------------
+    // 2. PERTENECE A LA EMPRESA
+    // --------------------------------------
+
+    if(
+        empresaId &&
+        (
+            datos.empresaId === empresaId ||
+            datos.idEmpresa === empresaId ||
+            datos.empresaID === empresaId
+        )
+    ){
+
+        return true;
+
+    }
+
+
+    return false;
 
 }
 
@@ -194,7 +225,9 @@ async function cargarClientes(){
                 )
             );
 
+
         clientes = [];
+
 
         clienteSelect.innerHTML = `
             <option value="">
@@ -210,7 +243,9 @@ async function cargarClientes(){
                     documento.data();
 
 
-                if(!perteneceAlUsuario(datos)){
+                if(
+                    !perteneceAlUsuario(datos)
+                ){
 
                     return;
 
@@ -409,7 +444,9 @@ async function cargarPresupuestos(){
                     documento.data();
 
 
-                if(!perteneceAlUsuario(datos)){
+                if(
+                    !perteneceAlUsuario(datos)
+                ){
 
                     return;
 
@@ -560,7 +597,6 @@ async function cargarPresupuestos(){
 
 // ==========================================
 // CAMBIO DE PRESUPUESTO
-// SELECCIONAR CLIENTE AUTOMÁTICAMENTE
 // ==========================================
 
 presupuestoSelect.addEventListener(
@@ -626,6 +662,40 @@ presupuestoSelect.addEventListener(
 
 
 // ==========================================
+// OBTENER CLIENTE ID DEL TRABAJO
+// ==========================================
+
+function obtenerClienteDelTrabajo(trabajo){
+
+    return (
+        trabajo.clienteId ||
+        trabajo.idCliente ||
+        trabajo.clienteID ||
+        trabajo.cliente_id ||
+        ""
+    );
+
+}
+
+
+// ==========================================
+// OBTENER PRESUPUESTO ID DEL TRABAJO
+// ==========================================
+
+function obtenerPresupuestoDelTrabajo(trabajo){
+
+    return (
+        trabajo.presupuestoId ||
+        trabajo.idPresupuesto ||
+        trabajo.presupuestoID ||
+        trabajo.presupuesto_id ||
+        ""
+    );
+
+}
+
+
+// ==========================================
 // CARGAR TRABAJOS
 // ==========================================
 
@@ -659,7 +729,16 @@ async function cargarTrabajos(){
                     documento.data();
 
 
-                if(!perteneceAlUsuario(datos)){
+                console.log(
+                    "Trabajo encontrado:",
+                    documento.id,
+                    datos
+                );
+
+
+                if(
+                    !perteneceAlUsuario(datos)
+                ){
 
                     return;
 
@@ -671,7 +750,17 @@ async function cargarTrabajos(){
                     id:
                         documento.id,
 
-                    ...datos
+                    ...datos,
+
+                    clienteId:
+                        obtenerClienteDelTrabajo(
+                            datos
+                        ),
+
+                    presupuestoId:
+                        obtenerPresupuestoDelTrabajo(
+                            datos
+                        )
 
                 });
 
@@ -695,6 +784,10 @@ async function cargarTrabajos(){
         listaTrabajos.innerHTML = `
             <div class="message">
                 No se pudieron cargar los trabajos.
+                <br><br>
+                ${escapar(
+                    error.message
+                )}
             </div>
         `;
 
@@ -795,15 +888,23 @@ function mostrarTrabajos(lista){
                 "job";
 
 
+            const clienteId =
+                trabajo.clienteId;
+
+
+            const presupuestoId =
+                trabajo.presupuestoId;
+
+
             const cliente =
                 obtenerNombreCliente(
-                    trabajo.clienteId
+                    clienteId
                 );
 
 
             const presupuesto =
                 obtenerNombrePresupuesto(
-                    trabajo.presupuestoId
+                    presupuestoId
                 );
 
 
@@ -990,6 +1091,13 @@ function(){
                         item.lugar ||
                         ""
                     )
+                    .toLowerCase() +
+                    " " +
+                    (
+                        obtenerNombreCliente(
+                            item.clienteId
+                        ) || ""
+                    )
                     .toLowerCase();
 
 
@@ -1113,11 +1221,9 @@ formulario.addEventListener(
         }
 
 
-        /*
-         * Si el presupuesto tiene
-         * un cliente asociado,
-         * usamos ese cliente.
-         */
+        // --------------------------------------
+        // CLIENTE DEL PRESUPUESTO
+        // --------------------------------------
 
         let clienteFinal =
             clienteId;
@@ -1151,48 +1257,58 @@ formulario.addEventListener(
         }
 
 
+        // --------------------------------------
+        // DATOS DEL TRABAJO
+        // --------------------------------------
+
+        const datosTrabajo = {
+
+            usuarioId:
+                usuarioActual.uid,
+
+            uid:
+                usuarioActual.uid,
+
+            ownerId:
+                usuarioActual.uid,
+
+            creadoPor:
+                usuarioActual.uid,
+
+            empresaId:
+                empresaActual,
+
+            clienteId:
+                clienteFinal || "",
+
+            presupuestoId:
+                presupuestoId || "",
+
+            descripcion:
+                descripcion,
+
+            lugar:
+                lugar,
+
+            estado:
+                estado,
+
+            fechaInicio:
+                fechaInicio,
+
+            fechaFin:
+                fechaFin,
+
+            observaciones:
+                observaciones,
+
+            creado:
+                serverTimestamp()
+
+        };
+
+
         try{
-
-            const datosTrabajo = {
-
-                usuarioId:
-                    usuarioActual.uid,
-
-                empresaId:
-                    usuarioActual.uid,
-
-                uid:
-                    usuarioActual.uid,
-
-                clienteId:
-                    clienteFinal || "",
-
-                presupuestoId:
-                    presupuestoId || "",
-
-                descripcion:
-                    descripcion,
-
-                lugar:
-                    lugar,
-
-                estado:
-                    estado,
-
-                fechaInicio:
-                    fechaInicio,
-
-                fechaFin:
-                    fechaFin,
-
-                observaciones:
-                    observaciones,
-
-                creado:
-                    serverTimestamp()
-
-            };
-
 
             await addDoc(
                 collection(
@@ -1234,7 +1350,7 @@ formulario.addEventListener(
 
 
             mostrarMensaje(
-                "No se pudo guardar el trabajo: " +
+                "No se pudo guardar el trabajo:\n\n" +
                 error.message
             );
 
@@ -1267,19 +1383,51 @@ onAuthStateChanged(
             usuario;
 
 
+        /*
+         * IMPORTANTE:
+         *
+         * En GESBASE la empresa principal
+         * está vinculada al usuario.
+         *
+         * Por eso usamos el UID como
+         * empresaId cuando corresponde.
+         */
+
+        empresaActual =
+            usuario.uid;
+
+
+        console.log(
+            "GESBASE usuario:",
+            usuarioActual.uid
+        );
+
+
+        console.log(
+            "GESBASE empresa actual:",
+            empresaActual
+        );
+
+
         try{
 
-            /*
-             * Orden de carga:
-             *
-             * 1. Clientes
-             * 2. Presupuestos
-             * 3. Trabajos
-             */
+            // ------------------------------
+            // 1. CLIENTES
+            // ------------------------------
 
             await cargarClientes();
 
+
+            // ------------------------------
+            // 2. PRESUPUESTOS
+            // ------------------------------
+
             await cargarPresupuestos();
+
+
+            // ------------------------------
+            // 3. TRABAJOS
+            // ------------------------------
 
             await cargarTrabajos();
 
@@ -1296,6 +1444,10 @@ onAuthStateChanged(
                 <div class="message">
                     No se pudo inicializar
                     el módulo Trabajos.
+                    <br><br>
+                    ${escapar(
+                        error.message
+                    )}
                 </div>
             `;
 
