@@ -35,12 +35,12 @@ body{
     max-width:900px;
     margin:auto;
     min-height:100vh;
-    background:white;
+    background:#fff;
 }
 
 header{
     background:#111827;
-    color:white;
+    color:#fff;
     padding:22px 18px;
 }
 
@@ -61,7 +61,6 @@ main{
 .barra{
     display:flex;
     gap:10px;
-    flex-wrap:wrap;
     margin-bottom:18px;
 }
 
@@ -79,7 +78,7 @@ main{
 
 .nuevo{
     background:#16a34a;
-    color:white;
+    color:#fff;
     flex:1;
 }
 
@@ -108,7 +107,6 @@ main{
     padding:30px 15px;
     text-align:center;
     color:#6b7280;
-    line-height:1.5;
 }
 
 .error{
@@ -118,7 +116,15 @@ main{
     border-radius:10px;
     line-height:1.5;
     white-space:pre-wrap;
-    display:none;
+}
+
+.info{
+    background:#dbeafe;
+    color:#1e40af;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-size:13px;
 }
 
 .lista{
@@ -131,7 +137,7 @@ main{
     border:1px solid #d1d5db;
     border-radius:12px;
     padding:17px;
-    background:white;
+    background:#fff;
     box-shadow:0 2px 6px rgba(0,0,0,.05);
 }
 
@@ -163,10 +169,6 @@ main{
     line-height:1.4;
 }
 
-.dato strong{
-    font-weight:bold;
-}
-
 .total{
     margin-top:12px;
     padding-top:12px;
@@ -193,34 +195,25 @@ main{
 
 .ver{
     background:#111827;
-    color:white;
+    color:#fff;
 }
 
 .editar{
     background:#2563eb;
-    color:white;
+    color:#fff;
 }
 
 .trabajo{
     grid-column:1 / -1;
     background:#16a34a;
-    color:white;
-}
-
-.recargar{
-    width:100%;
-    margin-top:15px;
-    padding:13px;
-    border:none;
-    border-radius:10px;
-    background:#2563eb;
-    color:white;
-    font-size:14px;
-    font-weight:bold;
-    cursor:pointer;
+    color:#fff;
 }
 
 @media(max-width:500px){
+
+    .barra{
+        flex-direction:column;
+    }
 
     .presupuesto-cabecera{
         flex-direction:column;
@@ -237,7 +230,7 @@ main{
 }
 
 </style></head><body><div class="contenedor"><header><h1>GESBASE</h1><p>Mis presupuestos</p></header><main><div class="barra"><a
-href="./presupuesto.html"
+href="presupuesto.html"
 class="boton nuevo"
 
 «»
@@ -246,7 +239,7 @@ class="boton nuevo"
 </a>
 
 <a
-href="./index.html"
+href="index.html"
 class="boton volver"
 
 «»
@@ -259,11 +252,14 @@ id="buscar"
 class="buscar"
 type="search"
 placeholder="🔎 Buscar presupuesto, cliente o descripción..."
-autocomplete="off"
 
 «»
 
 <div
+    id="estadoConexion"
+    class="info"
+    style="display:none;"
+></div><div
     id="cargando"
     class="cargando"
 >
@@ -271,6 +267,7 @@ Cargando presupuestos...
 </div><div
     id="error"
     class="error"
+    style="display:none;"
 ></div><div
     id="lista"
     class="lista"
@@ -296,9 +293,9 @@ import {
 
 import {
     collection,
+    getDocs,
     query,
-    where,
-    getDocs
+    where
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
@@ -317,6 +314,9 @@ document.getElementById("lista");
 
 const buscar =
 document.getElementById("buscar");
+
+const estadoConexion =
+document.getElementById("estadoConexion");
 
 
 /* =====================================================
@@ -345,14 +345,14 @@ function escapar(valor){
 
 
 /* =====================================================
-   CONVERTIR NÚMERO
+   CONVERTIR A NÚMERO
 ===================================================== */
 
 function numero(valor){
 
     if(
-        valor === undefined ||
         valor === null ||
+        valor === undefined ||
         valor === ""
     ){
 
@@ -361,9 +361,7 @@ function numero(valor){
     }
 
 
-    if(
-        typeof valor === "number"
-    ){
+    if(typeof valor === "number"){
 
         return Number.isFinite(valor)
             ? valor
@@ -378,11 +376,6 @@ function numero(valor){
         .replace(/\$/g,"")
         .replace(/\s/g,"");
 
-
-    /*
-     * Formato argentino:
-     * 1.250.500,50
-     */
 
     if(texto.includes(",")){
 
@@ -410,13 +403,14 @@ function numero(valor){
 
 function dinero(valor){
 
-    return numero(valor).toLocaleString(
-        "es-AR",
-        {
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
-        }
-    );
+    return numero(valor)
+        .toLocaleString(
+            "es-AR",
+            {
+                minimumFractionDigits:2,
+                maximumFractionDigits:2
+            }
+        );
 
 }
 
@@ -489,21 +483,9 @@ function obtenerFecha(datos){
         typeof datos.creado.toDate === "function"
     ){
 
-        try{
-
-            return datos.creado
-                .toDate()
-                .toLocaleDateString("es-AR");
-
-        }
-        catch(error){
-
-            console.warn(
-                "Error convirtiendo fecha:",
-                error
-            );
-
-        }
+        return datos.creado
+            .toDate()
+            .toLocaleDateString("es-AR");
 
     }
 
@@ -513,21 +495,9 @@ function obtenerFecha(datos){
         typeof datos.fechaCreacion.toDate === "function"
     ){
 
-        try{
-
-            return datos.fechaCreacion
-                .toDate()
-                .toLocaleDateString("es-AR");
-
-        }
-        catch(error){
-
-            console.warn(
-                "Error convirtiendo fechaCreacion:",
-                error
-            );
-
-        }
+        return datos.fechaCreacion
+            .toDate()
+            .toLocaleDateString("es-AR");
 
     }
 
@@ -568,95 +538,50 @@ function obtenerDescripcion(datos){
 
 function obtenerTotal(datos){
 
-    /*
-     * Primero usamos el total guardado.
-     */
-
-    if(
-        datos.total !== undefined &&
-        datos.total !== null
-    ){
-
-        return numero(
-            datos.total
-        );
-
-    }
-
-
-    if(
-        datos.totalFinal !== undefined &&
-        datos.totalFinal !== null
-    ){
-
-        return numero(
-            datos.totalFinal
-        );
-
-    }
-
-
-    if(
-        datos.importe !== undefined &&
-        datos.importe !== null
-    ){
-
-        return numero(
-            datos.importe
-        );
-
-    }
-
-
-    if(
-        datos.monto !== undefined &&
-        datos.monto !== null
-    ){
-
-        return numero(
-            datos.monto
-        );
-
-    }
-
-
-    /*
-     * Si no hay total, lo calculamos.
-     */
-
-    const materiales =
+    const totalGuardado =
     numero(
-        datos.materiales ??
-        datos.importeMaterial
+        datos.total ??
+        datos.totalFinal ??
+        datos.importe ??
+        datos.monto
     );
 
 
-    const manoObra =
-    numero(
-        datos.manoObra ??
-        datos.importeManoObra
-    );
+    if(totalGuardado !== 0){
 
+        return totalGuardado;
 
-    const viaticos =
-    numero(
-        datos.viaticos ??
-        datos.importeViaticos
-    );
-
-
-    const flete =
-    numero(
-        datos.flete ??
-        datos.importeFlete
-    );
+    }
 
 
     return (
-        materiales +
-        manoObra +
-        viaticos +
-        flete
+
+        numero(
+            datos.materiales ??
+            datos.importeMaterial
+        )
+
+        +
+
+        numero(
+            datos.manoObra ??
+            datos.importeManoObra
+        )
+
+        +
+
+        numero(
+            datos.viaticos ??
+            datos.importeViaticos
+        )
+
+        +
+
+        numero(
+            datos.flete ??
+            datos.importeFlete
+        )
+
     );
 
 }
@@ -666,16 +591,52 @@ function obtenerTotal(datos){
    MOSTRAR ERROR
 ===================================================== */
 
-function mostrarError(mensaje){
+function mostrarError(error){
+
+    console.error(
+        "GESBASE - ERROR:",
+        error
+    );
+
 
     cargando.style.display =
     "none";
 
+
     listaElemento.style.display =
     "none";
 
+
+    let detalle =
+    "Error desconocido.";
+
+
+    if(error){
+
+        if(error.code){
+
+            detalle +=
+            "\nCódigo: " +
+            error.code;
+
+        }
+
+
+        if(error.message){
+
+            detalle +=
+            "\nDetalle: " +
+            error.message;
+
+        }
+
+    }
+
+
     errorElemento.textContent =
-    mensaje;
+    "No se pudieron cargar los presupuestos.\n\n" +
+    detalle;
+
 
     errorElemento.style.display =
     "block";
@@ -684,21 +645,12 @@ function mostrarError(mensaje){
 
 
 /* =====================================================
-   CARGAR PRESUPUESTOS
+   CARGAR TODOS LOS PRESUPUESTOS
 ===================================================== */
 
 async function cargarPresupuestos(){
 
-    console.log(
-        "GESBASE: iniciando carga de presupuestos"
-    );
-
-
     if(!usuarioActual){
-
-        mostrarError(
-            "No hay un usuario autenticado."
-        );
 
         return;
 
@@ -715,13 +667,28 @@ async function cargarPresupuestos(){
     "none";
 
 
+    estadoConexion.style.display =
+    "block";
+
+    estadoConexion.textContent =
+    "Usuario conectado. Consultando presupuestos...";
+
+
     try{
 
-        console.log(
-            "GESBASE UID:",
-            usuarioActual.uid
-        );
-
+        /*
+         * IMPORTANTE:
+         *
+         * Primero hacemos una lectura GENERAL
+         * de la colección.
+         *
+         * Las reglas actuales permiten leerla
+         * a cualquier usuario autenticado.
+         *
+         * Esto evita que el listado quede vacío
+         * por diferencias entre uid / usuarioId /
+         * empresaId.
+         */
 
         const referencia =
         collection(
@@ -730,40 +697,9 @@ async function cargarPresupuestos(){
         );
 
 
-        /*
-         * LOS PRESUPUESTOS DE presupuesto.html
-         * SE GUARDAN CON:
-         *
-         * uid: usuarioActual.uid
-         *
-         * Por eso buscamos exactamente por uid.
-         */
-
-        const consulta =
-        query(
-            referencia,
-            where(
-                "uid",
-                "==",
-                usuarioActual.uid
-            )
-        );
-
-
-        console.log(
-            "GESBASE: consultando Firestore..."
-        );
-
-
         const resultado =
         await getDocs(
-            consulta
-        );
-
-
-        console.log(
-            "GESBASE: documentos encontrados:",
-            resultado.size
+            referencia
         );
 
 
@@ -777,50 +713,236 @@ async function cargarPresupuestos(){
                 documento.data();
 
 
-                console.log(
-                    "Presupuesto:",
-                    documento.id,
-                    datos
-                );
+                /*
+                 * Aceptamos presupuestos vinculados
+                 * por cualquiera de estos campos.
+                 */
+
+                const perteneceUsuario =
+
+                    datos.uid ===
+                    usuarioActual.uid
+
+                    ||
+
+                    datos.usuarioId ===
+                    usuarioActual.uid
+
+                    ||
+
+                    datos.userId ===
+                    usuarioActual.uid
+
+                    ||
+
+                    datos.creadoPor ===
+                    usuarioActual.uid;
 
 
-                presupuestos.push({
+                /*
+                 * Si tiene empresaId también
+                 * intentamos verificarlo más adelante.
+                 *
+                 * Por ahora, si pertenece al usuario,
+                 * lo mostramos.
+                 */
 
-                    id:
-                    documento.id,
+                if(perteneceUsuario){
 
-                    datos:
-                    datos
+                    presupuestos.push({
 
-                });
+                        id:
+                        documento.id,
+
+                        datos:
+                        datos
+
+                    });
+
+                }
 
             }
         );
 
 
         /*
-         * Ordenar por fecha.
+         * =================================================
+         * SEGUNDO MÉTODO:
+         * Algunos presupuestos pueden estar guardados
+         * solamente con empresaId.
+         * =================================================
+         */
+
+        let empresaIdUsuario = "";
+
+
+        try{
+
+            const referenciaUsuarios =
+            collection(
+                db,
+                "usuarios"
+            );
+
+
+            /*
+             * No consultamos usuarios completos.
+             * Buscamos específicamente el documento
+             * del UID actual.
+             *
+             * Como las reglas permiten al usuario
+             * leer su propio documento, esto funciona.
+             */
+
+            const consultaUsuario =
+            query(
+                referenciaUsuarios,
+                where(
+                    "__name__",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
+
+
+            const resultadoUsuario =
+            await getDocs(
+                consultaUsuario
+            );
+
+
+            if(!resultadoUsuario.empty){
+
+                const datosUsuario =
+                resultadoUsuario.docs[0].data();
+
+
+                empresaIdUsuario =
+                String(
+                    datosUsuario.empresaId ||
+                    datosUsuario.empresa ||
+                    ""
+                ).trim();
+
+            }
+
+        }
+        catch(errorUsuario){
+
+            console.warn(
+                "No se pudo obtener empresaId:",
+                errorUsuario
+            );
+
+        }
+
+
+        /*
+         * Si tenemos empresaId buscamos
+         * presupuestos de esa empresa.
+         */
+
+        if(empresaIdUsuario){
+
+            try{
+
+                const consultaEmpresa =
+                query(
+                    referencia,
+                    where(
+                        "empresaId",
+                        "==",
+                        empresaIdUsuario
+                    )
+                );
+
+
+                const resultadoEmpresa =
+                await getDocs(
+                    consultaEmpresa
+                );
+
+
+                resultadoEmpresa.forEach(
+                    function(documento){
+
+                        const existe =
+                        presupuestos.some(
+                            function(item){
+
+                                return (
+                                    item.id ===
+                                    documento.id
+                                );
+
+                            }
+                        );
+
+
+                        if(!existe){
+
+                            presupuestos.push({
+
+                                id:
+                                documento.id,
+
+                                datos:
+                                documento.data()
+
+                            });
+
+                        }
+
+                    }
+                );
+
+            }
+            catch(errorEmpresa){
+
+                console.warn(
+                    "No se pudo consultar empresaId:",
+                    errorEmpresa
+                );
+
+            }
+
+        }
+
+
+        /*
+         * =================================================
+         * ORDENAR
+         * =================================================
          */
 
         presupuestos.sort(
             function(a,b){
 
                 const fechaA =
-                a.datos.creado?.seconds ||
-                a.datos.fechaCreacion?.seconds ||
-                0;
+                    a.datos.creado?.seconds ||
+
+                    a.datos.fechaCreacion?.seconds ||
+
+                    0;
 
 
                 const fechaB =
-                b.datos.creado?.seconds ||
-                b.datos.fechaCreacion?.seconds ||
-                0;
+                    b.datos.creado?.seconds ||
+
+                    b.datos.fechaCreacion?.seconds ||
+
+                    0;
 
 
                 return fechaB - fechaA;
 
             }
         );
+
+
+        estadoConexion.textContent =
+        "Presupuestos encontrados: " +
+        presupuestos.length;
 
 
         mostrarPresupuestos(
@@ -830,57 +952,8 @@ async function cargarPresupuestos(){
     }
     catch(error){
 
-        console.error(
-            "GESBASE ERROR CARGANDO PRESUPUESTOS:",
-            error
-        );
-
-
-        let detalle =
-        error?.message ||
-        "Error desconocido.";
-
-
-        if(
-            error?.code ===
-            "permission-denied"
-        ){
-
-            detalle =
-            "Firebase rechazó el acceso a la colección 'presupuestos'. Revisá las reglas de Firestore.";
-
-        }
-
-
-        if(
-            error?.code ===
-            "failed-precondition"
-        ){
-
-            detalle =
-            "Firestore requiere una configuración adicional o un índice.";
-
-        }
-
-
-        if(
-            error?.code ===
-            "unauthenticated"
-        ){
-
-            detalle =
-            "La sesión de Firebase no está autenticada.";
-
-        }
-
-
         mostrarError(
-            "No se pudieron cargar los presupuestos.\n\n" +
-            "Código: " +
-            (error?.code || "sin código") +
-            "\n\n" +
-            "Detalle: " +
-            detalle
+            error
         );
 
     }
@@ -897,16 +970,14 @@ function mostrarPresupuestos(lista){
     cargando.style.display =
     "none";
 
+
     errorElemento.style.display =
     "none";
+
 
     listaElemento.style.display =
     "flex";
 
-
-    /*
-     * NO HAY PRESUPUESTOS
-     */
 
     if(!lista.length){
 
@@ -914,19 +985,12 @@ function mostrarPresupuestos(lista){
 
             <div class="mensaje">
 
-                <strong>
-                    Todavía no tenés presupuestos registrados.
-                </strong>
-
-                <br><br>
-
-                Si acabás de crear uno,
-                verificá que se haya guardado correctamente.
+                Todavía no tenés presupuestos registrados.
 
                 <br><br>
 
                 <a
-                    href="./presupuesto.html"
+                    href="presupuesto.html"
                     class="boton nuevo"
                 >
                     ➕ CREAR PRESUPUESTO
@@ -941,13 +1005,8 @@ function mostrarPresupuestos(lista){
     }
 
 
-    listaElemento.innerHTML =
-    "";
+    listaElemento.innerHTML = "";
 
-
-    /*
-     * CREAR TARJETAS
-     */
 
     lista.forEach(
         function(item){
@@ -1031,9 +1090,7 @@ function mostrarPresupuestos(lista){
 
                 <div class="dato">
 
-                    <strong>
-                        Cliente:
-                    </strong>
+                    <strong>Cliente:</strong>
 
                     ${escapar(
                         cliente
@@ -1044,9 +1101,7 @@ function mostrarPresupuestos(lista){
 
                 <div class="dato">
 
-                    <strong>
-                        Fecha:
-                    </strong>
+                    <strong>Fecha:</strong>
 
                     ${escapar(
                         fecha
@@ -1057,23 +1112,7 @@ function mostrarPresupuestos(lista){
 
                 <div class="dato">
 
-                    <strong>
-                        Lugar:
-                    </strong>
-
-                    ${escapar(
-                        datos.lugarTrabajo ||
-                        "Sin informar"
-                    )}
-
-                </div>
-
-
-                <div class="dato">
-
-                    <strong>
-                        Descripción:
-                    </strong>
+                    <strong>Descripción:</strong>
 
                     ${escapar(
                         descripcion
@@ -1094,7 +1133,7 @@ function mostrarPresupuestos(lista){
 
                     <a
                         class="accion ver"
-                        href="./ver-presupuesto.html?id=${encodeURIComponent(item.id)}"
+                        href="ver-presupuesto.html?id=${encodeURIComponent(item.id)}"
                     >
                         👁️ VER
                     </a>
@@ -1102,7 +1141,7 @@ function mostrarPresupuestos(lista){
 
                     <a
                         class="accion editar"
-                        href="./editar-presupuesto.html?id=${encodeURIComponent(item.id)}"
+                        href="editar-presupuesto.html?id=${encodeURIComponent(item.id)}"
                     >
                         ✏️ EDITAR
                     </a>
@@ -1110,7 +1149,7 @@ function mostrarPresupuestos(lista){
 
                     <a
                         class="accion trabajo"
-                        href="./trabajo.html?presupuestoId=${encodeURIComponent(item.id)}"
+                        href="trabajo.html?presupuestoId=${encodeURIComponent(item.id)}"
                     >
                         🔧 CREAR TRABAJO
                     </a>
@@ -1170,37 +1209,22 @@ buscar.addEventListener(
                         item.id
                     )
 
-                    + " "
-
-                    +
+                    + " " +
 
                     obtenerCliente(
                         datos
                     )
 
-                    + " "
-
-                    +
+                    + " " +
 
                     obtenerDescripcion(
                         datos
                     )
 
-                    + " "
-
-                    +
+                    + " " +
 
                     obtenerFecha(
                         datos
-                    )
-
-                    + " "
-
-                    +
-
-                    (
-                        datos.lugarTrabajo ||
-                        ""
                     )
 
                 ).toLowerCase();
@@ -1226,17 +1250,12 @@ buscar.addEventListener(
    AUTENTICACIÓN
 ===================================================== */
 
-console.log(
-    "GESBASE: esperando autenticación..."
-);
-
-
 onAuthStateChanged(
     auth,
     async function(usuario){
 
         console.log(
-            "GESBASE AUTH:",
+            "GESBASE - Auth:",
             usuario
                 ? usuario.uid
                 : "SIN SESIÓN"
@@ -1245,8 +1264,11 @@ onAuthStateChanged(
 
         if(!usuario){
 
-            cargando.textContent =
-            "No hay una sesión iniciada. Redirigiendo...";
+            estadoConexion.style.display =
+            "block";
+
+            estadoConexion.textContent =
+            "No hay una sesión iniciada. Redirigiendo al login...";
 
 
             setTimeout(
@@ -1257,7 +1279,7 @@ onAuthStateChanged(
                     );
 
                 },
-                800
+                500
             );
 
 
@@ -1288,28 +1310,15 @@ setTimeout(
             "none"
         ){
 
-            console.error(
-                "GESBASE: tiempo de espera agotado."
-            );
+            mostrarError({
 
+                code:
+                "timeout",
 
-            mostrarError(
+                message:
+                "Firebase no respondió dentro del tiempo esperado."
 
-                "GESBASE tardó demasiado en cargar los presupuestos.\n\n" +
-
-                "Usuario: " +
-
-                (
-                    usuarioActual
-                        ? usuarioActual.uid
-                        : "NO DETECTADO"
-                ) +
-
-                "\n\n" +
-
-                "Si aparece este mensaje, abrí la consola del navegador para ver el error de Firebase."
-
-            );
+            });
 
         }
 
