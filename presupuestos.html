@@ -10,6 +10,12 @@ content="#111827"
 
 «»
 
+<meta
+name="description"
+content="GESBASE - Mis presupuestos"
+
+«»
+
 <title>Presupuestos - GESBASE</title><style>
 
 *{
@@ -29,12 +35,12 @@ body{
     max-width:900px;
     margin:auto;
     min-height:100vh;
-    background:white;
+    background:#fff;
 }
 
 header{
     background:#111827;
-    color:white;
+    color:#fff;
     padding:22px 18px;
 }
 
@@ -73,7 +79,7 @@ main{
 
 .nuevo{
     background:#16a34a;
-    color:white;
+    color:#fff;
     flex:1;
 }
 
@@ -90,6 +96,11 @@ main{
     border-radius:10px;
     font-size:15px;
     margin-bottom:15px;
+    outline:none;
+}
+
+.buscar:focus{
+    border-color:#2563eb;
 }
 
 .cargando,
@@ -108,6 +119,17 @@ main{
     white-space:pre-wrap;
 }
 
+.info-usuario{
+    display:none;
+    margin-bottom:15px;
+    padding:12px;
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    border-radius:10px;
+    font-size:13px;
+    color:#1e40af;
+}
+
 .lista{
     display:flex;
     flex-direction:column;
@@ -118,7 +140,7 @@ main{
     border:1px solid #d1d5db;
     border-radius:12px;
     padding:17px;
-    background:white;
+    background:#fff;
     box-shadow:0 2px 6px rgba(0,0,0,.05);
 }
 
@@ -180,18 +202,25 @@ main{
 
 .ver{
     background:#111827;
-    color:white;
+    color:#fff;
 }
 
 .editar{
     background:#2563eb;
-    color:white;
+    color:#fff;
 }
 
 .trabajo{
     grid-column:1 / -1;
     background:#16a34a;
-    color:white;
+    color:#fff;
+}
+
+.vacio{
+    padding:30px 15px;
+    text-align:center;
+    color:#6b7280;
+    line-height:1.5;
 }
 
 @media(max-width:500px){
@@ -217,18 +246,19 @@ class="boton nuevo"
 «»
 
 ➕ NUEVO PRESUPUESTO
-</a>
 
-<a
+</a><a
 href="index.html"
 class="boton volver"
 
 «»
 
 ⬅️ VOLVER AL PANEL
-</a>
 
-</div><input
+</a></div><div
+    id="infoUsuario"
+    class="info-usuario"
+></div><input
 id="buscar"
 class="buscar"
 type="search"
@@ -240,7 +270,7 @@ placeholder="🔎 Buscar presupuesto, cliente o descripción..."
     id="cargando"
     class="cargando"
 >
-Cargando presupuestos...
+    Cargando presupuestos...
 </div><div
     id="error"
     class="error"
@@ -290,6 +320,9 @@ const listaElemento =
 const buscar =
     document.getElementById("buscar");
 
+const infoUsuario =
+    document.getElementById("infoUsuario");
+
 
 /* ==========================================
    VARIABLES
@@ -317,7 +350,7 @@ function escapar(valor){
 
 
 /* ==========================================
-   NUMERO
+   CONVERTIR NUMERO
 ========================================== */
 
 function numero(valor){
@@ -337,16 +370,25 @@ function numero(valor){
         typeof valor === "number"
     ){
 
-        return valor;
+        return Number.isFinite(valor)
+            ? valor
+            : 0;
 
     }
 
 
     let texto =
         String(valor)
+        .trim()
         .replace(/\s/g,"")
         .replace(/\$/g,"");
 
+
+    /*
+     * Formato argentino:
+     *
+     * 1.250.500,50
+     */
 
     if(texto.includes(",")){
 
@@ -386,49 +428,71 @@ function dinero(valor){
 
 
 /* ==========================================
-   NOMBRE CLIENTE
+   OBTENER CLIENTE
 ========================================== */
 
 function obtenerCliente(datos){
 
     return (
+
         datos.cliente ||
+
         datos.nombreCliente ||
+
         datos.clienteNombre ||
+
         datos.nombreEmpresaCliente ||
+
         datos.empresaCliente ||
+
+        datos.clienteNombreCompleto ||
+
         "Sin cliente"
+
     );
 
 }
 
 
 /* ==========================================
-   NUMERO PRESUPUESTO
+   OBTENER NUMERO
 ========================================== */
 
-function obtenerNumero(datos,id){
+function obtenerNumero(
+    datos,
+    id
+){
 
     return (
+
         datos.numero ||
+
         datos.numeroPresupuesto ||
+
         datos.codigo ||
+
         datos.nro ||
+
+        datos.numeroAgenda ||
+
         id.substring(0,8)
+
     );
 
 }
 
 
 /* ==========================================
-   FECHA
+   OBTENER FECHA
 ========================================== */
 
 function obtenerFecha(datos){
 
     if(datos.fecha){
 
-        return String(datos.fecha);
+        return String(
+            datos.fecha
+        );
 
     }
 
@@ -438,9 +502,45 @@ function obtenerFecha(datos){
         typeof datos.creado.toDate === "function"
     ){
 
-        return datos.creado
-            .toDate()
-            .toLocaleDateString("es-AR");
+        try{
+
+            return datos.creado
+                .toDate()
+                .toLocaleDateString("es-AR");
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudo convertir fecha:",
+                error
+            );
+
+        }
+
+    }
+
+
+    if(
+        datos.fechaCreacion &&
+        typeof datos.fechaCreacion.toDate === "function"
+    ){
+
+        try{
+
+            return datos.fechaCreacion
+                .toDate()
+                .toLocaleDateString("es-AR");
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudo convertir fechaCreacion:",
+                error
+            );
+
+        }
 
     }
 
@@ -457,12 +557,19 @@ function obtenerFecha(datos){
 function obtenerDescripcion(datos){
 
     return (
+
         datos.descripcion ||
+
         datos.tareas ||
+
         datos.titulo ||
+
         datos.concepto ||
+
         datos.detalle ||
+
         "Presupuesto sin descripción"
+
     );
 
 }
@@ -473,6 +580,11 @@ function obtenerDescripcion(datos){
 ========================================== */
 
 function obtenerTotal(datos){
+
+    /*
+     * Primero intentamos usar el total
+     * guardado.
+     */
 
     const guardado =
         numero(
@@ -490,31 +602,40 @@ function obtenerTotal(datos){
     }
 
 
+    /*
+     * Si no existe total guardado,
+     * lo calculamos.
+     */
+
     const materiales =
         numero(
             datos.materiales ??
-            datos.importeMaterial
+            datos.importeMaterial ??
+            datos.valorMateriales
         );
 
 
     const manoObra =
         numero(
             datos.manoObra ??
-            datos.importeManoObra
+            datos.importeManoObra ??
+            datos.valorManoObra
         );
 
 
     const viaticos =
         numero(
             datos.viaticos ??
-            datos.importeViaticos
+            datos.importeViaticos ??
+            datos.valorViaticos
         );
 
 
     const flete =
         numero(
             datos.flete ??
-            datos.importeFlete
+            datos.importeFlete ??
+            datos.valorFlete
         );
 
 
@@ -524,6 +645,201 @@ function obtenerTotal(datos){
         viaticos +
         flete
     );
+
+}
+
+
+/* ==========================================
+   PERTENECE AL USUARIO
+========================================== */
+
+function perteneceAlUsuario(datos){
+
+    if(!usuarioActual){
+
+        return false;
+
+    }
+
+
+    const uid =
+        usuarioActual.uid;
+
+
+    /*
+     * Estructura principal.
+     */
+
+    if(
+        datos.uid &&
+        datos.uid === uid
+    ){
+
+        return true;
+
+    }
+
+
+    /*
+     * Estructura anterior.
+     */
+
+    if(
+        datos.usuarioId &&
+        datos.usuarioId === uid
+    ){
+
+        return true;
+
+    }
+
+
+    /*
+     * Otra estructura posible.
+     */
+
+    if(
+        datos.userId &&
+        datos.userId === uid
+    ){
+
+        return true;
+
+    }
+
+
+    /*
+     * Compatibilidad con empresaId.
+     */
+
+    if(
+        datos.empresaId &&
+        datos.empresaId === uid
+    ){
+
+        return true;
+
+    }
+
+
+    return false;
+
+}
+
+
+/* ==========================================
+   AGREGAR SIN DUPLICADOS
+========================================== */
+
+function agregarResultados(
+    resultado
+){
+
+    resultado.forEach(
+        function(documento){
+
+            const existe =
+                presupuestos.some(
+                    function(item){
+
+                        return (
+                            item.id ===
+                            documento.id
+                        );
+
+                    }
+                );
+
+
+            if(existe){
+
+                return;
+
+            }
+
+
+            const datos =
+                documento.data();
+
+
+            /*
+             * Seguridad adicional:
+             * aunque la consulta sea por un campo,
+             * comprobamos pertenencia.
+             */
+
+            if(
+                perteneceAlUsuario(datos)
+            ){
+
+                presupuestos.push({
+
+                    id:
+                        documento.id,
+
+                    datos:
+                        datos
+
+                });
+
+            }
+
+        }
+    );
+
+}
+
+
+/* ==========================================
+   CONSULTAR CAMPO
+========================================== */
+
+async function consultarCampo(
+    referencia,
+    campo
+){
+
+    try{
+
+        const consulta =
+            query(
+                referencia,
+                where(
+                    campo,
+                    "==",
+                    usuarioActual.uid
+                )
+            );
+
+
+        const resultado =
+            await getDocs(
+                consulta
+            );
+
+
+        console.log(
+            "GESBASE - Campo",
+            campo,
+            "documentos:",
+            resultado.size
+        );
+
+
+        agregarResultados(
+            resultado
+        );
+
+    }
+    catch(error){
+
+        console.warn(
+            "GESBASE - No se pudo consultar",
+            campo,
+            error.message
+        );
+
+    }
 
 }
 
@@ -544,7 +860,54 @@ async function cargarPresupuestos(){
         "none";
 
 
+    presupuestos = [];
+
+
     try{
+
+        if(!usuarioActual){
+
+            throw new Error(
+                "No hay un usuario autenticado."
+            );
+
+        }
+
+
+        console.log(
+            "================================="
+        );
+
+        console.log(
+            "GESBASE - CARGANDO PRESUPUESTOS"
+        );
+
+        console.log(
+            "UID:",
+            usuarioActual.uid
+        );
+
+        console.log(
+            "EMAIL:",
+            usuarioActual.email
+        );
+
+        console.log(
+            "================================="
+        );
+
+
+        infoUsuario.innerHTML =
+            "Usuario: <strong>" +
+            escapar(
+                usuarioActual.email ||
+                usuarioActual.uid
+            ) +
+            "</strong>";
+
+        infoUsuario.style.display =
+            "block";
+
 
         const referencia =
             collection(
@@ -554,129 +917,39 @@ async function cargarPresupuestos(){
 
 
         /*
-         * Los presupuestos pertenecen
-         * al usuario autenticado.
+         * BUSCAMOS TODAS LAS ESTRUCTURAS
+         * QUE YA UTILIZA GESBASE.
+         *
+         * Esto evita que los presupuestos
+         * antiguos desaparezcan.
          */
 
-        const consulta =
-            query(
-                referencia,
-                where(
-                    "uid",
-                    "==",
-                    usuarioActual.uid
-                )
-            );
+        await consultarCampo(
+            referencia,
+            "uid"
+        );
 
 
-        const resultado =
-            await getDocs(
-                consulta
-            );
+        await consultarCampo(
+            referencia,
+            "usuarioId"
+        );
 
 
-        presupuestos = [];
+        await consultarCampo(
+            referencia,
+            "userId"
+        );
 
 
-        resultado.forEach(
-            function(documento){
-
-                presupuestos.push({
-
-                    id:
-                        documento.id,
-
-                    datos:
-                        documento.data()
-
-                });
-
-            }
+        await consultarCampo(
+            referencia,
+            "empresaId"
         );
 
 
         /*
-         * También aceptamos documentos
-         * antiguos que utilicen usuarioId.
-         *
-         * Si la búsqueda principal encuentra
-         * resultados, no hacemos otra consulta.
-         */
-
-
-        if(!presupuestos.length){
-
-            try{
-
-                const consultaUsuario =
-                    query(
-                        referencia,
-                        where(
-                            "usuarioId",
-                            "==",
-                            usuarioActual.uid
-                        )
-                    );
-
-
-                const resultadoUsuario =
-                    await getDocs(
-                        consultaUsuario
-                    );
-
-
-                resultadoUsuario.forEach(
-                    function(documento){
-
-                        /*
-                         * Evitar duplicados
-                         */
-
-                        const existe =
-                            presupuestos.some(
-                                function(item){
-
-                                    return (
-                                        item.id ===
-                                        documento.id
-                                    );
-
-                                }
-                            );
-
-
-                        if(!existe){
-
-                            presupuestos.push({
-
-                                id:
-                                    documento.id,
-
-                                datos:
-                                    documento.data()
-
-                            });
-
-                        }
-
-                    }
-                );
-
-            }
-            catch(error){
-
-                console.warn(
-                    "No se pudo consultar usuarioId:",
-                    error
-                );
-
-            }
-
-        }
-
-
-        /*
-         * Ordenar por fecha
+         * Ordenar por fecha.
          */
 
         presupuestos.sort(
@@ -697,6 +970,12 @@ async function cargarPresupuestos(){
                 return fechaB - fechaA;
 
             }
+        );
+
+
+        console.log(
+            "GESBASE - PRESUPUESTOS ENCONTRADOS:",
+            presupuestos.length
         );
 
 
@@ -757,13 +1036,17 @@ function mostrarPresupuestos(lista){
 
         listaElemento.innerHTML = `
 
-            <div class="mensaje">
+            <div class="vacio">
 
-                Todavía no tenés presupuestos registrados.
+                <strong>
+                    Todavía no tenés presupuestos registrados.
+                </strong>
 
                 <br><br>
 
-                Podés crear uno desde el botón:
+                Si ya creaste un presupuesto,
+                verificá que haya quedado guardado
+                en Firebase.
 
                 <br><br>
 
@@ -783,7 +1066,8 @@ function mostrarPresupuestos(lista){
     }
 
 
-    listaElemento.innerHTML = "";
+    listaElemento.innerHTML =
+        "";
 
 
     lista.forEach(
@@ -826,7 +1110,9 @@ function mostrarPresupuestos(lista){
 
             const estado =
                 datos.estado ||
+
                 datos.estadoPresupuesto ||
+
                 "Pendiente";
 
 
@@ -846,8 +1132,7 @@ function mostrarPresupuestos(lista){
 
                     <div class="presupuesto-numero">
 
-                        Presupuesto
-                        N.º
+                        Presupuesto N.º
                         ${escapar(
                             numeroPresupuesto
                         )}
@@ -954,7 +1239,7 @@ function mostrarPresupuestos(lista){
 
 
 /* ==========================================
-   BUSCAR
+   BUSCADOR
 ========================================== */
 
 buscar.addEventListener(
@@ -1011,6 +1296,14 @@ buscar.addEventListener(
                             datos
                         )
 
+                        + " "
+
+                        + (
+                            datos.lugarTrabajo ||
+                            datos.lugar ||
+                            ""
+                        )
+
                     )
                     .toLowerCase();
 
@@ -1035,6 +1328,10 @@ buscar.addEventListener(
    AUTENTICACIÓN
 ========================================== */
 
+let inicioCompletado =
+    false;
+
+
 onAuthStateChanged(
     auth,
     async function(usuario){
@@ -1049,20 +1346,68 @@ onAuthStateChanged(
 
         if(!usuario){
 
-            window.location.replace(
-                "login.html"
+            cargando.textContent =
+                "No hay una sesión activa. Redirigiendo...";
+
+
+            setTimeout(
+                function(){
+
+                    window.location.replace(
+                        "login.html"
+                    );
+
+                },
+                800
             );
+
 
             return;
 
         }
 
 
+        if(inicioCompletado){
+
+            return;
+
+        }
+
+
+        inicioCompletado =
+            true;
+
+
         usuarioActual =
             usuario;
 
 
-        await cargarPresupuestos();
+        try{
+
+            await cargarPresupuestos();
+
+        }
+        catch(error){
+
+            console.error(
+                "ERROR INICIAL:",
+                error
+            );
+
+
+            cargando.style.display =
+                "none";
+
+
+            errorElemento.textContent =
+                "Error inicializando presupuestos.\n\n" +
+                error.message;
+
+
+            errorElemento.style.display =
+                "block";
+
+        }
 
     }
 );
@@ -1086,7 +1431,7 @@ setTimeout(
 
             errorElemento.textContent =
                 "GESBASE tardó demasiado en cargar los presupuestos.\n\n" +
-                "Verificá que firebase.js esté funcionando y que tengas una sesión iniciada.";
+                "Verificá Firebase, la sesión y las reglas de Firestore.";
 
 
             errorElemento.style.display =
@@ -1095,7 +1440,9 @@ setTimeout(
         }
 
     },
-    12000
+    15000
 );
 
-</script></body></html>
+</script><
+ /body>
+</html>
