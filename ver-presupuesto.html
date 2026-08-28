@@ -212,6 +212,55 @@ button,
     color:#111827;
 }
 
+/* ==========================================
+   PANEL PRIVADO JULIAN
+========================================== */
+
+.panel-julian{
+    display:none;
+    margin-top:12px;
+    padding:15px;
+    border-radius:12px;
+    background:#111827;
+    border:1px solid #374151;
+}
+
+.panel-julian-titulo{
+    color:white;
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+.panel-julian-info{
+    color:#d1d5db;
+    font-size:12px;
+    margin-bottom:10px;
+    line-height:1.4;
+}
+
+.panel-julian a{
+    display:block;
+    width:100%;
+    padding:14px;
+    margin-top:8px;
+    background:#2563eb;
+    color:white;
+    text-decoration:none;
+    text-align:center;
+    border-radius:9px;
+    font-weight:bold;
+    font-size:14px;
+}
+
+.panel-julian a.secundario{
+    background:#374151;
+}
+
+.panel-julian a:hover{
+    opacity:.9;
+}
+
 button:disabled{
     opacity:.6;
     cursor:not-allowed;
@@ -228,9 +277,27 @@ button:disabled{
     line-height:1.5;
 }
 
+@media(max-width:480px){
+
+    main{
+        padding:15px;
+    }
+
+    .presupuesto{
+        padding:16px;
+    }
+
+    .material-linea{
+        flex-direction:column;
+        gap:3px;
+    }
+
+}
+
 </style>
 
 </head>
+
 
 <body>
 
@@ -244,6 +311,7 @@ button:disabled{
 
 </header>
 
+
 <main>
 
 <div
@@ -253,11 +321,13 @@ button:disabled{
 Cargando presupuesto...
 </div>
 
+
 <div
     id="error"
     class="error"
     style="display:none;"
 ></div>
+
 
 <div
     id="contenido"
@@ -265,6 +335,7 @@ Cargando presupuesto...
 >
 
 <div class="presupuesto">
+
 
 <!-- ==========================================
      EMPRESA
@@ -314,6 +385,7 @@ Mail: -
 </div>
 
 </div>
+
 
 <div class="titulo">
 PEDIDO DE PRESUPUESTO
@@ -411,6 +483,7 @@ TAREAS A REALIZAR
 
 </div>
 
+
 <div class="fila">
 
 <div class="etiqueta">
@@ -422,6 +495,7 @@ MATERIALES
 </div>
 
 </div>
+
 
 <div class="fila">
 
@@ -435,6 +509,7 @@ MANO DE OBRA
 
 </div>
 
+
 <div class="fila">
 
 <div class="etiqueta">
@@ -446,6 +521,7 @@ Lugar de Prestación del Servicio:
 </div>
 
 </div>
+
 
 <div class="fila">
 
@@ -540,6 +616,7 @@ VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE
 Este presupuesto está vinculado al cliente y puede utilizarse para crear un trabajo.
 </div>
 
+
 </div>
 
 
@@ -573,12 +650,59 @@ Este presupuesto está vinculado al cliente y puede utilizarse para crear un tra
 </a>
 
 
+<!-- ==========================================
+     PANEL PRIVADO JULIAN
+========================================== -->
+
+<div
+    id="panelJulian"
+    class="panel-julian"
+>
+
+<div class="panel-julian-titulo">
+🔐 PANEL PRIVADO DE JULIAN
+</div>
+
+<div
+    id="panelJulianInfo"
+    class="panel-julian-info"
+>
+Acceso administrativo autorizado.
+</div>
+
+
+<a href="panel-atencion.html">
+🎧 Panel de Atención
+</a>
+
+
+<a href="empresa.html">
+🏢 Configuración de Empresa
+</a>
+
+
+<a href="presupuestos.html">
+📋 Administrar Presupuestos
+</a>
+
+
+<a
+    href="panel.html"
+    class="secundario"
+>
+⚙️ Panel GESBASE
+</a>
+
+</div>
+
+
 <a
     href="presupuestos.html"
     class="boton volver"
 >
 ⬅️ VOLVER A PRESUPUESTOS
 </a>
+
 
 </div>
 
@@ -592,6 +716,7 @@ Este presupuesto está vinculado al cliente y puede utilizarse para crear un tra
 
 <script type="module">
 
+
 /* ==========================================
    FIREBASE
 ========================================== */
@@ -601,14 +726,24 @@ import {
     db
 } from "./Js/firebase.js";
 
+
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
 
 import {
     doc,
     getDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+/* ==========================================
+   CONFIGURACIÓN ADMINISTRADOR
+========================================== */
+
+const EMAIL_JULIAN =
+"julianbattauz006@gmail.com";
 
 
 /* ==========================================
@@ -708,9 +843,15 @@ document.getElementById("btnTrabajo");
 const relacionTrabajo =
 document.getElementById("relacionTrabajo");
 
+const panelJulian =
+document.getElementById("panelJulian");
+
+const panelJulianInfo =
+document.getElementById("panelJulianInfo");
+
 
 /* ==========================================
-   ID DEL PRESUPUESTO
+   ID PRESUPUESTO
 ========================================== */
 
 const parametros =
@@ -759,7 +900,7 @@ function texto(valor){
 
 
 /* ==========================================
-   DINERO
+   NUMERO
 ========================================== */
 
 function numero(valor){
@@ -787,12 +928,6 @@ function numero(valor){
     .replace(/\s/g,"")
     .replace(/\$/g,"");
 
-    /*
-     * Soporta formatos:
-     * 1500
-     * 1500.50
-     * 1.500,50
-     */
 
     if(
         textoValor.includes(",")
@@ -804,8 +939,10 @@ function numero(valor){
         .replace(",",".");
     }
 
+
     const resultado =
     Number(textoValor);
+
 
     return Number.isFinite(resultado)
         ? resultado
@@ -813,6 +950,10 @@ function numero(valor){
 
 }
 
+
+/* ==========================================
+   DINERO
+========================================== */
 
 function dinero(valor){
 
@@ -842,6 +983,7 @@ function numeroPresupuesto(id){
 
     let suma = 0;
 
+
     for(
         let i = 0;
         i < id.length;
@@ -852,6 +994,7 @@ function numeroPresupuesto(id){
         id.charCodeAt(i);
 
     }
+
 
     return String(
         suma % 1000000
@@ -887,12 +1030,61 @@ function mostrarError(mensaje){
 
 
 /* ==========================================
+   PANEL PRIVADO
+========================================== */
+
+function comprobarPanelJulian(usuario){
+
+    if(!usuario){
+
+        panelJulian.style.display =
+        "none";
+
+        return;
+
+    }
+
+
+    const emailUsuario =
+    String(
+        usuario.email || ""
+    )
+    .toLowerCase()
+    .trim();
+
+
+    if(
+        emailUsuario ===
+        EMAIL_JULIAN.toLowerCase()
+    ){
+
+        panelJulian.style.display =
+        "block";
+
+
+        panelJulianInfo.textContent =
+        "Usuario administrador: " +
+        usuario.email;
+
+    }
+    else{
+
+        panelJulian.style.display =
+        "none";
+
+    }
+
+}
+
+
+/* ==========================================
    CARGAR USUARIO
 ========================================== */
 
 async function cargarUsuario(usuario){
 
     datosUsuario = {};
+
 
     const referencia =
     doc(
@@ -901,10 +1093,12 @@ async function cargarUsuario(usuario){
         usuario.uid
     );
 
+
     const resultado =
     await getDoc(
         referencia
     );
+
 
     if(
         resultado.exists()
@@ -926,16 +1120,19 @@ async function cargarEmpresa(){
 
     datosEmpresa = {};
 
+
     const empresaId =
     datosPresupuesto.empresaId ||
     datosUsuario.empresaId ||
     "";
+
 
     if(!empresaId){
 
         return;
 
     }
+
 
     try{
 
@@ -946,10 +1143,12 @@ async function cargarEmpresa(){
             empresaId
         );
 
+
         const resultado =
         await getDoc(
             referencia
         );
+
 
         if(
             resultado.exists()
@@ -997,19 +1196,17 @@ async function cargarCliente(){
 
     datosCliente = {};
 
+
     clienteIdReal =
     obtenerClienteId();
 
-    if(!clienteIdReal){
 
-        /*
-         * Presupuestos antiguos pueden
-         * tener solamente el nombre.
-         */
+    if(!clienteIdReal){
 
         return;
 
     }
+
 
     try{
 
@@ -1020,10 +1217,12 @@ async function cargarCliente(){
             clienteIdReal
         );
 
+
         const resultado =
         await getDoc(
             referencia
         );
+
 
         if(
             resultado.exists()
@@ -1062,6 +1261,7 @@ function obtenerNombreCliente(){
     .join(" ")
     .trim();
 
+
     return (
         nombre ||
         datosCliente.empresa ||
@@ -1088,20 +1288,24 @@ function mostrarEmpresa(usuario){
     datosUsuario.empresa ||
     "GESBASE";
 
+
     const razon =
     datosEmpresa.razonSocial ||
     datosUsuario.razonSocial ||
     "";
+
 
     const cuitValor =
     datosEmpresa.cuit ||
     datosUsuario.cuit ||
     "";
 
+
     const telefonoValor =
     datosEmpresa.telefono ||
     datosUsuario.telefono ||
     "";
+
 
     const emailValor =
     datosEmpresa.email ||
@@ -1109,20 +1313,25 @@ function mostrarEmpresa(usuario){
     usuario.email ||
     "";
 
+
     empresaNombre.textContent =
     nombreEmpresa;
+
 
     empresaRazonSocial.textContent =
     "Razón Social: " +
     texto(razon);
 
+
     empresaCuit.textContent =
     "CUIT Nº: " +
     texto(cuitValor);
 
+
     empresaTelefono.textContent =
     "Tel./Cel: " +
     texto(telefonoValor);
+
 
     empresaEmail.textContent =
     "Mail: " +
@@ -1133,9 +1342,11 @@ function mostrarEmpresa(usuario){
     datosUsuario.nombre ||
     "";
 
+
     const apellido =
     datosUsuario.apellido ||
     "";
+
 
     nombreApellido.textContent =
     texto(
@@ -1146,14 +1357,18 @@ function mostrarEmpresa(usuario){
         ).trim()
     );
 
+
     razonSocial.textContent =
     texto(razon);
+
 
     cuit.textContent =
     texto(cuitValor);
 
+
     telefono.textContent =
     texto(telefonoValor);
+
 
     email.textContent =
     texto(emailValor);
@@ -1163,6 +1378,7 @@ function mostrarEmpresa(usuario){
     datosEmpresa.logoUrl ||
     datosEmpresa.logo ||
     "";
+
 
     if(logoUrl){
 
@@ -1185,6 +1401,7 @@ function mostrarMateriales(lista){
 
     materialesLista.innerHTML = "";
 
+
     if(
         !Array.isArray(lista) ||
         lista.length === 0
@@ -1197,17 +1414,21 @@ function mostrarMateriales(lista){
 
     }
 
+
     lista.forEach(
         function(material){
 
             const linea =
             document.createElement("div");
 
+
             linea.className =
             "material-linea";
 
+
             const tipo =
             document.createElement("span");
+
 
             tipo.textContent =
             texto(
@@ -1216,14 +1437,17 @@ function mostrarMateriales(lista){
                 material?.descripcion
             );
 
+
             const cantidad =
             document.createElement("span");
+
 
             cantidad.textContent =
             "Cantidad: " +
             texto(
                 material?.cantidad
             );
+
 
             linea.appendChild(tipo);
 
@@ -1250,14 +1474,34 @@ function perteneceAlUsuario(usuario){
     datosPresupuesto.usuarioId ||
     "";
 
+
     const empresaId =
     datosPresupuesto.empresaId ||
     "";
 
+
     /*
-     * Presupuestos nuevos:
-     * usuarioId + empresaId
+     * Julian puede consultar el presupuesto
+     * desde su panel privado.
      */
+
+    const emailUsuario =
+    String(
+        usuario.email || ""
+    )
+    .toLowerCase()
+    .trim();
+
+
+    if(
+        emailUsuario ===
+        EMAIL_JULIAN.toLowerCase()
+    ){
+
+        return true;
+
+    }
+
 
     if(
         propietario &&
@@ -1268,11 +1512,6 @@ function perteneceAlUsuario(usuario){
 
     }
 
-    /*
-     * También permitimos empresaId
-     * cuando la estructura de GESBASE
-     * utiliza el UID como empresa.
-     */
 
     if(
         empresaId &&
@@ -1283,10 +1522,6 @@ function perteneceAlUsuario(usuario){
 
     }
 
-    /*
-     * Si el documento no tiene propietario
-     * no permitimos acceso.
-     */
 
     return false;
 
@@ -1309,13 +1544,8 @@ async function cargarPresupuesto(usuario){
 
     }
 
+
     try{
-
-        console.log(
-            "Buscando presupuesto:",
-            presupuestoId
-        );
-
 
         const referencia =
         doc(
@@ -1350,13 +1580,9 @@ async function cargarPresupuesto(usuario){
         resultado.data();
 
 
-        console.log(
-            "Presupuesto cargado:",
-            datosPresupuesto
-        );
-
-
-        /* SEGURIDAD */
+        /*
+         * SEGURIDAD
+         */
 
         if(
             !perteneceAlUsuario(usuario)
@@ -1371,7 +1597,9 @@ async function cargarPresupuesto(usuario){
         }
 
 
-        /* USUARIO */
+        /*
+         * USUARIO
+         */
 
         try{
 
@@ -1390,26 +1618,32 @@ async function cargarPresupuesto(usuario){
         }
 
 
-        /* EMPRESA */
+        /*
+         * EMPRESA
+         */
 
         await cargarEmpresa();
 
 
-        /* CLIENTE */
+        /*
+         * CLIENTE
+         */
 
         await cargarCliente();
 
 
-        /* MOSTRAR EMPRESA */
+        /*
+         * EMPRESA
+         */
 
         mostrarEmpresa(
             usuario
         );
 
 
-        /* ==================================
-           DATOS CLIENTE
-        ================================== */
+        /*
+         * CLIENTE
+         */
 
         cliente.textContent =
         obtenerNombreCliente();
@@ -1429,9 +1663,9 @@ async function cargarPresupuesto(usuario){
         );
 
 
-        /* ==================================
-           DESCRIPCIÓN
-        ================================== */
+        /*
+         * DESCRIPCIÓN
+         */
 
         descripcion.textContent =
         texto(
@@ -1441,9 +1675,9 @@ async function cargarPresupuesto(usuario){
         );
 
 
-        /* ==================================
-           LUGAR
-        ================================== */
+        /*
+         * LUGAR
+         */
 
         lugarTrabajo.textContent =
         texto(
@@ -1452,9 +1686,9 @@ async function cargarPresupuesto(usuario){
         );
 
 
-        /* ==================================
-           OTROS
-        ================================== */
+        /*
+         * OTROS
+         */
 
         otros.textContent =
         texto(
@@ -1462,18 +1696,18 @@ async function cargarPresupuesto(usuario){
         );
 
 
-        /* ==================================
-           MATERIALES
-        ================================== */
+        /*
+         * MATERIALES
+         */
 
         mostrarMateriales(
             datosPresupuesto.materialesLista
         );
 
 
-        /* ==================================
-           IMPORTES
-        ================================== */
+        /*
+         * IMPORTES
+         */
 
         const materiales =
         numero(
@@ -1503,19 +1737,6 @@ async function cargarPresupuesto(usuario){
         );
 
 
-        /*
-         * Si existe total guardado,
-         * se toma como referencia.
-         * Si no existe, se calcula.
-         */
-
-        const totalCalculado =
-        materiales +
-        manoObra +
-        viaticos +
-        flete;
-
-
         const totalGuardado =
         numero(
             datosPresupuesto.total ||
@@ -1526,20 +1747,27 @@ async function cargarPresupuesto(usuario){
         const total =
         totalGuardado > 0
             ? totalGuardado
-            : totalCalculado;
+            : materiales +
+              manoObra +
+              viaticos +
+              flete;
 
 
         importeMaterial.textContent =
         dinero(materiales);
 
+
         importeManoObra.textContent =
         dinero(manoObra);
+
 
         importeViaticos.textContent =
         dinero(viaticos);
 
+
         importeFlete.textContent =
         dinero(flete);
+
 
         importeTotal.textContent =
         dinero(total);
@@ -1550,9 +1778,9 @@ async function cargarPresupuesto(usuario){
         dinero(manoObra);
 
 
-        /* ==================================
-           CONSIDERACIONES
-        ================================== */
+        /*
+         * CONSIDERACIONES
+         */
 
         if(
             datosPresupuesto.consideraciones
@@ -1566,9 +1794,9 @@ async function cargarPresupuesto(usuario){
         }
 
 
-        /* ==================================
-           EDITAR
-        ================================== */
+        /*
+         * EDITAR
+         */
 
         btnEditar.href =
         "editar-presupuesto.html?id=" +
@@ -1577,12 +1805,13 @@ async function cargarPresupuesto(usuario){
         );
 
 
-        /* ==================================
-           CREAR TRABAJO
-        ================================== */
+        /*
+         * CREAR TRABAJO
+         */
 
         const parametrosTrabajo =
         new URLSearchParams();
+
 
         parametrosTrabajo.set(
             "presupuestoId",
@@ -1613,15 +1842,17 @@ async function cargarPresupuesto(usuario){
         }
 
 
-        /* ==================================
-           MOSTRAR
-        ================================== */
+        /*
+         * MOSTRAR CONTENIDO
+         */
 
         cargando.style.display =
         "none";
 
+
         errorElemento.style.display =
         "none";
+
 
         contenido.style.display =
         "block";
@@ -1638,6 +1869,7 @@ async function cargarPresupuesto(usuario){
             "ERROR:",
             error
         );
+
 
         mostrarError(
             "No se pudo cargar el presupuesto.\n\n" +
@@ -1691,8 +1923,10 @@ btnPDF.addEventListener(
             const margen =
             18;
 
+
             const ancho =
             174;
+
 
             let y =
             18;
@@ -1710,15 +1944,18 @@ btnPDF.addEventListener(
             datosUsuario.razonSocial ||
             "";
 
+
             const cuitValor =
             datosEmpresa.cuit ||
             datosUsuario.cuit ||
             "";
 
+
             const telefonoValor =
             datosEmpresa.telefono ||
             datosUsuario.telefono ||
             "";
+
 
             const emailValor =
             datosEmpresa.email ||
@@ -1727,16 +1964,20 @@ btnPDF.addEventListener(
             "";
 
 
-            /* ENCABEZADO */
+            /*
+             * ENCABEZADO
+             */
 
             pdf.setFont(
                 "helvetica",
                 "bold"
             );
 
+
             pdf.setFontSize(
                 16
             );
+
 
             pdf.text(
                 texto(empresa),
@@ -1747,6 +1988,7 @@ btnPDF.addEventListener(
                 }
             );
 
+
             y += 7;
 
 
@@ -1754,6 +1996,7 @@ btnPDF.addEventListener(
                 "helvetica",
                 "normal"
             );
+
 
             pdf.setFontSize(
                 9
@@ -1772,6 +2015,7 @@ btnPDF.addEventListener(
                     }
                 );
 
+
                 y += 5;
 
             }
@@ -1788,6 +2032,7 @@ btnPDF.addEventListener(
                         align:"center"
                     }
                 );
+
 
                 y += 5;
 
@@ -1806,6 +2051,7 @@ btnPDF.addEventListener(
                     }
                 );
 
+
                 y += 5;
 
             }
@@ -1823,6 +2069,7 @@ btnPDF.addEventListener(
                     }
                 );
 
+
                 y += 5;
 
             }
@@ -1838,19 +2085,24 @@ btnPDF.addEventListener(
                 y
             );
 
+
             y += 8;
 
 
-            /* TÍTULO */
+            /*
+             * TÍTULO
+             */
 
             pdf.setFont(
                 "helvetica",
                 "bold"
             );
 
+
             pdf.setFontSize(
                 16
             );
+
 
             pdf.text(
                 "PEDIDO DE PRESUPUESTO",
@@ -1861,15 +2113,19 @@ btnPDF.addEventListener(
                 }
             );
 
+
             y += 10;
 
 
-            /* CLIENTE */
+            /*
+             * CLIENTE
+             */
 
             pdf.setFont(
                 "helvetica",
                 "normal"
             );
+
 
             pdf.setFontSize(
                 10
@@ -1885,6 +2141,7 @@ btnPDF.addEventListener(
                 y
             );
 
+
             y += 6;
 
 
@@ -1899,6 +2156,7 @@ btnPDF.addEventListener(
                 y
             );
 
+
             y += 6;
 
 
@@ -1911,21 +2169,26 @@ btnPDF.addEventListener(
                 y
             );
 
+
             y += 9;
 
 
-            /* CONTRATISTA */
+            /*
+             * CONTRATISTA
+             */
 
             pdf.setFont(
                 "helvetica",
                 "bold"
             );
 
+
             pdf.text(
                 "DATOS DEL CONTRATISTA",
                 margen,
                 y
             );
+
 
             y += 7;
 
@@ -1957,6 +2220,7 @@ btnPDF.addEventListener(
                 y
             );
 
+
             y += 6;
 
 
@@ -1966,6 +2230,7 @@ btnPDF.addEventListener(
                 margen,
                 y
             );
+
 
             y += 6;
 
@@ -1977,6 +2242,7 @@ btnPDF.addEventListener(
                 y
             );
 
+
             y += 6;
 
 
@@ -1986,6 +2252,7 @@ btnPDF.addEventListener(
                 margen,
                 y
             );
+
 
             y += 6;
 
@@ -1997,21 +2264,26 @@ btnPDF.addEventListener(
                 y
             );
 
+
             y += 9;
 
 
-            /* DETALLE */
+            /*
+             * DETALLE
+             */
 
             pdf.setFont(
                 "helvetica",
                 "bold"
             );
 
+
             pdf.text(
                 "DETALLE DEL PRESUPUESTO",
                 margen,
                 y
             );
+
 
             y += 7;
 
@@ -2021,6 +2293,7 @@ btnPDF.addEventListener(
                 margen,
                 y
             );
+
 
             y += 6;
 
@@ -2053,18 +2326,22 @@ btnPDF.addEventListener(
             6;
 
 
-            /* MATERIALES */
+            /*
+             * MATERIALES
+             */
 
             pdf.setFont(
                 "helvetica",
                 "bold"
             );
 
+
             pdf.text(
                 "MATERIALES",
                 margen,
                 y
             );
+
 
             y += 6;
 
@@ -2135,6 +2412,7 @@ btnPDF.addEventListener(
                     y
                 );
 
+
                 y += 6;
 
             }
@@ -2143,18 +2421,22 @@ btnPDF.addEventListener(
             y += 4;
 
 
-            /* MANO DE OBRA */
+            /*
+             * MANO DE OBRA
+             */
 
             pdf.setFont(
                 "helvetica",
                 "bold"
             );
 
+
             pdf.text(
                 "MANO DE OBRA",
                 margen,
                 y
             );
+
 
             y += 6;
 
@@ -2163,6 +2445,7 @@ btnPDF.addEventListener(
                 "helvetica",
                 "normal"
             );
+
 
             pdf.text(
                 "Importe: $" +
@@ -2173,21 +2456,26 @@ btnPDF.addEventListener(
                 y
             );
 
+
             y += 8;
 
 
-            /* LUGAR */
+            /*
+             * LUGAR
+             */
 
             pdf.setFont(
                 "helvetica",
                 "bold"
             );
 
+
             pdf.text(
                 "Lugar de Prestación del Servicio:",
                 margen,
                 y
             );
+
 
             y += 6;
 
@@ -2233,18 +2521,22 @@ btnPDF.addEventListener(
             y += 9;
 
 
-            /* IMPORTES */
+            /*
+             * IMPORTES
+             */
 
             pdf.setFont(
                 "helvetica",
                 "bold"
             );
 
+
             pdf.text(
                 "IMPORTES",
                 margen,
                 y
             );
+
 
             y += 6;
 
@@ -2254,15 +2546,18 @@ btnPDF.addEventListener(
                 "normal"
             );
 
+
             pdf.setFontSize(
                 9
             );
+
 
             pdf.text(
                 "Indicar valores sin IVA",
                 margen,
                 y
             );
+
 
             y += 7;
 
@@ -2273,17 +2568,20 @@ btnPDF.addEventListener(
                 datosPresupuesto.importeMaterial
             );
 
+
             const manoObra =
             numero(
                 datosPresupuesto.manoObra ||
                 datosPresupuesto.importeManoObra
             );
 
+
             const viaticos =
             numero(
                 datosPresupuesto.viaticos ||
                 datosPresupuesto.importeViaticos
             );
+
 
             const flete =
             numero(
@@ -2392,6 +2690,7 @@ btnPDF.addEventListener(
                 "bold"
             );
 
+
             pdf.setFontSize(
                 13
             );
@@ -2426,7 +2725,9 @@ btnPDF.addEventListener(
             y += 8;
 
 
-            /* CONSIDERACIONES */
+            /*
+             * CONSIDERACIONES
+             */
 
             if(y > 260){
 
@@ -2441,6 +2742,7 @@ btnPDF.addEventListener(
                 "helvetica",
                 "bold"
             );
+
 
             pdf.setFontSize(
                 11
@@ -2461,6 +2763,7 @@ btnPDF.addEventListener(
                 "helvetica",
                 "normal"
             );
+
 
             pdf.setFontSize(
                 9
@@ -2486,7 +2789,9 @@ btnPDF.addEventListener(
             );
 
 
-            /* GUARDAR */
+            /*
+             * GUARDAR PDF
+             */
 
             const numeroPDF =
             numeroPresupuesto(
@@ -2507,6 +2812,7 @@ btnPDF.addEventListener(
                 "ERROR PDF:",
                 error
             );
+
 
             alert(
                 "No se pudo generar el PDF:\n\n" +
@@ -2561,6 +2867,19 @@ onAuthStateChanged(
         inicioCompletado =
         true;
 
+
+        /*
+         * COMPROBAR PANEL PRIVADO
+         */
+
+        comprobarPanelJulian(
+            usuario
+        );
+
+
+        /*
+         * CARGAR PRESUPUESTO
+         */
 
         await cargarPresupuesto(
             usuario
