@@ -1,807 +1,186 @@
-<!DOCTYPE html>
-<html lang="es">
-
+<!DOCTYPE html><html lang="es">
 <head>
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <meta name="theme-color" content="#111827">
-
-<title>Certificación de trabajos - GESBASE</title>
-
-<style>
-
-*{
-    box-sizing:border-box;
-}
-
-body{
-    margin:0;
-    font-family:Arial,Helvetica,sans-serif;
-    background:#f3f4f6;
-    color:#111827;
-}
-
-header{
-    background:#111827;
-    color:white;
-    padding:20px;
-    text-align:center;
-}
-
-header h1{
-    margin:0;
-    font-size:24px;
-}
-
-header p{
-    margin:6px 0 0;
-    color:#d1d5db;
-    font-size:14px;
-}
-
-.container{
-    width:100%;
-    max-width:1100px;
-    margin:auto;
-    padding:18px;
-}
-
-.card{
-    background:white;
-    border-radius:14px;
-    padding:20px;
-    margin-bottom:18px;
-    box-shadow:0 3px 12px rgba(0,0,0,.08);
-}
-
-.card h2{
-    margin:0 0 18px;
-    font-size:20px;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:15px;
-}
-
-.field{
-    display:flex;
-    flex-direction:column;
-}
-
-.full{
-    grid-column:1/-1;
-}
-
-label{
-    font-weight:bold;
-    font-size:14px;
-    margin-bottom:6px;
-}
-
-input,
-select,
-textarea{
-    width:100%;
-    padding:12px;
-    border:1px solid #d1d5db;
-    border-radius:8px;
-    font-size:16px;
-    background:white;
-}
-
-textarea{
-    min-height:110px;
-    resize:vertical;
-}
-
-input[readonly]{
-    background:#f3f4f6;
-}
-
-button{
-    border:0;
-    border-radius:8px;
-    padding:12px 18px;
-    font-size:15px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-button:disabled{
-    opacity:.6;
-    cursor:not-allowed;
-}
-
-.btn-primary{
-    background:#2563eb;
-    color:white;
-}
-
-.btn-success{
-    background:#16a34a;
-    color:white;
-}
-
-.btn-secondary{
-    background:#374151;
-    color:white;
-}
-
-.btn-back{
-    background:#6b7280;
-    color:white;
-    margin-bottom:15px;
-}
-
-.buttons{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-top:18px;
-}
-
-.mensaje{
-    display:none;
-    padding:14px;
-    border-radius:8px;
-    margin-bottom:15px;
-    font-weight:bold;
-}
-
-.mensaje.exito{
-    display:block;
-    background:#dcfce7;
-    color:#166534;
-}
-
-.mensaje.error{
-    display:block;
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-.aviso{
-    background:#eff6ff;
-    border-left:4px solid #2563eb;
-    padding:13px;
-    border-radius:7px;
-    margin-bottom:18px;
-    line-height:1.5;
-}
-
-.info{
-    background:#f9fafb;
-    border:1px solid #e5e7eb;
-    padding:15px;
-    border-radius:10px;
-    margin-top:15px;
-}
-
-.info strong{
-    display:block;
-    margin-bottom:5px;
-}
-
-.items{
-    margin-top:18px;
-}
-
-.item{
-    border:1px solid #e5e7eb;
-    border-radius:12px;
-    padding:15px;
-    margin-bottom:12px;
-    background:#fafafa;
-}
-
-.item-grid{
-    display:grid;
-    grid-template-columns:2fr 1fr 1fr 1fr;
-    gap:10px;
-    align-items:end;
-}
-
-.item-nombre{
-    font-weight:bold;
-}
-
-.item-dato{
-    font-size:13px;
-    color:#6b7280;
-}
-
-.item-importe{
-    font-weight:bold;
-}
-
-.total-certificacion{
-    background:#ecfdf5;
-    border:1px solid #a7f3d0;
-    border-radius:12px;
-    padding:18px;
-    margin-top:18px;
-}
-
-.total-certificacion span{
-    color:#166534;
-    display:block;
-    font-size:14px;
-}
-
-.total-certificacion strong{
-    display:block;
-    color:#047857;
-    font-size:26px;
-    margin-top:5px;
-}
-
-.firma-area{
-    border:2px dashed #9ca3af;
-    border-radius:10px;
-    background:white;
-    width:100%;
-    max-width:600px;
-    touch-action:none;
-}
-
-#firmaCanvas{
-    width:100%;
-    height:220px;
-    display:block;
-    touch-action:none;
-}
-
-.firma-botones{
-    margin-top:10px;
-    display:flex;
-    gap:10px;
-}
-
-.tabla-container{
-    overflow-x:auto;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-    min-width:850px;
-}
-
-th,
-td{
-    padding:11px;
-    border-bottom:1px solid #e5e7eb;
-    text-align:left;
-    font-size:13px;
-}
-
-th{
-    background:#f9fafb;
-}
-
-.cargando{
-    text-align:center;
-    padding:20px;
-    color:#6b7280;
-}
-
-.sin-datos{
-    text-align:center;
-    padding:20px;
-    color:#6b7280;
-}
-
-.usuario{
-    background:white;
-    border-radius:12px;
-    padding:15px;
-    margin-bottom:18px;
-    box-shadow:0 2px 8px rgba(0,0,0,.06);
-}
-
-.usuario div{
-    margin:5px 0;
-}
-
-.usuario span{
-    font-weight:bold;
-}
-
-.estado-conexion{
-    color:#2563eb;
-    font-size:13px;
-    margin-top:8px;
-}
+<title>Certificación de trabajos - GESBASE</title><style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f3f4f6;color:#111827}
+header{background:#111827;color:white;padding:20px;text-align:center}
+header h1{margin:0;font-size:24px}
+header p{margin:6px 0 0;color:#d1d5db;font-size:14px}
+.container{width:100%;max-width:1100px;margin:auto;padding:18px}
+.card{background:white;border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 3px 12px rgba(0,0,0,.08)}
+.card h2{margin:0 0 18px;font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
+.field{display:flex;flex-direction:column}
+.full{grid-column:1/-1}
+label{font-weight:bold;font-size:14px;margin-bottom:6px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font-size:16px;background:white}
+textarea{min-height:110px;resize:vertical}
+input[readonly]{background:#f3f4f6}
+button{border:0;border-radius:8px;padding:12px 18px;font-size:15px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed}
+.btn-primary{background:#2563eb;color:white}
+.btn-success{background:#16a34a;color:white}
+.btn-secondary{background:#374151;color:white}
+.btn-back{background:#6b7280;color:white;margin-bottom:15px}
+.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.mensaje{display:none;padding:14px;border-radius:8px;margin-bottom:15px;font-weight:bold}
+.mensaje.exito{display:block;background:#dcfce7;color:#166534}
+.mensaje.error{display:block;background:#fee2e2;color:#991b1b}
+.mensaje.info{display:block;background:#eff6ff;color:#1d4ed8}
+.aviso{background:#eff6ff;border-left:4px solid #2563eb;padding:13px;border-radius:7px;margin-bottom:18px;line-height:1.5}
+.info{background:#f9fafb;border:1px solid #e5e7eb;padding:15px;border-radius:10px;margin-top:15px}
+.info strong{display:block;margin-bottom:5px}
+.items{margin-top:18px}
+.item{border:1px solid #e5e7eb;border-radius:12px;padding:15px;margin-bottom:12px;background:#fafafa}
+.item-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;align-items:end}
+.item-nombre{font-weight:bold}
+.item-dato{font-size:13px;color:#6b7280}
+.item-importe{font-weight:bold}
+.total-certificacion{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:18px;margin-top:18px}
+.total-certificacion span{color:#166534;display:block;font-size:14px}
+.total-certificacion strong{display:block;color:#047857;font-size:26px;margin-top:5px}
+.firma-area{border:2px dashed #9ca3af;border-radius:10px;background:white;width:100%;max-width:600px;touch-action:none}
+#firmaCanvas{width:100%;height:220px;display:block;touch-action:none}
+.firma-botones{margin-top:10px;display:flex;gap:10px}
+.tabla-container{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:850px}
+th,td{padding:11px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px}
+th{background:#f9fafb}
+.cargando{text-align:center;padding:20px;color:#6b7280}
+.sin-datos{text-align:center;padding:20px;color:#6b7280}
+.usuario{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:15px;font-size:14px}
+.usuario div{margin:4px 0}
+.estado-conectado{color:#15803d;font-weight:bold}
+.estado-error{color:#b91c1c;font-weight:bold}
 
 @media(max-width:700px){
-
-    .container{
-        padding:12px;
-    }
-
-    .card{
-        padding:15px;
-    }
-
-    .grid{
-        grid-template-columns:1fr;
-    }
-
-    .full{
-        grid-column:auto;
-    }
-
-    .item-grid{
-        grid-template-columns:1fr;
-    }
-
-    .buttons{
-        flex-direction:column;
-    }
-
-    .buttons button{
-        width:100%;
-    }
-
-    .btn-back{
-        width:100%;
-    }
-
+.container{padding:12px}
+.card{padding:15px}
+.grid{grid-template-columns:1fr}
+.full{grid-column:auto}
+.item-grid{grid-template-columns:1fr}
+.buttons{flex-direction:column}
+.buttons button{width:100%}
+.btn-back{width:100%}
 }
-
-</style>
-</head>
-
-<body>
-
-<header>
-
+</style></head><body><header>
 <h1>📋 GESBASE</h1>
-
 <p>Certificación de trabajos</p>
-
-</header>
-
-
-<div class="container">
-
-
-<button
-    type="button"
-    id="btnVolver"
-    class="btn-back"
->
+</header><div class="container"><button type="button" id="btnVolver" class="btn-back">
 ← Volver al panel
-</button>
-
-
-<div class="usuario">
-
-<div>
+</button><div class="usuario"><div>
 Cuenta:
-<span id="emailUsuario">Conectando...</span>
-</div>
-
-<div>
+<strong id="emailUsuario">Conectando...</strong>
+</div><div>
 Empresa:
-<span id="nombreEmpresa">Conectando...</span>
-</div>
-
-<div>
+<strong id="nombreEmpresa">Conectando...</strong>
+</div><div>
 ID empresa:
-<span id="idEmpresa">Conectando...</span>
-</div>
-
-<div
-    id="estadoConexion"
-    class="estado-conexion"
->
-Conectando con GESBASE...
-</div>
-
-</div>
-
-
-<div
-    id="mensaje"
-    class="mensaje"
-></div>
-
-
-<div class="card">
-
-<h2>➕ Nueva certificación</h2>
-
-<div class="aviso">
-
-La certificación se calcula sobre las cantidades realmente
-ejecutadas de cada ítem del presupuesto. GESBASE calcula
-automáticamente el porcentaje y el importe correspondiente.
-
-</div>
-
-
-<div class="grid">
-
-
-<div class="field">
-
+<strong id="idEmpresa">Conectando...</strong>
+</div><div id="estadoConexion" class="estado-conectado">
+⏳ Conectando con GESBASE...
+</div></div><div id="mensaje" class="mensaje"></div><div class="card"><h2>➕ Nueva certificación</h2><div class="aviso">
+La certificación se calcula sobre las cantidades realmente ejecutadas de cada ítem del presupuesto.
+GESBASE calcula automáticamente el porcentaje y el importe correspondiente.
+</div><div class="grid"><div class="field">
 <label for="cliente">Cliente</label>
-
-<select id="cliente" disabled>
-
-<option value="">
-Esperando conexión...
-</option>
-
+<select id="cliente">
+<option value="">Cargando clientes...</option>
 </select>
-
-</div>
-
-
-<div class="field">
-
+</div><div class="field">
 <label for="presupuesto">Presupuesto</label>
-
-<select id="presupuesto" disabled>
-
-<option value="">
-Seleccioná primero un cliente
-</option>
-
+<select id="presupuesto">
+<option value="">Seleccioná primero un cliente</option>
 </select>
-
-</div>
-
-
-<div class="field">
-
+</div><div class="field">
 <label for="trabajo">Trabajo</label>
-
-<select id="trabajo" disabled>
-
-<option value="">
-Seleccioná un presupuesto
-</option>
-
+<select id="trabajo">
+<option value="">Seleccioná un presupuesto</option>
 </select>
-
-</div>
-
-
-<div class="field">
-
+</div><div class="field">
 <label for="periodo">Período</label>
-
 <select id="periodo">
-
-<option value="semanal">
-Semanal
-</option>
-
-<option value="quincenal">
-Quincenal
-</option>
-
-<option value="mensual">
-Mensual
-</option>
-
-<option value="otro">
-Otro
-</option>
-
+<option value="semanal">Semanal</option>
+<option value="quincenal">Quincenal</option>
+<option value="mensual">Mensual</option>
+<option value="otro">Otro</option>
 </select>
-
-</div>
-
-
-<div class="field">
-
-<label for="fechaDesde">
-Desde
-</label>
-
-<input
-    type="date"
-    id="fechaDesde"
->
-
-
-</div>
-
-
-<div class="field">
-
-<label for="fechaHasta">
-Hasta
-</label>
-
-<input
-    type="date"
-    id="fechaHasta"
->
-
-</div>
-
-
-<div class="field full">
-
-<label for="descripcion">
-Trabajos realizados
-</label>
-
-<textarea
-    id="descripcion"
-    placeholder="Describí los trabajos realizados durante este período..."
-></textarea>
-
-</div>
-
-</div>
-
-
-<div
-    id="datosCliente"
-    class="info"
-    style="display:none;"
->
-
+</div><div class="field">
+<label for="fechaDesde">Desde</label>
+<input type="date" id="fechaDesde">
+</div><div class="field">
+<label for="fechaHasta">Hasta</label>
+<input type="date" id="fechaHasta">
+</div><div class="field full">
+<label for="descripcion">Trabajos realizados</label>
+<textarea id="descripcion" placeholder="Describí los trabajos realizados durante este período..."></textarea>
+</div></div><div id="datosCliente" class="info" style="display:none">
 <strong id="nombreClienteInfo"></strong>
-
 <span id="datosClienteInfo"></span>
-
-</div>
-
-
-<div
-    id="datosPresupuesto"
-    class="info"
-    style="display:none;"
->
-
-<strong>
-Presupuesto seleccionado
-</strong>
-
+</div><div id="datosPresupuesto" class="info" style="display:none">
+<strong>Presupuesto seleccionado</strong>
 <span id="datosPresupuestoInfo"></span>
-
-</div>
-
-</div>
-
-
-<div
-    class="card"
-    id="cardItems"
-    style="display:none;"
->
-
-<h2>📐 Trabajos a certificar</h2>
-
-<div class="aviso">
-
-Ingresá cuánto se realizó en este período.
-GESBASE calculará el porcentaje de avance de cada ítem
-y el importe correspondiente.
-
-</div>
-
-<div
-    id="listaItems"
-    class="items"
-></div>
-
-
-<div class="total-certificacion">
-
-<span>
-TOTAL DE ESTA CERTIFICACIÓN
-</span>
-
-<strong id="totalCertificacion">
-$ 0,00
-</strong>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<h2>✍️ Firma de certificación</h2>
-
-<div class="aviso">
-
+</div></div><div class="card" id="cardItems" style="display:none"><h2>📐 Trabajos a certificar</h2><div class="aviso">
+Ingresá cuánto se realizó en este período. GESBASE calculará el porcentaje de avance y el importe correspondiente.
+</div><div id="listaItems" class="items"></div><div class="total-certificacion">
+<span>TOTAL DE ESTA CERTIFICACIÓN</span>
+<strong id="totalCertificacion">$ 0,00</strong>
+</div></div><div class="card"><h2>✍️ Firma de certificación</h2><div class="aviso">
 Firmá directamente con el dedo en la pantalla del celular.
-La firma quedará incorporada al PDF.
-
-</div>
-
-<div class="firma-area">
-
+La firma quedará incorporada al PDF de certificación.
+</div><div class="firma-area">
 <canvas id="firmaCanvas"></canvas>
-
-</div>
-
-<div class="firma-botones">
-
-<button
-    type="button"
-    id="btnLimpiarFirma"
-    class="btn-secondary"
->
+</div><div class="firma-botones">
+<button type="button" id="btnLimpiarFirma" class="btn-secondary">
 Limpiar firma
 </button>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="buttons">
-
-<button
-    type="button"
-    id="btnGuardar"
-    class="btn-primary"
-    disabled
->
+</div></div><div class="card"><div class="buttons"><button type="button" id="btnGuardar" class="btn-primary">
 💾 Guardar certificación
-</button>
-
-<button
-    type="button"
-    id="btnGenerarPDF"
-    class="btn-success"
-    disabled
->
+</button><button type="button" id="btnGenerarPDF" class="btn-success">
 📄 Generar PDF
-</button>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<h2>📑 Certificaciones realizadas</h2>
-
-<div
-    id="cargandoCertificaciones"
-    class="cargando"
->
+</button></div></div><div class="card"><h2>📑 Certificaciones realizadas</h2><div id="cargandoCertificaciones" class="cargando">
 Cargando certificaciones...
-</div>
-
-<div class="tabla-container">
-
-<table>
-
-<thead>
-
+</div><div class="tabla-container"><table><thead>
 <tr>
-
 <th>Cliente</th>
-
 <th>Presupuesto</th>
-
 <th>Período</th>
-
 <th>Fecha</th>
-
 <th>Importe</th>
-
 <th>PDF</th>
-
 </tr>
-
-</thead>
-
-<tbody id="tablaCertificaciones"></tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
-
-<script type="module">
-
+</thead><tbody id="tablaCertificaciones"></tbody></table></div></div></div><script type="module">
 
 /* =====================================================
-   FIREBASE DIRECTO
+   FIREBASE
 ===================================================== */
 
 import {
-    initializeApp
-} from
-"https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-
+    auth,
+    db
+} from "./Js/firebase.js";
 
 import {
-    getAuth,
     onAuthStateChanged
-} from
-"https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
-    getFirestore,
     collection,
-    doc,
-    getDoc,
     getDocs,
+    getDoc,
+    doc,
     addDoc,
     query,
     where,
     serverTimestamp
-} from
-"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 import {
     jsPDF
-} from
-"https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.es.min.js";
-
-
-/* =====================================================
-   CONFIGURACIÓN FIREBASE DE GESBASE
-===================================================== */
-
-const firebaseConfig = {
-
-    apiKey:
-    "AIzaSyDDCQ7WhS9Gy8DwQGZ01VaFTmSgV2rjs9o",
-
-    authDomain:
-    "gesbase-4bf94.firebaseapp.com",
-
-    projectId:
-    "gesbase-4bf94",
-
-    storageBucket:
-    "gesbase-4bf94.firebasestorage.app",
-
-    messagingSenderId:
-    "64959778874",
-
-    appId:
-    "1:64959778874:web:"
-
-};
-
-
-/*
- * IMPORTANTE:
- * Si tu firebase.js actual tiene un appId completo,
- * reemplazá solamente el valor appId de arriba por
- * el mismo appId que ya utilizás en GESBASE.
- */
-
-
-const app =
-initializeApp(firebaseConfig);
-
-
-const auth =
-getAuth(app);
-
-
-const db =
-getFirestore(app);
+} from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.es.min.js";
 
 
 /* =====================================================
@@ -809,76 +188,52 @@ getFirestore(app);
 ===================================================== */
 
 let usuarioActual = null;
-
 let empresaIdActual = "";
-
 let empresaActual = {};
-
 let clientes = [];
-
 let presupuestos = [];
-
 let trabajos = [];
-
 let certificaciones = [];
-
 let itemsPresupuesto = [];
-
 let firmaRealizada = false;
+let dibujando = false;
 
 
 /* =====================================================
    ELEMENTOS
 ===================================================== */
 
-const clienteSelect =
-document.getElementById("cliente");
-
-const presupuestoSelect =
-document.getElementById("presupuesto");
-
-const trabajoSelect =
-document.getElementById("trabajo");
-
-const cardItems =
-document.getElementById("cardItems");
-
-const listaItems =
-document.getElementById("listaItems");
-
-const totalCertificacion =
-document.getElementById("totalCertificacion");
-
-const mensaje =
-document.getElementById("mensaje");
-
-const canvas =
-document.getElementById("firmaCanvas");
-
-const ctx =
-canvas.getContext("2d");
+const clienteSelect = document.getElementById("cliente");
+const presupuestoSelect = document.getElementById("presupuesto");
+const trabajoSelect = document.getElementById("trabajo");
+const cardItems = document.getElementById("cardItems");
+const listaItems = document.getElementById("listaItems");
+const totalCertificacion = document.getElementById("totalCertificacion");
+const mensaje = document.getElementById("mensaje");
+const canvas = document.getElementById("firmaCanvas");
+const ctx = canvas.getContext("2d");
 
 
 /* =====================================================
    MENSAJES
 ===================================================== */
 
-function mostrarMensaje(
-    texto,
-    tipo
-){
+function mostrarMensaje(texto, tipo){
 
-    mensaje.textContent =
-        texto;
-
-    mensaje.className =
-        "mensaje " + tipo;
+    mensaje.textContent = texto;
+    mensaje.className = "mensaje " + tipo;
 
     window.scrollTo({
         top:0,
         behavior:"smooth"
     });
 
+    setTimeout(() => {
+
+        mensaje.className = "mensaje";
+        mensaje.textContent = "";
+
+    }, 6000);
 }
 
 
@@ -888,21 +243,15 @@ function mostrarMensaje(
 
 function fechaHoy(){
 
-    const d =
-        new Date();
+    const d = new Date();
 
     return (
         d.getFullYear() +
         "-" +
-        String(
-            d.getMonth()+1
-        ).padStart(2,"0") +
+        String(d.getMonth()+1).padStart(2,"0") +
         "-" +
-        String(
-            d.getDate()
-        ).padStart(2,"0")
+        String(d.getDate()).padStart(2,"0")
     );
-
 }
 
 
@@ -912,9 +261,7 @@ function fechaHoy(){
 
 function dinero(valor){
 
-    return Number(
-        valor || 0
-    ).toLocaleString(
+    return Number(valor || 0).toLocaleString(
         "es-AR",
         {
             style:"currency",
@@ -922,40 +269,21 @@ function dinero(valor){
             minimumFractionDigits:2
         }
     );
-
 }
 
 
 /* =====================================================
-   ESCAPE HTML
+   ESCAPE
 ===================================================== */
 
 function escapeHTML(texto){
 
-    return String(
-        texto ?? ""
-    )
-    .replace(
-        /&/g,
-        "&amp;"
-    )
-    .replace(
-        /</g,
-        "&lt;"
-    )
-    .replace(
-        />/g,
-        "&gt;"
-    )
-    .replace(
-        /"/g,
-        "&quot;"
-    )
-    .replace(
-        /'/g,
-        "&#039;"
-    );
-
+    return String(texto ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
 }
 
 
@@ -965,170 +293,130 @@ function escapeHTML(texto){
 
 async function obtenerEmpresa(){
 
-    const refUsuario =
-        doc(
-            db,
-            "usuarios",
-            usuarioActual.uid
-        );
+    if(!usuarioActual){
 
-
-    const snapUsuario =
-        await getDoc(
-            refUsuario
-        );
-
-
-    if(!snapUsuario.exists()){
-
-        throw new Error(
-            "No existe el documento usuarios/" +
-            usuarioActual.uid +
-            ". Revisá que el usuario esté registrado en GESBASE."
-        );
+        throw new Error("No hay usuario autenticado.");
 
     }
 
-
-    const datosUsuario =
-        snapUsuario.data();
-
-
     /*
-     * Buscamos todos los nombres utilizados
-     * en las distintas versiones de GESBASE.
+     * Primero buscamos el documento del usuario.
      */
 
-    let empresaId =
+    const usuarioRef = doc(
+        db,
+        "usuarios",
+        usuarioActual.uid
+    );
+
+    const usuarioSnap = await getDoc(usuarioRef);
+
+    let datosUsuario = {};
+
+    if(usuarioSnap.exists()){
+
+        datosUsuario = usuarioSnap.data();
+
+    }
+
+    /*
+     * Buscamos empresaId utilizando varios nombres
+     * compatibles con las versiones de GESBASE.
+     */
+
+    empresaIdActual = String(
         datosUsuario.empresaId ||
         datosUsuario.empresaID ||
         datosUsuario.idEmpresa ||
         datosUsuario.empresa ||
-        "";
-
-
-    /*
-     * Si empresa es un objeto, intentamos
-     * obtener su ID.
-     */
-
-    if(
-        typeof empresaId === "object" &&
-        empresaId !== null
-    ){
-
-        empresaId =
-            empresaId.id ||
-            empresaId.empresaId ||
-            "";
-
-    }
-
-
-    empresaId =
-        String(
-            empresaId
-        ).trim();
-
-
-    if(!empresaId){
-
-        throw new Error(
-            "El usuario inició sesión, pero su documento no tiene empresaId."
-        );
-
-    }
-
-
-    empresaIdActual =
-        empresaId;
-
+        usuarioActual.uid
+    ).trim();
 
     /*
-     * Mostrar correo inmediatamente.
+     * Mostrar inmediatamente la información disponible.
      */
 
-    document.getElementById(
-        "emailUsuario"
-    ).textContent =
-        usuarioActual.email ||
-        datosUsuario.email ||
-        "Sin correo";
-
+    document.getElementById("idEmpresa").textContent =
+        empresaIdActual;
 
     /*
      * Intentamos obtener la empresa.
      */
 
-    let datosEmpresa = {};
+    let empresaSnap = null;
 
+    const posiblesIds = [
+        empresaIdActual,
+        String(datosUsuario.empresaId || "").trim(),
+        String(datosUsuario.idEmpresa || "").trim()
+    ].filter(Boolean);
 
-    const refEmpresa =
-        doc(
-            db,
-            "empresas",
-            empresaIdActual
-        );
+    for(const id of posiblesIds){
 
+        try{
 
-    const snapEmpresa =
-        await getDoc(
-            refEmpresa
-        );
+            const ref = doc(
+                db,
+                "empresas",
+                id
+            );
 
+            const snap = await getDoc(ref);
 
-    if(
-        snapEmpresa.exists()
-    ){
+            if(snap.exists()){
 
-        datosEmpresa =
-            snapEmpresa.data();
+                empresaSnap = snap;
+                break;
+
+            }
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudo consultar empresa:",
+                id,
+                error
+            );
+
+        }
 
     }
 
+    if(empresaSnap && empresaSnap.exists()){
 
-    empresaActual =
-        datosEmpresa;
+        empresaActual = empresaSnap.data();
 
+    }
+    else{
+
+        /*
+         * Si el documento de empresa no existe,
+         * utilizamos los datos que pueda tener el usuario.
+         */
+
+        empresaActual = {
+            nombre:
+                datosUsuario.nombreEmpresa ||
+                datosUsuario.empresaNombre ||
+                datosUsuario.razonSocial ||
+                datosUsuario.nombreEmpresa ||
+                "Empresa GESBASE"
+        };
+
+    }
 
     const nombreEmpresa =
-        datosEmpresa.nombre ||
-        datosEmpresa.nombreEmpresa ||
-        datosEmpresa.razonSocial ||
+        empresaActual.nombre ||
+        empresaActual.nombreEmpresa ||
+        empresaActual.razonSocial ||
+        empresaActual.empresa ||
         datosUsuario.nombreEmpresa ||
         datosUsuario.empresaNombre ||
-        (
-            typeof datosUsuario.empresa === "string"
-            ?
-            datosUsuario.empresa
-            :
-            ""
-        ) ||
-        "Empresa";
+        "Empresa GESBASE";
 
-
-    document.getElementById(
-        "nombreEmpresa"
-    ).textContent =
+    document.getElementById("nombreEmpresa").textContent =
         nombreEmpresa;
-
-
-    document.getElementById(
-        "idEmpresa"
-    ).textContent =
-        empresaIdActual;
-
-
-    document.getElementById(
-        "estadoConexion"
-    ).textContent =
-        "✅ Conectado a GESBASE";
-
-
-    document.getElementById(
-        "estadoConexion"
-    ).style.color =
-        "#16a34a";
 
 }
 
@@ -1141,102 +429,48 @@ async function cargarClientes(){
 
     clientes = [];
 
+    const posiblesConsultas = [
+        ["empresaId", empresaIdActual],
+        ["uid", usuarioActual.uid]
+    ];
 
-    const ref =
-        collection(
-            db,
-            "clientes"
-        );
+    let encontrado = false;
 
+    for(const [campo,valor] of posiblesConsultas){
 
-    /*
-     * Primero por empresaId.
-     */
-
-    try{
-
-        const snap =
-            await getDocs(
-                query(
-                    ref,
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
-                )
-            );
-
-
-        snap.forEach(
-            d => {
-
-                clientes.push({
-                    id:d.id,
-                    ...d.data()
-                });
-
-            }
-        );
-
-    }
-    catch(error){
-
-        console.warn(
-            "Consulta clientes empresaId:",
-            error
-        );
-
-    }
-
-
-    /*
-     * Si no encontró clientes, probamos uid.
-     */
-
-    if(
-        clientes.length === 0
-    ){
+        if(!valor) continue;
 
         try{
 
-            const snap =
-                await getDocs(
-                    query(
-                        ref,
-                        where(
-                            "uid",
-                            "==",
-                            usuarioActual.uid
-                        )
-                    )
-                );
-
-
-            snap.forEach(
-                d => {
-
-                    if(
-                        !clientes.some(
-                            c => c.id === d.id
-                        )
-                    ){
-
-                        clientes.push({
-                            id:d.id,
-                            ...d.data()
-                        });
-
-                    }
-
-                }
+            const snap = await getDocs(
+                query(
+                    collection(db,"clientes"),
+                    where(campo,"==",valor)
+                )
             );
+
+            if(!snap.empty){
+
+                snap.forEach(docu => {
+
+                    clientes.push({
+                        id:docu.id,
+                        ...docu.data()
+                    });
+
+                });
+
+                encontrado = true;
+                break;
+
+            }
 
         }
         catch(error){
 
             console.warn(
-                "Consulta clientes uid:",
+                "Consulta clientes falló:",
+                campo,
                 error
             );
 
@@ -1244,51 +478,33 @@ async function cargarClientes(){
 
     }
 
-
     clienteSelect.innerHTML =
-        `<option value="">
-        Seleccioná un cliente
-        </option>`;
+        `<option value="">Seleccioná un cliente</option>`;
 
+    if(!encontrado){
 
-    clientes.forEach(
-        cliente => {
+        clienteSelect.innerHTML +=
+            `<option value="">No se encontraron clientes</option>`;
 
-            const nombre =
-                cliente.nombre ||
-                cliente.nombreCliente ||
-                cliente.razonSocial ||
-                cliente.empresa ||
-                "Cliente sin nombre";
-
-
-            clienteSelect.innerHTML +=
-                `
-                <option value="${escapeHTML(cliente.id)}">
-                    ${escapeHTML(nombre)}
-                </option>
-                `;
-
-        }
-    );
-
-
-    clienteSelect.disabled =
-        false;
-
-
-    if(
-        clientes.length === 0
-    ){
-
-        clienteSelect.innerHTML =
-            `
-            <option value="">
-                No hay clientes para esta empresa
-            </option>
-            `;
+        return;
 
     }
+
+    clientes.forEach(cliente => {
+
+        const nombre =
+            cliente.nombre ||
+            cliente.nombreCliente ||
+            cliente.razonSocial ||
+            cliente.empresa ||
+            "Cliente sin nombre";
+
+        clienteSelect.innerHTML +=
+            `<option value="${escapeHTML(cliente.id)}">
+                ${escapeHTML(nombre)}
+            </option>`;
+
+    });
 
 }
 
@@ -1301,94 +517,45 @@ async function cargarPresupuestos(){
 
     presupuestos = [];
 
+    const consultas = [
+        ["empresaId",empresaIdActual],
+        ["uid",usuarioActual.uid]
+    ];
 
-    const ref =
-        collection(
-            db,
-            "presupuestos"
-        );
+    for(const [campo,valor] of consultas){
 
-
-    try{
-
-        const snap =
-            await getDocs(
-                query(
-                    ref,
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
-                )
-            );
-
-
-        snap.forEach(
-            d => {
-
-                presupuestos.push({
-                    id:d.id,
-                    ...d.data()
-                });
-
-            }
-        );
-
-    }
-    catch(error){
-
-        console.warn(
-            "Presupuestos empresaId:",
-            error
-        );
-
-    }
-
-
-    if(
-        presupuestos.length === 0
-    ){
+        if(!valor) continue;
 
         try{
 
-            const snap =
-                await getDocs(
-                    query(
-                        ref,
-                        where(
-                            "uid",
-                            "==",
-                            usuarioActual.uid
-                        )
-                    )
-                );
-
-
-            snap.forEach(
-                d => {
-
-                    if(
-                        !presupuestos.some(
-                            p => p.id === d.id
-                        )
-                    ){
-
-                        presupuestos.push({
-                            id:d.id,
-                            ...d.data()
-                        });
-
-                    }
-
-                }
+            const snap = await getDocs(
+                query(
+                    collection(db,"presupuestos"),
+                    where(campo,"==",valor)
+                )
             );
+
+            if(!snap.empty){
+
+                snap.forEach(docu => {
+
+                    presupuestos.push({
+                        id:docu.id,
+                        ...docu.data()
+                    });
+
+                });
+
+                break;
+
+            }
 
         }
         catch(error){
 
             console.warn(
-                "Presupuestos uid:",
+                "Consulta presupuestos falló:",
+                campo,
                 error
             );
 
@@ -1407,43 +574,49 @@ async function cargarTrabajos(){
 
     trabajos = [];
 
+    const consultas = [
+        ["empresaId",empresaIdActual],
+        ["uid",usuarioActual.uid]
+    ];
 
-    try{
+    for(const [campo,valor] of consultas){
 
-        const snap =
-            await getDocs(
+        if(!valor) continue;
+
+        try{
+
+            const snap = await getDocs(
                 query(
-                    collection(
-                        db,
-                        "trabajos"
-                    ),
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
+                    collection(db,"trabajos"),
+                    where(campo,"==",valor)
                 )
             );
 
+            if(!snap.empty){
 
-        snap.forEach(
-            d => {
+                snap.forEach(docu => {
 
-                trabajos.push({
-                    id:d.id,
-                    ...d.data()
+                    trabajos.push({
+                        id:docu.id,
+                        ...docu.data()
+                    });
+
                 });
 
+                break;
+
             }
-        );
 
-    }
-    catch(error){
+        }
+        catch(error){
 
-        console.warn(
-            "Trabajos:",
-            error
-        );
+            console.warn(
+                "Consulta trabajos falló:",
+                campo,
+                error
+            );
+
+        }
 
     }
 
@@ -1454,361 +627,171 @@ async function cargarTrabajos(){
    CLIENTE CAMBIA
 ===================================================== */
 
-clienteSelect.addEventListener(
-    "change",
-    function(){
+clienteSelect.addEventListener("change",function(){
 
-        const clienteId =
-            this.value;
+    const clienteId = this.value;
 
+    presupuestoSelect.innerHTML =
+        `<option value="">Seleccioná un presupuesto</option>`;
 
-        presupuestoSelect.innerHTML =
-            `
-            <option value="">
-                Seleccioná un presupuesto
-            </option>
-            `;
+    trabajoSelect.innerHTML =
+        `<option value="">Seleccioná un trabajo</option>`;
 
+    cardItems.style.display = "none";
 
-        trabajoSelect.innerHTML =
-            `
-            <option value="">
-                Seleccioná un presupuesto
-            </option>
-            `;
+    document.getElementById("datosCliente").style.display = "none";
+    document.getElementById("datosPresupuesto").style.display = "none";
 
+    if(!clienteId) return;
 
-        presupuestoSelect.disabled =
-            true;
+    const cliente = clientes.find(
+        item => item.id === clienteId
+    );
 
+    if(cliente){
 
-        trabajoSelect.disabled =
-            true;
+        const nombre =
+            cliente.nombre ||
+            cliente.nombreCliente ||
+            cliente.razonSocial ||
+            "Cliente";
 
+        const cuit =
+            cliente.cuit ||
+            cliente.CUIT ||
+            "";
 
-        cardItems.style.display =
-            "none";
+        const telefono =
+            cliente.telefono ||
+            cliente.telefonoCliente ||
+            "";
 
+        document.getElementById("nombreClienteInfo").textContent =
+            nombre;
 
-        document.getElementById(
-            "datosCliente"
-        ).style.display =
-            "none";
+        document.getElementById("datosClienteInfo").textContent =
+            [
+                cuit ? "CUIT: " + cuit : "",
+                telefono ? "Tel: " + telefono : ""
+            ].filter(Boolean).join(" | ");
 
+        document.getElementById("datosCliente").style.display =
+            "block";
+    }
 
-        if(!clienteId){
+    const lista = presupuestos.filter(presupuesto => {
 
-            return;
-
-        }
-
-
-        const cliente =
-            clientes.find(
-                c =>
-                    c.id === clienteId
-            );
-
-
-        if(cliente){
-
-            const nombre =
-                cliente.nombre ||
-                cliente.nombreCliente ||
-                cliente.razonSocial ||
-                cliente.empresa ||
-                "Cliente";
-
-
-            const cuit =
-                cliente.cuit ||
-                cliente.CUIT ||
-                "";
-
-
-            const telefono =
-                cliente.telefono ||
-                cliente.telefonoCliente ||
-                "";
-
-
-            document.getElementById(
-                "nombreClienteInfo"
-            ).textContent =
-                nombre;
-
-
-            document.getElementById(
-                "datosClienteInfo"
-            ).textContent =
-                (
-                    (cuit
-                    ?
-                    "CUIT: " + cuit
-                    :
-                    "")
-                    +
-                    (telefono
-                    ?
-                    " | Tel: " + telefono
-                    :
-                    "")
-                );
-
-
-            document.getElementById(
-                "datosCliente"
-            ).style.display =
-                "block";
-
-        }
-
-
-        const lista =
-            presupuestos.filter(
-                presupuesto => {
-
-                    return (
-                        String(
-                            presupuesto.clienteId || ""
-                        ) === clienteId
-
-                        ||
-
-                        String(
-                            presupuesto.idCliente || ""
-                        ) === clienteId
-
-                        ||
-
-                        String(
-                            presupuesto.cliente || ""
-                        ) === clienteId
-
-                        ||
-
-                        String(
-                            presupuesto.cliente_id || ""
-                        ) === clienteId
-
-                    );
-
-                }
-            );
-
-
-        lista.forEach(
-            presupuesto => {
-
-                const numero =
-                    presupuesto.numero ||
-                    presupuesto.numeroPresupuesto ||
-                    presupuesto.codigo ||
-                    presupuesto.nro ||
-                    presupuesto.id;
-
-
-                const descripcion =
-                    presupuesto.descripcion ||
-                    presupuesto.titulo ||
-                    presupuesto.nombre ||
-                    "Presupuesto";
-
-
-                presupuestoSelect.innerHTML +=
-                    `
-                    <option value="${escapeHTML(presupuesto.id)}">
-                        ${escapeHTML(
-                            String(numero)
-                        )}
-                        -
-                        ${escapeHTML(
-                            String(descripcion)
-                        )}
-                    </option>
-                    `;
-
-            }
+        return (
+            String(presupuesto.clienteId || "") === clienteId ||
+            String(presupuesto.idCliente || "") === clienteId ||
+            String(presupuesto.cliente || "") === clienteId
         );
 
+    });
 
-        presupuestoSelect.disabled =
-            false;
+    lista.forEach(presupuesto => {
 
+        const numero =
+            presupuesto.numero ||
+            presupuesto.numeroPresupuesto ||
+            presupuesto.codigo ||
+            presupuesto.id;
 
-        if(
-            lista.length === 0
-        ){
+        const descripcion =
+            presupuesto.descripcion ||
+            presupuesto.titulo ||
+            "Presupuesto";
 
-            presupuestoSelect.innerHTML =
-                `
-                <option value="">
-                    No hay presupuestos para este cliente
-                </option>
-                `;
+        presupuestoSelect.innerHTML +=
+            `<option value="${escapeHTML(presupuesto.id)}">
+                ${escapeHTML(String(numero))} - ${escapeHTML(String(descripcion))}
+            </option>`;
 
-        }
+    });
 
-    }
-);
+});
 
 
 /* =====================================================
    PRESUPUESTO CAMBIA
 ===================================================== */
 
-presupuestoSelect.addEventListener(
-    "change",
-    function(){
+presupuestoSelect.addEventListener("change",function(){
 
-        const presupuestoId =
-            this.value;
+    const presupuestoId = this.value;
 
+    cardItems.style.display = "none";
+    listaItems.innerHTML = "";
 
-        cardItems.style.display =
-            "none";
+    trabajoSelect.innerHTML =
+        `<option value="">Seleccioná un trabajo</option>`;
 
+    if(!presupuestoId) return;
 
-        listaItems.innerHTML =
-            "";
+    const presupuesto = presupuestos.find(
+        item => item.id === presupuestoId
+    );
 
-
-        trabajoSelect.innerHTML =
-            `
-            <option value="">
-                Seleccioná trabajo
-            </option>
-            `;
-
-
-        trabajoSelect.disabled =
-            true;
-
-
-        if(!presupuestoId){
-
-            return;
-
-        }
-
-
-        const presupuesto =
-            presupuestos.find(
-                p =>
-                    p.id === presupuestoId
-            );
-
-
-        if(!presupuesto){
-
-            return;
-
-        }
-
+    if(presupuesto){
 
         const numero =
             presupuesto.numero ||
             presupuesto.numeroPresupuesto ||
             presupuesto.codigo ||
-            presupuesto.nro ||
             presupuesto.id;
-
 
         const total =
             Number(
                 presupuesto.total ||
                 presupuesto.importeTotal ||
                 presupuesto.montoTotal ||
-                presupuesto.totalFinal ||
                 0
             );
 
+        document.getElementById("datosPresupuestoInfo").textContent =
+            "N° " + numero + " | Total: " + dinero(total);
 
-        document.getElementById(
-            "datosPresupuestoInfo"
-        ).textContent =
-            "N° " +
-            numero +
-            " | Total: " +
-            dinero(total);
-
-
-        document.getElementById(
-            "datosPresupuesto"
-        ).style.display =
+        document.getElementById("datosPresupuesto").style.display =
             "block";
 
-
-        cargarItemsPresupuesto(
-            presupuesto
-        );
-
-
-        const listaTrabajos =
-            trabajos.filter(
-                trabajo => {
-
-                    return (
-                        String(
-                            trabajo.presupuestoId || ""
-                        ) === presupuestoId
-
-                        ||
-
-                        String(
-                            trabajo.idPresupuesto || ""
-                        ) === presupuestoId
-
-                        ||
-
-                        String(
-                            trabajo.presupuesto || ""
-                        ) === presupuestoId
-
-                    );
-
-                }
-            );
-
-
-        listaTrabajos.forEach(
-            trabajo => {
-
-                const nombre =
-                    trabajo.nombre ||
-                    trabajo.descripcion ||
-                    trabajo.titulo ||
-                    "Trabajo";
-
-
-                trabajoSelect.innerHTML +=
-                    `
-                    <option value="${escapeHTML(trabajo.id)}">
-                        ${escapeHTML(nombre)}
-                    </option>
-                    `;
-
-            }
-        );
-
-
-        trabajoSelect.disabled =
-            false;
-
+        cargarItemsPresupuesto(presupuesto);
     }
-);
+
+    const listaTrabajos = trabajos.filter(trabajo => {
+
+        return (
+            String(trabajo.presupuestoId || "") === presupuestoId ||
+            String(trabajo.idPresupuesto || "") === presupuestoId ||
+            String(trabajo.presupuesto || "") === presupuestoId
+        );
+
+    });
+
+    listaTrabajos.forEach(trabajo => {
+
+        const nombre =
+            trabajo.nombre ||
+            trabajo.descripcion ||
+            trabajo.titulo ||
+            "Trabajo";
+
+        trabajoSelect.innerHTML +=
+            `<option value="${escapeHTML(trabajo.id)}">
+                ${escapeHTML(nombre)}
+            </option>`;
+
+    });
+
+});
 
 
 /* =====================================================
-   ÍTEMS
+   ITEMS
 ===================================================== */
 
-function cargarItemsPresupuesto(
-    presupuesto
-){
+function cargarItemsPresupuesto(presupuesto){
 
     itemsPresupuesto = [];
-
 
     let items =
         presupuesto.items ||
@@ -1817,231 +800,161 @@ function cargarItemsPresupuesto(
         presupuesto.renglones ||
         [];
 
+    if(!Array.isArray(items)) items = [];
 
-    if(
-        !Array.isArray(items)
-    ){
+    items.forEach((item,index) => {
 
-        items = [];
+        const cantidad = Number(
+            item.cantidad ??
+            item.cantidadPresupuestada ??
+            item.unidades ??
+            item.metros ??
+            0
+        );
 
-    }
+        const precio = Number(
+            item.precio ??
+            item.precioUnitario ??
+            item.valorUnitario ??
+            0
+        );
 
+        const importe = Number(
+            item.importe ??
+            item.subtotal ??
+            item.total ??
+            (cantidad * precio)
+        );
 
-    items.forEach(
-        (item,index) => {
+        itemsPresupuesto.push({
 
-            const cantidad =
-                Number(
-                    item.cantidad ??
-                    item.cantidadPresupuestada ??
-                    item.unidades ??
-                    item.metros ??
-                    0
-                );
+            index:index,
 
+            nombre:
+                item.descripcion ||
+                item.nombre ||
+                item.detalle ||
+                "Ítem " + (index + 1),
 
-            const precio =
-                Number(
-                    item.precio ??
-                    item.precioUnitario ??
-                    item.valorUnitario ??
-                    0
-                );
+            unidad:
+                item.unidad ||
+                "unidad",
 
+            cantidad:cantidad,
+            precio:precio,
+            importe:importe,
+            ejecutada:0,
+            porcentaje:0,
+            importeCertificado:0
 
-            const importe =
-                Number(
-                    item.importe ??
-                    item.subtotal ??
-                    item.total ??
-                    (
-                        cantidad *
-                        precio
-                    )
-                );
+        });
 
-
-            itemsPresupuesto.push({
-
-                index:index,
-
-                nombre:
-                    item.descripcion ||
-                    item.nombre ||
-                    item.detalle ||
-                    "Ítem " + (
-                        index + 1
-                    ),
-
-                unidad:
-                    item.unidad ||
-                    "unidad",
-
-                cantidad:cantidad,
-
-                precio:precio,
-
-                importe:importe,
-
-                ejecutada:0
-
-            });
-
-        }
-    );
-
+    });
 
     mostrarItems();
-
 }
 
 
 /* =====================================================
-   MOSTRAR ÍTEMS
+   MOSTRAR ITEMS
 ===================================================== */
 
 function mostrarItems(){
 
-    listaItems.innerHTML =
-        "";
+    listaItems.innerHTML = "";
 
-
-    if(
-        itemsPresupuesto.length === 0
-    ){
+    if(itemsPresupuesto.length === 0){
 
         listaItems.innerHTML =
-            `
-            <div class="sin-datos">
+            `<div class="sin-datos">
                 Este presupuesto no tiene ítems cargados.
-            </div>
-            `;
+            </div>`;
 
-
-        cardItems.style.display =
-            "block";
-
+        cardItems.style.display = "block";
 
         return;
-
     }
 
+    itemsPresupuesto.forEach((item,index) => {
 
-    itemsPresupuesto.forEach(
-        (item,index) => {
+        listaItems.innerHTML +=
+        `<div class="item">
 
-            listaItems.innerHTML +=
-                `
-                <div
-                    class="item"
-                    data-index="${index}"
-                >
+            <div class="item-grid">
 
-                    <div class="item-grid">
-
-                        <div>
-
-                            <div class="item-nombre">
-                                ${escapeHTML(
-                                    item.nombre
-                                )}
-                            </div>
-
-                            <div class="item-dato">
-                                Unidad:
-                                ${escapeHTML(
-                                    item.unidad
-                                )}
-                            </div>
-
-                        </div>
-
-
-                        <div>
-
-                            <div class="item-dato">
-                                Presupuestado
-                            </div>
-
-                            <strong>
-                                ${item.cantidad}
-                            </strong>
-
-                        </div>
-
-
-                        <div>
-
-                            <label>
-                                Ejecutado
-                            </label>
-
-                            <input
-                                type="number"
-                                class="cantidad-ejecutada"
-                                min="0"
-                                max="${item.cantidad}"
-                                step="0.01"
-                                value="0"
-                                data-index="${index}"
-                            >
-
-                        </div>
-
-
-                        <div>
-
-                            <div class="item-dato">
-                                Avance
-                            </div>
-
-                            <strong
-                                class="porcentaje"
-                                data-index="${index}"
-                            >
-                                0%
-                            </strong>
-
-                            <div
-                                class="item-importe"
-                                data-importe="${index}"
-                            >
-                                $ 0,00
-                            </div>
-
-                        </div>
-
+                <div>
+                    <div class="item-nombre">
+                        ${escapeHTML(item.nombre)}
                     </div>
 
+                    <div class="item-dato">
+                        Unidad: ${escapeHTML(item.unidad)}
+                    </div>
                 </div>
-                `;
 
-        }
-    );
+                <div>
+                    <div class="item-dato">
+                        Presupuestado
+                    </div>
 
+                    <strong>
+                        ${item.cantidad}
+                    </strong>
+                </div>
 
-    cardItems.style.display =
-        "block";
+                <div>
+                    <label>Ejecutado</label>
 
+                    <input
+                        type="number"
+                        class="cantidad-ejecutada"
+                        min="0"
+                        max="${item.cantidad}"
+                        step="0.01"
+                        value="0"
+                        data-index="${index}"
+                    >
+                </div>
 
-    document
-    .querySelectorAll(
-        ".cantidad-ejecutada"
-    )
-    .forEach(
-        input => {
+                <div>
+                    <div class="item-dato">
+                        Avance
+                    </div>
+
+                    <strong
+                        class="porcentaje"
+                        data-index="${index}"
+                    >
+                        0%
+                    </strong>
+
+                    <div
+                        class="item-importe"
+                        data-importe="${index}"
+                    >
+                        $ 0,00
+                    </div>
+                </div>
+
+            </div>
+
+        </div>`;
+
+    });
+
+    cardItems.style.display = "block";
+
+    document.querySelectorAll(".cantidad-ejecutada")
+        .forEach(input => {
 
             input.addEventListener(
                 "input",
                 calcularCertificacion
             );
 
-        }
-    );
-
+        });
 
     calcularCertificacion();
-
 }
 
 
@@ -2051,164 +964,87 @@ function mostrarItems(){
 
 function calcularCertificacion(){
 
-    let total =
-        0;
+    let total = 0;
 
+    document.querySelectorAll(".cantidad-ejecutada")
+        .forEach(input => {
 
-    document
-    .querySelectorAll(
-        ".cantidad-ejecutada"
-    )
-    .forEach(
-        input => {
+            const index = Number(input.dataset.index);
+            const item = itemsPresupuesto[index];
 
-            const index =
-                Number(
-                    input.dataset.index
-                );
+            if(!item) return;
 
+            let ejecutada = Number(input.value) || 0;
 
-            const item =
-                itemsPresupuesto[index];
+            if(ejecutada < 0) ejecutada = 0;
 
+            if(item.cantidad > 0 && ejecutada > item.cantidad){
 
-            if(!item){
-
-                return;
+                ejecutada = item.cantidad;
+                input.value = item.cantidad;
 
             }
 
-
-            let ejecutada =
-                Number(
-                    input.value
-                ) || 0;
-
-
-            if(
-                ejecutada < 0
-            ){
-
-                ejecutada = 0;
-
-            }
-
-
-            if(
-                item.cantidad > 0 &&
-                ejecutada > item.cantidad
-            ){
-
-                ejecutada =
-                    item.cantidad;
-
-
-                input.value =
-                    item.cantidad;
-
-            }
-
-
-            item.ejecutada =
-                ejecutada;
-
+            item.ejecutada = ejecutada;
 
             const porcentaje =
                 item.cantidad > 0
-                ?
-                (
-                    ejecutada /
-                    item.cantidad
-                ) * 100
-                :
-                0;
-
+                ? (ejecutada / item.cantidad) * 100
+                : 0;
 
             const importe =
                 item.cantidad > 0
-                ?
-                item.importe *
-                (
-                    ejecutada /
-                    item.cantidad
-                )
-                :
-                0;
+                ? item.importe * (ejecutada / item.cantidad)
+                : 0;
 
-
-            item.porcentaje =
-                porcentaje;
-
-
-            item.importeCertificado =
-                importe;
-
+            item.porcentaje = porcentaje;
+            item.importeCertificado = importe;
 
             const porcentajeElemento =
                 document.querySelector(
                     `.porcentaje[data-index="${index}"]`
                 );
 
-
             const importeElemento =
                 document.querySelector(
                     `[data-importe="${index}"]`
                 );
 
-
             if(porcentajeElemento){
 
                 porcentajeElemento.textContent =
-                    porcentaje.toFixed(2) +
-                    "%";
+                    porcentaje.toFixed(2) + "%";
 
             }
-
 
             if(importeElemento){
 
                 importeElemento.textContent =
-                    dinero(
-                        importe
-                    );
+                    dinero(importe);
 
             }
 
+            total += importe;
 
-            total +=
-                importe;
-
-        }
-    );
-
+        });
 
     totalCertificacion.textContent =
         dinero(total);
-
 }
 
 
 /* =====================================================
-   FIRMA
+   CANVAS
 ===================================================== */
 
 function prepararCanvas(){
 
-    const rect =
-        canvas.getBoundingClientRect();
+    const rect = canvas.getBoundingClientRect();
 
+    const ratio = window.devicePixelRatio || 1;
 
-    const ratio =
-        window.devicePixelRatio || 1;
-
-
-    canvas.width =
-        rect.width * ratio;
-
-
-    canvas.height =
-        220 * ratio;
-
+    canvas.width = rect.width * ratio;
+    canvas.height = rect.height * ratio;
 
     ctx.setTransform(
         ratio,
@@ -2219,781 +1055,444 @@ function prepararCanvas(){
         0
     );
 
-
-    ctx.lineWidth =
-        2;
-
-
-    ctx.lineCap =
-        "round";
-
-
-    ctx.lineJoin =
-        "round";
-
-
-    ctx.strokeStyle =
-        "#111827";
-
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#111827";
 }
 
 
-setTimeout(
-    prepararCanvas,
-    200
-);
+function posicionFirma(evento){
 
-
-let dibujando =
-    false;
-
-
-function posicionFirma(
-    evento
-){
-
-    const rect =
-        canvas.getBoundingClientRect();
-
+    const rect = canvas.getBoundingClientRect();
 
     return {
-
-        x:
-            evento.clientX -
-            rect.left,
-
-        y:
-            evento.clientY -
-            rect.top
-
+        x:evento.clientX - rect.left,
+        y:evento.clientY - rect.top
     };
-
 }
 
 
-canvas.addEventListener(
-    "pointerdown",
-    evento => {
+canvas.addEventListener("pointerdown",evento => {
 
-        evento.preventDefault();
+    evento.preventDefault();
 
+    dibujando = true;
+    firmaRealizada = true;
 
-        dibujando =
-            true;
+    canvas.setPointerCapture(evento.pointerId);
 
+    const p = posicionFirma(evento);
 
-        firmaRealizada =
-            true;
+    ctx.beginPath();
+    ctx.moveTo(p.x,p.y);
 
-
-        canvas.setPointerCapture(
-            evento.pointerId
-        );
+});
 
 
-        const p =
-            posicionFirma(
-                evento
-            );
+canvas.addEventListener("pointermove",evento => {
+
+    if(!dibujando) return;
+
+    evento.preventDefault();
+
+    const p = posicionFirma(evento);
+
+    ctx.lineTo(p.x,p.y);
+    ctx.stroke();
+
+});
 
 
-        ctx.beginPath();
+canvas.addEventListener("pointerup",() => {
+
+    dibujando = false;
+    ctx.closePath();
+
+});
 
 
-        ctx.moveTo(
-            p.x,
-            p.y
-        );
+canvas.addEventListener("pointercancel",() => {
 
-    }
-);
+    dibujando = false;
+    ctx.closePath();
 
-
-canvas.addEventListener(
-    "pointermove",
-    evento => {
-
-        if(!dibujando){
-
-            return;
-
-        }
+});
 
 
-        evento.preventDefault();
+document.getElementById("btnLimpiarFirma")
+.addEventListener("click",() => {
 
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
-        const p =
-            posicionFirma(
-                evento
-            );
+    firmaRealizada = false;
 
-
-        ctx.lineTo(
-            p.x,
-            p.y
-        );
-
-
-        ctx.stroke();
-
-    }
-);
-
-
-canvas.addEventListener(
-    "pointerup",
-    () => {
-
-        dibujando =
-            false;
-
-        ctx.closePath();
-
-    }
-);
-
-
-canvas.addEventListener(
-    "pointercancel",
-    () => {
-
-        dibujando =
-            false;
-
-        ctx.closePath();
-
-    }
-);
-
-
-document
-.getElementById(
-    "btnLimpiarFirma"
-)
-.addEventListener(
-    "click",
-    () => {
-
-        ctx.clearRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
-
-
-        firmaRealizada =
-            false;
-
-    }
-);
+});
 
 
 /* =====================================================
    GENERAR PDF
 ===================================================== */
 
-function obtenerDatosPDF(){
+async function generarPDF(){
+
+    if(!usuarioActual){
+
+        mostrarMensaje(
+            "No hay una sesión activa.",
+            "error"
+        );
+
+        return false;
+    }
+
+    const clienteId = clienteSelect.value;
+    const presupuestoId = presupuestoSelect.value;
+
+    if(!clienteId){
+
+        mostrarMensaje(
+            "Seleccioná un cliente.",
+            "error"
+        );
+
+        return false;
+    }
+
+    if(!presupuestoId){
+
+        mostrarMensaje(
+            "Seleccioná un presupuesto.",
+            "error"
+        );
+
+        return false;
+    }
+
+    const fechaDesde =
+        document.getElementById("fechaDesde").value;
+
+    const fechaHasta =
+        document.getElementById("fechaHasta").value;
+
+    const descripcion =
+        document.getElementById("descripcion").value.trim();
+
+    if(!fechaDesde || !fechaHasta){
+
+        mostrarMensaje(
+            "Ingresá las fechas del período.",
+            "error"
+        );
+
+        return false;
+    }
+
+    if(fechaHasta < fechaDesde){
+
+        mostrarMensaje(
+            "La fecha hasta no puede ser anterior a la fecha desde.",
+            "error"
+        );
+
+        return false;
+    }
+
+    if(!descripcion){
+
+        mostrarMensaje(
+            "Describí los trabajos realizados.",
+            "error"
+        );
+
+        return false;
+    }
+
+    if(!firmaRealizada){
+
+        mostrarMensaje(
+            "Firmá la certificación desde el celular.",
+            "error"
+        );
+
+        return false;
+    }
 
     calcularCertificacion();
 
+    const total = itemsPresupuesto.reduce(
+        (suma,item) =>
+            suma + Number(item.importeCertificado || 0),
+        0
+    );
+
+    if(total <= 0){
+
+        mostrarMensaje(
+            "La certificación debe tener al menos un ítem ejecutado.",
+            "error"
+        );
+
+        return false;
+    }
 
     const cliente =
-        clientes.find(
-            c =>
-                c.id ===
-                clienteSelect.value
-        );
-
+        clientes.find(item => item.id === clienteId);
 
     const presupuesto =
-        presupuestos.find(
-            p =>
-                p.id ===
-                presupuestoSelect.value
-        );
-
+        presupuestos.find(item => item.id === presupuestoId);
 
     const trabajo =
-        trabajos.find(
-            t =>
-                t.id ===
-                trabajoSelect.value
-        );
-
+        trabajos.find(item => item.id === trabajoSelect.value);
 
     const nombreCliente =
         cliente?.nombre ||
         cliente?.nombreCliente ||
         cliente?.razonSocial ||
-        cliente?.empresa ||
         "Cliente";
-
 
     const cuitCliente =
         cliente?.cuit ||
         cliente?.CUIT ||
         "";
 
-
     const numeroPresupuesto =
         presupuesto?.numero ||
         presupuesto?.numeroPresupuesto ||
         presupuesto?.codigo ||
-        presupuesto?.nro ||
-        presupuestoSelect.value;
+        presupuestoId;
 
+    const nombreEmpresa =
+        empresaActual.nombre ||
+        empresaActual.nombreEmpresa ||
+        empresaActual.razonSocial ||
+        "GESBASE";
 
-    const fechaDesde =
-        document.getElementById(
-            "fechaDesde"
-        ).value;
+    const pdf = new jsPDF();
 
+    let y = 20;
 
-    const fechaHasta =
-        document.getElementById(
-            "fechaHasta"
-        ).value;
-
-
-    const periodo =
-        document.getElementById(
-            "periodo"
-        ).value;
-
-
-    const descripcion =
-        document.getElementById(
-            "descripcion"
-        ).value.trim();
-
-
-    const total =
-        itemsPresupuesto.reduce(
-            (suma,item) =>
-                suma +
-                Number(
-                    item.importeCertificado ||
-                    0
-                ),
-            0
-        );
-
-
-    return {
-
-        cliente,
-
-        presupuesto,
-
-        trabajo,
-
-        nombreCliente,
-
-        cuitCliente,
-
-        numeroPresupuesto,
-
-        fechaDesde,
-
-        fechaHasta,
-
-        periodo,
-
-        descripcion,
-
-        total
-
-    };
-
-}
-
-
-/* =====================================================
-   CREAR PDF
-===================================================== */
-
-function crearPDF(
-    datos,
-    firma
-){
-
-    const pdf =
-        new jsPDF();
-
-
-    let y =
-        20;
-
-
-    const margen =
-        20;
-
-
-    pdf.setFont(
-        "helvetica",
-        "bold"
-    );
-
-
-    pdf.setFontSize(
-        20
-    );
-
-
-    pdf.text(
-        "GESBASE",
-        margen,
-        y
-    );
-
-
-    y += 9;
-
-
-    pdf.setFontSize(
-        14
-    );
-
-
-    pdf.text(
-        "CERTIFICACIÓN DE TRABAJOS",
-        margen,
-        y
-    );
-
-
-    y += 12;
-
-
-    pdf.setFont(
-        "helvetica",
-        "normal"
-    );
-
-
-    pdf.setFontSize(
-        10
-    );
-
-
-    pdf.text(
-        "Empresa: " +
-        (
-            document.getElementById(
-                "nombreEmpresa"
-            ).textContent
-        ),
-        margen,
-        y
-    );
-
-
-    y += 6;
-
-
-    pdf.text(
-        "ID empresa: " +
-        empresaIdActual,
-        margen,
-        y
-    );
-
-
-    y += 6;
-
-
-    pdf.text(
-        "Cuenta: " +
-        (
-            usuarioActual.email ||
-            ""
-        ),
-        margen,
-        y
-    );
-
+    pdf.setFontSize(20);
+    pdf.setFont("helvetica","bold");
+    pdf.text("GESBASE",20,y);
 
     y += 8;
 
-
+    pdf.setFontSize(11);
     pdf.text(
-        "Fecha de emisión: " +
-        fechaHoy(),
-        margen,
-        y
-    );
-
-
-    y += 6;
-
-
-    pdf.text(
-        "Período: " +
-        datos.fechaDesde +
-        " al " +
-        datos.fechaHasta,
-        margen,
-        y
-    );
-
-
-    y += 6;
-
-
-    pdf.text(
-        "Tipo: " +
-        datos.periodo,
-        margen,
-        y
-    );
-
-
-    y += 10;
-
-
-    pdf.setFont(
-        "helvetica",
-        "bold"
-    );
-
-
-    pdf.text(
-        "CLIENTE",
-        margen,
-        y
-    );
-
-
-    y += 7;
-
-
-    pdf.setFont(
-        "helvetica",
-        "normal"
-    );
-
-
-    pdf.text(
-        "Nombre / Empresa: " +
-        datos.nombreCliente,
-        margen,
-        y
-    );
-
-
-    y += 6;
-
-
-    if(datos.cuitCliente){
-
-        pdf.text(
-            "CUIT: " +
-            datos.cuitCliente,
-            margen,
-            y
-        );
-
-        y += 6;
-
-    }
-
-
-    pdf.text(
-        "Presupuesto: " +
-        datos.numeroPresupuesto,
-        margen,
-        y
-    );
-
-
-    y += 6;
-
-
-    if(datos.trabajo){
-
-        pdf.text(
-            "Trabajo: " +
-            (
-                datos.trabajo.nombre ||
-                datos.trabajo.descripcion ||
-                datos.trabajo.titulo ||
-                "Trabajo"
-            ),
-            margen,
-            y
-        );
-
-
-        y += 6;
-
-    }
-
-
-    y += 7;
-
-
-    pdf.setFont(
-        "helvetica",
-        "bold"
-    );
-
-
-    pdf.text(
-        "TRABAJOS REALIZADOS",
-        margen,
-        y
-    );
-
-
-    y += 7;
-
-
-    pdf.setFont(
-        "helvetica",
-        "normal"
-    );
-
-
-    const lineas =
-        pdf.splitTextToSize(
-            datos.descripcion,
-            170
-        );
-
-
-    pdf.text(
-        lineas,
-        margen,
-        y
-    );
-
-
-    y +=
-        lineas.length *
-        5 +
-        10;
-
-
-    pdf.setFont(
-        "helvetica",
-        "bold"
-    );
-
-
-    pdf.text(
-        "DETALLE DE CERTIFICACIÓN",
-        margen,
-        y
-    );
-
-
-    y += 8;
-
-
-    pdf.setFontSize(
-        9
-    );
-
-
-    pdf.text(
-        "Ítem",
+        String(nombreEmpresa).substring(0,80),
         20,
         y
     );
 
+    y += 9;
 
+    pdf.setFontSize(14);
     pdf.text(
-        "Presup.",
-        90,
+        "CERTIFICACIÓN DE TRABAJOS",
+        20,
         y
     );
 
+    y += 12;
+
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica","normal");
 
     pdf.text(
-        "Ejecut.",
-        115,
+        "Fecha de emisión: " + fechaHoy(),
+        20,
         y
     );
 
+    y += 7;
 
     pdf.text(
-        "%",
-        140,
+        "Período: " +
+        fechaDesde +
+        " al " +
+        fechaHasta,
+        20,
         y
     );
 
+    y += 11;
+
+    pdf.setFont("helvetica","bold");
+    pdf.text("CLIENTE",20,y);
+
+    y += 7;
+
+    pdf.setFont("helvetica","normal");
 
     pdf.text(
-        "Importe",
-        160,
+        "Nombre / Empresa: " + String(nombreCliente),
+        20,
         y
     );
-
 
     y += 6;
 
+    if(cuitCliente){
 
-    pdf.setFont(
-        "helvetica",
-        "normal"
-    );
+        pdf.text(
+            "CUIT: " + String(cuitCliente),
+            20,
+            y
+        );
 
-
-    itemsPresupuesto.forEach(
-        item => {
-
-            if(
-                Number(
-                    item.ejecutada ||
-                    0
-                ) <= 0
-            ){
-
-                return;
-
-            }
-
-
-            if(
-                y > 260
-            ){
-
-                pdf.addPage();
-
-                y = 20;
-
-            }
-
-
-            const nombre =
-                pdf.splitTextToSize(
-                    item.nombre,
-                    65
-                );
-
-
-            pdf.text(
-                nombre,
-                20,
-                y
-            );
-
-
-            pdf.text(
-                String(
-                    item.cantidad
-                ),
-                90,
-                y
-            );
-
-
-            pdf.text(
-                String(
-                    item.ejecutada
-                ),
-                115,
-                y
-            );
-
-
-            pdf.text(
-                Number(
-                    item.porcentaje ||
-                    0
-                ).toFixed(2) +
-                "%",
-                137,
-                y
-            );
-
-
-            pdf.text(
-                dinero(
-                    item.importeCertificado
-                ),
-                160,
-                y
-            );
-
-
-            y +=
-                Math.max(
-                    6,
-                    nombre.length * 5
-                );
-
-        }
-    );
-
-
-    y += 8;
-
-
-    pdf.setFont(
-        "helvetica",
-        "bold"
-    );
-
+        y += 6;
+    }
 
     pdf.text(
-        "TOTAL CERTIFICADO:",
-        110,
+        "Presupuesto: " + String(numeroPresupuesto),
+        20,
         y
     );
 
+    y += 6;
+
+    if(trabajo){
+
+        pdf.text(
+            "Trabajo: " +
+            String(
+                trabajo.nombre ||
+                trabajo.descripcion ||
+                trabajo.titulo ||
+                "Trabajo"
+            ),
+            20,
+            y
+        );
+
+        y += 6;
+    }
+
+    y += 7;
+
+    pdf.setFont("helvetica","bold");
+    pdf.text("TRABAJOS REALIZADOS",20,y);
+
+    y += 7;
+
+    pdf.setFont("helvetica","normal");
+
+    const lineas =
+        pdf.splitTextToSize(
+            descripcion,
+            170
+        );
+
+    pdf.text(lineas,20,y);
+
+    y += lineas.length * 5 + 10;
+
+    pdf.setFont("helvetica","bold");
+    pdf.text("DETALLE DE CERTIFICACIÓN",20,y);
+
+    y += 8;
+
+    pdf.setFontSize(8);
+
+    pdf.text("Ítem",20,y);
+    pdf.text("Presup.",90,y);
+    pdf.text("Ejecut.",115,y);
+    pdf.text("%",140,y);
+    pdf.text("Importe",160,y);
+
+    y += 6;
+
+    pdf.setFont("helvetica","normal");
+
+    itemsPresupuesto.forEach(item => {
+
+        if(Number(item.ejecutada || 0) <= 0) return;
+
+        if(y > 260){
+
+            pdf.addPage();
+            y = 20;
+
+        }
+
+        const nombre =
+            pdf.splitTextToSize(
+                String(item.nombre),
+                65
+            );
+
+        pdf.text(nombre,20,y);
+        pdf.text(String(item.cantidad),90,y);
+        pdf.text(String(item.ejecutada),115,y);
+
+        pdf.text(
+            Number(item.porcentaje || 0).toFixed(2) + "%",
+            137,
+            y
+        );
+
+        pdf.text(
+            dinero(item.importeCertificado),
+            160,
+            y
+        );
+
+        y += Math.max(6,nombre.length * 5);
+
+    });
+
+    y += 6;
+
+    pdf.setFont("helvetica","bold");
 
     pdf.text(
-        dinero(
-            datos.total
-        ),
+        "TOTAL CERTIFICADO:",
+        105,
+        y
+    );
+
+    pdf.text(
+        dinero(total),
         160,
         y
     );
 
+    y += 15;
 
-    y += 18;
-
-
-    if(
-        y > 215
-    ){
+    if(y > 220){
 
         pdf.addPage();
-
         y = 25;
 
     }
 
-
     pdf.text(
-        "FIRMA",
+        "FIRMA DE LA EMPRESA",
         20,
         y
     );
 
-
     y += 8;
 
+    const firmaImagen =
+        canvas.toDataURL("image/png");
 
-    if(firma){
+    pdf.addImage(
+        firmaImagen,
+        "PNG",
+        20,
+        y,
+        75,
+        35
+    );
 
-        pdf.addImage(
-            firma,
-            "PNG",
-            20,
-            y,
-            75,
-            35
-        );
-
-
-        y += 42;
-
-    }
-
+    y += 42;
 
     pdf.line(
         20,
@@ -3002,15 +1501,9 @@ function crearPDF(
         y
     );
 
-
     y += 6;
 
-
-    pdf.setFont(
-        "helvetica",
-        "normal"
-    );
-
+    pdf.setFont("helvetica","normal");
 
     pdf.text(
         "Firma y certificación de trabajos",
@@ -3018,11 +1511,7 @@ function crearPDF(
         y
     );
 
-
-    pdf.setFontSize(
-        8
-    );
-
+    pdf.setFontSize(8);
 
     pdf.text(
         "Documento generado automáticamente por GESBASE.",
@@ -3030,474 +1519,332 @@ function crearPDF(
         285
     );
 
+    const nombreArchivo =
+        "certificacion_" +
+        String(numeroPresupuesto)
+            .replace(/[^a-zA-Z0-9_-]/g,"_") +
+        "_" +
+        fechaHoy() +
+        ".pdf";
 
-    return pdf;
+    pdf.save(nombreArchivo);
 
+    return true;
 }
 
 
 /* =====================================================
-   GENERAR PDF
+   BOTÓN PDF
 ===================================================== */
 
-document
-.getElementById(
-    "btnGenerarPDF"
-)
-.addEventListener(
-    "click",
-    () => {
+document.getElementById("btnGenerarPDF")
+.addEventListener("click",async function(){
 
-        try{
+    const boton = this;
 
-            const datos =
-                obtenerDatosPDF();
+    boton.disabled = true;
+    boton.textContent = "Generando PDF...";
 
+    try{
 
-            if(
-                !datos.cliente
-            ){
-
-                mostrarMensaje(
-                    "Seleccioná un cliente.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if(
-                !datos.presupuesto
-            ){
-
-                mostrarMensaje(
-                    "Seleccioná un presupuesto.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if(
-                !datos.fechaDesde ||
-                !datos.fechaHasta
-            ){
-
-                mostrarMensaje(
-                    "Ingresá las fechas del período.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if(
-                !datos.descripcion
-            ){
-
-                mostrarMensaje(
-                    "Describí los trabajos realizados.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if(
-                !firmaRealizada
-            ){
-
-                mostrarMensaje(
-                    "Firmá la certificación.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if(
-                datos.total <= 0
-            ){
-
-                mostrarMensaje(
-                    "La certificación debe tener al menos un ítem ejecutado.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            const firma =
-                canvas.toDataURL(
-                    "image/png"
-                );
-
-
-            const pdf =
-                crearPDF(
-                    datos,
-                    firma
-                );
-
-
-            pdf.save(
-                "certificacion_" +
-                String(
-                    datos.numeroPresupuesto
-                ).replace(
-                    /[^a-zA-Z0-9_-]/g,
-                    "_"
-                ) +
-                "_" +
-                fechaHoy() +
-                ".pdf"
-            );
-
-
-            mostrarMensaje(
-                "✅ PDF generado correctamente.",
-                "exito"
-            );
-
-        }
-        catch(error){
-
-            console.error(
-                "ERROR PDF:",
-                error
-            );
-
-
-            mostrarMensaje(
-                "No se pudo generar el PDF: " +
-                error.message,
-                "error"
-            );
-
-        }
+        await generarPDF();
 
     }
-);
+    catch(error){
+
+        console.error(
+            "ERROR PDF:",
+            error
+        );
+
+        mostrarMensaje(
+            "No se pudo generar el PDF: " +
+            (error.message || "Error desconocido"),
+            "error"
+        );
+
+    }
+    finally{
+
+        boton.disabled = false;
+        boton.textContent = "📄 Generar PDF";
+
+    }
+
+});
 
 
 /* =====================================================
    GUARDAR
 ===================================================== */
 
-document
-.getElementById(
-    "btnGuardar"
-)
-.addEventListener(
-    "click",
-    async function(){
+document.getElementById("btnGuardar")
+.addEventListener("click",async function(){
 
-        const boton =
-            this;
+    if(!usuarioActual){
 
+        mostrarMensaje(
+            "No hay una sesión activa.",
+            "error"
+        );
 
-        try{
+        return;
+    }
 
-            if(
-                !usuarioActual
-            ){
+    const clienteId = clienteSelect.value;
+    const presupuestoId = presupuestoSelect.value;
+    const trabajoId = trabajoSelect.value;
 
-                throw new Error(
-                    "No hay una sesión activa."
-                );
+    const periodo =
+        document.getElementById("periodo").value;
 
-            }
+    const fechaDesde =
+        document.getElementById("fechaDesde").value;
 
+    const fechaHasta =
+        document.getElementById("fechaHasta").value;
 
-            const datos =
-                obtenerDatosPDF();
+    const descripcion =
+        document.getElementById("descripcion").value.trim();
 
+    if(!clienteId){
 
-            if(
-                !datos.cliente
-            ){
+        mostrarMensaje(
+            "Seleccioná un cliente.",
+            "error"
+        );
 
-                throw new Error(
-                    "Seleccioná un cliente."
-                );
+        return;
+    }
 
-            }
+    if(!presupuestoId){
 
+        mostrarMensaje(
+            "Seleccioná un presupuesto.",
+            "error"
+        );
 
-            if(
-                !datos.presupuesto
-            ){
+        return;
+    }
 
-                throw new Error(
-                    "Seleccioná un presupuesto."
-                );
+    if(!fechaDesde || !fechaHasta){
 
-            }
+        mostrarMensaje(
+            "Ingresá las fechas del período.",
+            "error"
+        );
 
+        return;
+    }
 
-            if(
-                !datos.fechaDesde ||
-                !datos.fechaHasta
-            ){
+    if(fechaHasta < fechaDesde){
 
-                throw new Error(
-                    "Ingresá las fechas del período."
-                );
+        mostrarMensaje(
+            "La fecha hasta no puede ser anterior a la fecha desde.",
+            "error"
+        );
 
-            }
+        return;
+    }
 
+    if(!descripcion){
 
-            if(
-                !datos.descripcion
-            ){
+        mostrarMensaje(
+            "Ingresá los trabajos realizados.",
+            "error"
+        );
 
-                throw new Error(
-                    "Ingresá los trabajos realizados."
-                );
+        return;
+    }
 
-            }
+    if(!firmaRealizada){
 
+        mostrarMensaje(
+            "Firmá la certificación antes de guardarla.",
+            "error"
+        );
 
-            if(
-                datos.total <= 0
-            ){
+        return;
+    }
 
-                throw new Error(
-                    "Ingresá al menos una cantidad ejecutada."
-                );
+    calcularCertificacion();
 
-            }
+    const itemsCertificados =
+        itemsPresupuesto
+        .filter(item =>
+            Number(item.ejecutada || 0) > 0
+        )
+        .map(item => ({
 
+            nombre:item.nombre,
+            unidad:item.unidad,
 
-            boton.disabled =
-                true;
+            cantidadPresupuestada:
+                item.cantidad,
 
+            cantidadEjecutada:
+                item.ejecutada,
 
-            boton.textContent =
-                "Guardando...";
+            porcentaje:
+                Number(item.porcentaje || 0),
 
+            precioUnitario:
+                item.precio,
 
-            const items =
-                itemsPresupuesto
-                .filter(
-                    item =>
-                        Number(
-                            item.ejecutada ||
-                            0
-                        ) > 0
+            importePresupuesto:
+                item.importe,
+
+            importeCertificado:
+                Number(
+                    item.importeCertificado || 0
                 )
-                .map(
-                    item => ({
 
-                        nombre:
-                            item.nombre,
+        }));
 
-                        unidad:
-                            item.unidad,
+    if(itemsCertificados.length === 0){
 
-                        cantidadPresupuestada:
-                            item.cantidad,
+        mostrarMensaje(
+            "Ingresá al menos una cantidad ejecutada.",
+            "error"
+        );
 
-                        cantidadEjecutada:
-                            item.ejecutada,
+        return;
+    }
 
-                        porcentaje:
-                            Number(
-                                item.porcentaje ||
-                                0
-                            ),
+    const total =
+        itemsCertificados.reduce(
+            (suma,item) =>
+                suma + item.importeCertificado,
+            0
+        );
 
-                        precioUnitario:
-                            item.precio,
+    const boton = this;
 
-                        importePresupuesto:
-                            item.importe,
+    boton.disabled = true;
+    boton.textContent = "Guardando...";
 
-                        importeCertificado:
-                            Number(
-                                item.importeCertificado ||
-                                0
-                            )
+    try{
 
-                    })
-                );
+        await addDoc(
+            collection(
+                db,
+                "certificaciones"
+            ),
+            {
 
+                uid:
+                    usuarioActual.uid,
 
-            const porcentajeTotal =
-                calcularPorcentajeGlobal(
-                    items
-                );
+                email:
+                    usuarioActual.email || "",
 
+                empresaId:
+                    empresaIdActual,
 
-            await addDoc(
-                collection(
-                    db,
-                    "certificaciones"
-                ),
-                {
+                clienteId:
+                    clienteId,
 
-                    uid:
-                        usuarioActual.uid,
+                presupuestoId:
+                    presupuestoId,
 
-                    email:
-                        usuarioActual.email ||
-                        "",
+                trabajoId:
+                    trabajoId || "",
 
-                    empresaId:
-                        empresaIdActual,
+                periodo:
+                    periodo,
 
-                    empresaNombre:
-                        document.getElementById(
-                            "nombreEmpresa"
-                        ).textContent,
+                fechaDesde:
+                    fechaDesde,
 
-                    clienteId:
-                        clienteSelect.value,
+                fechaHasta:
+                    fechaHasta,
 
-                    presupuestoId:
-                        presupuestoSelect.value,
+                descripcion:
+                    descripcion,
 
-                    trabajoId:
-                        trabajoSelect.value ||
-                        "",
+                items:
+                    itemsCertificados,
 
-                    periodo:
-                        datos.periodo,
+                importeTotal:
+                    total,
 
-                    fechaDesde:
-                        datos.fechaDesde,
+                porcentajeTotal:
+                    calcularPorcentajeGlobal(
+                        itemsCertificados
+                    ),
 
-                    fechaHasta:
-                        datos.fechaHasta,
+                firma:
+                    canvas.toDataURL(
+                        "image/png"
+                    ),
 
-                    descripcion:
-                        datos.descripcion,
+                fecha:
+                    fechaHoy(),
 
-                    items:
-                        items,
+                creado:
+                    serverTimestamp()
 
-                    importeTotal:
-                        datos.total,
+            }
+        );
 
-                    porcentajeTotal:
-                        porcentajeTotal,
+        mostrarMensaje(
+            "✅ Certificación guardada correctamente.",
+            "exito"
+        );
 
-                    firma:
-                        canvas.toDataURL(
-                            "image/png"
-                        ),
-
-                    fecha:
-                        fechaHoy(),
-
-                    creado:
-                        serverTimestamp()
-
-                }
-            );
-
-
-            mostrarMensaje(
-                "✅ Certificación guardada correctamente.",
-                "exito"
-            );
-
-
-            await cargarCertificaciones();
-
-        }
-        catch(error){
-
-            console.error(
-                "ERROR GUARDANDO:",
-                error
-            );
-
-
-            mostrarMensaje(
-                "No se pudo guardar: " +
-                error.message,
-                "error"
-            );
-
-        }
-        finally{
-
-            boton.disabled =
-                false;
-
-
-            boton.textContent =
-                "💾 Guardar certificación";
-
-        }
+        await cargarCertificaciones();
 
     }
-);
+    catch(error){
+
+        console.error(
+            "ERROR GUARDANDO CERTIFICACIÓN:",
+            error
+        );
+
+        mostrarMensaje(
+            "No se pudo guardar: " +
+            (error.message || "Error desconocido"),
+            "error"
+        );
+
+    }
+    finally{
+
+        boton.disabled = false;
+        boton.textContent =
+            "💾 Guardar certificación";
+
+    }
+
+});
 
 
 /* =====================================================
    PORCENTAJE GLOBAL
 ===================================================== */
 
-function calcularPorcentajeGlobal(
-    items
-){
+function calcularPorcentajeGlobal(items){
 
-    let presupuesto =
-        0;
+    let totalPresupuesto = 0;
+    let totalCertificado = 0;
 
+    items.forEach(item => {
 
-    let certificado =
-        0;
+        totalPresupuesto +=
+            Number(item.importePresupuesto || 0);
 
+        totalCertificado +=
+            Number(item.importeCertificado || 0);
 
-    items.forEach(
-        item => {
+    });
 
-            presupuesto +=
-                Number(
-                    item.importePresupuesto ||
-                    0
-                );
-
-
-            certificado +=
-                Number(
-                    item.importeCertificado ||
-                    0
-                );
-
-        }
-    );
-
-
-    if(
-        presupuesto <= 0
-    ){
-
-        return 0;
-
-    }
-
+    if(totalPresupuesto <= 0) return 0;
 
     return (
-        certificado /
-        presupuesto
+        totalCertificado /
+        totalPresupuesto
     ) * 100;
-
 }
 
 
@@ -3512,33 +1859,25 @@ async function cargarCertificaciones(){
             "cargandoCertificaciones"
         );
 
-
     const tabla =
         document.getElementById(
             "tablaCertificaciones"
         );
 
-
-    cargando.style.display =
-        "block";
-
-
-    tabla.innerHTML =
-        "";
-
+    cargando.style.display = "block";
+    tabla.innerHTML = "";
 
     certificaciones = [];
 
-
     try{
 
-        const snap =
-            await getDocs(
+        let snap = null;
+
+        try{
+
+            snap = await getDocs(
                 query(
-                    collection(
-                        db,
-                        "certificaciones"
-                    ),
+                    collection(db,"certificaciones"),
                     where(
                         "empresaId",
                         "==",
@@ -3547,417 +1886,546 @@ async function cargarCertificaciones(){
                 )
             );
 
+        }
+        catch(error){
 
-        snap.forEach(
-            d => {
+            console.warn(
+                "Consulta por empresaId falló:",
+                error
+            );
 
-                certificaciones.push({
-
-                    id:d.id,
-
-                    ...d.data()
-
-                });
-
-            }
-        );
-
-
-        if(
-            certificaciones.length === 0
-        ){
-
-            tabla.innerHTML =
-                `
-                <tr>
-
-                    <td
-                        colspan="6"
-                        class="sin-datos"
-                    >
-                        No hay certificaciones realizadas.
-                    </td>
-
-                </tr>
-                `;
-
-
-            return;
+            snap = await getDocs(
+                query(
+                    collection(db,"certificaciones"),
+                    where(
+                        "uid",
+                        "==",
+                        usuarioActual.uid
+                    )
+                )
+            );
 
         }
 
+        snap.forEach(docu => {
 
-        certificaciones.sort(
-            (a,b) =>
-                String(
-                    b.fecha || ""
-                ).localeCompare(
-                    String(
-                        a.fecha || ""
-                    )
+            certificaciones.push({
+                id:docu.id,
+                ...docu.data()
+            });
+
+        });
+
+        if(certificaciones.length === 0){
+
+            tabla.innerHTML =
+                `<tr>
+                    <td colspan="6" class="sin-datos">
+                        No hay certificaciones realizadas.
+                    </td>
+                </tr>`;
+
+            return;
+        }
+
+        certificaciones.sort((a,b) =>
+            String(b.fecha || "")
+                .localeCompare(
+                    String(a.fecha || "")
                 )
         );
 
+        certificaciones.forEach(certificacion => {
 
-        certificaciones.forEach(
-            certificacion => {
+            const cliente =
+                clientes.find(
+                    item =>
+                        item.id ===
+                        certificacion.clienteId
+                );
 
-                const cliente =
-                    clientes.find(
-                        c =>
-                            c.id ===
-                            certificacion.clienteId
-                    );
+            const presupuesto =
+                presupuestos.find(
+                    item =>
+                        item.id ===
+                        certificacion.presupuestoId
+                );
 
+            const nombreCliente =
+                cliente?.nombre ||
+                cliente?.nombreCliente ||
+                cliente?.razonSocial ||
+                "Cliente";
 
-                const presupuesto =
-                    presupuestos.find(
-                        p =>
-                            p.id ===
-                            certificacion.presupuestoId
-                    );
+            const numero =
+                presupuesto?.numero ||
+                presupuesto?.numeroPresupuesto ||
+                presupuesto?.codigo ||
+                certificacion.presupuestoId ||
+                "Presupuesto";
 
+            tabla.innerHTML +=
+                `<tr>
 
-                const nombre =
-                    cliente?.nombre ||
-                    cliente?.nombreCliente ||
-                    cliente?.razonSocial ||
-                    "Cliente";
+                    <td>
+                        ${escapeHTML(nombreCliente)}
+                    </td>
 
+                    <td>
+                        ${escapeHTML(String(numero))}
+                    </td>
 
-                const numero =
-                    presupuesto?.numero ||
-                    presupuesto?.numeroPresupuesto ||
-                    presupuesto?.codigo ||
-                    presupuesto?.nro ||
-                    certificacion.presupuestoId ||
-                    "Presupuesto";
+                    <td>
+                        ${escapeHTML(
+                            certificacion.periodo || ""
+                        )}
+                    </td>
 
+                    <td>
+                        ${escapeHTML(
+                            certificacion.fecha || ""
+                        )}
+                    </td>
 
-                tabla.innerHTML +=
-                    `
-                    <tr>
+                    <td>
+                        ${dinero(
+                            certificacion.importeTotal
+                        )}
+                    </td>
 
-                        <td>
-                            ${escapeHTML(
-                                nombre
-                            )}
-                        </td>
+                    <td>
 
-                        <td>
-                            ${escapeHTML(
-                                String(
-                                    numero
-                                )
-                            )}
-                        </td>
+                        <button
+                            type="button"
+                            class="btn-success"
+                            data-certificacion-id="${escapeHTML(certificacion.id)}"
+                        >
+                            📄 PDF
+                        </button>
 
-                        <td>
-                            ${escapeHTML(
-                                certificacion.periodo ||
-                                ""
-                            )}
-                        </td>
+                    </td>
 
-                        <td>
-                            ${escapeHTML(
-                                certificacion.fecha ||
-                                ""
-                            )}
-                        </td>
+                </tr>`;
 
-                        <td>
-                            ${dinero(
-                                certificacion.importeTotal
-                            )}
-                        </td>
-
-                        <td>
-
-                            <button
-                                type="button"
-                                class="btn-success"
-                                data-id="${escapeHTML(certificacion.id)}"
-                            >
-                                📄 PDF
-                            </button>
-
-                        </td>
-
-                    </tr>
-                    `;
-
-            }
-        );
+        });
 
     }
     catch(error){
 
         console.error(
-            "ERROR CERTIFICACIONES:",
+            "ERROR CARGANDO CERTIFICACIONES:",
             error
         );
 
-
         tabla.innerHTML =
-            `
-            <tr>
-
-                <td
-                    colspan="6"
-                    class="sin-datos"
-                >
-                    Error:
-                    ${escapeHTML(
-                        error.message
-                    )}
+            `<tr>
+                <td colspan="6" class="sin-datos">
+                    No se pudieron cargar las certificaciones.
                 </td>
-
-            </tr>
-            `;
+            </tr>`;
 
     }
     finally{
 
-        cargando.style.display =
-            "none";
+        cargando.style.display = "none";
 
     }
-
 }
 
 
 /* =====================================================
-   PDF DESDE HISTORIAL
+   PDF HISTORIAL
 ===================================================== */
 
-document
-.getElementById(
-    "tablaCertificaciones"
-)
-.addEventListener(
-    "click",
-    evento => {
+document.getElementById("tablaCertificaciones")
+.addEventListener("click",function(evento){
 
-        const boton =
-            evento.target.closest(
-                "button[data-id]"
-            );
+    const boton =
+        evento.target.closest(
+            "button[data-certificacion-id]"
+        );
 
+    if(!boton) return;
 
-        if(!boton){
+    const id =
+        boton.dataset.certificacionId;
 
-            return;
+    const certificacion =
+        certificaciones.find(
+            item => item.id === id
+        );
 
-        }
+    if(!certificacion) return;
 
+    generarPDFDesdeGuardada(
+        certificacion
+    );
 
-        const certificacion =
-            certificaciones.find(
-                c =>
-                    c.id ===
-                    boton.dataset.id
-            );
+});
 
 
-        if(!certificacion){
+/* =====================================================
+   PDF GUARDADO
+===================================================== */
 
-            return;
+function generarPDFDesdeGuardada(certificacion){
 
-        }
+    const cliente =
+        clientes.find(
+            item =>
+                item.id ===
+                certificacion.clienteId
+        );
 
+    const presupuesto =
+        presupuestos.find(
+            item =>
+                item.id ===
+                certificacion.presupuestoId
+        );
 
-        const cliente =
-            clientes.find(
-                c =>
-                    c.id ===
-                    certificacion.clienteId
-            );
+    const nombreCliente =
+        cliente?.nombre ||
+        cliente?.nombreCliente ||
+        cliente?.razonSocial ||
+        "Cliente";
 
+    const numeroPresupuesto =
+        presupuesto?.numero ||
+        presupuesto?.numeroPresupuesto ||
+        presupuesto?.codigo ||
+        certificacion.presupuestoId ||
+        "Presupuesto";
 
-        const presupuesto =
-            presupuestos.find(
-                p =>
-                    p.id ===
-                    certificacion.presupuestoId
-            );
+    const pdf = new jsPDF();
 
+    let y = 20;
 
-        const trabajo =
-            trabajos.find(
-                t =>
-                    t.id ===
-                    certificacion.trabajoId
-            );
+    pdf.setFontSize(20);
+    pdf.setFont("helvetica","bold");
+    pdf.text("GESBASE",20,y);
 
+    y += 8;
 
-        const datos = {
+    pdf.setFontSize(11);
+    pdf.text(
+        String(
+            empresaActual.nombre ||
+            empresaActual.nombreEmpresa ||
+            empresaActual.razonSocial ||
+            "Empresa GESBASE"
+        ).substring(0,80),
+        20,
+        y
+    );
 
-            cliente,
+    y += 10;
 
-            presupuesto,
+    pdf.setFontSize(14);
 
-            trabajo,
+    pdf.text(
+        "CERTIFICACIÓN DE TRABAJOS",
+        20,
+        y
+    );
 
-            nombreCliente:
-                cliente?.nombre ||
-                cliente?.nombreCliente ||
-                cliente?.razonSocial ||
-                certificacion.clienteNombre ||
-                "Cliente",
+    y += 12;
 
-            cuitCliente:
-                cliente?.cuit ||
-                cliente?.CUIT ||
-                "",
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica","normal");
 
-            numeroPresupuesto:
-                presupuesto?.numero ||
-                presupuesto?.numeroPresupuesto ||
-                presupuesto?.codigo ||
-                presupuesto?.nro ||
-                certificacion.presupuestoId,
+    pdf.text(
+        "Cliente: " +
+        String(nombreCliente),
+        20,
+        y
+    );
 
-            fechaDesde:
-                certificacion.fechaDesde,
+    y += 6;
 
-            fechaHasta:
-                certificacion.fechaHasta,
+    pdf.text(
+        "Presupuesto: " +
+        String(numeroPresupuesto),
+        20,
+        y
+    );
 
-            periodo:
-                certificacion.periodo ||
-                "",
+    y += 6;
 
-            descripcion:
-                certificacion.descripcion ||
-                "",
+    pdf.text(
+        "Período: " +
+        String(certificacion.fechaDesde || "") +
+        " al " +
+        String(certificacion.fechaHasta || ""),
+        20,
+        y
+    );
 
-            total:
-                Number(
-                    certificacion.importeTotal ||
-                    0
-                )
+    y += 6;
 
-        };
+    pdf.text(
+        "Tipo: " +
+        String(certificacion.periodo || ""),
+        20,
+        y
+    );
 
+    y += 10;
 
-        const pdf =
-            crearPDF(
-                datos,
-                certificacion.firma ||
-                ""
-            );
+    pdf.setFont("helvetica","bold");
 
+    pdf.text(
+        "TRABAJOS REALIZADOS",
+        20,
+        y
+    );
 
-        pdf.save(
-            "certificacion_" +
+    y += 7;
+
+    pdf.setFont("helvetica","normal");
+
+    const descripcion =
+        pdf.splitTextToSize(
             String(
-                datos.numeroPresupuesto
-            ).replace(
+                certificacion.descripcion || ""
+            ),
+            170
+        );
+
+    pdf.text(
+        descripcion,
+        20,
+        y
+    );
+
+    y +=
+        descripcion.length * 5 +
+        10;
+
+    pdf.setFont("helvetica","bold");
+
+    pdf.text(
+        "DETALLE DE CERTIFICACIÓN",
+        20,
+        y
+    );
+
+    y += 8;
+
+    pdf.setFontSize(8);
+
+    pdf.text("Ítem",20,y);
+    pdf.text("Presup.",90,y);
+    pdf.text("Ejecut.",115,y);
+    pdf.text("%",140,y);
+    pdf.text("Importe",160,y);
+
+    y += 6;
+
+    pdf.setFont("helvetica","normal");
+
+    (
+        certificacion.items || []
+    ).forEach(item => {
+
+        if(y > 260){
+
+            pdf.addPage();
+            y = 20;
+
+        }
+
+        const nombre =
+            pdf.splitTextToSize(
+                String(
+                    item.nombre || "Ítem"
+                ),
+                65
+            );
+
+        pdf.text(
+            nombre,
+            20,
+            y
+        );
+
+        pdf.text(
+            String(
+                item.cantidadPresupuestada || 0
+            ),
+            90,
+            y
+        );
+
+        pdf.text(
+            String(
+                item.cantidadEjecutada || 0
+            ),
+            115,
+            y
+        );
+
+        pdf.text(
+            Number(
+                item.porcentaje || 0
+            ).toFixed(2) + "%",
+            137,
+            y
+        );
+
+        pdf.text(
+            dinero(
+                item.importeCertificado
+            ),
+            160,
+            y
+        );
+
+        y +=
+            Math.max(
+                6,
+                nombre.length * 5
+            );
+
+    });
+
+    y += 6;
+
+    pdf.setFont("helvetica","bold");
+
+    pdf.text(
+        "TOTAL CERTIFICADO:",
+        105,
+        y
+    );
+
+    pdf.text(
+        dinero(
+            certificacion.importeTotal
+        ),
+        160,
+        y
+    );
+
+    y += 15;
+
+    if(y > 220){
+
+        pdf.addPage();
+        y = 25;
+
+    }
+
+    pdf.text(
+        "FIRMA DE LA EMPRESA",
+        20,
+        y
+    );
+
+    y += 8;
+
+    if(certificacion.firma){
+
+        try{
+
+            pdf.addImage(
+                certificacion.firma,
+                "PNG",
+                20,
+                y,
+                75,
+                35
+            );
+
+            y += 42;
+
+        }
+        catch(error){
+
+            console.warn(
+                "No se pudo insertar firma:",
+                error
+            );
+
+        }
+
+    }
+
+    pdf.line(
+        20,
+        y,
+        95,
+        y
+    );
+
+    y += 6;
+
+    pdf.setFont("helvetica","normal");
+
+    pdf.text(
+        "Firma y certificación de trabajos",
+        20,
+        y
+    );
+
+    pdf.setFontSize(8);
+
+    pdf.text(
+        "Documento generado automáticamente por GESBASE.",
+        20,
+        285
+    );
+
+    pdf.save(
+        "certificacion_" +
+        String(numeroPresupuesto)
+            .replace(
                 /[^a-zA-Z0-9_-]/g,
                 "_"
             ) +
-            "_" +
-            (
-                certificacion.fecha ||
-                fechaHoy()
-            ) +
-            ".pdf"
-        );
-
-    }
-);
+        "_" +
+        String(
+            certificacion.fecha ||
+            fechaHoy()
+        ) +
+        ".pdf"
+    );
+}
 
 
 /* =====================================================
-   VOLVER
-===================================================== */
-
-document
-.getElementById(
-    "btnVolver"
-)
-.addEventListener(
-    "click",
-    () => {
-
-        window.location.href =
-            "index.html";
-
-    }
-);
-
-
-/* =====================================================
-   FECHAS
-===================================================== */
-
-document.getElementById(
-    "fechaDesde"
-).value =
-    fechaHoy();
-
-
-document.getElementById(
-    "fechaHasta"
-).value =
-    fechaHoy();
-
-
-/* =====================================================
-   INICIO FIREBASE
+   AUTENTICACIÓN
 ===================================================== */
 
 onAuthStateChanged(
     auth,
     async usuario => {
 
-        console.log(
-            "ESTADO AUTH:",
-            usuario
-        );
-
-
         if(!usuario){
 
             document.getElementById(
                 "estadoConexion"
             ).textContent =
-                "❌ No hay sesión iniciada";
-
+                "❌ No hay una sesión iniciada.";
 
             document.getElementById(
                 "estadoConexion"
-            ).style.color =
-                "#dc2626";
+            ).className =
+                "estado-error";
 
-
-            mostrarMensaje(
-                "La sesión no está iniciada. Redirigiendo al login...",
-                "error"
+            window.location.replace(
+                "login.html"
             );
-
-
-            setTimeout(
-                () => {
-
-                    window.location.replace(
-                        "login.html"
-                    );
-
-                },
-                1500
-            );
-
 
             return;
-
         }
 
+        usuarioActual = usuario;
 
-        usuarioActual =
-            usuario;
-
+        /*
+         * EL CORREO SE MUESTRA DIRECTAMENTE DESDE FIREBASE AUTH.
+         * No depende de Firestore.
+         */
 
         document.getElementById(
             "emailUsuario"
@@ -3965,71 +2433,22 @@ onAuthStateChanged(
             usuario.email ||
             "Usuario autenticado";
 
-
         try{
-
-            console.log(
-                "1. Obteniendo empresa..."
-            );
-
 
             await obtenerEmpresa();
 
-
-            console.log(
-                "2. Empresa:",
-                empresaIdActual
-            );
-
-
-            console.log(
-                "3. Cargando clientes..."
-            );
-
+            document.getElementById(
+                "estadoConexion"
+            ).textContent =
+                "✅ Conectado a GESBASE";
 
             await cargarClientes();
 
-
-            console.log(
-                "4. Cargando presupuestos..."
-            );
-
-
             await cargarPresupuestos();
-
-
-            console.log(
-                "5. Cargando trabajos..."
-            );
-
 
             await cargarTrabajos();
 
-
-            console.log(
-                "6. Cargando certificaciones..."
-            );
-
-
             await cargarCertificaciones();
-
-
-            document.getElementById(
-                "btnGuardar"
-            ).disabled =
-                false;
-
-
-            document.getElementById(
-                "btnGenerarPDF"
-            ).disabled =
-                false;
-
-
-            mostrarMensaje(
-                "✅ GESBASE conectado correctamente.",
-                "exito"
-            );
 
         }
         catch(error){
@@ -4039,22 +2458,19 @@ onAuthStateChanged(
                 error
             );
 
-
             document.getElementById(
                 "estadoConexion"
             ).textContent =
-                "❌ Error de conexión";
-
+                "⚠️ Sesión conectada, pero hubo un problema al cargar los datos.";
 
             document.getElementById(
                 "estadoConexion"
-            ).style.color =
-                "#dc2626";
-
+            ).className =
+                "estado-error";
 
             mostrarMensaje(
-                "Error de GESBASE: " +
-                error.message,
+                "Firebase conectó, pero no se pudieron cargar todos los datos: " +
+                (error.message || "Error desconocido"),
                 "error"
             );
 
@@ -4063,8 +2479,50 @@ onAuthStateChanged(
     }
 );
 
-</script>
 
-</body>
+/* =====================================================
+   VOLVER
+===================================================== */
 
+document.getElementById("btnVolver")
+.addEventListener("click",function(){
+
+    window.location.href = "index.html";
+
+});
+
+
+/* =====================================================
+   FECHAS
+===================================================== */
+
+document.getElementById("fechaDesde").value =
+    fechaHoy();
+
+document.getElementById("fechaHasta").value =
+    fechaHoy();
+
+
+/* =====================================================
+   INICIALIZAR FIRMA
+===================================================== */
+
+setTimeout(() => {
+
+    prepararCanvas();
+
+},300);
+
+
+window.addEventListener("resize",() => {
+
+    if(!firmaRealizada){
+
+        prepararCanvas();
+
+    }
+
+});
+
+</script></body>
 </html>
