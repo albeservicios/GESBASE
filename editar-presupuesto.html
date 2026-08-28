@@ -287,7 +287,7 @@ GESBASE
     id="panelPrivado"
     class="panel-privado"
 >
-🔐 Panel privado de Julián
+🔐 Panel privado de administración
 </div></header><main><div
     id="estado"
     class="estado estado-cargando"
@@ -440,22 +440,27 @@ step="0.01"
 
 </div><!-- =====================================
      RESUMEN
-===================================== --><div class="resumen"><div class="resumen-linea">
-<span>Materiales</span>
-<strong>$ <span id="resumenMateriales">0,00</span></strong>
-</div><div class="resumen-linea">
-<span>Mano de obra</span>
-<strong>$ <span id="resumenManoObra">0,00</span></strong>
-</div><div class="resumen-linea">
-<span>Viáticos</span>
-<strong>$ <span id="resumenViaticos">0,00</span></strong>
-</div><div class="resumen-linea">
-<span>Flete</span>
-<strong>$ <span id="resumenFlete">0,00</span></strong>
-</div><div class="resumen-linea resumen-total">
-<span>TOTAL GENERAL</span>
-<strong>$ <span id="total">0,00</span></strong>
-</div></div><!-- =====================================
+===================================== --><div class="resumen"><div class="resumen-linea"><span>
+Materiales
+</span><strong>
+$ <span id="resumenMateriales">0,00</span>
+</strong></div><div class="resumen-linea"><span>
+Mano de obra
+</span><strong>
+$ <span id="resumenManoObra">0,00</span>
+</strong></div><div class="resumen-linea"><span>
+Viáticos
+</span><strong>
+$ <span id="resumenViaticos">0,00</span>
+</strong></div><div class="resumen-linea"><span>
+Flete
+</span><strong>
+$ <span id="resumenFlete">0,00</span>
+</strong></div><div class="resumen-linea resumen-total"><span>
+TOTAL GENERAL
+</span><strong>
+$ <span id="total">0,00</span>
+</strong></div></div><!-- =====================================
      BOTONES
 ===================================== --><button
 type="button"
@@ -490,7 +495,7 @@ import {
 
 import {
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
     collection,
@@ -499,14 +504,14 @@ import {
     getDoc,
     updateDoc,
     serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
 /* ==========================================
-   CONFIGURACIÓN PANEL PRIVADO
+   CONFIGURACIÓN
 ========================================== */
 
-const EMAIL_JULIAN =
+const EMAIL_ADMIN =
 "julianbattauz006@gmail.com";
 
 
@@ -623,7 +628,7 @@ let clientes = [];
 
 
 /* ==========================================
-   ID PRESUPUESTO
+   OBTENER ID DEL PRESUPUESTO
 ========================================== */
 
 const parametros =
@@ -639,10 +644,7 @@ parametros.get("id");
    ESTADO
 ========================================== */
 
-function mostrarEstado(
-    texto,
-    tipo
-){
+function mostrarEstado(texto,tipo){
 
     estado.textContent =
     texto;
@@ -660,9 +662,7 @@ function mostrarEstado(
 
 function dinero(valor){
 
-    return Number(
-        valor || 0
-    ).toLocaleString(
+    return Number(valor || 0).toLocaleString(
         "es-AR",
         {
             minimumFractionDigits:2,
@@ -740,8 +740,8 @@ flete.addEventListener(
 ========================================== */
 
 function agregarMaterial(
-    tipo = "",
-    cantidad = ""
+    tipo="",
+    cantidad=""
 ){
 
     const fila =
@@ -832,6 +832,10 @@ function agregarMaterial(
 }
 
 
+/* ==========================================
+   BOTÓN AGREGAR MATERIAL
+========================================== */
+
 btnAgregar.addEventListener(
     "click",
     function(){
@@ -860,16 +864,17 @@ function obtenerMateriales(){
         function(fila){
 
             const tipo =
-            fila.querySelector(
-                ".material-tipo"
-            ).value.trim();
+            fila
+            .querySelector(".material-tipo")
+            .value
+            .trim();
 
 
             const cantidad =
             Number(
-                fila.querySelector(
-                    ".material-cantidad"
-                ).value
+                fila
+                .querySelector(".material-cantidad")
+                .value
             ) || 0;
 
 
@@ -877,9 +882,9 @@ function obtenerMateriales(){
 
                 lista.push({
 
-                    tipo: tipo,
+                    tipo:tipo,
 
-                    cantidad: cantidad
+                    cantidad:cantidad
 
                 });
 
@@ -895,20 +900,19 @@ function obtenerMateriales(){
 
 
 /* ==========================================
-   NOMBRE CLIENTE
+   NOMBRE DEL CLIENTE
 ========================================== */
 
-function obtenerNombreCliente(
-    datos
-){
+function obtenerNombreCliente(datos){
 
-    return (
+    return String(
         datos.nombre ||
         datos.empresa ||
+        datos.nombreEmpresa ||
         datos.razonSocial ||
         datos.razon_social ||
         "Cliente sin nombre"
-    );
+    ).trim();
 
 }
 
@@ -917,9 +921,7 @@ function obtenerNombreCliente(
    MOSTRAR CLIENTE
 ========================================== */
 
-function mostrarCliente(
-    datos
-){
+function mostrarCliente(datos){
 
     clienteCuit.textContent =
     datos.cuit || "-";
@@ -982,19 +984,11 @@ async function cargarClientes(){
             documento.data();
 
 
-            /*
-             * Se aceptan las estructuras
-             * utilizadas actualmente en GESBASE.
-             */
-
             const pertenece =
-            datos.uid === usuarioActual.uid
-            ||
-            datos.usuarioId === usuarioActual.uid
-            ||
-            datos.userId === usuarioActual.uid
-            ||
-            datos.empresaId === usuarioActual.uid;
+                datos.uid === usuarioActual.uid ||
+                datos.usuarioId === usuarioActual.uid ||
+                datos.userId === usuarioActual.uid ||
+                datos.empresaId === usuarioActual.uid;
 
 
             if(!pertenece){
@@ -1039,9 +1033,7 @@ async function cargarClientes(){
 
 
     const inicial =
-    document.createElement(
-        "option"
-    );
+    document.createElement("option");
 
     inicial.value =
     "";
@@ -1058,9 +1050,7 @@ async function cargarClientes(){
         function(item){
 
             const opcion =
-            document.createElement(
-                "option"
-            );
+            document.createElement("option");
 
             opcion.value =
             item.id;
@@ -1079,9 +1069,7 @@ async function cargarClientes(){
 
 
     const manual =
-    document.createElement(
-        "option"
-    );
+    document.createElement("option");
 
     manual.value =
     "__manual__";
@@ -1097,7 +1085,7 @@ async function cargarClientes(){
 
 
 /* ==========================================
-   CAMBIO CLIENTE
+   CAMBIO DE CLIENTE
 ========================================== */
 
 clienteSeleccionado.addEventListener(
@@ -1115,14 +1103,19 @@ clienteSeleccionado.addEventListener(
         "none";
 
 
-        if(
-            id === "__manual__"
-        ){
+        if(id === "__manual__"){
 
             clienteManual.style.display =
             "block";
 
             clienteManualNombre.focus();
+
+            return;
+
+        }
+
+
+        if(!id){
 
             return;
 
@@ -1139,28 +1132,23 @@ clienteSeleccionado.addEventListener(
         );
 
 
-        if(!encontrado){
+        if(encontrado){
 
-            return;
+            mostrarCliente(
+                encontrado.datos
+            );
 
         }
-
-
-        mostrarCliente(
-            encontrado.datos
-        );
 
     }
 );
 
 
 /* ==========================================
-   PROPIETARIO
+   VERIFICAR PROPIETARIO
 ========================================== */
 
-function perteneceAlUsuario(
-    datos
-){
+function perteneceAlUsuario(datos){
 
     if(!usuarioActual){
 
@@ -1173,14 +1161,28 @@ function perteneceAlUsuario(
     usuarioActual.uid;
 
 
-    /*
-     * UID directo
-     */
+    if(datos.uid === uid){
 
-    if(
-        datos.uid &&
-        datos.uid === uid
-    ){
+        return true;
+
+    }
+
+
+    if(datos.usuarioId === uid){
+
+        return true;
+
+    }
+
+
+    if(datos.userId === uid){
+
+        return true;
+
+    }
+
+
+    if(datos.empresaId === uid){
 
         return true;
 
@@ -1188,63 +1190,13 @@ function perteneceAlUsuario(
 
 
     /*
-     * usuarioId
-     */
-
-    if(
-        datos.usuarioId &&
-        datos.usuarioId === uid
-    ){
-
-        return true;
-
-    }
-
-
-    /*
-     * userId
-     */
-
-    if(
-        datos.userId &&
-        datos.userId === uid
-    ){
-
-        return true;
-
-    }
-
-
-    /*
-     * empresaId.
-     *
-     * Se mantiene porque algunas
-     * estructuras anteriores de GESBASE
-     * guardan el UID de la empresa aquí.
-     */
-
-    if(
-        datos.empresaId &&
-        datos.empresaId === uid
-    ){
-
-        return true;
-
-    }
-
-
-    /*
-     * Para el panel privado de Julián,
-     * si el documento no tiene propietario
-     * pero la cuenta autenticada es la cuenta
-     * privada de administración, permitimos
-     * la visualización.
+     * Cuenta administrativa.
      */
 
     if(
         usuarioActual.email &&
         usuarioActual.email.toLowerCase() ===
-        EMAIL_JULIAN.toLowerCase()
+        EMAIL_ADMIN.toLowerCase()
     ){
 
         return true;
@@ -1305,9 +1257,7 @@ async function cargarPresupuesto(){
     documento.data();
 
 
-    if(
-        !perteneceAlUsuario(datos)
-    ){
+    if(!perteneceAlUsuario(datos)){
 
         mostrarEstado(
             "No tenés permiso para editar este presupuesto.",
@@ -1323,14 +1273,10 @@ async function cargarPresupuesto(){
     datos;
 
 
-    /*
-     * PANEL PRIVADO
-     */
-
     if(
         usuarioActual.email &&
         usuarioActual.email.toLowerCase() ===
-        EMAIL_JULIAN.toLowerCase()
+        EMAIL_ADMIN.toLowerCase()
     ){
 
         panelPrivado.style.display =
@@ -1339,13 +1285,12 @@ async function cargarPresupuesto(){
     }
 
 
-    /*
-     * EMPRESA
-     */
+    /* EMPRESA */
 
     empresaNombre.textContent =
     datos.empresaNombre ||
     datos.empresa ||
+    datos.nombreEmpresa ||
     "Sin informar";
 
 
@@ -1371,9 +1316,7 @@ async function cargarPresupuesto(){
     "-";
 
 
-    /*
-     * DATOS GENERALES
-     */
+    /* DATOS */
 
     numeroAgenda.value =
     datos.numeroAgenda ||
@@ -1400,45 +1343,41 @@ async function cargarPresupuesto(){
     "";
 
 
-    /*
-     * IMPORTES
-     */
+    /* IMPORTES */
 
     materiales.value =
     Number(
-        datos.materiales ||
-        datos.importeMaterial ||
+        datos.materiales ??
+        datos.importeMaterial ??
         0
     );
 
 
     manoObra.value =
     Number(
-        datos.manoObra ||
-        datos.importeManoObra ||
+        datos.manoObra ??
+        datos.importeManoObra ??
         0
     );
 
 
     viaticos.value =
     Number(
-        datos.viaticos ||
-        datos.importeViaticos ||
+        datos.viaticos ??
+        datos.importeViaticos ??
         0
     );
 
 
     flete.value =
     Number(
-        datos.flete ||
-        datos.importeFlete ||
+        datos.flete ??
+        datos.importeFlete ??
         0
     );
 
 
-    /*
-     * MATERIALES
-     */
+    /* MATERIALES */
 
     listaMateriales.innerHTML =
     "";
@@ -1471,14 +1410,13 @@ async function cargarPresupuesto(){
     }
 
 
-    /*
-     * CLIENTE
-     */
+    /* CLIENTE */
 
     const clienteId =
     datos.clienteId ||
     datos.idCliente ||
     datos.clienteID ||
+    datos.cliente_id ||
     "";
 
 
@@ -1488,8 +1426,7 @@ async function cargarPresupuesto(){
         clientes.find(
             function(item){
 
-                return item.id ===
-                clienteId;
+                return item.id === clienteId;
 
             }
         );
@@ -1554,7 +1491,7 @@ async function cargarPresupuesto(){
 
 
 /* ==========================================
-   GUARDAR
+   GUARDAR CAMBIOS
 ========================================== */
 
 btnGuardar.addEventListener(
@@ -1590,9 +1527,7 @@ btnGuardar.addEventListener(
         let clienteId = "";
 
 
-        /*
-         * CLIENTE REGISTRADO
-         */
+        /* CLIENTE REGISTRADO */
 
         if(
             clienteSeleccionado.value &&
@@ -1632,9 +1567,7 @@ btnGuardar.addEventListener(
         }
 
 
-        /*
-         * CLIENTE MANUAL
-         */
+        /* CLIENTE MANUAL */
 
         else if(
             clienteSeleccionado.value ===
@@ -1661,26 +1594,19 @@ btnGuardar.addEventListener(
 
             datosCliente = {
 
-                nombre:
-                nombre,
+                nombre:nombre,
 
-                cuit:
-                "",
+                cuit:"",
 
-                telefono:
-                "",
+                telefono:"",
 
-                email:
-                "",
+                email:"",
 
-                direccion:
-                "",
+                direccion:"",
 
-                localidad:
-                "",
+                localidad:"",
 
-                provincia:
-                ""
+                provincia:""
 
             };
 
@@ -1699,9 +1625,7 @@ btnGuardar.addEventListener(
         }
 
 
-        /*
-         * VALIDACIONES
-         */
+        /* VALIDACIONES */
 
         if(!fecha.value){
 
@@ -1717,9 +1641,7 @@ btnGuardar.addEventListener(
         }
 
 
-        if(
-            !lugarTrabajo.value.trim()
-        ){
+        if(!lugarTrabajo.value.trim()){
 
             mostrarEstado(
                 "Ingresá el lugar de trabajo.",
@@ -1733,9 +1655,7 @@ btnGuardar.addEventListener(
         }
 
 
-        if(
-            !descripcion.value.trim()
-        ){
+        if(!descripcion.value.trim()){
 
             mostrarEstado(
                 "Ingresá la descripción del trabajo.",
@@ -1750,27 +1670,19 @@ btnGuardar.addEventListener(
 
 
         const valorMateriales =
-        Number(
-            materiales.value
-        ) || 0;
+        Number(materiales.value) || 0;
 
 
         const valorManoObra =
-        Number(
-            manoObra.value
-        ) || 0;
+        Number(manoObra.value) || 0;
 
 
         const valorViaticos =
-        Number(
-            viaticos.value
-        ) || 0;
+        Number(viaticos.value) || 0;
 
 
         const valorFlete =
-        Number(
-            flete.value
-        ) || 0;
+        Number(flete.value) || 0;
 
 
         const materialesLista =
@@ -1784,9 +1696,7 @@ btnGuardar.addEventListener(
         valorFlete;
 
 
-        /*
-         * GUARDANDO
-         */
+        /* GUARDANDO */
 
         btnGuardar.disabled =
         true;
@@ -1806,7 +1716,8 @@ btnGuardar.addEventListener(
 
 
             /*
-             * COMPROBACIÓN FINAL
+             * Volvemos a leer el documento
+             * antes de modificarlo.
              */
 
             const comprobacion =
@@ -1828,11 +1739,7 @@ btnGuardar.addEventListener(
             comprobacion.data();
 
 
-            if(
-                !perteneceAlUsuario(
-                    datosActuales
-                )
-            ){
+            if(!perteneceAlUsuario(datosActuales)){
 
                 throw new Error(
                     "No tenés permiso para modificar este presupuesto."
@@ -1851,6 +1758,7 @@ btnGuardar.addEventListener(
                     cliente:
                     datosCliente.nombre ||
                     datosCliente.empresa ||
+                    datosCliente.nombreEmpresa ||
                     datosCliente.razonSocial ||
                     datosCliente.razon_social ||
                     "",
@@ -1916,74 +1824,6 @@ btnGuardar.addEventListener(
             );
 
 
-            presupuestoActual = {
-
-                ...datosActuales,
-
-                clienteId:
-                clienteId,
-
-                cliente:
-                datosCliente.nombre ||
-                datosCliente.empresa ||
-                datosCliente.razonSocial ||
-                datosCliente.razon_social ||
-                "",
-
-                clienteCuit:
-                datosCliente.cuit || "",
-
-                clienteTelefono:
-                datosCliente.telefono || "",
-
-                clienteEmail:
-                datosCliente.email || "",
-
-                clienteDireccion:
-                datosCliente.direccion || "",
-
-                clienteLocalidad:
-                datosCliente.localidad || "",
-
-                clienteProvincia:
-                datosCliente.provincia || "",
-
-                numeroAgenda:
-                numeroAgenda.value.trim(),
-
-                fecha:
-                fecha.value,
-
-                lugarTrabajo:
-                lugarTrabajo.value.trim(),
-
-                descripcion:
-                descripcion.value.trim(),
-
-                materialesLista:
-                materialesLista,
-
-                materiales:
-                valorMateriales,
-
-                manoObra:
-                valorManoObra,
-
-                viaticos:
-                valorViaticos,
-
-                flete:
-                valorFlete,
-
-                total:
-                totalGeneral
-
-            };
-
-
-            calcularTotal();
-
-
             mostrarEstado(
                 "✅ Presupuesto actualizado correctamente.",
                 "exito"
@@ -2008,13 +1848,13 @@ btnGuardar.addEventListener(
         catch(error){
 
             console.error(
-                "Error actualizando presupuesto:",
+                "ERROR ACTUALIZANDO PRESUPUESTO:",
                 error
             );
 
 
             mostrarEstado(
-                "No se pudo actualizar el presupuesto: " +
+                "No se pudo actualizar el presupuesto:\n\n" +
                 error.message,
                 "error"
             );
@@ -2085,7 +1925,6 @@ onAuthStateChanged(
                 1200
             );
 
-
             return;
 
         }
@@ -2100,28 +1939,14 @@ onAuthStateChanged(
 
 
         console.log(
-            "Usuario autenticado:",
+            "GESBASE - Usuario:",
             usuario.uid
-        );
-
-        console.log(
-            "Correo:",
-            usuario.email
         );
 
 
         try{
 
-            /*
-             * Cargamos clientes primero.
-             */
-
             await cargarClientes();
-
-
-            /*
-             * Después cargamos el presupuesto.
-             */
 
             await cargarPresupuesto();
 
@@ -2129,7 +1954,7 @@ onAuthStateChanged(
         catch(error){
 
             console.error(
-                "Error inicializando editar presupuesto:",
+                "ERROR INICIALIZANDO EDITAR:",
                 error
             );
 
@@ -2160,8 +1985,7 @@ setTimeout(
         ){
 
             mostrarEstado(
-                "GESBASE tardó demasiado en cargar.\n\n" +
-                "Verificá Firebase, la sesión y las reglas de Firestore.",
+                "GESBASE tardó demasiado en cargar. Verificá Firebase, la sesión y las reglas de Firestore.",
                 "error"
             );
 
@@ -2171,4 +1995,6 @@ setTimeout(
     12000
 );
 
-</script></body></html>
+</script>
+</body>
+</html>
