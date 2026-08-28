@@ -161,7 +161,6 @@ button:disabled{
     border-radius:8px;
     margin-bottom:15px;
     font-weight:bold;
-    line-height:1.5;
 }
 
 .mensaje.exito{
@@ -290,8 +289,8 @@ button:disabled{
     background:white;
     width:100%;
     max-width:600px;
-    overflow:hidden;
     touch-action:none;
+    overflow:hidden;
 }
 
 #firmaCanvas{
@@ -346,6 +345,14 @@ th{
     color:#6b7280;
     font-size:13px;
     margin-bottom:12px;
+}
+
+.estado-ok{
+    color:#15803d;
+}
+
+.estado-error{
+    color:#b91c1c;
 }
 
 @media(max-width:700px){
@@ -510,10 +517,21 @@ Seleccioná un presupuesto
 
 <select id="periodo">
 
-<option value="semanal">Semanal</option>
-<option value="quincenal">Quincenal</option>
-<option value="mensual">Mensual</option>
-<option value="otro">Otro</option>
+<option value="semanal">
+Semanal
+</option>
+
+<option value="quincenal">
+Quincenal
+</option>
+
+<option value="mensual">
+Mensual
+</option>
+
+<option value="otro">
+Otro
+</option>
 
 </select>
 
@@ -521,17 +539,27 @@ Seleccioná un presupuesto
 
 <div class="field">
 
-<label for="fechaDesde">Desde</label>
+<label for="fechaDesde">
+Desde
+</label>
 
-<input type="date" id="fechaDesde">
+<input
+    type="date"
+    id="fechaDesde"
+>
 
 </div>
 
 <div class="field">
 
-<label for="fechaHasta">Hasta</label>
+<label for="fechaHasta">
+Hasta
+</label>
 
-<input type="date" id="fechaHasta">
+<input
+    type="date"
+    id="fechaHasta"
+>
 
 </div>
 
@@ -550,7 +578,11 @@ Trabajos realizados
 
 </div>
 
-<div id="datosCliente" class="info" style="display:none;">
+<div
+    id="datosCliente"
+    class="info"
+    style="display:none;"
+>
 
 <strong id="nombreClienteInfo"></strong>
 
@@ -558,7 +590,11 @@ Trabajos realizados
 
 </div>
 
-<div id="datosPresupuesto" class="info" style="display:none;">
+<div
+    id="datosPresupuesto"
+    class="info"
+    style="display:none;"
+>
 
 <strong>
 Presupuesto seleccionado
@@ -571,7 +607,11 @@ Presupuesto seleccionado
 </div>
 
 
-<div class="card" id="cardItems" style="display:none;">
+<div
+    class="card"
+    id="cardItems"
+    style="display:none;"
+>
 
 <h2>📐 Trabajos a certificar</h2>
 
@@ -579,11 +619,14 @@ Presupuesto seleccionado
 
 Ingresá cuánto se realizó en este período.
 
-GESBASE calculará automáticamente el porcentaje de avance y el importe.
+GESBASE calculará el porcentaje de avance de cada ítem y el importe correspondiente.
 
 </div>
 
-<div id="listaItems" class="items"></div>
+<div
+    id="listaItems"
+    class="items"
+></div>
 
 <div class="total-certificacion">
 
@@ -602,7 +645,9 @@ $ 0,00
 
 <div class="card">
 
-<h2>✍️ Firma de certificación</h2>
+<h2>
+✍️ Firma de certificación
+</h2>
 
 <div class="aviso">
 
@@ -660,9 +705,14 @@ Limpiar firma
 
 <div class="card">
 
-<h2>📑 Certificaciones realizadas</h2>
+<h2>
+📑 Certificaciones realizadas
+</h2>
 
-<div id="cargandoCertificaciones" class="cargando">
+<div
+    id="cargandoCertificaciones"
+    class="cargando"
+>
 Cargando certificaciones...
 </div>
 
@@ -674,12 +724,29 @@ Cargando certificaciones...
 
 <tr>
 
-<th>Cliente</th>
-<th>Presupuesto</th>
-<th>Período</th>
-<th>Fecha</th>
-<th>Importe</th>
-<th>PDF</th>
+<th>
+Cliente
+</th>
+
+<th>
+Presupuesto
+</th>
+
+<th>
+Período
+</th>
+
+<th>
+Fecha
+</th>
+
+<th>
+Importe
+</th>
+
+<th>
+PDF
+</th>
 
 </tr>
 
@@ -697,7 +764,6 @@ Cargando certificaciones...
 
 
 <script type="module">
-
 
 /* =====================================================
    FIREBASE
@@ -723,10 +789,6 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-import {
-    jsPDF
-} from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.es.min.js";
-
 
 /* =====================================================
    VARIABLES
@@ -749,8 +811,6 @@ let certificaciones = [];
 let itemsPresupuesto = [];
 
 let firmaRealizada = false;
-
-let inicializado = false;
 
 
 /* =====================================================
@@ -786,7 +846,7 @@ const ctx =
 
 
 /* =====================================================
-   MENSAJE
+   MENSAJES
 ===================================================== */
 
 function mostrarMensaje(texto,tipo){
@@ -801,19 +861,15 @@ function mostrarMensaje(texto,tipo){
         behavior:"smooth"
     });
 
-    if(tipo !== "error"){
+    setTimeout(() => {
 
-        setTimeout(() => {
+        mensaje.className =
+            "mensaje";
 
-            mensaje.className =
-                "mensaje";
+        mensaje.textContent =
+            "";
 
-            mensaje.textContent =
-                "";
-
-        },5000);
-
-    }
+    },6000);
 
 }
 
@@ -824,19 +880,14 @@ function mostrarMensaje(texto,tipo){
 
 function fechaHoy(){
 
-    const d =
-        new Date();
+    const d = new Date();
 
     return (
         d.getFullYear() +
         "-" +
-        String(
-            d.getMonth()+1
-        ).padStart(2,"0") +
+        String(d.getMonth()+1).padStart(2,"0") +
         "-" +
-        String(
-            d.getDate()
-        ).padStart(2,"0")
+        String(d.getDate()).padStart(2,"0")
     );
 
 }
@@ -848,9 +899,7 @@ function fechaHoy(){
 
 function dinero(valor){
 
-    return Number(
-        valor || 0
-    ).toLocaleString(
+    return Number(valor || 0).toLocaleString(
         "es-AR",
         {
             style:"currency",
@@ -863,61 +912,17 @@ function dinero(valor){
 
 
 /* =====================================================
-   ESCAPE
+   ESCAPE HTML
 ===================================================== */
 
 function escapeHTML(texto){
 
-    return String(
-        texto ?? ""
-    )
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
-
-}
-
-
-/* =====================================================
-   OBTENER VALOR DE EMPRESA
-===================================================== */
-
-function obtenerEmpresaId(datos){
-
-    const campos = [
-
-        "empresaId",
-        "idEmpresa",
-        "companyId",
-        "empresaID",
-        "id_empresa"
-
-    ];
-
-    for(
-        const campo of campos
-    ){
-
-        const valor =
-            datos?.[campo];
-
-        if(
-            valor !== undefined &&
-            valor !== null &&
-            String(valor).trim() !== ""
-        ){
-
-            return String(
-                valor
-            ).trim();
-
-        }
-
-    }
-
-    return "";
+    return String(texto ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
 
 }
 
@@ -951,8 +956,7 @@ async function obtenerEmpresa(){
     if(!documentoUsuario.exists()){
 
         throw new Error(
-            "No existe el usuario en Firestore. UID: " +
-            usuarioActual.uid
+            "No existe el registro del usuario en Firestore."
         );
 
     }
@@ -966,63 +970,24 @@ async function obtenerEmpresa(){
     );
 
 
+    const posiblesEmpresaId = [
+
+        datosUsuario.empresaId,
+
+        datosUsuario.idEmpresa,
+
+        datosUsuario.companyId
+
+    ];
+
+
     empresaIdActual =
-        obtenerEmpresaId(
-            datosUsuario
+        posiblesEmpresaId.find(
+            valor =>
+                valor !== undefined &&
+                valor !== null &&
+                String(valor).trim() !== ""
         );
-
-
-    /*
-     * Si el documento de usuario no tiene empresaId,
-     * buscamos por UID como respaldo.
-     */
-
-    if(!empresaIdActual){
-
-        try{
-
-            const usuariosSnapshot =
-                await getDocs(
-                    query(
-                        collection(
-                            db,
-                            "usuarios"
-                        ),
-                        where(
-                            "uid",
-                            "==",
-                            usuarioActual.uid
-                        )
-                    )
-                );
-
-            if(
-                !usuariosSnapshot.empty
-            ){
-
-                const datos =
-                    usuariosSnapshot
-                        .docs[0]
-                        .data();
-
-                empresaIdActual =
-                    obtenerEmpresaId(
-                        datos
-                    );
-
-            }
-
-        }
-        catch(error){
-
-            console.warn(
-                "No se pudo hacer búsqueda alternativa de usuario:",
-                error
-            );
-
-        }
-
-    }
 
 
     if(!empresaIdActual){
@@ -1034,6 +999,12 @@ async function obtenerEmpresa(){
     }
 
 
+    empresaIdActual =
+        String(
+            empresaIdActual
+        ).trim();
+
+
     const referenciaEmpresa =
         doc(
             db,
@@ -1041,52 +1012,49 @@ async function obtenerEmpresa(){
             empresaIdActual
         );
 
+
     const documentoEmpresa =
         await getDoc(
             referenciaEmpresa
         );
 
 
-    if(
-        documentoEmpresa.exists()
-    ){
+    if(!documentoEmpresa.exists()){
 
-        const datosEmpresa =
-            documentoEmpresa.data();
-
-        empresaNombreActual =
-            String(
-                datosEmpresa.nombreEmpresa ??
-                datosEmpresa.nombre ??
-                datosEmpresa.razonSocial ??
-                datosEmpresa.razon_social ??
-                datosUsuario.nombreEmpresa ??
-                datosUsuario.empresaNombre ??
-                "GESBASE"
-            ).trim();
-
-    }
-    else{
-
-        /*
-         * No detenemos toda la aplicación.
-         * Si empresaId existe pero el documento empresa
-         * no existe, usamos los datos del usuario.
-         */
-
-        console.warn(
-            "No existe documento empresas/" +
+        throw new Error(
+            "No existe la empresa con ID: " +
             empresaIdActual
         );
 
-        empresaNombreActual =
-            String(
-                datosUsuario.nombreEmpresa ??
-                datosUsuario.empresaNombre ??
-                "GESBASE"
-            ).trim();
-
     }
+
+
+    const datosEmpresa =
+        documentoEmpresa.data();
+
+
+    console.log(
+        "DATOS EMPRESA:",
+        datosEmpresa
+    );
+
+
+    empresaNombreActual =
+        String(
+
+            datosEmpresa.nombreEmpresa ??
+
+            datosEmpresa.nombre ??
+
+            datosEmpresa.razonSocial ??
+
+            datosUsuario.nombreEmpresa ??
+
+            datosUsuario.empresaNombre ??
+
+            "GESBASE"
+
+        ).trim();
 
 
     if(!empresaNombreActual){
@@ -1102,36 +1070,27 @@ async function obtenerEmpresa(){
     ).textContent =
         empresaNombreActual;
 
+
     document.getElementById(
         "idEmpresaUsuario"
     ).textContent =
         empresaIdActual;
 
-
-    console.log(
-        "EMPRESA ID FINAL:",
-        empresaIdActual
-    );
-
-    console.log(
-        "EMPRESA NOMBRE:",
-        empresaNombreActual
-    );
-
 }
 
 
 /* =====================================================
-   AUTH
+   AUTENTICACIÓN
 ===================================================== */
 
 onAuthStateChanged(
     auth,
     async usuario => {
 
-        if(inicializado){
-            return;
-        }
+        console.log(
+            "AUTH CAMBIO:",
+            usuario
+        );
 
         try{
 
@@ -1142,20 +1101,24 @@ onAuthStateChanged(
                 ).textContent =
                     "Sin sesión";
 
+                clienteSelect.innerHTML =
+                    `
+                    <option value="">
+                        Sin sesión iniciada
+                    </option>
+                    `;
+
                 mostrarMensaje(
                     "No hay una sesión iniciada. Redirigiendo al inicio de sesión...",
                     "error"
                 );
 
-                setTimeout(
-                    () => {
+                setTimeout(() => {
 
-                        window.location.href =
-                            "login.html";
+                    window.location.href =
+                        "login.html";
 
-                    },
-                    1500
-                );
+                },1200);
 
                 return;
 
@@ -1176,37 +1139,65 @@ onAuthStateChanged(
             await obtenerEmpresa();
 
 
-            /*
-             * Cargamos los datos por separado.
-             */
-
             await cargarClientes();
+
 
             await cargarPresupuestos();
 
+
             await cargarTrabajos();
+
 
             await cargarCertificaciones();
 
-
-            /*
-             * Activamos los select.
-             */
 
             clienteSelect.disabled =
                 false;
 
             presupuestoSelect.disabled =
-                false;
+                true;
 
             trabajoSelect.disabled =
-                false;
+                true;
 
 
-            cargarSelectClientes();
+            clienteSelect.innerHTML =
+                `
+                <option value="">
+                    Seleccioná un cliente
+                </option>
+                `;
 
 
-            inicializado = true;
+            clientes.forEach(
+                cliente => {
+
+                    const nombre =
+                        obtenerNombreCliente(
+                            cliente
+                        );
+
+                    clienteSelect.innerHTML +=
+                        `
+                        <option value="${escapeHTML(cliente.id)}">
+                            ${escapeHTML(nombre)}
+                        </option>
+                        `;
+
+                }
+            );
+
+
+            if(clientes.length === 0){
+
+                clienteSelect.innerHTML =
+                    `
+                    <option value="">
+                        No hay clientes registrados
+                    </option>
+                    `;
+
+            }
 
 
             mostrarMensaje(
@@ -1222,11 +1213,18 @@ onAuthStateChanged(
                 error
             );
 
+            document.getElementById(
+                "emailUsuario"
+            ).textContent =
+                usuario?.email ||
+                "Error";
+
+
             mostrarMensaje(
-                "❌ " +
+                "❌ Error al conectar con GESBASE: " +
                 (
                     error.message ||
-                    "No se pudo cargar la certificación."
+                    "Error desconocido"
                 ),
                 "error"
             );
@@ -1238,261 +1236,178 @@ onAuthStateChanged(
 
 
 /* =====================================================
-   CLIENTES
+   CLIENTE
+===================================================== */
+
+function obtenerNombreCliente(cliente){
+
+    return (
+        cliente.nombre ||
+        cliente.nombreCliente ||
+        cliente.razonSocial ||
+        cliente.empresa ||
+        cliente.nombreCompleto ||
+        "Cliente sin nombre"
+    );
+
+}
+
+
+/* =====================================================
+   CARGAR CLIENTES
 ===================================================== */
 
 async function cargarClientes(){
 
     clientes = [];
 
-    try{
 
-        const snapshot =
-            await getDocs(
-                query(
-                    collection(
-                        db,
-                        "clientes"
-                    ),
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
+    const referencia =
+        collection(
+            db,
+            "clientes"
+        );
+
+
+    const snapshot =
+        await getDocs(
+            query(
+                referencia,
+                where(
+                    "empresaId",
+                    "==",
+                    empresaIdActual
                 )
-            );
-
-
-        snapshot.forEach(
-            documento => {
-
-                clientes.push({
-
-                    id:
-                        documento.id,
-
-                    ...documento.data()
-
-                });
-
-            }
+            )
         );
 
 
-        console.log(
-            "CLIENTES ENCONTRADOS:",
-            clientes.length,
-            clientes
-        );
+    snapshot.forEach(
+        documento => {
 
-    }
-    catch(error){
+            clientes.push({
 
-        console.error(
-            "ERROR CLIENTES:",
-            error
-        );
+                id:
+                    documento.id,
 
-        throw new Error(
-            "No se pudieron cargar los clientes: " +
-            error.message
-        );
+                ...documento.data()
 
-    }
-
-}
-
-
-/* =====================================================
-   CARGAR SELECT CLIENTES
-===================================================== */
-
-function cargarSelectClientes(){
-
-    clienteSelect.innerHTML =
-        `
-        <option value="">
-            Seleccioná un cliente
-        </option>
-        `;
-
-
-    clientes.forEach(
-        cliente => {
-
-            const nombre =
-                cliente.nombre ||
-                cliente.nombreCliente ||
-                cliente.razonSocial ||
-                cliente.razon_social ||
-                cliente.empresa ||
-                cliente.nombreCompleto ||
-                "Cliente sin nombre";
-
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-            option.value =
-                cliente.id;
-
-            option.textContent =
-                nombre;
-
-            clienteSelect.appendChild(
-                option
-            );
+            });
 
         }
     );
 
 
-    if(
-        clientes.length === 0
-    ){
-
-        clienteSelect.innerHTML =
-            `
-            <option value="">
-                No hay clientes registrados
-            </option>
-            `;
-
-    }
+    console.log(
+        "CLIENTES CARGADOS:",
+        clientes
+    );
 
 }
 
 
 /* =====================================================
-   PRESUPUESTOS
+   CARGAR PRESUPUESTOS
 ===================================================== */
 
 async function cargarPresupuestos(){
 
     presupuestos = [];
 
-    try{
 
-        const snapshot =
-            await getDocs(
-                query(
-                    collection(
-                        db,
-                        "presupuestos"
-                    ),
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
+    const referencia =
+        collection(
+            db,
+            "presupuestos"
+        );
+
+
+    const snapshot =
+        await getDocs(
+            query(
+                referencia,
+                where(
+                    "empresaId",
+                    "==",
+                    empresaIdActual
                 )
-            );
-
-
-        snapshot.forEach(
-            documento => {
-
-                presupuestos.push({
-
-                    id:
-                        documento.id,
-
-                    ...documento.data()
-
-                });
-
-            }
+            )
         );
 
 
-        console.log(
-            "PRESUPUESTOS ENCONTRADOS:",
-            presupuestos.length,
-            presupuestos
-        );
+    snapshot.forEach(
+        documento => {
 
-    }
-    catch(error){
+            presupuestos.push({
 
-        console.error(
-            "ERROR PRESUPUESTOS:",
-            error
-        );
+                id:
+                    documento.id,
 
-        throw new Error(
-            "No se pudieron cargar los presupuestos: " +
-            error.message
-        );
+                ...documento.data()
 
-    }
+            });
+
+        }
+    );
+
+
+    console.log(
+        "PRESUPUESTOS CARGADOS:",
+        presupuestos
+    );
 
 }
 
 
 /* =====================================================
-   TRABAJOS
+   CARGAR TRABAJOS
 ===================================================== */
 
 async function cargarTrabajos(){
 
     trabajos = [];
 
-    try{
 
-        const snapshot =
-            await getDocs(
-                query(
-                    collection(
-                        db,
-                        "trabajos"
-                    ),
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
+    const referencia =
+        collection(
+            db,
+            "trabajos"
+        );
+
+
+    const snapshot =
+        await getDocs(
+            query(
+                referencia,
+                where(
+                    "empresaId",
+                    "==",
+                    empresaIdActual
                 )
-            );
-
-
-        snapshot.forEach(
-            documento => {
-
-                trabajos.push({
-
-                    id:
-                        documento.id,
-
-                    ...documento.data()
-
-                });
-
-            }
+            )
         );
 
 
-        console.log(
-            "TRABAJOS ENCONTRADOS:",
-            trabajos.length,
-            trabajos
-        );
+    snapshot.forEach(
+        documento => {
 
-    }
-    catch(error){
+            trabajos.push({
 
-        console.error(
-            "ERROR TRABAJOS:",
-            error
-        );
+                id:
+                    documento.id,
 
-        throw new Error(
-            "No se pudieron cargar los trabajos: " +
-            error.message
-        );
+                ...documento.data()
 
-    }
+            });
+
+        }
+    );
+
+
+    console.log(
+        "TRABAJOS CARGADOS:",
+        trabajos
+    );
 
 }
 
@@ -1503,10 +1418,10 @@ async function cargarTrabajos(){
 
 clienteSelect.addEventListener(
     "change",
-    () => {
+    function(){
 
         const clienteId =
-            clienteSelect.value;
+            this.value;
 
 
         presupuestoSelect.innerHTML =
@@ -1525,13 +1440,15 @@ clienteSelect.addEventListener(
             `;
 
 
+        presupuestoSelect.disabled =
+            true;
+
+        trabajoSelect.disabled =
+            true;
+
+
         cardItems.style.display =
             "none";
-
-        listaItems.innerHTML =
-            "";
-
-        itemsPresupuesto = [];
 
 
         document.getElementById(
@@ -1547,34 +1464,30 @@ clienteSelect.addEventListener(
 
 
         if(!clienteId){
+
             return;
+
         }
 
 
         const cliente =
             clientes.find(
                 item =>
-                    item.id ===
-                    clienteId
+                    item.id === clienteId
             );
 
 
         if(cliente){
 
             const nombre =
-                cliente.nombre ||
-                cliente.nombreCliente ||
-                cliente.razonSocial ||
-                cliente.razon_social ||
-                cliente.empresa ||
-                cliente.nombreCompleto ||
-                "Cliente";
+                obtenerNombreCliente(
+                    cliente
+                );
 
 
             const cuit =
                 cliente.cuit ||
                 cliente.CUIT ||
-                cliente.cuitCliente ||
                 "";
 
 
@@ -1582,7 +1495,6 @@ clienteSelect.addEventListener(
                 cliente.telefono ||
                 cliente.telefonoCliente ||
                 cliente.telefonoContacto ||
-                cliente.celular ||
                 "";
 
 
@@ -1592,36 +1504,27 @@ clienteSelect.addEventListener(
                 nombre;
 
 
-            let informacion = "";
-
-
-            if(cuit){
-
-                informacion +=
-                    "CUIT: " +
-                    cuit;
-
-            }
-
-
-            if(telefono){
-
-                if(informacion){
-                    informacion +=
-                        " | ";
-                }
-
-                informacion +=
-                    "Tel: " +
-                    telefono;
-
-            }
-
-
             document.getElementById(
                 "datosClienteInfo"
             ).textContent =
-                informacion;
+
+                (
+                    cuit
+                    ?
+                    "CUIT: " + cuit
+                    :
+                    ""
+                )
+
+                +
+
+                (
+                    telefono
+                    ?
+                    " | Tel: " + telefono
+                    :
+                    ""
+                );
 
 
             document.getElementById(
@@ -1632,48 +1535,32 @@ clienteSelect.addEventListener(
         }
 
 
-        /*
-         * Buscamos presupuestos relacionados
-         * con diferentes nombres de campos.
-         */
-
         const lista =
             presupuestos.filter(
                 presupuesto => {
 
-                    const valores = [
+                    return (
 
-                        presupuesto.clienteId,
+                        String(
+                            presupuesto.clienteId || ""
+                        ) === clienteId
 
-                        presupuesto.idCliente,
+                        ||
 
-                        presupuesto.clienteID,
+                        String(
+                            presupuesto.idCliente || ""
+                        ) === clienteId
 
-                        presupuesto.cliente_id,
+                        ||
 
-                        presupuesto.cliente
+                        String(
+                            presupuesto.cliente || ""
+                        ) === clienteId
 
-                    ];
-
-
-                    return valores.some(
-                        valor =>
-                            String(
-                                valor ?? ""
-                            ) ===
-                            String(
-                                clienteId
-                            )
                     );
 
                 }
             );
-
-
-        console.log(
-            "PRESUPUESTOS DEL CLIENTE:",
-            lista
-        );
 
 
         lista.forEach(
@@ -1684,7 +1571,6 @@ clienteSelect.addEventListener(
                     presupuesto.numeroPresupuesto ||
                     presupuesto.codigo ||
                     presupuesto.nro ||
-                    presupuesto.numeroDocumento ||
                     presupuesto.id;
 
 
@@ -1692,7 +1578,6 @@ clienteSelect.addEventListener(
                     presupuesto.descripcion ||
                     presupuesto.titulo ||
                     presupuesto.nombre ||
-                    presupuesto.detalle ||
                     "Presupuesto";
 
 
@@ -1720,9 +1605,7 @@ clienteSelect.addEventListener(
         );
 
 
-        if(
-            lista.length === 0
-        ){
+        if(lista.length === 0){
 
             presupuestoSelect.innerHTML =
                 `
@@ -1730,6 +1613,12 @@ clienteSelect.addEventListener(
                     No hay presupuestos para este cliente
                 </option>
                 `;
+
+        }
+        else{
+
+            presupuestoSelect.disabled =
+                false;
 
         }
 
@@ -1743,19 +1632,18 @@ clienteSelect.addEventListener(
 
 presupuestoSelect.addEventListener(
     "change",
-    () => {
+    function(){
 
         const presupuestoId =
-            presupuestoSelect.value;
+            this.value;
 
 
         cardItems.style.display =
             "none";
 
+
         listaItems.innerHTML =
             "";
-
-        itemsPresupuesto = [];
 
 
         trabajoSelect.innerHTML =
@@ -1766,6 +1654,10 @@ presupuestoSelect.addEventListener(
             `;
 
 
+        trabajoSelect.disabled =
+            true;
+
+
         document.getElementById(
             "datosPresupuesto"
         ).style.display =
@@ -1773,103 +1665,97 @@ presupuestoSelect.addEventListener(
 
 
         if(!presupuestoId){
+
             return;
+
         }
 
 
         const presupuesto =
             presupuestos.find(
                 item =>
-                    item.id ===
-                    presupuestoId
+                    item.id === presupuestoId
             );
 
 
-        if(presupuesto){
+        if(!presupuesto){
 
-            const numero =
-                presupuesto.numero ||
-                presupuesto.numeroPresupuesto ||
-                presupuesto.codigo ||
-                presupuesto.nro ||
-                presupuesto.numeroDocumento ||
-                presupuesto.id;
-
-
-            const total =
-                Number(
-                    presupuesto.total ??
-                    presupuesto.importeTotal ??
-                    presupuesto.montoTotal ??
-                    presupuesto.totalPresupuesto ??
-                    presupuesto.totalFinal ??
-                    0
-                );
-
-
-            document.getElementById(
-                "datosPresupuestoInfo"
-            ).textContent =
-                "N° " +
-                numero +
-                " | Total: " +
-                dinero(total);
-
-
-            document.getElementById(
-                "datosPresupuesto"
-            ).style.display =
-                "block";
-
-
-            cargarItemsPresupuesto(
-                presupuesto
-            );
+            return;
 
         }
 
 
-        /*
-         * Buscar trabajos relacionados.
-         */
+        const numero =
+            presupuesto.numero ||
+            presupuesto.numeroPresupuesto ||
+            presupuesto.codigo ||
+            presupuesto.nro ||
+            presupuesto.id;
+
+
+        const total =
+            Number(
+
+                presupuesto.total ??
+
+                presupuesto.importeTotal ??
+
+                presupuesto.montoTotal ??
+
+                presupuesto.totalPresupuesto ??
+
+                0
+
+            );
+
+
+        document.getElementById(
+            "datosPresupuestoInfo"
+        ).textContent =
+
+            "N° " +
+            numero +
+            " | Total: " +
+            dinero(total);
+
+
+        document.getElementById(
+            "datosPresupuesto"
+        ).style.display =
+            "block";
+
+
+        cargarItemsPresupuesto(
+            presupuesto
+        );
+
 
         const listaTrabajos =
             trabajos.filter(
                 trabajo => {
 
-                    const valores = [
+                    return (
 
-                        trabajo.presupuestoId,
+                        String(
+                            trabajo.presupuestoId || ""
+                        ) === presupuestoId
 
-                        trabajo.idPresupuesto,
+                        ||
 
-                        trabajo.presupuestoID,
+                        String(
+                            trabajo.idPresupuesto || ""
+                        ) === presupuestoId
 
-                        trabajo.presupuesto_id,
+                        ||
 
-                        trabajo.presupuesto
+                        String(
+                            trabajo.presupuesto || ""
+                        ) === presupuestoId
 
-                    ];
-
-
-                    return valores.some(
-                        valor =>
-                            String(
-                                valor ?? ""
-                            ) ===
-                            String(
-                                presupuestoId
-                            )
                     );
 
                 }
             );
-
-
-        console.log(
-            "TRABAJOS DEL PRESUPUESTO:",
-            listaTrabajos
-        );
 
 
         listaTrabajos.forEach(
@@ -1879,7 +1765,6 @@ presupuestoSelect.addEventListener(
                     trabajo.nombre ||
                     trabajo.descripcion ||
                     trabajo.titulo ||
-                    trabajo.nombreTrabajo ||
                     "Trabajo";
 
 
@@ -1905,16 +1790,10 @@ presupuestoSelect.addEventListener(
         );
 
 
-        if(
-            listaTrabajos.length === 0
-        ){
+        if(listaTrabajos.length > 0){
 
-            trabajoSelect.innerHTML =
-                `
-                <option value="">
-                    No hay trabajos vinculados
-                </option>
-                `;
+            trabajoSelect.disabled =
+                false;
 
         }
 
@@ -1934,18 +1813,21 @@ function cargarItemsPresupuesto(
 
 
     let items =
-        presupuesto.items ||
-        presupuesto.detalles ||
-        presupuesto.conceptos ||
-        presupuesto.renglones ||
-        presupuesto.itemsPresupuesto ||
-        presupuesto.itemsPresupuestoDetalle ||
+
+        presupuesto.items ??
+
+        presupuesto.detalles ??
+
+        presupuesto.conceptos ??
+
+        presupuesto.renglones ??
+
+        presupuesto.itemsPresupuesto ??
+
         [];
 
 
-    if(
-        !Array.isArray(items)
-    ){
+    if(!Array.isArray(items)){
 
         items = [];
 
@@ -1957,35 +1839,45 @@ function cargarItemsPresupuesto(
 
             const cantidad =
                 Number(
+
                     item.cantidad ??
+
                     item.cantidadPresupuestada ??
+
                     item.unidades ??
+
                     item.metros ??
-                    item.cantidadTotal ??
+
                     0
+
                 );
 
 
             const precio =
                 Number(
+
                     item.precio ??
+
                     item.precioUnitario ??
+
                     item.valorUnitario ??
-                    item.precio_unitario ??
+
                     0
+
                 );
 
 
             const importe =
                 Number(
+
                     item.importe ??
+
                     item.subtotal ??
+
                     item.total ??
-                    item.importeTotal ??
-                    (
-                        cantidad *
-                        precio
-                    )
+
+                    (cantidad * precio)
+
                 );
 
 
@@ -1994,26 +1886,27 @@ function cargarItemsPresupuesto(
                 index:index,
 
                 nombre:
+
                     item.descripcion ||
+
                     item.nombre ||
+
                     item.detalle ||
-                    item.concepto ||
+
                     "Ítem " +
                     (index + 1),
 
                 unidad:
+
                     item.unidad ||
-                    item.unidadMedida ||
+
                     "unidad",
 
-                cantidad:
-                    cantidad,
+                cantidad:cantidad,
 
-                precio:
-                    precio,
+                precio:precio,
 
-                importe:
-                    importe,
+                importe:importe,
 
                 ejecutada:0,
 
@@ -2042,9 +1935,7 @@ function mostrarItems(){
         "";
 
 
-    if(
-        itemsPresupuesto.length === 0
-    ){
+    if(itemsPresupuesto.length === 0){
 
         listaItems.innerHTML =
             `
@@ -2077,48 +1968,32 @@ function mostrarItems(){
                         <div>
 
                             <div class="item-nombre">
-
-                                ${escapeHTML(
-                                    item.nombre
-                                )}
-
+                                ${escapeHTML(item.nombre)}
                             </div>
 
                             <div class="item-dato">
-
                                 Unidad:
-                                ${escapeHTML(
-                                    item.unidad
-                                )}
-
+                                ${escapeHTML(item.unidad)}
                             </div>
 
                         </div>
 
-
                         <div>
 
                             <div class="item-dato">
-
                                 Presupuestado
-
                             </div>
 
                             <strong>
-
                                 ${item.cantidad}
-
                             </strong>
 
                         </div>
 
-
                         <div>
 
                             <label>
-
                                 Ejecutado
-
                             </label>
 
                             <input
@@ -2133,13 +2008,10 @@ function mostrarItems(){
 
                         </div>
 
-
                         <div>
 
                             <div class="item-dato">
-
                                 Avance
-
                             </div>
 
                             <strong
@@ -2219,7 +2091,9 @@ function calcularCertificacion(){
 
 
                 if(!item){
+
                     return;
+
                 }
 
 
@@ -2233,20 +2107,17 @@ function calcularCertificacion(){
 
                     ejecutada = 0;
 
-                    input.value =
-                        "0";
-
                 }
 
 
                 if(
                     item.cantidad > 0 &&
-                    ejecutada >
-                    item.cantidad
+                    ejecutada > item.cantidad
                 ){
 
                     ejecutada =
                         item.cantidad;
+
 
                     input.value =
                         item.cantidad;
@@ -2259,26 +2130,35 @@ function calcularCertificacion(){
 
 
                 const porcentaje =
+
                     item.cantidad > 0
+
                     ?
+
                     (
                         ejecutada /
                         item.cantidad
-                    ) *
-                    100
+                    ) * 100
+
                     :
+
                     0;
 
 
                 const importe =
+
                     item.cantidad > 0
+
                     ?
+
                     item.importe *
                     (
                         ejecutada /
                         item.cantidad
                     )
+
                     :
+
                     0;
 
 
@@ -2302,9 +2182,7 @@ function calcularCertificacion(){
                     );
 
 
-                if(
-                    porcentajeElemento
-                ){
+                if(porcentajeElemento){
 
                     porcentajeElemento.textContent =
                         porcentaje.toFixed(2) +
@@ -2313,14 +2191,10 @@ function calcularCertificacion(){
                 }
 
 
-                if(
-                    importeElemento
-                ){
+                if(importeElemento){
 
                     importeElemento.textContent =
-                        dinero(
-                            importe
-                        );
+                        dinero(importe);
 
                 }
 
@@ -2352,18 +2226,15 @@ function prepararCanvas(){
 
 
     const ratio =
-        window.devicePixelRatio ||
-        1;
+        window.devicePixelRatio || 1;
 
 
     canvas.width =
-        rect.width *
-        ratio;
+        rect.width * ratio;
 
 
     canvas.height =
-        rect.height *
-        ratio;
+        rect.height * ratio;
 
 
     ctx.setTransform(
@@ -2378,11 +2249,9 @@ function prepararCanvas(){
 
     ctx.lineWidth = 2;
 
-    ctx.lineCap =
-        "round";
+    ctx.lineCap = "round";
 
-    ctx.lineJoin =
-        "round";
+    ctx.lineJoin = "round";
 
     ctx.strokeStyle =
         "#111827";
@@ -2390,9 +2259,7 @@ function prepararCanvas(){
 }
 
 
-function posicionFirma(
-    evento
-){
+function posicionFirma(evento){
 
     const rect =
         canvas.getBoundingClientRect();
@@ -2419,19 +2286,18 @@ canvas.addEventListener(
 
         evento.preventDefault();
 
-        dibujando = true;
 
-        firmaRealizada = true;
+        dibujando =
+            true;
 
 
-        try{
+        firmaRealizada =
+            true;
 
-            canvas.setPointerCapture(
-                evento.pointerId
-            );
 
-        }
-        catch(error){}
+        canvas.setPointerCapture(
+            evento.pointerId
+        );
 
 
         const posicion =
@@ -2457,7 +2323,9 @@ canvas.addEventListener(
     evento => {
 
         if(!dibujando){
+
             return;
+
         }
 
 
@@ -2482,38 +2350,27 @@ canvas.addEventListener(
 );
 
 
-function terminarFirma(){
-
-    if(!dibujando){
-        return;
-    }
-
-    dibujando = false;
-
-    ctx.closePath();
-
-}
-
-
 canvas.addEventListener(
     "pointerup",
-    terminarFirma
+    () => {
+
+        dibujando =
+            false;
+
+        ctx.closePath();
+
+    }
 );
+
 
 canvas.addEventListener(
     "pointercancel",
-    terminarFirma
-);
+    () => {
 
-canvas.addEventListener(
-    "pointerleave",
-    evento => {
+        dibujando =
+            false;
 
-        /*
-         * No cerramos la firma al salir del canvas,
-         * porque en celular el dedo puede salir
-         * momentáneamente del área.
-         */
+        ctx.closePath();
 
     }
 );
@@ -2551,10 +2408,6 @@ setTimeout(
 window.addEventListener(
     "resize",
     () => {
-
-        /*
-         * No borramos una firma existente.
-         */
 
         if(!firmaRealizada){
 
@@ -2632,10 +2485,7 @@ function validarCertificacion(){
         ).value;
 
 
-    if(
-        !fechaDesde ||
-        !fechaHasta
-    ){
+    if(!fechaDesde || !fechaHasta){
 
         mostrarMensaje(
             "Ingresá las fechas del período.",
@@ -2647,10 +2497,7 @@ function validarCertificacion(){
     }
 
 
-    if(
-        fechaHasta <
-        fechaDesde
-    ){
+    if(fechaHasta < fechaDesde){
 
         mostrarMensaje(
             "La fecha hasta no puede ser anterior a la fecha desde.",
@@ -2685,15 +2532,13 @@ function validarCertificacion(){
 
     const total =
         itemsPresupuesto.reduce(
-            (
-                suma,
-                item
-            ) =>
+            (suma,item) =>
+
                 suma +
                 Number(
-                    item.importeCertificado ||
-                    0
+                    item.importeCertificado || 0
                 ),
+
             0
         );
 
@@ -2716,14 +2561,29 @@ function validarCertificacion(){
 
 
 /* =====================================================
+   CARGAR JSPDF
+===================================================== */
+
+async function cargarJsPDF(){
+
+    const modulo =
+        await import(
+            "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm"
+        );
+
+
+    return modulo.jsPDF;
+
+}
+
+
+/* =====================================================
    GENERAR PDF
 ===================================================== */
 
 async function generarPDF(){
 
-    if(
-        !validarCertificacion()
-    ){
+    if(!validarCertificacion()){
 
         return;
 
@@ -2740,6 +2600,10 @@ async function generarPDF(){
         return;
 
     }
+
+
+    const jsPDF =
+        await cargarJsPDF();
 
 
     const cliente =
@@ -2785,19 +2649,18 @@ async function generarPDF(){
 
 
     const nombreCliente =
-        cliente?.nombre ||
-        cliente?.nombreCliente ||
-        cliente?.razonSocial ||
-        cliente?.razon_social ||
-        cliente?.empresa ||
-        cliente?.nombreCompleto ||
+        cliente
+        ?
+        obtenerNombreCliente(
+            cliente
+        )
+        :
         "Cliente";
 
 
     const cuitCliente =
         cliente?.cuit ||
         cliente?.CUIT ||
-        cliente?.cuitCliente ||
         "";
 
 
@@ -2806,22 +2669,19 @@ async function generarPDF(){
         presupuesto?.numeroPresupuesto ||
         presupuesto?.codigo ||
         presupuesto?.nro ||
-        presupuesto?.numeroDocumento ||
         presupuesto?.id ||
         "Presupuesto";
 
 
     const total =
         itemsPresupuesto.reduce(
-            (
-                suma,
-                item
-            ) =>
+            (suma,item) =>
+
                 suma +
                 Number(
-                    item.importeCertificado ||
-                    0
+                    item.importeCertificado || 0
                 ),
+
             0
         );
 
@@ -2975,7 +2835,6 @@ async function generarPDF(){
                 trabajo.nombre ||
                 trabajo.descripcion ||
                 trabajo.titulo ||
-                trabajo.nombreTrabajo ||
                 "Trabajo"
             ),
             20,
@@ -3028,8 +2887,7 @@ async function generarPDF(){
 
 
     y +=
-        lineas.length *
-        5 +
+        lineas.length * 5 +
         10;
 
 
@@ -3101,8 +2959,7 @@ async function generarPDF(){
 
             if(
                 Number(
-                    item.ejecutada ||
-                    0
+                    item.ejecutada || 0
                 ) <= 0
             ){
 
@@ -3111,9 +2968,7 @@ async function generarPDF(){
             }
 
 
-            if(
-                y > 265
-            ){
+            if(y > 265){
 
                 pdf.addPage();
 
@@ -3124,9 +2979,7 @@ async function generarPDF(){
 
             const nombre =
                 pdf.splitTextToSize(
-                    String(
-                        item.nombre
-                    ),
+                    item.nombre,
                     65
                 );
 
@@ -3158,8 +3011,7 @@ async function generarPDF(){
 
             pdf.text(
                 Number(
-                    item.porcentaje ||
-                    0
+                    item.porcentaje || 0
                 ).toFixed(2) +
                 "%",
                 137,
@@ -3212,9 +3064,7 @@ async function generarPDF(){
     y += 15;
 
 
-    if(
-        y > 220
-    ){
+    if(y > 220){
 
         pdf.addPage();
 
@@ -3284,15 +3134,21 @@ async function generarPDF(){
 
     const nombreArchivo =
         "certificacion_" +
+
         String(
             numeroPresupuesto
         )
         .replace(
             /[^a-zA-Z0-9_-]/g,
             "_"
-        ) +
+        )
+
+        +
+
         "_" +
+
         fechaHoy() +
+
         ".pdf";
 
 
@@ -3381,9 +3237,7 @@ document
                 this;
 
 
-            if(
-                !validarCertificacion()
-            ){
+            if(!validarCertificacion()){
 
                 return;
 
@@ -3404,13 +3258,14 @@ document
 
             const itemsCertificados =
                 itemsPresupuesto
+
                     .filter(
                         item =>
                             Number(
-                                item.ejecutada ||
-                                0
+                                item.ejecutada || 0
                             ) > 0
                     )
+
                     .map(
                         item => ({
 
@@ -3428,8 +3283,7 @@ document
 
                             porcentaje:
                                 Number(
-                                    item.porcentaje ||
-                                    0
+                                    item.porcentaje || 0
                                 ),
 
                             precioUnitario:
@@ -3440,8 +3294,7 @@ document
 
                             importeCertificado:
                                 Number(
-                                    item.importeCertificado ||
-                                    0
+                                    item.importeCertificado || 0
                                 )
 
                         })
@@ -3450,12 +3303,11 @@ document
 
             const total =
                 itemsCertificados.reduce(
-                    (
-                        suma,
-                        item
-                    ) =>
+                    (suma,item) =>
+
                         suma +
                         item.importeCertificado,
+
                     0
                 );
 
@@ -3470,86 +3322,80 @@ document
 
             try{
 
-                const documento =
-                    await addDoc(
-                        collection(
-                            db,
-                            "certificaciones"
-                        ),
-                        {
+                await addDoc(
 
-                            uid:
-                                usuarioActual.uid,
+                    collection(
+                        db,
+                        "certificaciones"
+                    ),
 
-                            email:
-                                usuarioActual.email ||
-                                "",
+                    {
 
-                            empresaId:
-                                empresaIdActual,
+                        uid:
+                            usuarioActual.uid,
 
-                            empresaNombre:
-                                empresaNombreActual,
+                        email:
+                            usuarioActual.email || "",
 
-                            clienteId:
-                                clienteSelect.value,
+                        empresaId:
+                            empresaIdActual,
 
-                            presupuestoId:
-                                presupuestoSelect.value,
+                        empresaNombre:
+                            empresaNombreActual,
 
-                            trabajoId:
-                                trabajoSelect.value ||
-                                "",
+                        clienteId:
+                            clienteSelect.value,
 
-                            periodo:
-                                document.getElementById(
-                                    "periodo"
-                                ).value,
+                        presupuestoId:
+                            presupuestoSelect.value,
 
-                            fechaDesde:
-                                document.getElementById(
-                                    "fechaDesde"
-                                ).value,
+                        trabajoId:
+                            trabajoSelect.value || "",
 
-                            fechaHasta:
-                                document.getElementById(
-                                    "fechaHasta"
-                                ).value,
+                        periodo:
+                            document.getElementById(
+                                "periodo"
+                            ).value,
 
-                            descripcion:
-                                document.getElementById(
-                                    "descripcion"
-                                ).value.trim(),
+                        fechaDesde:
+                            document.getElementById(
+                                "fechaDesde"
+                            ).value,
 
-                            items:
-                                itemsCertificados,
+                        fechaHasta:
+                            document.getElementById(
+                                "fechaHasta"
+                            ).value,
 
-                            importeTotal:
-                                total,
+                        descripcion:
+                            document.getElementById(
+                                "descripcion"
+                            ).value.trim(),
 
-                            porcentajeTotal:
-                                calcularPorcentajeGlobal(
-                                    itemsCertificados
-                                ),
+                        items:
+                            itemsCertificados,
 
-                            firma:
-                                canvas.toDataURL(
-                                    "image/png"
-                                ),
+                        importeTotal:
+                            total,
 
-                            fecha:
-                                fechaHoy(),
+                        porcentajeTotal:
+                            calcularPorcentajeGlobal(
+                                itemsCertificados
+                            ),
 
-                            creado:
-                                serverTimestamp()
+                        firma:
+                            canvas.toDataURL(
+                                "image/png"
+                            ),
 
-                        }
-                    );
+                        fecha:
+                            fechaHoy(),
 
+                        creado:
+                            serverTimestamp()
 
-                console.log(
-                    "CERTIFICACIÓN GUARDADA:",
-                    documento.id
+                    }
+
                 );
 
 
@@ -3565,7 +3411,7 @@ document
             catch(error){
 
                 console.error(
-                    "ERROR GUARDANDO CERTIFICACIÓN:",
+                    "ERROR GUARDANDO:",
                     error
                 );
 
@@ -3603,9 +3449,12 @@ function calcularPorcentajeGlobal(
     items
 ){
 
-    let totalPresupuesto = 0;
+    let totalPresupuesto =
+        0;
 
-    let totalCertificado = 0;
+
+    let totalCertificado =
+        0;
 
 
     items.forEach(
@@ -3613,24 +3462,20 @@ function calcularPorcentajeGlobal(
 
             totalPresupuesto +=
                 Number(
-                    item.importePresupuesto ||
-                    0
+                    item.importePresupuesto || 0
                 );
 
 
             totalCertificado +=
                 Number(
-                    item.importeCertificado ||
-                    0
+                    item.importeCertificado || 0
                 );
 
         }
     );
 
 
-    if(
-        totalPresupuesto <= 0
-    ){
+    if(totalPresupuesto <= 0){
 
         return 0;
 
@@ -3638,10 +3483,11 @@ function calcularPorcentajeGlobal(
 
 
     return (
+
         totalCertificado /
         totalPresupuesto
-    ) *
-    100;
+
+    ) * 100;
 
 }
 
@@ -3679,17 +3525,22 @@ async function cargarCertificaciones(){
 
         const snapshot =
             await getDocs(
+
                 query(
+
                     collection(
                         db,
                         "certificaciones"
                     ),
+
                     where(
                         "empresaId",
                         "==",
                         empresaIdActual
                     )
+
                 )
+
             );
 
 
@@ -3709,15 +3560,7 @@ async function cargarCertificaciones(){
         );
 
 
-        console.log(
-            "CERTIFICACIONES:",
-            certificaciones
-        );
-
-
-        if(
-            certificaciones.length === 0
-        ){
+        if(certificaciones.length === 0){
 
             tabla.innerHTML =
                 `
@@ -3727,7 +3570,9 @@ async function cargarCertificaciones(){
                         colspan="6"
                         class="sin-datos"
                     >
+
                         No hay certificaciones realizadas.
+
                     </td>
 
                 </tr>
@@ -3744,13 +3589,12 @@ async function cargarCertificaciones(){
 
 
         certificaciones.sort(
-            (
-                a,
-                b
-            ) =>
+            (a,b) =>
+
                 String(
                     b.fecha || ""
-                ).localeCompare(
+                )
+                .localeCompare(
                     String(
                         a.fecha || ""
                     )
@@ -3778,12 +3622,12 @@ async function cargarCertificaciones(){
 
 
                 const nombreCliente =
-                    cliente?.nombre ||
-                    cliente?.nombreCliente ||
-                    cliente?.razonSocial ||
-                    cliente?.razon_social ||
-                    cliente?.empresa ||
-                    cliente?.nombreCompleto ||
+                    cliente
+                    ?
+                    obtenerNombreCliente(
+                        cliente
+                    )
+                    :
                     "Cliente";
 
 
@@ -3792,7 +3636,6 @@ async function cargarCertificaciones(){
                     presupuesto?.numeroPresupuesto ||
                     presupuesto?.codigo ||
                     presupuesto?.nro ||
-                    presupuesto?.numeroDocumento ||
                     certificacion.presupuestoId ||
                     "Presupuesto";
 
@@ -3809,23 +3652,19 @@ async function cargarCertificaciones(){
 
                         <td>
                             ${escapeHTML(
-                                String(
-                                    numero
-                                )
+                                String(numero)
                             )}
                         </td>
 
                         <td>
                             ${escapeHTML(
-                                certificacion.periodo ||
-                                ""
+                                certificacion.periodo || ""
                             )}
                         </td>
 
                         <td>
                             ${escapeHTML(
-                                certificacion.fecha ||
-                                ""
+                                certificacion.fecha || ""
                             )}
                         </td>
 
@@ -3840,9 +3679,7 @@ async function cargarCertificaciones(){
                             <button
                                 type="button"
                                 class="btn-success"
-                                data-certificacion-id="${escapeHTML(
-                                    certificacion.id
-                                )}"
+                                data-certificacion-id="${escapeHTML(certificacion.id)}"
                             >
                                 📄 PDF
                             </button>
@@ -3872,10 +3709,16 @@ async function cargarCertificaciones(){
                     colspan="6"
                     class="sin-datos"
                 >
-                    No se pudieron cargar las certificaciones:
+
+                    No se pudieron cargar las certificaciones.
+
+                    <br><br>
+
                     ${escapeHTML(
-                        error.message
+                        error.message ||
+                        ""
                     )}
+
                 </td>
 
             </tr>
@@ -3900,7 +3743,7 @@ document
     )
     .addEventListener(
         "click",
-        evento => {
+        async evento => {
 
             const boton =
                 evento.target.closest(
@@ -3909,20 +3752,20 @@ document
 
 
             if(!boton){
+
                 return;
+
             }
 
 
             const id =
-                boton.dataset
-                    .certificacionId;
+                boton.dataset.certificacionId;
 
 
             const certificacion =
                 certificaciones.find(
                     item =>
-                        item.id ===
-                        id
+                        item.id === id
                 );
 
 
@@ -3940,7 +3783,15 @@ document
 
             try{
 
-                generarPDFDesdeGuardada(
+                boton.disabled =
+                    true;
+
+
+                boton.textContent =
+                    "Generando...";
+
+
+                await generarPDFDesdeGuardada(
                     certificacion
                 );
 
@@ -3963,18 +3814,32 @@ document
                 );
 
             }
+            finally{
+
+                boton.disabled =
+                    false;
+
+
+                boton.textContent =
+                    "📄 PDF";
+
+            }
 
         }
     );
 
 
 /* =====================================================
-   PDF DESDE CERTIFICACIÓN GUARDADA
+   PDF GUARDADO
 ===================================================== */
 
-function generarPDFDesdeGuardada(
+async function generarPDFDesdeGuardada(
     certificacion
 ){
+
+    const jsPDF =
+        await cargarJsPDF();
+
 
     const cliente =
         clientes.find(
@@ -3992,21 +3857,13 @@ function generarPDFDesdeGuardada(
         );
 
 
-    const trabajo =
-        trabajos.find(
-            item =>
-                item.id ===
-                certificacion.trabajoId
-        );
-
-
     const nombreCliente =
-        cliente?.nombre ||
-        cliente?.nombreCliente ||
-        cliente?.razonSocial ||
-        cliente?.razon_social ||
-        cliente?.empresa ||
-        cliente?.nombreCompleto ||
+        cliente
+        ?
+        obtenerNombreCliente(
+            cliente
+        )
+        :
         "Cliente";
 
 
@@ -4015,7 +3872,6 @@ function generarPDFDesdeGuardada(
         presupuesto?.numeroPresupuesto ||
         presupuesto?.codigo ||
         presupuesto?.nro ||
-        presupuesto?.numeroDocumento ||
         certificacion.presupuestoId ||
         "Presupuesto";
 
@@ -4028,6 +3884,7 @@ function generarPDFDesdeGuardada(
 
 
     pdf.setFontSize(20);
+
 
     pdf.setFont(
         "helvetica",
@@ -4104,27 +3961,6 @@ function generarPDFDesdeGuardada(
     y += 6;
 
 
-    if(trabajo){
-
-        pdf.text(
-            "Trabajo: " +
-            (
-                trabajo.nombre ||
-                trabajo.descripcion ||
-                trabajo.titulo ||
-                trabajo.nombreTrabajo ||
-                "Trabajo"
-            ),
-            20,
-            y
-        );
-
-
-        y += 6;
-
-    }
-
-
     pdf.text(
         "Período: " +
         (
@@ -4182,8 +4018,7 @@ function generarPDFDesdeGuardada(
 
     const descripcion =
         pdf.splitTextToSize(
-            certificacion.descripcion ||
-            "",
+            certificacion.descripcion || "",
             170
         );
 
@@ -4196,8 +4031,7 @@ function generarPDFDesdeGuardada(
 
 
     y +=
-        descripcion.length *
-        5 +
+        descripcion.length * 5 +
         10;
 
 
@@ -4265,14 +4099,11 @@ function generarPDFDesdeGuardada(
 
 
     (
-        certificacion.items ||
-        []
+        certificacion.items || []
     ).forEach(
         item => {
 
-            if(
-                y > 265
-            ){
+            if(y > 265){
 
                 pdf.addPage();
 
@@ -4283,10 +4114,8 @@ function generarPDFDesdeGuardada(
 
             const nombre =
                 pdf.splitTextToSize(
-                    String(
-                        item.nombre ||
-                        "Ítem"
-                    ),
+                    item.nombre ||
+                    "Ítem",
                     65
                 );
 
@@ -4300,8 +4129,7 @@ function generarPDFDesdeGuardada(
 
             pdf.text(
                 String(
-                    item.cantidadPresupuestada ||
-                    0
+                    item.cantidadPresupuestada || 0
                 ),
                 90,
                 y
@@ -4310,8 +4138,7 @@ function generarPDFDesdeGuardada(
 
             pdf.text(
                 String(
-                    item.cantidadEjecutada ||
-                    0
+                    item.cantidadEjecutada || 0
                 ),
                 115,
                 y
@@ -4320,8 +4147,7 @@ function generarPDFDesdeGuardada(
 
             pdf.text(
                 Number(
-                    item.porcentaje ||
-                    0
+                    item.porcentaje || 0
                 ).toFixed(2) +
                 "%",
                 137,
@@ -4376,9 +4202,7 @@ function generarPDFDesdeGuardada(
     y += 15;
 
 
-    if(
-        y > 220
-    ){
+    if(y > 220){
 
         pdf.addPage();
 
@@ -4397,9 +4221,7 @@ function generarPDFDesdeGuardada(
     y += 8;
 
 
-    if(
-        certificacion.firma
-    ){
+    if(certificacion.firma){
 
         pdf.addImage(
             certificacion.firma,
@@ -4451,20 +4273,30 @@ function generarPDFDesdeGuardada(
 
 
     pdf.save(
+
         "certificacion_" +
+
         String(
             numeroPresupuesto
         )
         .replace(
             /[^a-zA-Z0-9_-]/g,
             "_"
-        ) +
+        )
+
+        +
+
         "_" +
+
         String(
             certificacion.fecha ||
             fechaHoy()
-        ) +
+        )
+
+        +
+
         ".pdf"
+
     );
 
 }
@@ -4490,7 +4322,7 @@ document
 
 
 /* =====================================================
-   FECHAS INICIALES
+   FECHAS
 ===================================================== */
 
 document.getElementById(
@@ -4504,6 +4336,27 @@ document.getElementById(
 ).value =
     fechaHoy();
 
+
+/* =====================================================
+   ERROR GLOBAL
+===================================================== */
+
+window.addEventListener(
+    "error",
+    evento => {
+
+        console.error(
+            "ERROR GLOBAL:",
+            evento.error ||
+            evento.message
+        );
+
+    }
+);
+
+console.log(
+    "CERTIFICACION.HTML CARGADO CORRECTAMENTE"
+);
 
 </script>
 
