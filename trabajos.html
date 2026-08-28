@@ -1,4 +1,10 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#111827"><meta name="description" content="GESBASE - Crear trabajo"><title>Crear trabajo - GESBASE</title><style>
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#111827"><meta
+name="description"
+content="GESBASE - Crear trabajo"
+
+«»
+
+<title>Crear trabajo - GESBASE</title><style>
 
 *{
     box-sizing:border-box;
@@ -36,6 +42,17 @@ header p{
     font-size:14px;
 }
 
+.usuario{
+    margin-top:15px;
+    padding:10px;
+    background:#ecfdf5;
+    border:1px solid #86efac;
+    border-radius:9px;
+    font-size:13px;
+    color:#166534;
+    display:none;
+}
+
 main{
     padding:20px;
 }
@@ -67,6 +84,10 @@ main{
 .estado-info{
     background:#dbeafe;
     color:#1e40af;
+}
+
+.oculto{
+    display:none !important;
 }
 
 .tarjeta{
@@ -178,18 +199,14 @@ button:disabled{
     cursor:not-allowed;
 }
 
-.oculto{
-    display:none;
-}
-
-.usuario{
+.debug{
     margin-top:15px;
     padding:10px;
-    background:#ecfdf5;
-    border:1px solid #86efac;
-    border-radius:9px;
-    font-size:13px;
-    color:#166534;
+    border-radius:8px;
+    background:#f3f4f6;
+    color:#6b7280;
+    font-size:11px;
+    word-break:break-all;
 }
 
 @media(max-width:480px){
@@ -206,18 +223,18 @@ button:disabled{
 
 </style></head><body><div class="contenedor"><header><h1>Crear trabajo</h1><p>GESBASE</p><div
     id="usuarioInfo"
-    class="usuario oculto"
+    class="usuario"
 ></div></header><main><div
     id="estado"
     class="estado estado-cargando"
 >
-⏳ Verificando sesión...
+⏳ Iniciando GESBASE...
 </div><div
     id="contenido"
     class="oculto"
-><!-- =========================================
+><!-- =====================================================
      PRESUPUESTO
-========================================= --><div class="tarjeta"><div class="titulo">
+===================================================== --><div class="tarjeta"><div class="titulo">
 📄 Presupuesto
 </div><div class="dato"><strong>N.º:</strong>
 
@@ -235,9 +252,9 @@ button:disabled{
 
 <span id="lugarPresupuesto">
 -
-</span></div></div><!-- =========================================
+</span></div></div><!-- =====================================================
      CLIENTE
-========================================= --><div class="tarjeta"><div class="titulo">
+===================================================== --><div class="tarjeta"><div class="titulo">
 👤 Cliente
 </div><div class="dato"><strong>Nombre:</strong>
 
@@ -263,9 +280,9 @@ button:disabled{
 
 <span id="clienteLocalidad">
 -
-</span></div></div><!-- =========================================
+</span></div></div><!-- =====================================================
      EMPRESA
-========================================= --><div class="tarjeta"><div class="titulo">
+===================================================== --><div class="tarjeta"><div class="titulo">
 🏢 Empresa
 </div><div class="dato"><strong>Empresa:</strong>
 
@@ -283,9 +300,9 @@ button:disabled{
 
 <span id="empresaEmail">
 -
-</span></div></div><!-- =========================================
+</span></div></div><!-- =====================================================
      DATOS DEL TRABAJO
-========================================= --><div class="tarjeta"><div class="titulo">
+===================================================== --><div class="tarjeta"><div class="titulo">
 🔧 Datos del trabajo
 </div><div class="campo"><label for="estadoTrabajo">
 Estado del trabajo
@@ -327,16 +344,16 @@ placeholder="Nombre del responsable"
 </div><div class="campo"><label for="descripcionTrabajo">
 Descripción del trabajo
 </label><textarea
-id="descripcionTrabajo"
-placeholder="Detalle del trabajo a realizar..."
+    id="descripcionTrabajo"
+    placeholder="Detalle del trabajo a realizar..."
 ></textarea></div><div class="campo"><label for="observaciones">
 Observaciones
 </label><textarea
-id="observaciones"
-placeholder="Observaciones del trabajo..."
-></textarea></div></div><!-- =========================================
+    id="observaciones"
+    placeholder="Observaciones del trabajo..."
+></textarea></div></div><!-- =====================================================
      IMPORTE
-========================================= --><div class="tarjeta"><div class="titulo">
+===================================================== --><div class="tarjeta"><div class="titulo">
 💰 Importe del trabajo
 </div><div class="resumen"><div class="linea"><span>
 Materiales
@@ -378,7 +395,10 @@ class="volver"
 ⬅️ VOLVER A PRESUPUESTOS
 </button>
 
-</div></main></div><script type="module">
+<div
+    id="debug"
+    class="debug"
+></div></div></main></div><script type="module">
 
 /* =====================================================
    FIREBASE
@@ -416,6 +436,9 @@ document.getElementById("contenido");
 
 const usuarioInfo =
 document.getElementById("usuarioInfo");
+
+const debug =
+document.getElementById("debug");
 
 
 const numeroPresupuesto =
@@ -515,7 +538,7 @@ let presupuestoActual = null;
 
 
 /* =====================================================
-   OBTENER ID
+   OBTENER ID DEL PRESUPUESTO
 ===================================================== */
 
 const parametros =
@@ -523,14 +546,42 @@ new URLSearchParams(
     window.location.search
 );
 
+
+/*
+ * Aceptamos:
+ *
+ * trabajo.html?presupuestoId=XXXX
+ *
+ * trabajo.html?id=XXXX
+ *
+ * trabajo.html?presupuesto=XXXX
+ *
+ */
+
 const presupuestoId =
-parametros.get("presupuestoId");
+    parametros.get("presupuestoId") ||
+    parametros.get("id") ||
+    parametros.get("presupuesto") ||
+    "";
+
+
+console.log(
+    "GESBASE - URL:",
+    window.location.href
+);
 
 
 console.log(
     "GESBASE - presupuestoId:",
     presupuestoId
 );
+
+
+debug.textContent =
+"URL: " +
+window.location.href +
+"\nID presupuesto: " +
+(presupuestoId || "NO RECIBIDO");
 
 
 /* =====================================================
@@ -656,21 +707,30 @@ function perteneceAlUsuario(datos){
     usuarioActual.uid;
 
 
-    if(texto(datos.uid) === uid){
+    if(
+        texto(datos.uid) ===
+        uid
+    ){
 
         return true;
 
     }
 
 
-    if(texto(datos.usuarioId) === uid){
+    if(
+        texto(datos.usuarioId) ===
+        uid
+    ){
 
         return true;
 
     }
 
 
-    if(texto(datos.userId) === uid){
+    if(
+        texto(datos.userId) ===
+        uid
+    ){
 
         return true;
 
@@ -678,13 +738,15 @@ function perteneceAlUsuario(datos){
 
 
     /*
-     * Compatibilidad con presupuestos
-     * que usan empresaId.
+     * Compatibilidad.
+     *
+     * Algunos documentos antiguos
+     * pueden guardar empresaId.
      */
 
     if(
-        datos.empresaId &&
-        texto(datos.empresaId) === uid
+        texto(datos.empresaId) ===
+        uid
     ){
 
         return true;
@@ -725,7 +787,7 @@ async function cargarPresupuesto(){
 
 
     console.log(
-        "GESBASE - buscando presupuesto:",
+        "GESBASE - buscando:",
         presupuestoId
     );
 
@@ -747,7 +809,7 @@ async function cargarPresupuesto(){
 
 
         console.log(
-            "GESBASE - documento encontrado:",
+            "GESBASE - existe:",
             documento.exists()
         );
 
@@ -756,7 +818,7 @@ async function cargarPresupuesto(){
 
             mostrarEstado(
                 "❌ El presupuesto no existe.\n\n" +
-                "ID: " +
+                "ID recibido:\n" +
                 presupuestoId,
                 "error"
             );
@@ -771,10 +833,14 @@ async function cargarPresupuesto(){
 
 
         console.log(
-            "GESBASE - datos presupuesto:",
+            "GESBASE - datos:",
             datos
         );
 
+
+        /*
+         * Comprobación de propietario.
+         */
 
         if(!perteneceAlUsuario(datos)){
 
@@ -793,9 +859,9 @@ async function cargarPresupuesto(){
         datos;
 
 
-        /* =====================================
+        /* =================================================
            PRESUPUESTO
-        ===================================== */
+        ================================================= */
 
         numeroPresupuesto.textContent =
         datos.numeroAgenda ||
@@ -824,9 +890,9 @@ async function cargarPresupuesto(){
         "Sin informar";
 
 
-        /* =====================================
+        /* =================================================
            CLIENTE
-        ===================================== */
+        ================================================= */
 
         clienteNombre.textContent =
         datos.cliente ||
@@ -881,9 +947,9 @@ async function cargarPresupuesto(){
         provincia;
 
 
-        /* =====================================
+        /* =================================================
            EMPRESA
-        ===================================== */
+        ================================================= */
 
         empresaNombre.textContent =
         datos.empresaNombre ||
@@ -911,79 +977,85 @@ async function cargarPresupuesto(){
         "-";
 
 
-        /* =====================================
+        /* =================================================
            IMPORTES
-        ===================================== */
+        ================================================= */
 
-        materiales.textContent =
-        dinero(
+        const valorMateriales =
+        numero(
             datos.materiales ??
             datos.importeMaterial ??
             0
         );
 
 
-        manoObra.textContent =
-        dinero(
+        const valorManoObra =
+        numero(
             datos.manoObra ??
             datos.importeManoObra ??
             0
         );
 
 
-        viaticos.textContent =
-        dinero(
+        const valorViaticos =
+        numero(
             datos.viaticos ??
             datos.importeViaticos ??
             0
         );
 
 
-        flete.textContent =
-        dinero(
+        const valorFlete =
+        numero(
             datos.flete ??
             datos.importeFlete ??
             0
         );
 
 
-        let totalGuardado =
+        let valorTotal =
         numero(
             datos.total ??
             datos.totalFinal ??
+            datos.importe ??
             0
         );
 
 
-        if(totalGuardado <= 0){
+        if(valorTotal <= 0){
 
-            totalGuardado =
-            numero(
-                datos.materiales
-            )
-            +
-            numero(
-                datos.manoObra
-            )
-            +
-            numero(
-                datos.viaticos
-            )
-            +
-            numero(
-                datos.flete
-            );
+            valorTotal =
+            valorMateriales +
+            valorManoObra +
+            valorViaticos +
+            valorFlete;
 
         }
 
 
+        materiales.textContent =
+        dinero(valorMateriales);
+
+
+        manoObra.textContent =
+        dinero(valorManoObra);
+
+
+        viaticos.textContent =
+        dinero(valorViaticos);
+
+
+        flete.textContent =
+        dinero(valorFlete);
+
+
         total.textContent =
-        dinero(totalGuardado);
+        dinero(valorTotal);
 
 
-        /* =====================================
-           DATOS INICIALES DEL TRABAJO
-        ===================================== */
+        /* =================================================
+           DATOS DEL TRABAJO
+        ================================================= */
 
         descripcionTrabajo.value =
         datos.descripcion ||
@@ -997,9 +1069,9 @@ async function cargarPresupuesto(){
         "";
 
 
-        /* =====================================
+        /* =================================================
            MOSTRAR
-        ===================================== */
+        ================================================= */
 
         contenido.classList.remove(
             "oculto"
@@ -1007,7 +1079,7 @@ async function cargarPresupuesto(){
 
 
         mostrarEstado(
-            "✅ Presupuesto cargado correctamente. Ahora podés crear el trabajo.",
+            "✅ Presupuesto cargado correctamente.\n\nAhora podés completar los datos y crear el trabajo.",
             "exito"
         );
 
@@ -1023,7 +1095,7 @@ async function cargarPresupuesto(){
         );
 
 
-        let mensaje =
+        let detalle =
         error?.message ||
         String(error);
 
@@ -1033,7 +1105,7 @@ async function cargarPresupuesto(){
             "permission-denied"
         ){
 
-            mensaje =
+            detalle =
             "Firebase rechazó el acceso al presupuesto.\n\n" +
             "Revisá las reglas de Firestore.";
 
@@ -1043,9 +1115,12 @@ async function cargarPresupuesto(){
         mostrarEstado(
             "❌ No se pudo cargar el presupuesto.\n\n" +
             "Código: " +
-            (error?.code || "sin código") +
+            (
+                error?.code ||
+                "sin código"
+            ) +
             "\n\n" +
-            mensaje,
+            detalle,
             "error"
         );
 
@@ -1089,6 +1164,24 @@ btnCrear.addEventListener(
         }
 
 
+        const descripcion =
+        descripcionTrabajo.value.trim();
+
+
+        if(!descripcion){
+
+            mostrarEstado(
+                "❌ Ingresá la descripción del trabajo.",
+                "error"
+            );
+
+            descripcionTrabajo.focus();
+
+            return;
+
+        }
+
+
         btnCrear.disabled =
         true;
 
@@ -1100,46 +1193,56 @@ btnCrear.addEventListener(
 
             const materialesValor =
             numero(
-                presupuestoActual.materiales
+                presupuestoActual.materiales ??
+                presupuestoActual.importeMaterial
             );
 
 
             const manoObraValor =
             numero(
-                presupuestoActual.manoObra
+                presupuestoActual.manoObra ??
+                presupuestoActual.importeManoObra
             );
 
 
             const viaticosValor =
             numero(
-                presupuestoActual.viaticos
+                presupuestoActual.viaticos ??
+                presupuestoActual.importeViaticos
             );
 
 
             const fleteValor =
             numero(
-                presupuestoActual.flete
+                presupuestoActual.flete ??
+                presupuestoActual.importeFlete
             );
 
 
-            const totalValor =
+            let totalValor =
             numero(
-                presupuestoActual.total
-            ) ||
-            (
+                presupuestoActual.total ??
+                presupuestoActual.totalFinal ??
+                presupuestoActual.importe
+            );
+
+
+            if(totalValor <= 0){
+
+                totalValor =
                 materialesValor +
                 manoObraValor +
                 viaticosValor +
-                fleteValor
-            );
+                fleteValor;
+
+            }
 
 
             const datosTrabajo = {
 
-                /* RELACIONES */
-
-                presupuestoId:
-                presupuestoId,
+                /* ================================
+                   USUARIO
+                ================================ */
 
                 uid:
                 usuarioActual.uid,
@@ -1147,49 +1250,26 @@ btnCrear.addEventListener(
                 usuarioId:
                 usuarioActual.uid,
 
-                /* CLIENTE */
+                /* ================================
+                   PRESUPUESTO
+                ================================ */
 
-                clienteId:
-                presupuestoActual.clienteId ||
-                presupuestoActual.idCliente ||
+                presupuestoId:
+                presupuestoId,
+
+                numeroPresupuesto:
+                presupuestoActual.numeroAgenda ||
+                presupuestoActual.numero ||
+                presupuestoActual.numeroPresupuesto ||
                 "",
 
-                cliente:
-                presupuestoActual.cliente ||
-                presupuestoActual.clienteNombre ||
-                presupuestoActual.nombreCliente ||
+                fechaPresupuesto:
+                presupuestoActual.fecha ||
                 "",
 
-                clienteNombre:
-                presupuestoActual.clienteNombre ||
-                presupuestoActual.cliente ||
-                "",
-
-                clienteCuit:
-                presupuestoActual.clienteCuit ||
-                "",
-
-                clienteTelefono:
-                presupuestoActual.clienteTelefono ||
-                "",
-
-                clienteEmail:
-                presupuestoActual.clienteEmail ||
-                "",
-
-                clienteDireccion:
-                presupuestoActual.clienteDireccion ||
-                "",
-
-                clienteLocalidad:
-                presupuestoActual.clienteLocalidad ||
-                "",
-
-                clienteProvincia:
-                presupuestoActual.clienteProvincia ||
-                "",
-
-                /* EMPRESA */
+                /* ================================
+                   EMPRESA
+                ================================ */
 
                 empresaId:
                 presupuestoActual.empresaId ||
@@ -1214,24 +1294,68 @@ btnCrear.addEventListener(
                 usuarioActual.email ||
                 "",
 
-                /* PRESUPUESTO */
+                /* ================================
+                   CLIENTE
+                ================================ */
 
-                numeroPresupuesto:
-                presupuestoActual.numeroAgenda ||
-                presupuestoActual.numero ||
-                presupuestoActual.numeroPresupuesto ||
+                clienteId:
+                presupuestoActual.clienteId ||
+                presupuestoActual.idCliente ||
                 "",
 
-                fechaPresupuesto:
-                presupuestoActual.fecha ||
+                cliente:
+                presupuestoActual.cliente ||
+                presupuestoActual.clienteNombre ||
+                presupuestoActual.nombreCliente ||
                 "",
+
+                clienteNombre:
+                presupuestoActual.clienteNombre ||
+                presupuestoActual.cliente ||
+                "",
+
+                clienteCuit:
+                presupuestoActual.clienteCuit ||
+                presupuestoActual.cuitCliente ||
+                "",
+
+                clienteTelefono:
+                presupuestoActual.clienteTelefono ||
+                presupuestoActual.telefonoCliente ||
+                "",
+
+                clienteEmail:
+                presupuestoActual.clienteEmail ||
+                presupuestoActual.emailCliente ||
+                "",
+
+                clienteDireccion:
+                presupuestoActual.clienteDireccion ||
+                presupuestoActual.direccionCliente ||
+                "",
+
+                clienteLocalidad:
+                presupuestoActual.clienteLocalidad ||
+                presupuestoActual.localidadCliente ||
+                "",
+
+                clienteProvincia:
+                presupuestoActual.clienteProvincia ||
+                presupuestoActual.provinciaCliente ||
+                "",
+
+                /* ================================
+                   UBICACIÓN
+                ================================ */
 
                 lugarTrabajo:
                 presupuestoActual.lugarTrabajo ||
                 presupuestoActual.lugar ||
                 "",
 
-                /* TRABAJO */
+                /* ================================
+                   TRABAJO
+                ================================ */
 
                 estado:
                 estadoTrabajo.value,
@@ -1246,12 +1370,14 @@ btnCrear.addEventListener(
                 responsable.value.trim(),
 
                 descripcion:
-                descripcionTrabajo.value.trim(),
+                descripcion,
 
                 observaciones:
                 observaciones.value.trim(),
 
-                /* IMPORTES */
+                /* ================================
+                   IMPORTES
+                ================================ */
 
                 materiales:
                 materialesValor,
@@ -1268,6 +1394,10 @@ btnCrear.addEventListener(
                 total:
                 totalValor,
 
+                /* ================================
+                   FECHAS FIREBASE
+                ================================ */
+
                 creado:
                 serverTimestamp(),
 
@@ -1278,7 +1408,7 @@ btnCrear.addEventListener(
 
 
             console.log(
-                "GESBASE - creando trabajo:",
+                "GESBASE - datos del trabajo:",
                 datosTrabajo
             );
 
@@ -1315,11 +1445,6 @@ btnCrear.addEventListener(
             "✅ TRABAJO CREADO";
 
 
-            /*
-             * Después de crear volvemos
-             * a presupuestos.
-             */
-
             setTimeout(
                 function(){
 
@@ -1339,7 +1464,7 @@ btnCrear.addEventListener(
             );
 
 
-            let mensaje =
+            let detalle =
             error?.message ||
             String(error);
 
@@ -1349,9 +1474,9 @@ btnCrear.addEventListener(
                 "permission-denied"
             ){
 
-                mensaje =
+                detalle =
                 "Firebase rechazó la creación del trabajo.\n\n" +
-                "Hay que revisar las reglas de Firestore para la colección trabajos.";
+                "Hay que revisar las reglas de Firestore de la colección trabajos.";
 
             }
 
@@ -1359,9 +1484,12 @@ btnCrear.addEventListener(
             mostrarEstado(
                 "❌ No se pudo crear el trabajo.\n\n" +
                 "Código: " +
-                (error?.code || "sin código") +
+                (
+                    error?.code ||
+                    "sin código"
+                ) +
                 "\n\n" +
-                mensaje,
+                detalle,
                 "error"
             );
 
@@ -1420,7 +1548,7 @@ onAuthStateChanged(
         if(!usuario){
 
             mostrarEstado(
-                "❌ No hay una sesión iniciada.\n\nRedirigiendo a iniciar sesión...",
+                "❌ No hay una sesión iniciada.\n\nRedirigiendo al inicio de sesión...",
                 "error"
             );
 
@@ -1454,9 +1582,8 @@ onAuthStateChanged(
         );
 
 
-        usuarioInfo.classList.remove(
-            "oculto"
-        );
+        usuarioInfo.style.display =
+        "block";
 
 
         await cargarPresupuesto();
@@ -1472,18 +1599,34 @@ onAuthStateChanged(
 setTimeout(
     function(){
 
-        if(!autenticacionRespondio){
+        if(
+            !autenticacionRespondio
+        ){
 
             mostrarEstado(
                 "❌ Firebase no respondió la autenticación.\n\n" +
-                "Esto indica que el problema está en la conexión de firebase.js o Firebase Authentication.",
+                "Verificá que Js/firebase.js exista y que firebase-config.js tenga la configuración correcta.",
                 "error"
+            );
+
+            return;
+
+        }
+
+
+        if(
+            !presupuestoActual &&
+            presupuestoId
+        ){
+
+            console.warn(
+                "GESBASE: el presupuesto todavía no se cargó."
             );
 
         }
 
     },
-    10000
+    12000
 );
 
 </script></body></html>
