@@ -321,7 +321,7 @@ button:disabled{
 table{
     width:100%;
     border-collapse:collapse;
-    min-width:900px;
+    min-width:850px;
 }
 
 th,
@@ -346,29 +346,6 @@ th{
     text-align:center;
     padding:20px;
     color:#6b7280;
-}
-
-.estado-ok{
-    color:#15803d;
-}
-
-.estado-error{
-    color:#b91c1c;
-}
-
-.badge{
-    display:inline-block;
-    padding:5px 8px;
-    border-radius:6px;
-    background:#dcfce7;
-    color:#166534;
-    font-weight:bold;
-}
-
-.btn-tabla{
-    padding:7px 10px;
-    font-size:12px;
-    margin:2px;
 }
 
 @media(max-width:700px){
@@ -781,16 +758,13 @@ La firma quedará incorporada al PDF de certificación.
 <thead>
 
 <tr>
-
 <th>Cliente</th>
 <th>Presupuesto</th>
 <th>Trabajo</th>
 <th>Período</th>
 <th>Fecha</th>
 <th>Importe</th>
-<th>Estado</th>
-<th>Acciones</th>
-
+<th>PDF</th>
 </tr>
 
 </thead>
@@ -824,7 +798,6 @@ import {
     addDoc,
     query,
     where,
-    orderBy,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
@@ -851,7 +824,7 @@ let itemsPresupuesto = [];
 
 let firmaRealizada = false;
 
-let certificacionGuardadaActual = null;
+let dibujando = false;
 
 
 /* =====================================================
@@ -1047,37 +1020,27 @@ async function obtenerEmpresa(){
     const empresaSnap =
         await getDoc(empresaRef);
 
-    if(empresaSnap.exists()){
+    if(!empresaSnap.exists()){
 
-        const datosEmpresa =
-            empresaSnap.data();
-
-        empresaNombreActual =
-            String(
-                datosEmpresa.nombreEmpresa ||
-                datosEmpresa.nombre ||
-                datosEmpresa.razonSocial ||
-                datosUsuario.nombreEmpresa ||
-                datosUsuario.empresaNombre ||
-                "GESBASE"
-            ).trim();
-
-    }else{
-
-        /*
-         * Algunas instalaciones de GESBASE
-         * pueden tener el nombre de empresa
-         * directamente en usuarios.
-         */
-
-        empresaNombreActual =
-            String(
-                datosUsuario.nombreEmpresa ||
-                datosUsuario.empresaNombre ||
-                "GESBASE"
-            ).trim();
+        throw new Error(
+            "No existe la empresa con ID: " +
+            empresaIdActual
+        );
 
     }
+
+    const datosEmpresa =
+        empresaSnap.data();
+
+    empresaNombreActual =
+        String(
+            datosEmpresa.nombreEmpresa ||
+            datosEmpresa.nombre ||
+            datosEmpresa.razonSocial ||
+            datosUsuario.nombreEmpresa ||
+            datosUsuario.empresaNombre ||
+            "GESBASE"
+        ).trim();
 
     document.getElementById(
         "empresaUsuario"
@@ -1181,162 +1144,41 @@ function obtenerNombreCliente(cliente){
 }
 
 
-function cargarSelectClientes(){
-
-    clienteSelect.disabled = false;
-
-    clienteSelect.innerHTML = `
-        <option value="">
-            Seleccioná un cliente
-        </option>
-    `;
-
-    clientes.forEach(cliente => {
-
-        const option =
-            document.createElement("option");
-
-        option.value =
-            cliente.id;
-
-        option.textContent =
-            obtenerNombreCliente(cliente);
-
-        clienteSelect.appendChild(option);
-
-    });
-
-    if(clientes.length === 0){
-
-        clienteSelect.innerHTML = `
-            <option value="">
-                No hay clientes registrados
-            </option>
-        `;
-
-    }
-
-}
-
-
 /* =====================================================
-   CARGAR CLIENTES
+   NOMBRE PRESUPUESTO
 ===================================================== */
 
-async function cargarClientes(){
+function obtenerNumeroPresupuesto(presupuesto){
 
-    clientes = [];
-
-    const referencia =
-        collection(
-            db,
-            "clientes"
-        );
-
-    const snapshot =
-        await getDocs(
-            query(
-                referencia,
-                where(
-                    "empresaId",
-                    "==",
-                    empresaIdActual
-                )
-            )
-        );
-
-    snapshot.forEach(documento => {
-
-        clientes.push({
-            id:documento.id,
-            ...documento.data()
-        });
-
-    });
-
-    console.log(
-        "CLIENTES CARGADOS:",
-        clientes
+    return (
+        presupuesto.numero ||
+        presupuesto.numeroPresupuesto ||
+        presupuesto.codigo ||
+        presupuesto.nro ||
+        presupuesto.numeroDocumento ||
+        presupuesto.nombre ||
+        presupuesto.id
     );
 
 }
 
 
 /* =====================================================
-   CARGAR PRESUPUESTOS
+   NOMBRE TRABAJO
 ===================================================== */
 
-async function cargarPresupuestos(){
+function obtenerNombreTrabajo(trabajo){
 
-    presupuestos = [];
-
-    const snapshot =
-        await getDocs(
-            query(
-                collection(
-                    db,
-                    "presupuestos"
-                ),
-                where(
-                    "empresaId",
-                    "==",
-                    empresaIdActual
-                )
-            )
-        );
-
-    snapshot.forEach(documento => {
-
-        presupuestos.push({
-            id:documento.id,
-            ...documento.data()
-        });
-
-    });
-
-    console.log(
-        "PRESUPUESTOS CARGADOS:",
-        presupuestos
-    );
-
-}
-
-
-/* =====================================================
-   CARGAR TRABAJOS
-===================================================== */
-
-async function cargarTrabajos(){
-
-    trabajos = [];
-
-    const snapshot =
-        await getDocs(
-            query(
-                collection(
-                    db,
-                    "trabajos"
-                ),
-                where(
-                    "empresaId",
-                    "==",
-                    empresaIdActual
-                )
-            )
-        );
-
-    snapshot.forEach(documento => {
-
-        trabajos.push({
-            id:documento.id,
-            ...documento.data()
-        });
-
-    });
-
-    console.log(
-        "TRABAJOS CARGADOS:",
-        trabajos
+    return (
+        trabajo.nombre ||
+        trabajo.nombreTrabajo ||
+        trabajo.descripcion ||
+        trabajo.descripcionTrabajo ||
+        trabajo.titulo ||
+        trabajo.nombreServicio ||
+        trabajo.servicio ||
+        trabajo.trabajo ||
+        "Trabajo sin nombre"
     );
 
 }
@@ -1361,9 +1203,7 @@ function obtenerClienteIdPresupuesto(presupuesto){
         if(
             presupuesto[campo] !== undefined &&
             presupuesto[campo] !== null &&
-            String(
-                presupuesto[campo]
-            ).trim() !== ""
+            String(presupuesto[campo]).trim() !== ""
         ){
 
             return limpiarId(
@@ -1412,9 +1252,7 @@ function obtenerClienteIdTrabajo(trabajo){
         if(
             trabajo[campo] !== undefined &&
             trabajo[campo] !== null &&
-            String(
-                trabajo[campo]
-            ).trim() !== ""
+            String(trabajo[campo]).trim() !== ""
         ){
 
             return limpiarId(
@@ -1463,9 +1301,7 @@ function obtenerPresupuestoIdTrabajo(trabajo){
         if(
             trabajo[campo] !== undefined &&
             trabajo[campo] !== null &&
-            String(
-                trabajo[campo]
-            ).trim() !== ""
+            String(trabajo[campo]).trim() !== ""
         ){
 
             return limpiarId(
@@ -1496,46 +1332,157 @@ function obtenerPresupuestoIdTrabajo(trabajo){
 
 
 /* =====================================================
-   NÚMERO DE PRESUPUESTO
+   CARGAR SELECT CLIENTES
 ===================================================== */
 
-function obtenerNumeroPresupuesto(presupuesto){
+function cargarSelectClientes(){
 
-    return (
-        presupuesto.numero ||
-        presupuesto.numeroPresupuesto ||
-        presupuesto.codigo ||
-        presupuesto.nro ||
-        presupuesto.numeroDocumento ||
-        presupuesto.nombre ||
-        presupuesto.id
+    clienteSelect.disabled = false;
+
+    clienteSelect.innerHTML = `
+        <option value="">
+            Seleccioná un cliente
+        </option>
+    `;
+
+    clientes.forEach(cliente => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            cliente.id;
+
+        option.textContent =
+            obtenerNombreCliente(cliente);
+
+        clienteSelect.appendChild(option);
+
+    });
+
+    if(clientes.length === 0){
+
+        clienteSelect.innerHTML = `
+            <option value="">
+                No hay clientes registrados
+            </option>
+        `;
+
+    }
+
+}
+
+
+/* =====================================================
+   CARGAR CLIENTES
+===================================================== */
+
+async function cargarClientes(){
+
+    clientes = [];
+
+    const snapshot =
+        await getDocs(
+            query(
+                collection(db,"clientes"),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaIdActual
+                )
+            )
+        );
+
+    snapshot.forEach(documento => {
+
+        clientes.push({
+            id:documento.id,
+            ...documento.data()
+        });
+
+    });
+
+    console.log(
+        "CLIENTES CARGADOS:",
+        clientes
     );
 
 }
 
 
 /* =====================================================
-   NOMBRE DEL TRABAJO
+   CARGAR PRESUPUESTOS
 ===================================================== */
 
-function obtenerNombreTrabajo(trabajo){
+async function cargarPresupuestos(){
 
-    return (
-        trabajo.nombre ||
-        trabajo.nombreTrabajo ||
-        trabajo.descripcion ||
-        trabajo.descripcionTrabajo ||
-        trabajo.titulo ||
-        trabajo.nombreServicio ||
-        trabajo.servicio ||
-        trabajo.trabajo ||
-        "Trabajo sin nombre"
+    presupuestos = [];
+
+    const snapshot =
+        await getDocs(
+            query(
+                collection(db,"presupuestos"),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaIdActual
+                )
+            )
+        );
+
+    snapshot.forEach(documento => {
+
+        presupuestos.push({
+            id:documento.id,
+            ...documento.data()
+        });
+
+    });
+
+    console.log(
+        "PRESUPUESTOS CARGADOS:",
+        presupuestos
     );
 
 }
 
 
 /* =====================================================
+   CARGAR TRABAJOS
+===================================================== */
+
+async function cargarTrabajos(){
+
+    trabajos = [];
+
+    const snapshot =
+        await getDocs(
+            query(
+                collection(db,"trabajos"),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaIdActual
+                )
+            )
+        );
+
+    snapshot.forEach(documento => {
+
+        trabajos.push({
+            id:documento.id,
+            ...documento.data()
+        });
+
+    });
+
+    console.log(
+        "TRABAJOS CARGADOS:",
+        trabajos
+    );
+
+} 
+   /* =====================================================
    CLIENTE CAMBIA
 ===================================================== */
 
@@ -1557,7 +1504,7 @@ clienteSelect.addEventListener(
 
         trabajoSelect.innerHTML = `
             <option value="">
-                Seleccioná un presupuesto
+                Seleccioná primero un presupuesto
             </option>
         `;
 
@@ -1608,15 +1555,19 @@ clienteSelect.addEventListener(
                 "";
 
             if(cuit){
+
                 datos.push(
                     "CUIT: " + cuit
                 );
+
             }
 
             if(telefono){
+
                 datos.push(
                     "Tel: " + telefono
                 );
+
             }
 
             document.getElementById(
@@ -1630,56 +1581,71 @@ clienteSelect.addEventListener(
 
         }
 
+
+        /* =================================================
+           PRESUPUESTOS DEL CLIENTE
+        ================================================= */
+
         const lista =
             presupuestos.filter(
                 presupuesto => {
 
-                    const presupuestoEmpresa =
+                    const empresa =
                         limpiarId(
-                            presupuesto.empresaId
+                            presupuesto.empresaId ||
+                            presupuesto.idEmpresa ||
+                            presupuesto.companyId
                         );
 
-                    const presupuestoCliente =
+                    const clientePresupuesto =
                         obtenerClienteIdPresupuesto(
                             presupuesto
                         );
 
                     return (
-                        presupuestoEmpresa ===
-                        empresaIdActual
-                        &&
-                        presupuestoCliente ===
-                        clienteId
+                        empresa === empresaIdActual &&
+                        clientePresupuesto === clienteId
                     );
 
                 }
             );
 
-        lista.forEach(presupuesto => {
 
-            const option =
-                document.createElement("option");
+        console.log(
+            "PRESUPUESTOS DEL CLIENTE:",
+            clienteId,
+            lista
+        );
 
-            option.value =
-                presupuesto.id;
 
-            option.textContent =
-                obtenerNumeroPresupuesto(
-                    presupuesto
-                ) +
-                " - " +
-                (
-                    presupuesto.descripcion ||
-                    presupuesto.titulo ||
-                    presupuesto.nombre ||
-                    "Presupuesto"
+        lista.forEach(
+            presupuesto => {
+
+                const option =
+                    document.createElement("option");
+
+                option.value =
+                    presupuesto.id;
+
+                option.textContent =
+                    obtenerNumeroPresupuesto(
+                        presupuesto
+                    ) +
+                    " - " +
+                    (
+                        presupuesto.descripcion ||
+                        presupuesto.titulo ||
+                        presupuesto.nombre ||
+                        "Presupuesto"
+                    );
+
+                presupuestoSelect.appendChild(
+                    option
                 );
 
-            presupuestoSelect.appendChild(
-                option
-            );
+            }
+        );
 
-        });
 
         if(lista.length === 0){
 
@@ -1689,7 +1655,8 @@ clienteSelect.addEventListener(
                 </option>
             `;
 
-        }else{
+        }
+        else{
 
             presupuestoSelect.disabled = false;
 
@@ -1733,12 +1700,14 @@ presupuestoSelect.addEventListener(
             return;
         }
 
+
         const presupuesto =
             presupuestos.find(
                 item =>
                     limpiarId(item.id) ===
                     presupuestoId
             );
+
 
         if(!presupuesto){
 
@@ -1748,7 +1717,9 @@ presupuestoSelect.addEventListener(
             );
 
             return;
+
         }
+
 
         const clienteSeleccionado =
             limpiarId(
@@ -1760,7 +1731,9 @@ presupuestoSelect.addEventListener(
                 presupuesto
             );
 
+
         if(
+            clientePresupuesto &&
             clientePresupuesto !==
             clienteSeleccionado
         ){
@@ -1771,7 +1744,9 @@ presupuestoSelect.addEventListener(
             );
 
             return;
+
         }
+
 
         const total =
             Number(
@@ -1783,6 +1758,7 @@ presupuestoSelect.addEventListener(
                 0
             );
 
+
         document.getElementById(
             "datosPresupuestoInfo"
         ).textContent =
@@ -1793,13 +1769,20 @@ presupuestoSelect.addEventListener(
             " | Total: " +
             dinero(total);
 
+
         document.getElementById(
             "datosPresupuesto"
         ).style.display = "block";
 
+
         cargarItemsPresupuesto(
             presupuesto
         );
+
+
+        /* =================================================
+           TRABAJOS DEL PRESUPUESTO
+        ================================================= */
 
         const listaTrabajos =
             trabajos.filter(
@@ -1807,7 +1790,9 @@ presupuestoSelect.addEventListener(
 
                     const empresaTrabajo =
                         limpiarId(
-                            trabajo.empresaId
+                            trabajo.empresaId ||
+                            trabajo.idEmpresa ||
+                            trabajo.companyId
                         );
 
                     const presupuestoTrabajo =
@@ -1820,18 +1805,22 @@ presupuestoSelect.addEventListener(
                             trabajo
                         );
 
-                    const coincidePresupuesto =
-                        presupuestoTrabajo ===
-                        presupuestoId;
 
                     const coincideEmpresa =
                         empresaTrabajo ===
                         empresaIdActual;
 
+
+                    const coincidePresupuesto =
+                        presupuestoTrabajo ===
+                        presupuestoId;
+
+
                     const coincideCliente =
                         !clienteTrabajo ||
                         clienteTrabajo ===
                         clienteSeleccionado;
+
 
                     return (
                         coincideEmpresa &&
@@ -1842,36 +1831,42 @@ presupuestoSelect.addEventListener(
                 }
             );
 
+
         console.log(
-            "TRABAJOS PARA PRESUPUESTO:",
+            "TRABAJOS DEL PRESUPUESTO:",
             presupuestoId,
             listaTrabajos
         );
 
-        listaTrabajos.forEach(trabajo => {
 
-            const option =
-                document.createElement("option");
+        listaTrabajos.forEach(
+            trabajo => {
 
-            option.value =
-                trabajo.id;
+                const option =
+                    document.createElement("option");
 
-            option.textContent =
-                obtenerNombreTrabajo(
-                    trabajo
+                option.value =
+                    trabajo.id;
+
+                option.textContent =
+                    obtenerNombreTrabajo(
+                        trabajo
+                    );
+
+                trabajoSelect.appendChild(
+                    option
                 );
 
-            trabajoSelect.appendChild(
-                option
-            );
+            }
+        );
 
-        });
 
         if(listaTrabajos.length > 0){
 
             trabajoSelect.disabled = false;
 
-        }else{
+        }
+        else{
 
             trabajoSelect.innerHTML = `
                 <option value="">
@@ -1909,6 +1904,7 @@ trabajoSelect.addEventListener(
             return;
         }
 
+
         const trabajo =
             trabajos.find(
                 item =>
@@ -1916,21 +1912,33 @@ trabajoSelect.addEventListener(
                     trabajoId
             );
 
+
         if(!trabajo){
+
+            mostrarMensaje(
+                "No se encontró el trabajo seleccionado.",
+                "error"
+            );
+
             return;
+
         }
+
 
         const presupuestoSeleccionado =
             limpiarId(
                 presupuestoSelect.value
             );
 
+
         const presupuestoTrabajo =
             obtenerPresupuestoIdTrabajo(
                 trabajo
             );
 
+
         if(
+            presupuestoTrabajo &&
             presupuestoTrabajo !==
             presupuestoSeleccionado
         ){
@@ -1943,17 +1951,21 @@ trabajoSelect.addEventListener(
             trabajoSelect.value = "";
 
             return;
+
         }
+
 
         const clienteSeleccionado =
             limpiarId(
                 clienteSelect.value
             );
 
+
         const clienteTrabajo =
             obtenerClienteIdTrabajo(
                 trabajo
             );
+
 
         if(
             clienteTrabajo &&
@@ -1969,17 +1981,21 @@ trabajoSelect.addEventListener(
             trabajoSelect.value = "";
 
             return;
+
         }
+
 
         const nombre =
             obtenerNombreTrabajo(
                 trabajo
             );
 
+
         const descripcionTrabajo =
             trabajo.descripcionTrabajo ||
             trabajo.descripcion ||
             "";
+
 
         document.getElementById(
             "datosTrabajoInfo"
@@ -1993,14 +2009,17 @@ trabajoSelect.addEventListener(
             :
             nombre;
 
+
         document.getElementById(
             "datosTrabajo"
         ).style.display = "block";
+
 
         const descripcion =
             document.getElementById(
                 "descripcion"
             );
+
 
         if(
             descripcion &&
@@ -2018,7 +2037,7 @@ trabajoSelect.addEventListener(
 
 
 /* =====================================================
-   CARGAR ÍTEMS
+   CARGAR ÍTEMS DEL PRESUPUESTO
 ===================================================== */
 
 function cargarItemsPresupuesto(
@@ -2026,6 +2045,7 @@ function cargarItemsPresupuesto(
 ){
 
     itemsPresupuesto = [];
+
 
     let items =
         presupuesto.items ??
@@ -2036,9 +2056,13 @@ function cargarItemsPresupuesto(
         presupuesto.detalleItems ??
         [];
 
+
     if(!Array.isArray(items)){
+
         items = [];
+
     }
+
 
     items.forEach(
         (item,index) => {
@@ -2053,6 +2077,7 @@ function cargarItemsPresupuesto(
                     0
                 );
 
+
             const precio =
                 Number(
                     item.precio ??
@@ -2062,6 +2087,7 @@ function cargarItemsPresupuesto(
                     0
                 );
 
+
             const importe =
                 Number(
                     item.importe ??
@@ -2070,6 +2096,7 @@ function cargarItemsPresupuesto(
                     item.importeTotal ??
                     cantidad * precio
                 );
+
 
             itemsPresupuesto.push({
 
@@ -2104,6 +2131,7 @@ function cargarItemsPresupuesto(
         }
     );
 
+
     mostrarItems();
 
 }
@@ -2117,6 +2145,7 @@ function mostrarItems(){
 
     listaItems.innerHTML = "";
 
+
     if(itemsPresupuesto.length === 0){
 
         listaItems.innerHTML = `
@@ -2128,7 +2157,9 @@ function mostrarItems(){
         cardItems.style.display = "block";
 
         return;
+
     }
+
 
     itemsPresupuesto.forEach(
         (item,index) => {
@@ -2219,25 +2250,30 @@ function mostrarItems(){
         }
     );
 
+
     cardItems.style.display = "block";
+
 
     document
         .querySelectorAll(
             ".cantidad-ejecutada"
         )
-        .forEach(input => {
+        .forEach(
+            input => {
 
-            input.addEventListener(
-                "input",
-                calcularCertificacion
-            );
+                input.addEventListener(
+                    "input",
+                    calcularCertificacion
+                );
 
-            input.addEventListener(
-                "change",
-                calcularCertificacion
-            );
+                input.addEventListener(
+                    "change",
+                    calcularCertificacion
+                );
 
-        });
+            }
+        );
+
 
     calcularCertificacion();
 
@@ -2245,121 +2281,145 @@ function mostrarItems(){
 
 
 /* =====================================================
-   CALCULAR
+   CALCULAR CERTIFICACIÓN
 ===================================================== */
 
 function calcularCertificacion(){
 
     let total = 0;
 
+
     document
         .querySelectorAll(
             ".cantidad-ejecutada"
         )
-        .forEach(input => {
+        .forEach(
+            input => {
 
-            const index =
-                Number(
-                    input.dataset.index
-                );
+                const index =
+                    Number(
+                        input.dataset.index
+                    );
 
-            const item =
-                itemsPresupuesto[index];
 
-            if(!item){
-                return;
-            }
+                const item =
+                    itemsPresupuesto[index];
 
-            let ejecutada =
-                Number(input.value);
 
-            if(!Number.isFinite(ejecutada)){
-                ejecutada = 0;
-            }
+                if(!item){
+                    return;
+                }
 
-            if(ejecutada < 0){
-                ejecutada = 0;
-            }
 
-            if(
-                item.cantidad > 0 &&
-                ejecutada > item.cantidad
-            ){
+                let ejecutada =
+                    Number(
+                        input.value
+                    );
 
-                ejecutada =
-                    item.cantidad;
 
-                input.value =
-                    item.cantidad;
+                if(!Number.isFinite(ejecutada)){
 
-            }
+                    ejecutada = 0;
 
-            item.ejecutada =
-                ejecutada;
+                }
 
-            const porcentaje =
-                item.cantidad > 0
-                ?
-                ejecutada /
-                item.cantidad *
-                100
-                :
-                0;
 
-            const importe =
-                item.cantidad > 0
-                ?
-                item.importe *
-                (
+                if(ejecutada < 0){
+
+                    ejecutada = 0;
+
+                }
+
+
+                if(
+                    item.cantidad > 0 &&
+                    ejecutada > item.cantidad
+                ){
+
+                    ejecutada =
+                        item.cantidad;
+
+                    input.value =
+                        item.cantidad;
+
+                }
+
+
+                item.ejecutada =
+                    ejecutada;
+
+
+                const porcentaje =
+                    item.cantidad > 0
+                    ?
                     ejecutada /
-                    item.cantidad
-                )
-                :
-                0;
+                    item.cantidad *
+                    100
+                    :
+                    0;
 
-            item.porcentaje =
-                porcentaje;
 
-            item.importeCertificado =
-                importe;
+                const importe =
+                    item.cantidad > 0
+                    ?
+                    item.importe *
+                    (
+                        ejecutada /
+                        item.cantidad
+                    )
+                    :
+                    0;
 
-            const porcentajeElemento =
-                document.querySelector(
-                    `.porcentaje[data-index="${index}"]`
-                );
 
-            const importeElemento =
-                document.querySelector(
-                    `[data-importe="${index}"]`
-                );
+                item.porcentaje =
+                    porcentaje;
 
-            if(porcentajeElemento){
 
-                porcentajeElemento.textContent =
-                    porcentaje.toFixed(2) +
-                    "%";
+                item.importeCertificado =
+                    importe;
+
+
+                const porcentajeElemento =
+                    document.querySelector(
+                        `.porcentaje[data-index="${index}"]`
+                    );
+
+
+                const importeElemento =
+                    document.querySelector(
+                        `[data-importe="${index}"]`
+                    );
+
+
+                if(porcentajeElemento){
+
+                    porcentajeElemento.textContent =
+                        porcentaje.toFixed(2) +
+                        "%";
+
+                }
+
+
+                if(importeElemento){
+
+                    importeElemento.textContent =
+                        dinero(importe);
+
+                }
+
+
+                total += importe;
 
             }
+        );
 
-            if(importeElemento){
-
-                importeElemento.textContent =
-                    dinero(importe);
-
-            }
-
-            total += importe;
-
-        });
 
     totalCertificacion.textContent =
         dinero(total);
 
-}
-
-
-/* =====================================================
-   ÍTEMS CERTIFICADOS
+                    }
+    /* =====================================================
+   OBTENER ÍTEMS CERTIFICADOS
 ===================================================== */
 
 function obtenerItemsCertificados(){
@@ -2380,369 +2440,24 @@ function obtenerItemsCertificados(){
             unidad:item.unidad,
 
             cantidadPresupuestada:
-                Number(
-                    item.cantidad || 0
-                ),
+                Number(item.cantidad || 0),
 
             cantidadEjecutada:
-                Number(
-                    item.ejecutada || 0
-                ),
+                Number(item.ejecutada || 0),
 
             porcentaje:
-                Number(
-                    item.porcentaje || 0
-                ),
+                Number(item.porcentaje || 0),
 
             precioUnitario:
-                Number(
-                    item.precio || 0
-                ),
+                Number(item.precio || 0),
 
             importePresupuesto:
-                Number(
-                    item.importe || 0
-                ),
+                Number(item.importe || 0),
 
             importeCertificado:
-                Number(
-                    item.importeCertificado || 0
-                )
+                Number(item.importeCertificado || 0)
 
         }));
-
-}
-
-
-/* =====================================================
-   FIRMA
-===================================================== */
-
-let dibujando = false;
-
-
-function prepararCanvas(){
-
-    const rect =
-        canvas.getBoundingClientRect();
-
-    if(
-        rect.width <= 0 ||
-        rect.height <= 0
-    ){
-        return;
-    }
-
-    const ratio =
-        window.devicePixelRatio || 1;
-
-    canvas.width =
-        Math.round(
-            rect.width * ratio
-        );
-
-    canvas.height =
-        Math.round(
-            rect.height * ratio
-        );
-
-    ctx.setTransform(
-        ratio,
-        0,
-        0,
-        ratio,
-        0,
-        0
-    );
-
-    ctx.lineWidth = 2;
-
-    ctx.lineCap = "round";
-
-    ctx.lineJoin = "round";
-
-    ctx.strokeStyle = "#111827";
-
-}
-
-
-function posicionFirma(evento){
-
-    const rect =
-        canvas.getBoundingClientRect();
-
-    return {
-
-        x:
-            evento.clientX -
-            rect.left,
-
-        y:
-            evento.clientY -
-            rect.top
-
-    };
-
-}
-
-
-canvas.addEventListener(
-    "pointerdown",
-    evento => {
-
-        evento.preventDefault();
-
-        dibujando = true;
-
-        firmaRealizada = true;
-
-        try{
-
-            canvas.setPointerCapture(
-                evento.pointerId
-            );
-
-        }
-        catch(error){
-
-            console.warn(error);
-
-        }
-
-        const posicion =
-            posicionFirma(evento);
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            posicion.x,
-            posicion.y
-        );
-
-    }
-);
-
-
-canvas.addEventListener(
-    "pointermove",
-    evento => {
-
-        if(!dibujando){
-            return;
-        }
-
-        evento.preventDefault();
-
-        const posicion =
-            posicionFirma(evento);
-
-        ctx.lineTo(
-            posicion.x,
-            posicion.y
-        );
-
-        ctx.stroke();
-
-    }
-);
-
-
-function finalizarFirma(){
-
-    dibujando = false;
-
-    ctx.closePath();
-
-}
-
-
-canvas.addEventListener(
-    "pointerup",
-    finalizarFirma
-);
-
-canvas.addEventListener(
-    "pointercancel",
-    finalizarFirma
-);
-
-document
-    .getElementById(
-        "btnLimpiarFirma"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            ctx.clearRect(
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
-
-            firmaRealizada = false;
-
-        }
-    );
-
-
-setTimeout(
-    prepararCanvas,
-    300
-);
-
-
-window.addEventListener(
-    "resize",
-    () => {
-
-        if(!firmaRealizada){
-            prepararCanvas();
-        }
-
-    }
-);
-
-
-/* =====================================================
-   VALIDAR
-===================================================== */
-
-function validarCertificacion(){
-
-    if(!usuarioActual){
-
-        mostrarMensaje(
-            "No hay una sesión activa.",
-            "error"
-        );
-
-        return false;
-    }
-
-    if(!empresaIdActual){
-
-        mostrarMensaje(
-            "No se encontró la empresa del usuario.",
-            "error"
-        );
-
-        return false;
-    }
-
-    if(!clienteSelect.value){
-
-        mostrarMensaje(
-            "Seleccioná un cliente.",
-            "error"
-        );
-
-        return false;
-    }
-
-    if(!presupuestoSelect.value){
-
-        mostrarMensaje(
-            "Seleccioná un presupuesto.",
-            "error"
-        );
-
-        return false;
-    }
-
-    if(!trabajoSelect.value){
-
-        mostrarMensaje(
-            "Seleccioná un trabajo.",
-            "error"
-        );
-
-        return false;
-    }
-
-    const fechaDesde =
-        document.getElementById(
-            "fechaDesde"
-        ).value;
-
-    const fechaHasta =
-        document.getElementById(
-            "fechaHasta"
-        ).value;
-
-    if(
-        !fechaDesde ||
-        !fechaHasta
-    ){
-
-        mostrarMensaje(
-            "Ingresá las fechas del período.",
-            "error"
-        );
-
-        return false;
-    }
-
-    if(fechaHasta < fechaDesde){
-
-        mostrarMensaje(
-            "La fecha hasta no puede ser anterior a la fecha desde.",
-            "error"
-        );
-
-        return false;
-    }
-
-    const descripcion =
-        document.getElementById(
-            "descripcion"
-        ).value.trim();
-
-    if(!descripcion){
-
-        mostrarMensaje(
-            "Describí los trabajos realizados.",
-            "error"
-        );
-
-        return false;
-    }
-
-    const items =
-        obtenerItemsCertificados();
-
-    if(items.length === 0){
-
-        mostrarMensaje(
-            "Ingresá al menos una cantidad ejecutada.",
-            "error"
-        );
-
-        return false;
-    }
-
-    const total =
-        items.reduce(
-            (suma,item) =>
-                suma +
-                Number(
-                    item.importeCertificado || 0
-                ),
-            0
-        );
-
-    if(total <= 0){
-
-        mostrarMensaje(
-            "El importe de la certificación debe ser mayor a $ 0.",
-            "error"
-        );
-
-        return false;
-    }
-
-    return true;
 
 }
 
@@ -2751,212 +2466,195 @@ function validarCertificacion(){
    GUARDAR CERTIFICACIÓN
 ===================================================== */
 
-async function guardarCertificacion(){
-
-    if(!validarCertificacion()){
-        return;
-    }
-
-    if(!firmaRealizada){
-
-        mostrarMensaje(
-            "Firmá la certificación antes de guardar.",
-            "error"
-        );
-
-        return;
-    }
-
-    const cliente =
-        clientes.find(
-            item =>
-                limpiarId(item.id) ===
-                limpiarId(
-                    clienteSelect.value
-                )
-        );
-
-    const presupuesto =
-        presupuestos.find(
-            item =>
-                limpiarId(item.id) ===
-                limpiarId(
-                    presupuestoSelect.value
-                )
-        );
-
-    const trabajo =
-        trabajos.find(
-            item =>
-                limpiarId(item.id) ===
-                limpiarId(
-                    trabajoSelect.value
-                )
-        );
-
-    if(!cliente || !presupuesto || !trabajo){
-
-        mostrarMensaje(
-            "No se pudieron identificar todos los datos seleccionados.",
-            "error"
-        );
-
-        return;
-    }
-
-    const items =
-        obtenerItemsCertificados();
-
-    const importeTotal =
-        items.reduce(
-            (suma,item) =>
-                suma +
-                Number(
-                    item.importeCertificado || 0
-                ),
-            0
-        );
-
-    const fechaDesde =
-        document.getElementById(
-            "fechaDesde"
-        ).value;
-
-    const fechaHasta =
-        document.getElementById(
-            "fechaHasta"
-        ).value;
-
-    const descripcion =
-        document.getElementById(
-            "descripcion"
-        ).value.trim();
-
-    const datos = {
-
-        empresaId:
-            empresaIdActual,
-
-        empresaNombre:
-            empresaNombreActual,
-
-        usuarioId:
-            usuarioActual.uid,
-
-        usuarioEmail:
-            usuarioActual.email || "",
-
-        clienteId:
-            cliente.id,
-
-        clienteNombre:
-            obtenerNombreCliente(cliente),
-
-        presupuestoId:
-            presupuesto.id,
-
-        presupuestoNumero:
-            obtenerNumeroPresupuesto(
-                presupuesto
-            ),
-
-        trabajoId:
-            trabajo.id,
-
-        trabajoNombre:
-            obtenerNombreTrabajo(
-                trabajo
-            ),
-
-        periodo:
-            document.getElementById(
-                "periodo"
-            ).value,
-
-        fechaDesde:
-            fechaDesde,
-
-        fechaHasta:
-            fechaHasta,
-
-        fecha:
-            fechaHoy(),
-
-        descripcion:
-            descripcion,
-
-        items:
-            items,
-
-        importeTotal:
-            importeTotal,
-
-        porcentajeGlobal:
-            calcularPorcentajeGlobal(items),
-
-        firma:
-            canvas.toDataURL("image/png"),
-
-        estado:
-            "generada",
-
-        creadoEn:
-            serverTimestamp()
-
-    };
-
-    const referencia =
-        await addDoc(
-            collection(
-                db,
-                "certificaciones"
-            ),
-            datos
-        );
-
-    certificacionGuardadaActual = {
-        id:referencia.id,
-        ...datos
-    };
-
-    mostrarMensaje(
-        "✅ Certificación guardada correctamente.",
-        "exito"
-    );
-
-    await cargarCertificaciones();
-
-}
-
-
-/* =====================================================
-   BOTÓN GUARDAR
-===================================================== */
-
 document
-    .getElementById(
-        "btnGuardar"
-    )
+    .getElementById("btnGuardar")
     .addEventListener(
         "click",
         async function(){
 
             const boton = this;
 
-            boton.disabled = true;
+            if(!validarCertificacion()){
+                return;
+            }
 
-            boton.textContent =
-                "Guardando...";
+            if(!firmaRealizada){
+
+                mostrarMensaje(
+                    "Firmá la certificación antes de guardarla.",
+                    "error"
+                );
+
+                return;
+            }
+
+            boton.disabled = true;
+            boton.textContent = "Guardando...";
 
             try{
 
-                await guardarCertificacion();
+                calcularCertificacion();
+
+                const items =
+                    obtenerItemsCertificados();
+
+                const total =
+                    items.reduce(
+                        (suma,item) =>
+                            suma +
+                            Number(
+                                item.importeCertificado || 0
+                            ),
+                        0
+                    );
+
+                const cliente =
+                    clientes.find(
+                        item =>
+                            limpiarId(item.id) ===
+                            limpiarId(
+                                clienteSelect.value
+                            )
+                    );
+
+                const presupuesto =
+                    presupuestos.find(
+                        item =>
+                            limpiarId(item.id) ===
+                            limpiarId(
+                                presupuestoSelect.value
+                            )
+                    );
+
+                const trabajo =
+                    trabajos.find(
+                        item =>
+                            limpiarId(item.id) ===
+                            limpiarId(
+                                trabajoSelect.value
+                            )
+                    );
+
+                const datos = {
+
+                    empresaId:
+                        empresaIdActual,
+
+                    empresaNombre:
+                        empresaNombreActual,
+
+                    usuarioId:
+                        usuarioActual.uid,
+
+                    usuarioEmail:
+                        usuarioActual.email || "",
+
+                    clienteId:
+                        clienteSelect.value,
+
+                    clienteNombre:
+                        cliente
+                        ?
+                        obtenerNombreCliente(cliente)
+                        :
+                        "",
+
+                    presupuestoId:
+                        presupuestoSelect.value,
+
+                    presupuestoNumero:
+                        presupuesto
+                        ?
+                        obtenerNumeroPresupuesto(
+                            presupuesto
+                        )
+                        :
+                        "",
+
+                    trabajoId:
+                        trabajoSelect.value,
+
+                    trabajoNombre:
+                        trabajo
+                        ?
+                        obtenerNombreTrabajo(trabajo)
+                        :
+                        "",
+
+                    periodo:
+                        document.getElementById(
+                            "periodo"
+                        ).value,
+
+                    fechaDesde:
+                        document.getElementById(
+                            "fechaDesde"
+                        ).value,
+
+                    fechaHasta:
+                        document.getElementById(
+                            "fechaHasta"
+                        ).value,
+
+                    fecha:
+                        fechaHoy(),
+
+                    descripcion:
+                        document.getElementById(
+                            "descripcion"
+                        ).value.trim(),
+
+                    items:items,
+
+                    porcentajeGlobal:
+                        calcularPorcentajeGlobal(items),
+
+                    importeTotal:total,
+
+                    firma:
+                        canvas.toDataURL(
+                            "image/png"
+                        ),
+
+                    creadoEn:
+                        serverTimestamp()
+
+                };
+
+
+                const referencia =
+                    await addDoc(
+                        collection(
+                            db,
+                            "certificaciones"
+                        ),
+                        datos
+                    );
+
+
+                mostrarMensaje(
+                    "✅ Certificación guardada correctamente.",
+                    "exito"
+                );
+
+
+                console.log(
+                    "CERTIFICACIÓN GUARDADA:",
+                    referencia.id
+                );
+
+
+                await cargarCertificaciones();
+
+
+                boton.textContent =
+                    "💾 Guardar certificación";
 
             }
             catch(error){
 
                 console.error(
-                    "ERROR GUARDANDO:",
+                    "ERROR GUARDANDO CERTIFICACIÓN:",
                     error
                 );
 
@@ -2981,6 +2679,45 @@ document
 
 
 /* =====================================================
+   PORCENTAJE GLOBAL
+===================================================== */
+
+function calcularPorcentajeGlobal(items){
+
+    let presupuesto = 0;
+
+    let certificado = 0;
+
+    items.forEach(item => {
+
+        presupuesto +=
+            Number(
+                item.importePresupuesto || 0
+            );
+
+        certificado +=
+            Number(
+                item.importeCertificado || 0
+            );
+
+    });
+
+    if(presupuesto <= 0){
+
+        return 0;
+
+    }
+
+    return (
+        certificado /
+        presupuesto *
+        100
+    );
+
+}
+
+
+/* =====================================================
    CARGAR CERTIFICACIONES
 ===================================================== */
 
@@ -2998,36 +2735,28 @@ async function cargarCertificaciones(){
             "cargandoCertificaciones"
         );
 
-    cargando.style.display =
-        "block";
-
     contenedor.innerHTML = "";
+
+    cargando.style.display = "block";
 
     try{
 
-        const referencia =
-            collection(
-                db,
-                "certificaciones"
-            );
-
-        /*
-         * Se utiliza solamente where()
-         * para evitar depender de un índice
-         * compuesto de Firestore.
-         */
-
-        const snapshot =
-            await getDocs(
-                query(
-                    referencia,
-                    where(
-                        "empresaId",
-                        "==",
-                        empresaIdActual
-                    )
+        const consulta =
+            query(
+                collection(
+                    db,
+                    "certificaciones"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaIdActual
                 )
             );
+
+        const snapshot =
+            await getDocs(consulta);
+
 
         snapshot.forEach(documento => {
 
@@ -3040,6 +2769,7 @@ async function cargarCertificaciones(){
             });
 
         });
+
 
         certificaciones.sort(
             (a,b) =>
@@ -3054,21 +2784,208 @@ async function cargarCertificaciones(){
                 )
         );
 
-        mostrarCertificaciones();
+
+        cargando.style.display = "none";
+
+
+        if(certificaciones.length === 0){
+
+            contenedor.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        No hay certificaciones realizadas.
+                    </td>
+                </tr>
+            `;
+
+            return;
+
+        }
+
+
+        certificaciones.forEach(
+            certificacion => {
+
+                const fila =
+                    document.createElement("tr");
+
+
+                const cliente =
+                    escapeHTML(
+                        certificacion.clienteNombre ||
+                        certificacion.clienteId ||
+                        "Cliente"
+                    );
+
+
+                const presupuesto =
+                    escapeHTML(
+                        certificacion.presupuestoNumero ||
+                        certificacion.presupuestoId ||
+                        "Presupuesto"
+                    );
+
+
+                const trabajo =
+                    escapeHTML(
+                        certificacion.trabajoNombre ||
+                        certificacion.trabajoId ||
+                        "Trabajo"
+                    );
+
+
+                const periodo =
+                    escapeHTML(
+                        certificacion.periodo ||
+                        ""
+                    );
+
+
+                const fecha =
+                    escapeHTML(
+                        certificacion.fecha ||
+                        ""
+                    );
+
+
+                const importe =
+                    dinero(
+                        certificacion.importeTotal
+                    );
+
+
+                fila.innerHTML = `
+
+                    <td>
+                        ${cliente}
+                    </td>
+
+                    <td>
+                        ${presupuesto}
+                    </td>
+
+                    <td>
+                        ${trabajo}
+                    </td>
+
+                    <td>
+                        ${periodo}
+                    </td>
+
+                    <td>
+                        ${fecha}
+                    </td>
+
+                    <td>
+                        <strong>
+                            ${importe}
+                        </strong>
+                    </td>
+
+                    <td>
+
+                        <button
+                            type="button"
+                            class="btn-success btn-pdf-certificacion"
+                            data-id="${escapeHTML(certificacion.id)}"
+                        >
+                            📄 PDF
+                        </button>
+
+                    </td>
+
+                `;
+
+
+                contenedor.appendChild(
+                    fila
+                );
+
+            }
+        );
+
+
+        document
+            .querySelectorAll(
+                ".btn-pdf-certificacion"
+            )
+            .forEach(
+                boton => {
+
+                    boton.addEventListener(
+                        "click",
+                        async function(){
+
+                            const id =
+                                this.dataset.id;
+
+                            const certificacion =
+                                certificaciones.find(
+                                    item =>
+                                        item.id === id
+                                );
+
+                            if(!certificacion){
+                                return;
+                            }
+
+                            this.disabled = true;
+
+                            this.textContent =
+                                "Generando...";
+
+                            try{
+
+                                await generarPDFDesdeGuardada(
+                                    certificacion
+                                );
+
+                            }
+                            catch(error){
+
+                                console.error(
+                                    error
+                                );
+
+                                mostrarMensaje(
+                                    "No se pudo generar el PDF: " +
+                                    error.message,
+                                    "error"
+                                );
+
+                            }
+                            finally{
+
+                                this.disabled = false;
+
+                                this.textContent =
+                                    "📄 PDF";
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
 
     }
     catch(error){
 
         console.error(
-            "ERROR CERTIFICACIONES:",
+            "ERROR CARGANDO CERTIFICACIONES:",
             error
         );
 
-        cargando.style.display =
-            "block";
+        cargando.style.display = "none";
 
-        cargando.textContent =
-            "No se pudieron cargar las certificaciones.";
+        contenedor.innerHTML = `
+            <tr>
+                <td colspan="7">
+                    Error al cargar certificaciones.
+                </td>
+            </tr>
+        `;
 
         mostrarMensaje(
             "No se pudieron cargar las certificaciones: " +
@@ -3082,673 +2999,7 @@ async function cargarCertificaciones(){
 
 
 /* =====================================================
-   MOSTRAR CERTIFICACIONES
-===================================================== */
-
-function mostrarCertificaciones(){
-
-    const contenedor =
-        document.getElementById(
-            "tablaCertificaciones"
-        );
-
-    const cargando =
-        document.getElementById(
-            "cargandoCertificaciones"
-        );
-
-    contenedor.innerHTML = "";
-
-    cargando.style.display =
-        "none";
-
-    if(certificaciones.length === 0){
-
-        contenedor.innerHTML = `
-            <tr>
-                <td colspan="8">
-                    <div class="sin-datos">
-                        Todavía no hay certificaciones realizadas.
-                    </div>
-                </td>
-            </tr>
-        `;
-
-        return;
-    }
-
-    certificaciones.forEach(certificacion => {
-
-        const fila =
-            document.createElement("tr");
-
-        fila.innerHTML = `
-
-            <td>
-                ${escapeHTML(
-                    certificacion.clienteNombre ||
-                    "Cliente"
-                )}
-            </td>
-
-            <td>
-                ${escapeHTML(
-                    certificacion.presupuestoNumero ||
-                    certificacion.presupuestoId ||
-                    "-"
-                )}
-            </td>
-
-            <td>
-                ${escapeHTML(
-                    certificacion.trabajoNombre ||
-                    "Trabajo"
-                )}
-            </td>
-
-            <td>
-                ${escapeHTML(
-                    certificacion.periodo ||
-                    "-"
-                )}
-            </td>
-
-            <td>
-                ${escapeHTML(
-                    certificacion.fecha ||
-                    "-"
-                )}
-            </td>
-
-            <td>
-                <strong>
-                    ${dinero(
-                        certificacion.importeTotal
-                    )}
-                </strong>
-            </td>
-
-            <td>
-                <span class="badge">
-                    ${escapeHTML(
-                        certificacion.estado ||
-                        "generada"
-                    )}
-                </span>
-            </td>
-
-            <td>
-
-                <button
-                    type="button"
-                    class="btn-success btn-tabla"
-                    data-pdf="${escapeHTML(
-                        certificacion.id
-                    )}"
-                >
-                    📄 PDF
-                </button>
-
-            </td>
-
-        `;
-
-        contenedor.appendChild(
-            fila
-        );
-
-    });
-
-    document
-        .querySelectorAll(
-            "[data-pdf]"
-        )
-        .forEach(boton => {
-
-            boton.addEventListener(
-                "click",
-                async () => {
-
-                    const id =
-                        boton.dataset.pdf;
-
-                    const certificacion =
-                        certificaciones.find(
-                            item =>
-                                item.id === id
-                        );
-
-                    if(!certificacion){
-                        return;
-                    }
-
-                    boton.disabled = true;
-
-                    boton.textContent =
-                        "Generando...";
-
-                    try{
-
-                        await generarPDFDesdeGuardada(
-                            certificacion
-                        );
-
-                    }
-                    catch(error){
-
-                        console.error(
-                            error
-                        );
-
-                        mostrarMensaje(
-                            "No se pudo generar el PDF: " +
-                            error.message,
-                            "error"
-                        );
-
-                    }
-                    finally{
-
-                        boton.disabled = false;
-
-                        boton.textContent =
-                            "📄 PDF";
-
-                    }
-
-                }
-            );
-
-        });
-
-}
-
-
-/* =====================================================
-   CARGAR JSPDF
-===================================================== */
-
-async function cargarJsPDF(){
-
-    const modulo =
-        await import(
-            "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm"
-        );
-
-    return modulo.jsPDF;
-
-}
-
-
-/* =====================================================
-   GENERAR PDF NUEVO
-===================================================== */
-
-async function generarPDF(){
-
-    if(!validarCertificacion()){
-        return;
-    }
-
-    if(!firmaRealizada){
-
-        mostrarMensaje(
-            "Firmá la certificación desde el celular.",
-            "error"
-        );
-
-        return;
-    }
-
-    const jsPDF =
-        await cargarJsPDF();
-
-    const cliente =
-        clientes.find(
-            item =>
-                limpiarId(item.id) ===
-                limpiarId(
-                    clienteSelect.value
-                )
-        );
-
-    const presupuesto =
-        presupuestos.find(
-            item =>
-                limpiarId(item.id) ===
-                limpiarId(
-                    presupuestoSelect.value
-                )
-        );
-
-    const trabajo =
-        trabajos.find(
-            item =>
-                limpiarId(item.id) ===
-                limpiarId(
-                    trabajoSelect.value
-                )
-        );
-
-    const fechaDesde =
-        document.getElementById(
-            "fechaDesde"
-        ).value;
-
-    const fechaHasta =
-        document.getElementById(
-            "fechaHasta"
-        ).value;
-
-    const descripcion =
-        document.getElementById(
-            "descripcion"
-        ).value.trim();
-
-    const nombreCliente =
-        cliente
-        ?
-        obtenerNombreCliente(cliente)
-        :
-        "Cliente";
-
-    const numeroPresupuesto =
-        presupuesto
-        ?
-        obtenerNumeroPresupuesto(
-            presupuesto
-        )
-        :
-        "Presupuesto";
-
-    const nombreTrabajo =
-        trabajo
-        ?
-        obtenerNombreTrabajo(
-            trabajo
-        )
-        :
-        "Trabajo";
-
-    const items =
-        obtenerItemsCertificados();
-
-    const total =
-        items.reduce(
-            (suma,item) =>
-                suma +
-                Number(
-                    item.importeCertificado || 0
-                ),
-            0
-        );
-
-    const pdf =
-        new jsPDF();
-
-    let y = 20;
-
-    pdf.setFontSize(20);
-
-    pdf.setFont(
-        "helvetica",
-        "bold"
-    );
-
-    pdf.text(
-        "GESBASE",
-        20,
-        y
-    );
-
-    y += 9;
-
-    pdf.setFontSize(14);
-
-    pdf.text(
-        "CERTIFICACIÓN DE TRABAJOS",
-        20,
-        y
-    );
-
-    y += 12;
-
-    pdf.setFontSize(10);
-
-    pdf.setFont(
-        "helvetica",
-        "normal"
-    );
-
-    pdf.text(
-        "Empresa: " +
-        empresaNombreActual,
-        20,
-        y
-    );
-
-    y += 6;
-
-    pdf.text(
-        "Fecha de emisión: " +
-        fechaHoy(),
-        20,
-        y
-    );
-
-    y += 6;
-
-    pdf.text(
-        "Período: " +
-        fechaDesde +
-        " al " +
-        fechaHasta,
-        20,
-        y
-    );
-
-    y += 12;
-
-    pdf.setFont(
-        "helvetica",
-        "bold"
-    );
-
-    pdf.text(
-        "CLIENTE",
-        20,
-        y
-    );
-
-    y += 7;
-
-    pdf.setFont(
-        "helvetica",
-        "normal"
-    );
-
-    pdf.text(
-        "Nombre / Empresa: " +
-        nombreCliente,
-        20,
-        y
-    );
-
-    y += 6;
-
-    pdf.text(
-        "Presupuesto: " +
-        numeroPresupuesto,
-        20,
-        y
-    );
-
-    y += 6;
-
-    pdf.text(
-        "Trabajo: " +
-        nombreTrabajo,
-        20,
-        y
-    );
-
-    y += 12;
-
-    pdf.setFont(
-        "helvetica",
-        "bold"
-    );
-
-    pdf.text(
-        "TRABAJOS REALIZADOS",
-        20,
-        y
-    );
-
-    y += 7;
-
-    pdf.setFont(
-        "helvetica",
-        "normal"
-    );
-
-    const lineas =
-        pdf.splitTextToSize(
-            descripcion,
-            170
-        );
-
-    pdf.text(
-        lineas,
-        20,
-        y
-    );
-
-    y +=
-        lineas.length *
-        5 +
-        10;
-
-    pdf.setFont(
-        "helvetica",
-        "bold"
-    );
-
-    pdf.text(
-        "DETALLE DE CERTIFICACIÓN",
-        20,
-        y
-    );
-
-    y += 8;
-
-    pdf.setFontSize(9);
-
-    pdf.text(
-        "Ítem",
-        20,
-        y
-    );
-
-    pdf.text(
-        "Presup.",
-        90,
-        y
-    );
-
-    pdf.text(
-        "Ejecut.",
-        115,
-        y
-    );
-
-    pdf.text(
-        "%",
-        140,
-        y
-    );
-
-    pdf.text(
-        "Importe",
-        160,
-        y
-    );
-
-    y += 6;
-
-    pdf.setFont(
-        "helvetica",
-        "normal"
-    );
-
-    items.forEach(item => {
-
-        if(y > 265){
-
-            pdf.addPage();
-
-            y = 20;
-
-        }
-
-        const nombre =
-            pdf.splitTextToSize(
-                item.nombre,
-                65
-            );
-
-        pdf.text(
-            nombre,
-            20,
-            y
-        );
-
-        pdf.text(
-            String(
-                item.cantidadPresupuestada
-            ),
-            90,
-            y
-        );
-
-        pdf.text(
-            String(
-                item.cantidadEjecutada
-            ),
-            115,
-            y
-        );
-
-        pdf.text(
-            Number(
-                item.porcentaje
-            ).toFixed(2) +
-            "%",
-            137,
-            y
-        );
-
-        pdf.text(
-            dinero(
-                item.importeCertificado
-            ),
-            160,
-            y
-        );
-
-        y += Math.max(
-            6,
-            nombre.length * 5
-        );
-
-    });
-
-    y += 6;
-
-    if(y > 260){
-
-        pdf.addPage();
-
-        y = 25;
-
-    }
-
-    pdf.setFont(
-        "helvetica",
-        "bold"
-    );
-
-    pdf.text(
-        "TOTAL CERTIFICADO:",
-        110,
-        y
-    );
-
-    pdf.text(
-        dinero(total),
-        160,
-        y
-    );
-
-    y += 15;
-
-    if(y > 220){
-
-        pdf.addPage();
-
-        y = 25;
-
-    }
-
-    pdf.text(
-        "FIRMA DE LA EMPRESA",
-        20,
-        y
-    );
-
-    y += 8;
-
-    pdf.addImage(
-        canvas.toDataURL(
-            "image/png"
-        ),
-        "PNG",
-        20,
-        y,
-        75,
-        35
-    );
-
-    y += 42;
-
-    pdf.line(
-        20,
-        y,
-        95,
-        y
-    );
-
-    y += 6;
-
-    pdf.setFont(
-        "helvetica",
-        "normal"
-    );
-
-    pdf.text(
-        "Firma y certificación de trabajos",
-        20,
-        y
-    );
-
-    pdf.setFontSize(8);
-
-    pdf.text(
-        "Documento generado automáticamente por GESBASE.",
-        20,
-        285
-    );
-
-    const nombreArchivo =
-        "certificacion_" +
-        String(numeroPresupuesto)
-            .replace(
-                /[^a-zA-Z0-9_-]/g,
-                "_"
-            ) +
-        "_" +
-        fechaHoy() +
-        ".pdf";
-
-    pdf.save(
-        nombreArchivo
-    );
-
-}
-
-
-/* =====================================================
-   GENERAR PDF DESDE GUARDADA
+   GENERAR PDF DESDE UNA CERTIFICACIÓN GUARDADA
 ===================================================== */
 
 async function generarPDFDesdeGuardada(
@@ -3757,6 +3008,7 @@ async function generarPDFDesdeGuardada(
 
     const jsPDF =
         await cargarJsPDF();
+
 
     const cliente =
         clientes.find(
@@ -3767,6 +3019,7 @@ async function generarPDFDesdeGuardada(
                 )
         );
 
+
     const presupuesto =
         presupuestos.find(
             item =>
@@ -3775,6 +3028,7 @@ async function generarPDFDesdeGuardada(
                     certificacion.presupuestoId
                 )
         );
+
 
     const trabajo =
         trabajos.find(
@@ -3785,6 +3039,7 @@ async function generarPDFDesdeGuardada(
                 )
         );
 
+
     const nombreCliente =
         cliente
         ?
@@ -3792,6 +3047,7 @@ async function generarPDFDesdeGuardada(
         :
         certificacion.clienteNombre ||
         "Cliente";
+
 
     const numeroPresupuesto =
         presupuesto
@@ -3804,6 +3060,7 @@ async function generarPDFDesdeGuardada(
         certificacion.presupuestoId ||
         "Presupuesto";
 
+
     const nombreTrabajo =
         trabajo
         ?
@@ -3812,10 +3069,13 @@ async function generarPDFDesdeGuardada(
         certificacion.trabajoNombre ||
         "Trabajo";
 
+
     const pdf =
         new jsPDF();
 
+
     let y = 20;
+
 
     pdf.setFontSize(20);
 
@@ -3830,7 +3090,9 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 9;
+
 
     pdf.setFontSize(14);
 
@@ -3840,7 +3102,9 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 12;
+
 
     pdf.setFontSize(10);
 
@@ -3848,6 +3112,7 @@ async function generarPDFDesdeGuardada(
         "helvetica",
         "normal"
     );
+
 
     pdf.text(
         "Empresa: " +
@@ -3860,7 +3125,9 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 6;
+
 
     pdf.text(
         "Cliente: " +
@@ -3869,7 +3136,9 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 6;
+
 
     pdf.text(
         "Presupuesto: " +
@@ -3878,7 +3147,9 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 6;
+
 
     pdf.text(
         "Trabajo: " +
@@ -3887,7 +3158,9 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 6;
+
 
     pdf.text(
         "Período: " +
@@ -3904,7 +3177,9 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 6;
+
 
     pdf.text(
         "Tipo: " +
@@ -3916,12 +3191,15 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 10;
+
 
     pdf.setFont(
         "helvetica",
         "bold"
     );
+
 
     pdf.text(
         "TRABAJOS REALIZADOS",
@@ -3929,12 +3207,15 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 7;
+
 
     pdf.setFont(
         "helvetica",
         "normal"
     );
+
 
     const descripcion =
         pdf.splitTextToSize(
@@ -3943,21 +3224,25 @@ async function generarPDFDesdeGuardada(
             170
         );
 
+
     pdf.text(
         descripcion,
         20,
         y
     );
 
+
     y +=
         descripcion.length *
         5 +
         10;
 
+
     pdf.setFont(
         "helvetica",
         "bold"
     );
+
 
     pdf.text(
         "DETALLE DE CERTIFICACIÓN",
@@ -3965,9 +3250,12 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 8;
 
+
     pdf.setFontSize(9);
+
 
     pdf.text(
         "Ítem",
@@ -3999,137 +3287,99 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 6;
+
 
     pdf.setFont(
         "helvetica",
         "normal"
     );
 
+
     (
         certificacion.items ||
         []
-    ).forEach(item => {
+    ).forEach(
+        item => {
 
-        if(y > 265){
+            if(y > 265){
 
-            pdf.addPage();
+                pdf.addPage();
 
-            y = 20;
+                y = 20;
 
-            pdf.setFontSize(9);
+            }
 
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
+
+            const nombre =
+                pdf.splitTextToSize(
+                    String(
+                        item.nombre ||
+                        "Ítem"
+                    ),
+                    65
+                );
+
 
             pdf.text(
-                "DETALLE DE CERTIFICACIÓN",
+                nombre,
                 20,
                 y
             );
 
-            y += 8;
 
             pdf.text(
-                "Ítem",
-                20,
-                y
-            );
-
-            pdf.text(
-                "Presup.",
+                String(
+                    item.cantidadPresupuestada ??
+                    0
+                ),
                 90,
                 y
             );
 
+
             pdf.text(
-                "Ejecut.",
+                String(
+                    item.cantidadEjecutada ??
+                    0
+                ),
                 115,
                 y
             );
 
+
             pdf.text(
+                Number(
+                    item.porcentaje ||
+                    0
+                ).toFixed(2) +
                 "%",
-                140,
+                137,
                 y
             );
 
+
             pdf.text(
-                "Importe",
+                dinero(
+                    item.importeCertificado
+                ),
                 160,
                 y
             );
 
-            y += 6;
 
-            pdf.setFont(
-                "helvetica",
-                "normal"
+            y += Math.max(
+                6,
+                nombre.length * 5
             );
 
         }
+    );
 
-        const nombre =
-            pdf.splitTextToSize(
-                String(
-                    item.nombre ||
-                    "Ítem"
-                ),
-                65
-            );
-
-        pdf.text(
-            nombre,
-            20,
-            y
-        );
-
-        pdf.text(
-            String(
-                item.cantidadPresupuestada ??
-                0
-            ),
-            90,
-            y
-        );
-
-        pdf.text(
-            String(
-                item.cantidadEjecutada ??
-                0
-            ),
-            115,
-            y
-        );
-
-        pdf.text(
-            Number(
-                item.porcentaje ||
-                0
-            ).toFixed(2) +
-            "%",
-            137,
-            y
-        );
-
-        pdf.text(
-            dinero(
-                item.importeCertificado
-            ),
-            160,
-            y
-        );
-
-        y += Math.max(
-            6,
-            nombre.length * 5
-        );
-
-    });
 
     y += 6;
+
 
     if(y > 260){
 
@@ -4139,16 +3389,19 @@ async function generarPDFDesdeGuardada(
 
     }
 
+
     pdf.setFont(
         "helvetica",
         "bold"
     );
+
 
     pdf.text(
         "TOTAL CERTIFICADO:",
         110,
         y
     );
+
 
     pdf.text(
         dinero(
@@ -4158,7 +3411,9 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 15;
+
 
     if(y > 220){
 
@@ -4168,13 +3423,16 @@ async function generarPDFDesdeGuardada(
 
     }
 
+
     pdf.text(
         "FIRMA DE LA EMPRESA",
         20,
         y
     );
 
+
     y += 8;
+
 
     if(certificacion.firma){
 
@@ -4199,11 +3457,10 @@ async function generarPDFDesdeGuardada(
                 error
             );
 
-            y += 10;
-
         }
 
     }
+
 
     pdf.line(
         20,
@@ -4212,12 +3469,15 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     y += 6;
+
 
     pdf.setFont(
         "helvetica",
         "normal"
     );
+
 
     pdf.text(
         "Firma y certificación de trabajos",
@@ -4225,7 +3485,9 @@ async function generarPDFDesdeGuardada(
         y
     );
 
+
     pdf.setFontSize(8);
+
 
     pdf.text(
         "Documento generado automáticamente por GESBASE.",
@@ -4233,19 +3495,23 @@ async function generarPDFDesdeGuardada(
         285
     );
 
+
     const nombreArchivo =
         "certificacion_" +
-        String(numeroPresupuesto)
-            .replace(
-                /[^a-zA-Z0-9_-]/g,
-                "_"
-            ) +
+        String(
+            numeroPresupuesto
+        )
+        .replace(
+            /[^a-zA-Z0-9_-]/g,
+            "_"
+        ) +
         "_" +
         String(
             certificacion.fecha ||
             fechaHoy()
         ) +
         ".pdf";
+
 
     pdf.save(
         nombreArchivo
@@ -4255,64 +3521,11 @@ async function generarPDFDesdeGuardada(
 
 
 /* =====================================================
-   BOTÓN PDF
+   VOLVER AL PANEL
 ===================================================== */
 
 document
-    .getElementById(
-        "btnGenerarPDF"
-    )
-    .addEventListener(
-        "click",
-        async function(){
-
-            const boton = this;
-
-            boton.disabled = true;
-
-            boton.textContent =
-                "Generando PDF...";
-
-            try{
-
-                await generarPDF();
-
-            }
-            catch(error){
-
-                console.error(
-                    "ERROR PDF:",
-                    error
-                );
-
-                mostrarMensaje(
-                    "No se pudo generar el PDF: " +
-                    error.message,
-                    "error"
-                );
-
-            }
-            finally{
-
-                boton.disabled = false;
-
-                boton.textContent =
-                    "📄 Generar PDF";
-
-            }
-
-        }
-    );
-
-
-/* =====================================================
-   VOLVER
-===================================================== */
-
-document
-    .getElementById(
-        "btnVolver"
-    )
+    .getElementById("btnVolver")
     .addEventListener(
         "click",
         () => {
@@ -4325,13 +3538,14 @@ document
 
 
 /* =====================================================
-   FECHAS
+   FECHAS INICIALES
 ===================================================== */
 
 document.getElementById(
     "fechaDesde"
 ).value =
     fechaHoy();
+
 
 document.getElementById(
     "fechaHasta"
@@ -4351,18 +3565,6 @@ window.addEventListener(
             "ERROR GLOBAL:",
             evento.error ||
             evento.message
-        );
-
-    }
-);
-
-window.addEventListener(
-    "unhandledrejection",
-    evento => {
-
-        console.error(
-            "PROMESA NO CONTROLADA:",
-            evento.reason
         );
 
     }
