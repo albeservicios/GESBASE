@@ -64,11 +64,6 @@ main{
     padding:20px;
 }
 
-
-/* ==========================================
-   USUARIO
-========================================== */
-
 .usuario{
     background:#f3f4f6;
     padding:13px;
@@ -76,11 +71,6 @@ main{
     margin-bottom:15px;
     font-size:14px;
 }
-
-
-/* ==========================================
-   ACCIONES
-========================================== */
 
 .acciones{
     display:flex;
@@ -111,10 +101,7 @@ main{
     border:none;
 }
 
-.boton-nuevo:hover{
-    background:#1f2937;
-}
-
+.boton-nuevo:hover,
 .boton-actualizar:hover{
     background:#1f2937;
 }
@@ -123,11 +110,6 @@ main{
     opacity:.6;
     cursor:not-allowed;
 }
-
-
-/* ==========================================
-   BUSCADOR
-========================================== */
 
 .buscador{
     width:100%;
@@ -144,32 +126,17 @@ main{
     border-color:#2563eb;
 }
 
-
-/* ==========================================
-   CARGANDO
-========================================== */
-
 .cargando{
     text-align:center;
     padding:35px;
     color:#6b7280;
 }
 
-
-/* ==========================================
-   LISTA
-========================================== */
-
 .lista{
     display:flex;
     flex-direction:column;
     gap:15px;
 }
-
-
-/* ==========================================
-   CLIENTE
-========================================== */
 
 .cliente{
     border:1px solid #d1d5db;
@@ -202,11 +169,6 @@ main{
     color:#374151;
     white-space:pre-wrap;
 }
-
-
-/* ==========================================
-   BOTONES CLIENTE
-========================================== */
 
 .boton{
     display:block;
@@ -249,11 +211,6 @@ main{
     background:#fecaca;
 }
 
-
-/* ==========================================
-   SIN CLIENTES
-========================================== */
-
 .sin-clientes{
     text-align:center;
     padding:35px 20px;
@@ -267,11 +224,6 @@ main{
     color:#6b7280;
 }
 
-
-/* ==========================================
-   ERROR
-========================================== */
-
 .error{
     display:none;
     background:#fee2e2;
@@ -281,11 +233,6 @@ main{
     margin-bottom:15px;
     line-height:1.5;
 }
-
-
-/* ==========================================
-   VOLVER
-========================================== */
 
 .boton-volver{
     display:block;
@@ -304,11 +251,6 @@ main{
 .boton-volver:hover{
     background:#d1d5db;
 }
-
-
-/* ==========================================
-   MÓVIL
-========================================== */
 
 @media(max-width:480px){
 
@@ -333,25 +275,18 @@ main{
 
 <body>
 
-
 <div class="contenedor">
-
 
 <header>
 
-<h1>
-Clientes
-</h1>
+<h1>Clientes</h1>
 
-<p>
-GESBASE
-</p>
+<p>GESBASE</p>
 
 </header>
 
 
 <main>
-
 
 <div
     id="usuario"
@@ -369,7 +304,6 @@ Verificando usuario...
 
 <div class="acciones">
 
-
 <a
     href="nuevo-cliente.html"
     class="boton-nuevo"
@@ -385,7 +319,6 @@ Verificando usuario...
 >
 🔄 ACTUALIZAR
 </button>
-
 
 </div>
 
@@ -437,7 +370,6 @@ No se encontraron clientes.
 ⬅️ VOLVER A GESBASE
 </a>
 
-
 </main>
 
 </div>
@@ -445,11 +377,21 @@ No se encontraron clientes.
 
 <script type="module">
 
+/*
+=====================================================
+GESBASE - CLIENTES
+=====================================================
 
-// =====================================================
-// FIREBASE
-// MISMA VERSIÓN EN TODA LA APP: 12.18.0
-// =====================================================
+IMPORTANTE:
+
+Se utiliza la instancia "db" que exporta:
+
+./Js/firebase.js
+
+No se inicializa Firebase nuevamente en este archivo.
+=====================================================
+*/
+
 
 import {
     auth,
@@ -478,28 +420,28 @@ import {
 // =====================================================
 
 const usuarioElemento =
-document.getElementById("usuario");
+    document.getElementById("usuario");
 
 const cargando =
-document.getElementById("cargando");
+    document.getElementById("cargando");
 
 const lista =
-document.getElementById("lista");
+    document.getElementById("lista");
 
 const sinClientes =
-document.getElementById("sinClientes");
+    document.getElementById("sinClientes");
 
 const sinBusqueda =
-document.getElementById("sinBusqueda");
+    document.getElementById("sinBusqueda");
 
 const errorElemento =
-document.getElementById("error");
+    document.getElementById("error");
 
 const buscador =
-document.getElementById("buscador");
+    document.getElementById("buscador");
 
 const btnActualizar =
-document.getElementById("btnActualizar");
+    document.getElementById("btnActualizar");
 
 
 // =====================================================
@@ -518,13 +460,12 @@ let clientes = [];
 function escaparHTML(valor){
 
     const div =
-    document.createElement("div");
+        document.createElement("div");
 
     div.textContent =
-    valor ?? "";
+        valor ?? "";
 
     return div.innerHTML;
-
 }
 
 
@@ -535,11 +476,10 @@ function escaparHTML(valor){
 function mostrarError(mensaje){
 
     errorElemento.textContent =
-    mensaje;
+        mensaje;
 
     errorElemento.style.display =
-    "block";
-
+        "block";
 }
 
 
@@ -550,11 +490,10 @@ function mostrarError(mensaje){
 function ocultarError(){
 
     errorElemento.textContent =
-    "";
+        "";
 
     errorElemento.style.display =
-    "none";
-
+        "none";
 }
 
 
@@ -571,37 +510,35 @@ async function eliminarCliente(id){
         );
 
         return;
-
     }
 
 
     const confirmar =
-    window.confirm(
-        "¿Seguro que querés eliminar este cliente?\n\nEsta acción no se puede deshacer."
-    );
+        window.confirm(
+            "¿Seguro que querés eliminar este cliente?\n\nEsta acción no se puede deshacer."
+        );
 
 
     if(!confirmar){
 
         return;
-
     }
 
 
     try{
 
         const referencia =
-        doc(
-            db,
-            "clientes",
-            id
-        );
+            doc(
+                db,
+                "clientes",
+                id
+            );
 
 
         const resultado =
-        await getDoc(
-            referencia
-        );
+            await getDoc(
+                referencia
+            );
 
 
         if(!resultado.exists()){
@@ -610,24 +547,15 @@ async function eliminarCliente(id){
                 "El cliente ya no existe."
             );
 
-
             await cargarClientes();
 
             return;
-
         }
 
 
         const datos =
-        resultado.data();
+            resultado.data();
 
-
-        /*
-         * Seguridad adicional:
-         * solamente se puede eliminar
-         * un cliente perteneciente al
-         * usuario actualmente autenticado.
-         */
 
         if(
             datos.uid !==
@@ -639,7 +567,6 @@ async function eliminarCliente(id){
             );
 
             return;
-
         }
 
 
@@ -668,9 +595,7 @@ async function eliminarCliente(id){
             "No se pudo eliminar el cliente: " +
             error.message
         );
-
     }
-
 }
 
 
@@ -684,71 +609,70 @@ function crearTarjeta(
 ){
 
     const tarjeta =
-    document.createElement("div");
+        document.createElement("div");
 
     tarjeta.className =
-    "cliente";
+        "cliente";
 
 
     const nombre =
-    escaparHTML(
-        datos.nombre ||
-        datos.empresa ||
-        "Cliente sin nombre"
-    );
+        escaparHTML(
+            datos.nombre ||
+            datos.empresa ||
+            "Cliente sin nombre"
+        );
 
 
     const cuit =
-    escaparHTML(
-        datos.cuit ||
-        "-"
-    );
+        escaparHTML(
+            datos.cuit ||
+            "-"
+        );
 
 
     const telefono =
-    escaparHTML(
-        datos.telefono ||
-        "-"
-    );
+        escaparHTML(
+            datos.telefono ||
+            "-"
+        );
 
 
     const email =
-    escaparHTML(
-        datos.email ||
-        "-"
-    );
+        escaparHTML(
+            datos.email ||
+            "-"
+        );
 
 
     const direccion =
-    escaparHTML(
-        datos.direccion ||
-        "-"
-    );
+        escaparHTML(
+            datos.direccion ||
+            "-"
+        );
 
 
     const localidad =
-    escaparHTML(
-        datos.localidad ||
-        ""
-    );
+        escaparHTML(
+            datos.localidad ||
+            ""
+        );
 
 
     const provincia =
-    escaparHTML(
-        datos.provincia ||
-        ""
-    );
+        escaparHTML(
+            datos.provincia ||
+            ""
+        );
 
 
     const observaciones =
-    escaparHTML(
-        datos.observaciones ||
-        ""
-    );
+        escaparHTML(
+            datos.observaciones ||
+            ""
+        );
 
 
-    let ubicacion =
-    "-";
+    let ubicacion = "-";
 
 
     if(
@@ -757,15 +681,14 @@ function crearTarjeta(
     ){
 
         ubicacion =
-        localidad +
-        (
-            localidad &&
-            provincia
-            ? ", "
-            : ""
-        ) +
-        provincia;
-
+            localidad +
+            (
+                localidad &&
+                provincia
+                ? ", "
+                : ""
+            ) +
+            provincia;
     }
 
 
@@ -775,36 +698,30 @@ function crearTarjeta(
             ${nombre}
         </div>
 
-
         <div class="dato">
             🧾 CUIT:
             ${cuit}
         </div>
-
 
         <div class="dato">
             📞 Teléfono:
             ${telefono}
         </div>
 
-
         <div class="dato">
             📧 Email:
             ${email}
         </div>
-
 
         <div class="dato">
             📍 Dirección:
             ${direccion}
         </div>
 
-
         <div class="dato">
             🗺️ Localidad:
             ${ubicacion}
         </div>
-
 
         ${
             observaciones
@@ -818,7 +735,6 @@ function crearTarjeta(
             ""
         }
 
-
         <a
             href="ver-cliente.html?id=${encodeURIComponent(id)}"
             class="boton boton-ver"
@@ -826,14 +742,12 @@ function crearTarjeta(
             👤 VER CLIENTE
         </a>
 
-
         <a
             href="editar-cliente.html?id=${encodeURIComponent(id)}"
             class="boton boton-editar"
         >
             ✏️ EDITAR CLIENTE
         </a>
-
 
         <button
             type="button"
@@ -846,9 +760,9 @@ function crearTarjeta(
 
 
     const botonEliminar =
-    tarjeta.querySelector(
-        ".boton-eliminar"
-    );
+        tarjeta.querySelector(
+            ".boton-eliminar"
+        );
 
 
     botonEliminar.addEventListener(
@@ -862,7 +776,6 @@ function crearTarjeta(
 
 
     return tarjeta;
-
 }
 
 
@@ -873,94 +786,92 @@ function crearTarjeta(
 function mostrarClientes(){
 
     lista.innerHTML =
-    "";
+        "";
 
     sinBusqueda.style.display =
-    "none";
+        "none";
 
 
     const termino =
-    buscador.value
-        .trim()
-        .toLowerCase();
+        buscador.value
+            .trim()
+            .toLowerCase();
 
 
     let filtrados =
-    clientes;
+        clientes;
 
 
     if(termino){
 
         filtrados =
-        clientes.filter(
-            function(item){
+            clientes.filter(
+                function(item){
 
-                const datos =
-                item.datos;
-
-
-                const nombre =
-                String(
-                    datos.nombre ||
-                    ""
-                ).toLowerCase();
+                    const datos =
+                        item.datos;
 
 
-                const empresa =
-                String(
-                    datos.empresa ||
-                    ""
-                ).toLowerCase();
+                    const nombre =
+                        String(
+                            datos.nombre ||
+                            ""
+                        ).toLowerCase();
 
 
-                const cuit =
-                String(
-                    datos.cuit ||
-                    ""
-                ).toLowerCase();
+                    const empresa =
+                        String(
+                            datos.empresa ||
+                            ""
+                        ).toLowerCase();
 
 
-                const telefono =
-                String(
-                    datos.telefono ||
-                    ""
-                ).toLowerCase();
+                    const cuit =
+                        String(
+                            datos.cuit ||
+                            ""
+                        ).toLowerCase();
 
 
-                const email =
-                String(
-                    datos.email ||
-                    ""
-                ).toLowerCase();
+                    const telefono =
+                        String(
+                            datos.telefono ||
+                            ""
+                        ).toLowerCase();
 
 
-                const direccion =
-                String(
-                    datos.direccion ||
-                    ""
-                ).toLowerCase();
+                    const email =
+                        String(
+                            datos.email ||
+                            ""
+                        ).toLowerCase();
 
 
-                const localidad =
-                String(
-                    datos.localidad ||
-                    ""
-                ).toLowerCase();
+                    const direccion =
+                        String(
+                            datos.direccion ||
+                            ""
+                        ).toLowerCase();
 
 
-                return (
-                    nombre.includes(termino) ||
-                    empresa.includes(termino) ||
-                    cuit.includes(termino) ||
-                    telefono.includes(termino) ||
-                    email.includes(termino) ||
-                    direccion.includes(termino) ||
-                    localidad.includes(termino)
-                );
+                    const localidad =
+                        String(
+                            datos.localidad ||
+                            ""
+                        ).toLowerCase();
 
-            }
-        );
 
+                    return (
+                        nombre.includes(termino) ||
+                        empresa.includes(termino) ||
+                        cuit.includes(termino) ||
+                        telefono.includes(termino) ||
+                        email.includes(termino) ||
+                        direccion.includes(termino) ||
+                        localidad.includes(termino)
+                    );
+                }
+            );
     }
 
 
@@ -973,12 +884,10 @@ function mostrarClientes(){
         ){
 
             sinBusqueda.style.display =
-            "block";
-
+                "block";
         }
 
         return;
-
     }
 
 
@@ -991,10 +900,8 @@ function mostrarClientes(){
                     item.id
                 )
             );
-
         }
     );
-
 }
 
 
@@ -1007,7 +914,6 @@ async function cargarClientes(){
     if(!usuarioActual){
 
         return;
-
     }
 
 
@@ -1017,55 +923,64 @@ async function cargarClientes(){
 
 
         cargando.style.display =
-        "block";
+            "block";
 
 
         lista.innerHTML =
-        "";
+            "";
 
 
         sinClientes.style.display =
-        "none";
+            "none";
 
 
         sinBusqueda.style.display =
-        "none";
+            "none";
 
 
         usuarioElemento.textContent =
-        "Usuario: " +
-        (
-            usuarioActual.email ||
-            "Usuario autenticado"
-        );
+            "Usuario: " +
+            (
+                usuarioActual.email ||
+                "Usuario autenticado"
+            );
 
+
+        /*
+        =================================================
+        IMPORTANTE
+
+        db debe ser la instancia Firestore exportada
+        por ./Js/firebase.js
+        =================================================
+        */
 
         const referencia =
-        collection(
-            db,
-            "clientes"
-        );
+            collection(
+                db,
+                "clientes"
+            );
 
 
         const consulta =
-        query(
-            referencia,
-            where(
-                "uid",
-                "==",
-                usuarioActual.uid
-            )
-        );
+            query(
+                referencia,
+                where(
+                    "uid",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
 
 
         const resultado =
-        await getDocs(
-            consulta
-        );
+            await getDocs(
+                consulta
+            );
 
 
         clientes =
-        [];
+            [];
 
 
         resultado.forEach(
@@ -1074,51 +989,45 @@ async function cargarClientes(){
                 clientes.push({
 
                     id:
-                    documento.id,
+                        documento.id,
 
                     datos:
-                    documento.data()
+                        documento.data()
 
                 });
-
             }
         );
 
-
-        // =================================================
-        // ORDEN ALFABÉTICO
-        // =================================================
 
         clientes.sort(
             function(a,b){
 
                 const nombreA =
-                String(
-                    a.datos.nombre ||
-                    a.datos.empresa ||
-                    ""
-                ).toLowerCase();
+                    String(
+                        a.datos.nombre ||
+                        a.datos.empresa ||
+                        ""
+                    ).toLowerCase();
 
 
                 const nombreB =
-                String(
-                    b.datos.nombre ||
-                    b.datos.empresa ||
-                    ""
-                ).toLowerCase();
+                    String(
+                        b.datos.nombre ||
+                        b.datos.empresa ||
+                        ""
+                    ).toLowerCase();
 
 
                 return nombreA.localeCompare(
                     nombreB,
                     "es"
                 );
-
             }
         );
 
 
         cargando.style.display =
-        "none";
+            "none";
 
 
         if(
@@ -1126,10 +1035,9 @@ async function cargarClientes(){
         ){
 
             sinClientes.style.display =
-            "block";
+                "block";
 
             return;
-
         }
 
 
@@ -1145,16 +1053,14 @@ async function cargarClientes(){
 
 
         cargando.style.display =
-        "none";
+            "none";
 
 
         mostrarError(
             "Error al cargar los clientes: " +
             error.message
         );
-
     }
-
 }
 
 
@@ -1187,27 +1093,26 @@ btnActualizar.addEventListener(
             );
 
             return;
-
         }
 
 
         btnActualizar.disabled =
-        true;
+            true;
 
 
         btnActualizar.textContent =
-        "⏳ CARGANDO...";
+            "⏳ CARGANDO...";
 
 
         await cargarClientes();
 
 
         btnActualizar.disabled =
-        false;
+            false;
 
 
         btnActualizar.textContent =
-        "🔄 ACTUALIZAR";
+            "🔄 ACTUALIZAR";
 
     }
 );
@@ -1228,20 +1133,19 @@ onAuthStateChanged(
             );
 
             return;
-
         }
 
 
         usuarioActual =
-        usuario;
+            usuario;
 
 
         usuarioElemento.textContent =
-        "Usuario: " +
-        (
-            usuario.email ||
-            "Usuario autenticado"
-        );
+            "Usuario: " +
+            (
+                usuario.email ||
+                "Usuario autenticado"
+            );
 
 
         cargarClientes();
