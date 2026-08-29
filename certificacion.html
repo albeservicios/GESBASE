@@ -358,11 +358,52 @@ th{
     color:#6b7280;
 }
 
+/* =====================================================
+   FIRMA DIGITAL TÁCTIL
+===================================================== */
+
+.firma-contenedor{
+    width:100%;
+    margin-top:8px;
+}
+
+.firma-canvas-wrapper{
+    width:100%;
+    border:2px dashed #9ca3af;
+    border-radius:12px;
+    background:#fff;
+    overflow:hidden;
+    position:relative;
+}
+
+#firmaCanvas{
+    display:block;
+    width:100%;
+    height:190px;
+    background:white;
+    touch-action:none;
+    cursor:crosshair;
+}
+
+.firma-ayuda{
+    margin-top:8px;
+    font-size:13px;
+    color:#6b7280;
+    line-height:1.5;
+}
+
+.firma-botones{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:10px;
+}
+
 .firma-preview{
     border:1px dashed #9ca3af;
     border-radius:10px;
     padding:15px;
-    margin-top:8px;
+    margin-top:10px;
     min-height:100px;
     display:flex;
     align-items:center;
@@ -463,6 +504,18 @@ th{
     }
 
     .items-header button{
+        width:100%;
+    }
+
+    #firmaCanvas{
+        height:180px;
+    }
+
+    .firma-botones{
+        flex-direction:column;
+    }
+
+    .firma-botones button{
         width:100%;
     }
 
@@ -819,23 +872,58 @@ Logo de la empresa
 </div>
 
 
-<div class="field">
+<div class="field full">
 
-<label for="firmaEmpresa">
+<label>
 Firma de la empresa
 </label>
 
-<input
-    type="file"
-    id="firmaEmpresa"
-    accept="image/*"
->
 
-<div
-    id="firmaPreview"
-    class="firma-preview"
->
-Sin firma cargada
+<div class="firma-contenedor">
+
+    <div class="firma-canvas-wrapper">
+
+        <canvas
+            id="firmaCanvas"
+        ></canvas>
+
+    </div>
+
+
+    <div class="firma-ayuda">
+        Firmá con el dedo directamente dentro del recuadro.
+        La firma se incorporará automáticamente al PDF.
+    </div>
+
+
+    <div class="firma-botones">
+
+        <button
+            type="button"
+            class="btn-secondary"
+            id="btnDeshacerFirma"
+        >
+            ↩️ Deshacer
+        </button>
+
+        <button
+            type="button"
+            class="btn-danger"
+            id="btnBorrarFirma"
+        >
+            🗑️ Borrar firma
+        </button>
+
+    </div>
+
+
+    <div
+        id="firmaPreview"
+        class="firma-preview"
+    >
+        Sin firma realizada
+    </div>
+
 </div>
 
 </div>
@@ -951,10 +1039,6 @@ Cargando certificaciones...
 </div>
 
 
-<!-- =====================================================
-     LIBRERÍAS PDF
-===================================================== -->
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
@@ -1020,6 +1104,569 @@ let firmaData = "";
 
 
 /* =====================================================
+   FIRMA DIGITAL
+===================================================== */
+
+const firmaCanvas =
+    document.getElementById(
+        "firmaCanvas"
+    );
+
+const btnBorrarFirma =
+    document.getElementById(
+        "btnBorrarFirma"
+    );
+
+const btnDeshacerFirma =
+    document.getElementById(
+        "btnDeshacerFirma"
+    );
+
+
+let firmaCtx =
+    firmaCanvas.getContext(
+        "2d"
+    );
+
+
+let firmando =
+    false;
+
+
+let firmaTieneContenido =
+    false;
+
+
+let historialFirma = [];
+
+
+/* =====================================================
+   CONFIGURAR CANVAS
+===================================================== */
+
+function configurarCanvasFirma(){
+
+    const rect =
+        firmaCanvas.getBoundingClientRect();
+
+
+    const ratio =
+        Math.max(
+            window.devicePixelRatio || 1,
+            1
+        );
+
+
+    firmaCanvas.width =
+        rect.width * ratio;
+
+
+    firmaCanvas.height =
+        rect.height * ratio;
+
+
+    firmaCtx =
+        firmaCanvas.getContext(
+            "2d"
+        );
+
+
+    firmaCtx.setTransform(
+        ratio,
+        0,
+        0,
+        ratio,
+        0,
+        0
+    );
+
+
+    firmaCtx.lineWidth =
+        2.2;
+
+
+    firmaCtx.lineCap =
+        "round";
+
+
+    firmaCtx.lineJoin =
+        "round";
+
+
+    firmaCtx.strokeStyle =
+        "#111827";
+
+
+    limpiarCanvasVisual();
+
+}
+
+
+function limpiarCanvasVisual(){
+
+    const rect =
+        firmaCanvas.getBoundingClientRect();
+
+
+    firmaCtx.clearRect(
+        0,
+        0,
+        rect.width,
+        rect.height
+    );
+
+
+    firmaCtx.fillStyle =
+        "#ffffff";
+
+
+    firmaCtx.fillRect(
+        0,
+        0,
+        rect.width,
+        rect.height
+    );
+
+
+    firmaCtx.strokeStyle =
+        "#111827";
+
+
+    firmaTieneContenido =
+        false;
+
+
+    firmaData =
+        "";
+
+
+    actualizarFirmaPreview();
+
+}
+
+
+/* =====================================================
+   POSICIÓN DEL DEDO / MOUSE
+===================================================== */
+
+function obtenerPosicionFirma(evento){
+
+    const rect =
+        firmaCanvas.getBoundingClientRect();
+
+
+    let clienteX;
+    let clienteY;
+
+
+    if(
+        evento.touches &&
+        evento.touches.length
+    ){
+
+        clienteX =
+            evento.touches[0].clientX;
+
+        clienteY =
+            evento.touches[0].clientY;
+
+    }
+    else if(
+        evento.changedTouches &&
+        evento.changedTouches.length
+    ){
+
+        clienteX =
+            evento.changedTouches[0].clientX;
+
+        clienteY =
+            evento.changedTouches[0].clientY;
+
+    }
+    else{
+
+        clienteX =
+            evento.clientX;
+
+        clienteY =
+            evento.clientY;
+
+    }
+
+
+    return {
+
+        x:
+            clienteX -
+            rect.left,
+
+        y:
+            clienteY -
+            rect.top
+
+    };
+
+}
+
+
+/* =====================================================
+   INICIAR FIRMA
+===================================================== */
+
+function iniciarFirma(evento){
+
+    evento.preventDefault();
+
+
+    const posicion =
+        obtenerPosicionFirma(
+            evento
+        );
+
+
+    guardarEstadoFirma();
+
+
+    firmando =
+        true;
+
+
+    firmaTieneContenido =
+        true;
+
+
+    firmaCtx.beginPath();
+
+
+    firmaCtx.moveTo(
+        posicion.x,
+        posicion.y
+    );
+
+
+    firmaCtx.lineTo(
+        posicion.x + 0.01,
+        posicion.y + 0.01
+    );
+
+
+    firmaCtx.stroke();
+
+}
+
+
+/* =====================================================
+   DIBUJAR FIRMA
+===================================================== */
+
+function dibujarFirma(evento){
+
+    if(!firmando){
+
+        return;
+
+    }
+
+
+    evento.preventDefault();
+
+
+    const posicion =
+        obtenerPosicionFirma(
+            evento
+        );
+
+
+    firmaCtx.lineTo(
+        posicion.x,
+        posicion.y
+    );
+
+
+    firmaCtx.stroke();
+
+}
+
+
+/* =====================================================
+   TERMINAR FIRMA
+===================================================== */
+
+function terminarFirma(evento){
+
+    if(!firmando){
+
+        return;
+
+    }
+
+
+    evento.preventDefault();
+
+
+    firmando =
+        false;
+
+
+    firmaCtx.closePath();
+
+
+    actualizarFirmaData();
+
+}
+
+
+/* =====================================================
+   GUARDAR ESTADO PARA DESHACER
+===================================================== */
+
+function guardarEstadoFirma(){
+
+    try{
+
+        historialFirma.push(
+            firmaCanvas.toDataURL(
+                "image/png"
+            )
+        );
+
+
+        if(
+            historialFirma.length >
+            20
+        ){
+
+            historialFirma.shift();
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo guardar estado de firma:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   DESHACER
+===================================================== */
+
+btnDeshacerFirma.addEventListener(
+    "click",
+    () => {
+
+        if(
+            historialFirma.length === 0
+        ){
+
+            return;
+
+        }
+
+
+        const anterior =
+            historialFirma.pop();
+
+
+        const imagen =
+            new Image();
+
+
+        imagen.onload =
+            () => {
+
+                const rect =
+                    firmaCanvas.getBoundingClientRect();
+
+
+                firmaCtx.clearRect(
+                    0,
+                    0,
+                    rect.width,
+                    rect.height
+                );
+
+
+                firmaCtx.fillStyle =
+                    "#ffffff";
+
+
+                firmaCtx.fillRect(
+                    0,
+                    0,
+                    rect.width,
+                    rect.height
+                );
+
+
+                firmaCtx.drawImage(
+                    imagen,
+                    0,
+                    0,
+                    rect.width,
+                    rect.height
+                );
+
+
+                actualizarFirmaData();
+
+            };
+
+
+        imagen.src =
+            anterior;
+
+    }
+);
+
+
+/* =====================================================
+   BORRAR FIRMA
+===================================================== */
+
+btnBorrarFirma.addEventListener(
+    "click",
+    () => {
+
+        historialFirma = [];
+
+        limpiarCanvasVisual();
+
+    }
+);
+
+
+/* =====================================================
+   GUARDAR FIRMA COMO BASE64
+===================================================== */
+
+function actualizarFirmaData(){
+
+    if(!firmaTieneContenido){
+
+        firmaData =
+            "";
+
+        actualizarFirmaPreview();
+
+        return;
+
+    }
+
+
+    firmaData =
+        firmaCanvas.toDataURL(
+            "image/png"
+        );
+
+
+    actualizarFirmaPreview();
+
+}
+
+
+/* =====================================================
+   PREVISUALIZACIÓN
+===================================================== */
+
+function actualizarFirmaPreview(){
+
+    const preview =
+        document.getElementById(
+            "firmaPreview"
+        );
+
+
+    if(!firmaData){
+
+        preview.innerHTML =
+            "Sin firma realizada";
+
+        return;
+
+    }
+
+
+    preview.innerHTML = `
+
+        <img
+            src="${firmaData}"
+            alt="Firma de empresa"
+        >
+
+    `;
+
+}
+
+
+/* =====================================================
+   EVENTOS DEL CANVAS
+===================================================== */
+
+firmaCanvas.addEventListener(
+    "mousedown",
+    iniciarFirma
+);
+
+firmaCanvas.addEventListener(
+    "mousemove",
+    dibujarFirma
+);
+
+firmaCanvas.addEventListener(
+    "mouseup",
+    terminarFirma
+);
+
+firmaCanvas.addEventListener(
+    "mouseleave",
+    terminarFirma
+);
+
+
+firmaCanvas.addEventListener(
+    "touchstart",
+    iniciarFirma,
+    {
+        passive:false
+    }
+);
+
+
+firmaCanvas.addEventListener(
+    "touchmove",
+    dibujarFirma,
+    {
+        passive:false
+    }
+);
+
+
+firmaCanvas.addEventListener(
+    "touchend",
+    terminarFirma,
+    {
+        passive:false
+    }
+);
+
+
+firmaCanvas.addEventListener(
+    "touchcancel",
+    terminarFirma,
+    {
+        passive:false
+    }
+);
+
+
+/* =====================================================
    ELEMENTOS
 ===================================================== */
 
@@ -1056,14 +1703,8 @@ const cargoFirmante =
 const logoEmpresa =
     document.getElementById("logoEmpresa");
 
-const firmaEmpresa =
-    document.getElementById("firmaEmpresa");
-
 const logoPreview =
     document.getElementById("logoPreview");
-
-const firmaPreview =
-    document.getElementById("firmaPreview");
 
 const listaItems =
     document.getElementById("listaItems");
@@ -1435,24 +2076,6 @@ async function obtenerEmpresa(){
 
         mostrarLogo(
             logoData
-        );
-
-    }
-
-
-    if(
-        empresaDatos.firma ||
-        empresaDatos.firmaUrl ||
-        empresaDatos.firmaEmpresa
-    ){
-
-        firmaData =
-            empresaDatos.firma ||
-            empresaDatos.firmaUrl ||
-            empresaDatos.firmaEmpresa;
-
-        mostrarFirma(
-            firmaData
         );
 
     }
@@ -2651,71 +3274,6 @@ function mostrarLogo(src){
 
 
 /* =====================================================
-   FIRMA
-===================================================== */
-
-firmaEmpresa.addEventListener(
-    "change",
-    evento => {
-
-        const archivo =
-            evento.target.files[0];
-
-
-        if(!archivo){
-
-            return;
-
-        }
-
-
-        const reader =
-            new FileReader();
-
-
-        reader.onload =
-            () => {
-
-                firmaData =
-                    reader.result;
-
-                mostrarFirma(
-                    firmaData
-                );
-
-            };
-
-
-        reader.readAsDataURL(
-            archivo
-        );
-
-    }
-);
-
-
-function mostrarFirma(src){
-
-    if(!src){
-
-        return;
-
-    }
-
-
-    firmaPreview.innerHTML = `
-
-        <img
-            src="${src}"
-            alt="Firma de empresa"
-        >
-
-    `;
-
-}
-
-
-/* =====================================================
    VALIDAR
 ===================================================== */
 
@@ -3467,7 +4025,7 @@ function mostrarCertificaciones(){
 
 
 /* =====================================================
-   PDF
+   GENERAR PDF
 ===================================================== */
 
 btnPDF.addEventListener(
@@ -3576,8 +4134,6 @@ async function generarPDF(datos){
     );
 
 
-    /* LOGO */
-
     if(
         datos.logo &&
         datos.logo.startsWith("data:")
@@ -3626,6 +4182,7 @@ async function generarPDF(datos){
 
 
     pdf.text(
+        datos.empresaNombre ||
         empresaNombreActual,
         ancho - margen,
         12,
@@ -3909,7 +4466,8 @@ async function generarPDF(datos){
 
         margin:{
             left:margen,
-            right:margen
+            right:margen,
+            bottom:55
         },
 
         head:[
@@ -4011,6 +4569,19 @@ async function generarPDF(datos){
     /* -------------------------------------------------
        RESUMEN
     ------------------------------------------------- */
+
+    if(
+        y >
+        alto - 75
+    ){
+
+        pdf.addPage();
+
+        y =
+            25;
+
+    }
+
 
     pdf.setFont(
         "helvetica",
@@ -4143,6 +4714,19 @@ async function generarPDF(datos){
         datos.observaciones
     ){
 
+        if(
+            y >
+            alto - 75
+        ){
+
+            pdf.addPage();
+
+            y =
+                25;
+
+        }
+
+
         pdf.setFont(
             "helvetica",
             "bold"
@@ -4201,6 +4785,19 @@ async function generarPDF(datos){
        FIRMA
     ------------------------------------------------- */
 
+    if(
+        y >
+        alto - 70
+    ){
+
+        pdf.addPage();
+
+        y =
+            25;
+
+    }
+
+
     const zonaFirma =
         alto - 48;
 
@@ -4229,7 +4826,7 @@ async function generarPDF(datos){
 
             pdf.addImage(
                 datos.firma,
-                "AUTO",
+                "PNG",
                 margen,
                 zonaFirma - 30,
                 65,
@@ -4260,8 +4857,16 @@ async function generarPDF(datos){
     );
 
 
+    pdf.setTextColor(
+        17,
+        24,
+        39
+    );
+
+
     pdf.text(
         datos.nombreFirmante ||
+        datos.empresaNombre ||
         empresaNombreActual,
         margen,
         zonaFirma + 5
@@ -4305,9 +4910,11 @@ async function generarPDF(datos){
                 30
             );
 
+
             pdf.setFontSize(
                 6
             );
+
 
             pdf.text(
                 "Verificación",
@@ -4495,6 +5102,11 @@ btnLimpiar.addEventListener(
             "none";
 
 
+        historialFirma = [];
+
+        limpiarCanvasVisual();
+
+
         ocultarMensaje();
 
     }
@@ -4516,6 +5128,32 @@ document
 
         }
     );
+
+
+/* =====================================================
+   REDIMENSIONAR FIRMA
+===================================================== */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        /*
+         * No redimensionamos automáticamente
+         * después de una firma para evitar
+         * perder los trazos realizados.
+         */
+
+        if(
+            !firmaTieneContenido
+        ){
+
+            configurarCanvasFirma();
+
+        }
+
+    }
+);
 
 
 /* =====================================================
@@ -4555,6 +5193,8 @@ onAuthStateChanged(
 
 
         try{
+
+            configurarCanvasFirma();
 
             await obtenerEmpresa();
 
