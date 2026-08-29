@@ -1,18 +1,8 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-
+<!DOCTYPE html><html lang="es"><head>
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <meta name="theme-color" content="#111827">
-
-<title>GESBASE - Conformidades</title>
-
-<style>
-
+<title>GESBASE - Conformidades</title><style>
 *{
     box-sizing:border-box;
     margin:0;
@@ -263,11 +253,6 @@ main{
     cursor:pointer;
 }
 
-.acciones button:disabled{
-    opacity:.6;
-    cursor:not-allowed;
-}
-
 .btn-ver{
     background:#111827;
     color:white;
@@ -435,16 +420,10 @@ main{
     color:#111827;
 }
 
-/* RESPONSIVE */
-
 @media(max-width:600px){
 
     main{
         padding:16px;
-    }
-
-    .resumen{
-        grid-template-columns:1fr 1fr;
     }
 
     .datos{
@@ -470,10 +449,7 @@ main{
     .modal-contenedor{
         margin:8px auto;
     }
-
 }
-
-/* IMPRESIÓN */
 
 @media print{
 
@@ -492,194 +468,100 @@ main{
         top:0;
         width:100%;
     }
-
 }
+</style></head><body><div class="app"><header><div class="header-content"><button
+id="btnVolver"
+class="btn-volver"
+type="button"
 
-</style>
+«»
 
-</head>
-
-<body>
-
-<div class="app">
-
-<header>
-
-<div class="header-content">
-
-<button
-    id="btnVolver"
-    class="btn-volver"
-    type="button"
->
 ←
 </button>
 
-<div class="header-text">
-
-<div class="logo">
+<div class="header-text"><div class="logo">
 GESBASE
-</div>
-
-<div class="subtitulo">
+</div><div class="subtitulo">
 Tu empresa. Todo organizado.
-</div>
-
-</div>
-
-</div>
-
-</header>
-
-<main>
-
-<h1 class="titulo">
+</div></div></div></header><main><h1 class="titulo">
 📝 Conformidades
-</h1>
-
-<p class="descripcion">
+</h1><p class="descripcion">
 Consultá las conformidades de trabajos registrados y accedé a la firma del cliente y su constancia.
-</p>
-
-<div class="resumen">
-
-<div class="resumen-card">
-
-<div class="resumen-label">
+</p><div class="resumen"><div class="resumen-card"><div class="resumen-label">
 Total conformidades
-</div>
-
-<div
+</div><div
     id="totalConformidades"
     class="resumen-valor"
 >
 0
-</div>
-
-</div>
-
-<div class="resumen-card">
-
-<div class="resumen-label">
+</div></div><div class="resumen-card"><div class="resumen-label">
 Resultados
-</div>
-
-<div
+</div><div
     id="totalResultados"
     class="resumen-valor"
 >
 0
-</div>
-
-</div>
-
-</div>
-
-<div
+</div></div></div><div
     id="estado"
     class="estado"
 >
-</div>
-
-<section class="busqueda">
-
-<label for="buscar">
+</div><section class="busqueda"><label for="buscar">
 🔎 Buscar trabajo, cliente o lugar
-</label>
+</label><input
+id="buscar"
+type="search"
+placeholder="Ej.: pintura, Juan Pérez, Catriel..."
+autocomplete="off"
 
-<input
-    id="buscar"
-    type="search"
-    placeholder="Ej.: pintura, Juan Pérez, Catriel..."
-    autocomplete="off"
->
+«»
 
-</section>
-
-<div
+</section><div
     id="cargando"
     class="cargando"
 >
 Cargando conformidades...
-</div>
-
-<div
+</div><div
     id="lista"
     class="lista"
     style="display:none;"
 >
-</div>
-
-<div
+</div><div
     id="sinResultados"
     class="sin-resultados"
     style="display:none;"
->
-
-<div class="sin-resultados-icono">
+><div class="sin-resultados-icono">
 📝
-</div>
-
-<strong>
+</div><strong>
 No hay conformidades
-</strong>
-
-<span>
+</strong><span>
 Las conformidades registradas aparecerán acá.
-</span>
-
-</div>
-
-</main>
-
-</div>
-
-
-<!-- MODAL -->
-
-<div
+</span></div></main></div><div
     id="modal"
     class="modal"
->
-
-<div class="modal-contenedor">
-
-<div class="modal-header">
-
-<h2>
+><div class="modal-contenedor"><div class="modal-header"><h2>
 Detalle de conformidad
-</h2>
+</h2><button
+id="btnCerrar"
+class="btn-cerrar"
+type="button"
 
-<button
-    id="btnCerrar"
-    class="btn-cerrar"
-    type="button"
->
+«»
+
 ×
 </button>
 
-</div>
-
-<div
+</div><div
     id="modalBody"
     class="modal-body"
 >
-</div>
-
-</div>
-
-</div>
-
-
-<script type="module">
+</div></div></div><script type="module">
 
 // ==========================================
 // FIREBASE
 // ==========================================
 
 import {
-    auth,
-    db
+    auth
 } from "./Js/firebase.js";
 
 import {
@@ -692,9 +574,45 @@ import {
     getDocs,
     getDoc,
     deleteDoc,
-    doc
+    doc,
+    getFirestore,
+    getApp,
+    getApps
 } from
 "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// ==========================================
+// FIRESTORE SEGURO
+// ==========================================
+
+let db;
+
+try{
+
+    /*
+     * Intentamos obtener la aplicación Firebase
+     * que ya utiliza GESBASE.
+     */
+
+    if(getApps().length > 0){
+
+        db =
+        getFirestore(
+            getApp()
+        );
+
+    }
+
+}
+catch(error){
+
+    console.error(
+        "Error obteniendo Firestore:",
+        error
+    );
+
+}
 
 
 // ==========================================
@@ -818,7 +736,6 @@ function formatoFecha(
 
     }
 
-
     if(
         typeof valor.toDate ===
         "function"
@@ -832,10 +749,8 @@ function formatoFecha(
 
     }
 
-
     const texto =
     String(valor);
-
 
     if(
         /^\d{4}-\d{2}-\d{2}$/.test(
@@ -856,7 +771,6 @@ function formatoFecha(
 
     }
 
-
     return texto;
 
 }
@@ -871,10 +785,8 @@ async function cargarEmpresa(){
     empresaIdActual =
     "";
 
-
     empresaActual =
     {};
-
 
     try{
 
@@ -885,15 +797,12 @@ async function cargarEmpresa(){
             usuarioActual.uid
         );
 
-
         const documentoUsuario =
         await getDoc(
             referenciaUsuario
         );
 
-
         let datosUsuario = {};
-
 
         if(
             documentoUsuario.exists()
@@ -904,12 +813,6 @@ async function cargarEmpresa(){
 
         }
 
-
-        /*
-         * MISMA LÓGICA UTILIZADA
-         * EN EL MÓDULO COBROS.
-         */
-
         empresaIdActual =
         String(
             datosUsuario.empresaId ||
@@ -917,11 +820,6 @@ async function cargarEmpresa(){
             ""
         ).trim();
 
-
-        /*
-         * Si el usuario tiene empresaId,
-         * buscamos directamente esa empresa.
-         */
 
         if(empresaIdActual){
 
@@ -932,12 +830,10 @@ async function cargarEmpresa(){
                 empresaIdActual
             );
 
-
             const documentoEmpresa =
             await getDoc(
                 referenciaEmpresa
             );
-
 
             if(
                 documentoEmpresa.exists()
@@ -954,9 +850,8 @@ async function cargarEmpresa(){
 
 
         /*
-         * Compatibilidad:
-         * si no existe empresaId,
-         * buscamos empresa vinculada al UID.
+         * Compatibilidad con instalaciones
+         * anteriores de GESBASE.
          */
 
         const empresasSnapshot =
@@ -967,7 +862,6 @@ async function cargarEmpresa(){
             )
         );
 
-
         for(
             const documento
             of empresasSnapshot.docs
@@ -975,7 +869,6 @@ async function cargarEmpresa(){
 
             const datos =
             documento.data();
-
 
             if(
                 documento.id ===
@@ -1003,7 +896,7 @@ async function cargarEmpresa(){
 
         /*
          * Última compatibilidad:
-         * UID como ID de empresa.
+         * UID como empresa.
          */
 
         empresaIdActual =
@@ -1016,7 +909,6 @@ async function cargarEmpresa(){
             "Error obteniendo empresa:",
             error
         );
-
 
         empresaIdActual =
         usuarioActual.uid;
@@ -1034,10 +926,6 @@ function perteneceAUsuarioOEmpresa(
     datos
 ){
 
-    /*
-     * Estructura nueva:
-     */
-
     if(
         datos.empresaId &&
         String(datos.empresaId) ===
@@ -1047,12 +935,6 @@ function perteneceAUsuarioOEmpresa(
         return true;
 
     }
-
-
-    /*
-     * Compatibilidad con estructura
-     * anterior por usuarioId.
-     */
 
     if(
         datos.usuarioId &&
@@ -1064,12 +946,6 @@ function perteneceAUsuarioOEmpresa(
 
     }
 
-
-    /*
-     * Compatibilidad con estructura
-     * antigua por uid.
-     */
-
     if(
         datos.uid &&
         String(datos.uid) ===
@@ -1079,24 +955,6 @@ function perteneceAUsuarioOEmpresa(
         return true;
 
     }
-
-
-    /*
-     * Compatibilidad cuando empresaId
-     * era directamente el UID.
-     */
-
-    if(
-        empresaIdActual ===
-        usuarioActual.uid &&
-        datos.empresaId ===
-        usuarioActual.uid
-    ){
-
-        return true;
-
-    }
-
 
     return false;
 
@@ -1121,12 +979,33 @@ async function cargarConformidades(){
 
     try{
 
+        /*
+         * Verificación importante.
+         */
+
+        if(!db){
+
+            throw new Error(
+                "Firestore no está inicializado correctamente."
+            );
+
+        }
+
+
+        /*
+         * ESTA ES LA LÍNEA CORREGIDA.
+         */
+
+        const referenciaConformidades =
+        collection(
+            db,
+            "conformidades"
+        );
+
+
         const snapshot =
         await getDocs(
-            collection(
-                db,
-                "conformidades"
-            )
+            referenciaConformidades
         );
 
 
@@ -1173,13 +1052,11 @@ async function cargarConformidades(){
                     ""
                 );
 
-
                 const fechaB =
                 String(
                     b.fechaTrabajo ||
                     ""
                 );
-
 
                 return fechaB.localeCompare(
                     fechaA
@@ -1206,7 +1083,6 @@ async function cargarConformidades(){
             "Error cargando conformidades:",
             error
         );
-
 
         cargando.style.display =
         "none";
@@ -1468,9 +1344,6 @@ function renderizar(
                     <button
                         type="button"
                         class="btn-ver"
-                        data-ver="${escapar(
-                            conformidad.id
-                        )}"
                     >
                         👁️ Ver
                     </button>
@@ -1479,9 +1352,6 @@ function renderizar(
                     <button
                         type="button"
                         class="btn-pdf"
-                        data-pdf="${escapar(
-                            conformidad.id
-                        )}"
                     >
                         📄 PDF
                     </button>
@@ -1490,9 +1360,6 @@ function renderizar(
                     <button
                         type="button"
                         class="btn-eliminar"
-                        data-eliminar="${escapar(
-                            conformidad.id
-                        )}"
                     >
                         🗑️ Eliminar
                     </button>
@@ -1504,7 +1371,7 @@ function renderizar(
 
             tarjeta
             .querySelector(
-                "[data-ver]"
+                ".btn-ver"
             )
             .addEventListener(
                 "click",
@@ -1520,7 +1387,7 @@ function renderizar(
 
             tarjeta
             .querySelector(
-                "[data-pdf]"
+                ".btn-pdf"
             )
             .addEventListener(
                 "click",
@@ -1536,7 +1403,7 @@ function renderizar(
 
             tarjeta
             .querySelector(
-                "[data-eliminar]"
+                ".btn-eliminar"
             )
             .addEventListener(
                 "click",
@@ -1800,7 +1667,7 @@ modal.addEventListener(
 
 
 // ==========================================
-// ELIMINAR CONFORMIDAD
+// ELIMINAR
 // ==========================================
 
 async function eliminarConformidad(
@@ -1836,11 +1703,6 @@ async function eliminarConformidad(
         );
 
 
-        /*
-         * VOLVEMOS A LEER EL DOCUMENTO
-         * ANTES DE ELIMINAR.
-         */
-
         const referencia =
         doc(
             db,
@@ -1864,7 +1726,6 @@ async function eliminarConformidad(
                 "error"
             );
 
-
             await cargarConformidades();
 
             return;
@@ -1875,12 +1736,6 @@ async function eliminarConformidad(
         const datos =
         documento.data();
 
-
-        /*
-         * IMPORTANTE:
-         * Nunca eliminar un documento
-         * que pertenezca a otra empresa.
-         */
 
         if(
             !perteneceAUsuarioOEmpresa(
@@ -2171,200 +2026,88 @@ body{
     font-size:10px;
 }
 
-</style>
-
-</head>
-
-<body>
-
-<div class="encabezado">
-
-<div>
-
-<div class="logo-texto">
+</style></head><body><div class="encabezado"><div><div class="logo-texto">
 ${escapeHTML(empresaNombre)}
-</div>
-
-<div class="subtitulo">
+</div><div class="subtitulo">
 GESBASE — Tu empresa. Todo organizado.
-</div>
-
-<div class="subtitulo">
+</div><div class="subtitulo">
 ${escapeHTML(datosEmpresa)}
-</div>
-
-</div>
-
-${
-    logo
-    ?
-    `
-    <img
-        class="logo-empresa"
-        src="${escapeHTML(logo)}"
-        alt="Logo"
-    >
-    `
-    :
-    ""
+</div></div>${
+logo
+?
+"<img class="logo-empresa" src="${escapeHTML(logo)}" alt="Logo" >"
+:
+""
 }
 
-</div>
-
-
-<div class="titulo">
+</div><div class="titulo">
 CONSTANCIA DE CONFORMIDAD DE TRABAJO
-</div>
-
-
-<div class="campo">
-
-<div class="etiqueta">
+</div><div class="campo"><div class="etiqueta">
 CLIENTE
-</div>
-
-<div class="valor">
+</div><div class="valor">
 ${escapeHTML(
     datos.cliente ||
     "Sin informar"
 )}
-</div>
-
-</div>
-
-
-<div class="campo">
-
-<div class="etiqueta">
+</div></div><div class="campo"><div class="etiqueta">
 TRABAJO REALIZADO
-</div>
-
-<div class="valor">
+</div><div class="valor">
 ${escapeHTML(
     datos.trabajo ||
     "Sin informar"
 )}
-</div>
-
-</div>
-
-
-<div class="campo">
-
-<div class="etiqueta">
+</div></div><div class="campo"><div class="etiqueta">
 LUGAR
-</div>
-
-<div class="valor">
+</div><div class="valor">
 ${escapeHTML(
     datos.lugar ||
     "Sin informar"
 )}
-</div>
-
-</div>
-
-
-<div class="campo">
-
-<div class="etiqueta">
+</div></div><div class="campo"><div class="etiqueta">
 FECHA DEL TRABAJO
-</div>
-
-<div class="valor">
+</div><div class="valor">
 ${escapeHTML(
     formatoFecha(
         datos.fechaTrabajo
     )
 )}
-</div>
-
-</div>
-
-
-<div class="campo">
-
-<div class="etiqueta">
+</div></div><div class="campo"><div class="etiqueta">
 OBSERVACIONES DEL TRABAJO
-</div>
-
-<div class="observaciones">
+</div><div class="observaciones">
 ${escapeHTML(
     datos.observacionesTrabajo ||
     "Sin observaciones."
 )}
-</div>
-
-</div>
-
-
-<div class="campo">
-
-<div class="etiqueta">
+</div></div><div class="campo"><div class="etiqueta">
 OBSERVACIONES DE CONFORMIDAD
-</div>
-
-<div class="observaciones">
+</div><div class="observaciones">
 ${escapeHTML(
     datos.observacionesConformidad ||
     "Sin observaciones."
 )}
-</div>
-
-</div>
-
-
-<div class="texto-conformidad">
-
-Declaro haber recibido y revisado el trabajo indicado
+</div></div><div class="texto-conformidad">Declaro haber recibido y revisado el trabajo indicado
 y manifiesto mi conformidad con el trabajo realizado.
 
-</div>
-
-
-<div class="firma">
-
-<strong>
+</div><div class="firma"><strong>
 Firma del cliente
-</strong>
-
-${
-    firma
-    ?
-    `
-    <img
-        src="${escapeHTML(firma)}"
-        alt="Firma del cliente"
-    >
-    `
-    :
-    `
-    <div class="sin-firma">
-    No hay firma registrada.
-    </div>
-    `
+</strong>${
+firma
+?
+"<img src="${escapeHTML(firma)}" alt="Firma del cliente" >"
+:
+"<div class="sin-firma"> No hay firma registrada. </div>"
 }
 
-</div>
+</div><div class="pie">Documento generado por GESBASE.
 
-
-<div class="pie">
-
-Documento generado por GESBASE.
-
-<br>
-
-Fecha de registro:
+<br>Fecha de registro:
 ${escapeHTML(
-    fechaRegistro.toLocaleString(
-        "es-AR"
-    )
+fechaRegistro.toLocaleString(
+"es-AR"
+)
 )}
 
-</div>
-
-
-<script>
+</div><script>
 
 window.onload = function(){
 
@@ -2455,16 +2198,27 @@ onAuthStateChanged(
         try{
 
             /*
-             * PRIMERO:
-             * identificar empresa.
+             * Verificar Firestore
+             */
+
+            if(!db){
+
+                throw new Error(
+                    "No se pudo conectar con Firestore."
+                );
+
+            }
+
+
+            /*
+             * 1. Empresa
              */
 
             await cargarEmpresa();
 
 
             /*
-             * DESPUÉS:
-             * cargar conformidades.
+             * 2. Conformidades
              */
 
             await cargarConformidades();
@@ -2493,8 +2247,4 @@ onAuthStateChanged(
     }
 );
 
-</script>
-
-</body>
-
-</html>
+</script></body></html>
