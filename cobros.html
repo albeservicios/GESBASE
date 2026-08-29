@@ -1,8 +1,1094 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<meta
+    name="description"
+    content="GESBASE - Cobros"
+>
+
+<title>Cobros - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.contenedor{
+    width:100%;
+    max-width:700px;
+    margin:auto;
+    min-height:100vh;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:#fff;
+    padding:22px 20px;
+}
+
+header h1{
+    font-size:25px;
+}
+
+header p{
+    margin-top:5px;
+    font-size:14px;
+    color:#d1d5db;
+}
+
+main{
+    padding:18px;
+}
+
+.estado{
+    display:none;
+    padding:12px;
+    margin-bottom:15px;
+    border-radius:10px;
+    font-size:14px;
+    line-height:1.4;
+}
+
+.estado.visible{
+    display:block;
+}
+
+.estado.info{
+    background:#dbeafe;
+    color:#1e40af;
+}
+
+.estado.exito{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado.error{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+
+/* ==============================
+   FORMULARIO
+============================== */
+
+.formulario{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:20px;
+}
+
+.formulario h2{
+    font-size:19px;
+    margin-bottom:15px;
+}
+
+.campo{
+    margin-bottom:15px;
+}
+
+label{
+    display:block;
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:13px;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    background:#fff;
+    font-size:16px;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+    outline:none;
+    border-color:#2563eb;
+}
+
+textarea{
+    min-height:90px;
+    resize:vertical;
+}
+
+input[readonly]{
+    background:#f3f4f6;
+}
+
+button{
+    width:100%;
+    border:none;
+    border-radius:10px;
+    padding:14px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:8px;
+}
+
+button:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+.btn-guardar{
+    background:#111827;
+    color:#fff;
+}
+
+.btn-volver{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+
+/* ==============================
+   RESUMEN
+============================== */
+
+.resumen{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.resumen-card{
+    padding:15px;
+    border-radius:12px;
+    border:1px solid #e5e7eb;
+    background:#f9fafb;
+}
+
+.resumen-titulo{
+    font-size:13px;
+    color:#6b7280;
+}
+
+.resumen-valor{
+    margin-top:5px;
+    font-size:21px;
+    font-weight:bold;
+}
+
+.resumen-card.pendiente{
+    background:#fff7ed;
+    border-color:#fed7aa;
+}
+
+.resumen-card.cobrado{
+    background:#f0fdf4;
+    border-color:#bbf7d0;
+}
+
+
+/* ==============================
+   CABECERA LISTADO
+============================== */
+
+.lista-cabecera{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:12px;
+}
+
+.lista-cabecera h2{
+    font-size:20px;
+}
+
+.contador{
+    color:#6b7280;
+    font-size:13px;
+}
+
+
+/* ==============================
+   CARGANDO
+============================== */
+
+.cargando{
+    padding:25px;
+    text-align:center;
+    color:#6b7280;
+}
+
+.sin-cobros{
+    display:none;
+    padding:25px;
+    text-align:center;
+    background:#f9fafb;
+    border:1px dashed #d1d5db;
+    border-radius:12px;
+    color:#6b7280;
+}
+
+
+/* ==============================
+   LISTA
+============================== */
+
+.lista-cobros{
+    display:none;
+    flex-direction:column;
+    gap:12px;
+}
+
+.cobro{
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:15px;
+    background:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.cobro.pendiente{
+    border-left:5px solid #f59e0b;
+}
+
+.cobro.cobrado{
+    border-left:5px solid #16a34a;
+}
+
+.cobro-cabecera{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+}
+
+.cobro-cliente{
+    font-size:18px;
+    font-weight:bold;
+}
+
+.cobro-importe{
+    font-size:18px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.estado-cobro{
+    display:inline-block;
+    margin-top:9px;
+    padding:6px 9px;
+    border-radius:7px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.estado-cobro.pendiente{
+    background:#ffedd5;
+    color:#9a3412;
+}
+
+.estado-cobro.cobrado{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.cobro-datos{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:14px;
+}
+
+.cobro-dato{
+    padding:9px;
+    background:#f9fafb;
+    border-radius:8px;
+    font-size:12px;
+    color:#6b7280;
+}
+
+.cobro-dato strong{
+    display:block;
+    margin-top:4px;
+    color:#111827;
+    font-size:13px;
+}
+
+.cobro-observaciones{
+    margin-top:12px;
+    padding:10px;
+    background:#f3f4f6;
+    border-radius:8px;
+    font-size:13px;
+    line-height:1.4;
+}
+
+.botones-cobro{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:13px;
+}
+
+.botones-cobro button{
+    margin:0;
+    padding:11px 8px;
+    font-size:14px;
+}
+
+.btn-cobrado{
+    background:#16a34a;
+    color:#fff;
+}
+
+.btn-recibo{
+    background:#2563eb;
+    color:#fff;
+}
+
+.btn-eliminar{
+    grid-column:1 / -1;
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+
+/* ==============================
+   RECIBO
+============================== */
+
+.recibo-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:rgba(0,0,0,.65);
+    padding:15px;
+    overflow:auto;
+}
+
+.recibo-overlay.visible{
+    display:block;
+}
+
+.recibo{
+    width:100%;
+    max-width:600px;
+    margin:20px auto;
+    background:#fff;
+    border-radius:14px;
+    padding:22px;
+}
+
+.recibo-cabecera{
+    text-align:center;
+    border-bottom:1px solid #e5e7eb;
+    padding-bottom:15px;
+    margin-bottom:15px;
+}
+
+.recibo-logo{
+    max-width:90px;
+    max-height:90px;
+    object-fit:contain;
+    display:none;
+    margin:0 auto 10px;
+}
+
+.recibo-empresa{
+    font-size:21px;
+    font-weight:bold;
+}
+
+.recibo-empresa-datos{
+    margin-top:5px;
+    font-size:12px;
+    color:#6b7280;
+    line-height:1.5;
+}
+
+.recibo-titulo{
+    margin-top:15px;
+    font-size:22px;
+    font-weight:bold;
+}
+
+.recibo-numero{
+    margin-top:5px;
+    color:#6b7280;
+    font-size:14px;
+}
+
+.recibo-linea{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    padding:10px 0;
+    border-bottom:1px solid #f0f0f0;
+    font-size:14px;
+}
+
+.recibo-linea strong{
+    text-align:right;
+}
+
+.recibo-total{
+    margin-top:15px;
+    padding:15px;
+    background:#f3f4f6;
+    border-radius:10px;
+    display:flex;
+    justify-content:space-between;
+    font-size:20px;
+    font-weight:bold;
+}
+
+.recibo-descripcion{
+    margin-top:15px;
+    padding:12px;
+    background:#f9fafb;
+    border-radius:9px;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.recibo-observaciones{
+    margin-top:12px;
+    padding:12px;
+    background:#fff7ed;
+    border-radius:9px;
+    font-size:13px;
+}
+
+.recibo-estado{
+    margin-top:15px;
+    text-align:center;
+    font-weight:bold;
+}
+
+.recibo-botones{
+    margin-top:20px;
+}
+
+.btn-imprimir{
+    background:#111827;
+    color:#fff;
+}
+
+.btn-whatsapp{
+    background:#16a34a;
+    color:#fff;
+}
+
+.btn-cerrar{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+
+/* ==============================
+   PRINT
+============================== */
+
+@media print{
+
+    body{
+        background:#fff;
+    }
+
+    body > *{
+        display:none !important;
+    }
+
+    .recibo-overlay{
+        display:block !important;
+        position:static;
+        background:#fff;
+        padding:0;
+    }
+
+    .recibo{
+        max-width:none;
+        margin:0;
+        border-radius:0;
+        box-shadow:none;
+    }
+
+    .recibo-botones{
+        display:none;
+    }
+
+}
+
+
+/* ==============================
+   MOBILE
+============================== */
+
+@media(max-width:600px){
+
+    main{
+        padding:14px;
+    }
+
+    .cobro-datos{
+        grid-template-columns:1fr;
+    }
+
+    .cobro-cabecera{
+        flex-direction:column;
+    }
+
+    .cobro-importe{
+        font-size:20px;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<header>
+
+<h1>💵 Cobros</h1>
+
+<p>GESBASE</p>
+
+</header>
+
+
+<main>
+
+<div
+    id="estado"
+    class="estado"
+></div>
+
+
+<!-- ==========================================
+     FORMULARIO
+========================================== -->
+
+<section class="formulario">
+
+<h2>Registrar cobro</h2>
+
+
+<div class="campo">
+
+<label for="cliente">
+Cliente
+</label>
+
+<select id="cliente">
+
+<option value="">
+Cargando clientes...
+</option>
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label for="trabajo">
+Trabajo
+</label>
+
+<select id="trabajo">
+
+<option value="">
+Seleccioná primero un cliente
+</option>
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label for="importe">
+Importe
+</label>
+
+<input
+    type="number"
+    id="importe"
+    min="0"
+    step="0.01"
+    placeholder="0,00"
+    inputmode="decimal"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="fecha">
+Fecha de registro
+</label>
+
+<input
+    type="date"
+    id="fecha"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="diasACobrar">
+Días hasta cobrar
+</label>
+
+<input
+    type="number"
+    id="diasACobrar"
+    min="0"
+    step="1"
+    value="1"
+    inputmode="numeric"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="fechaPrevista">
+Fecha prevista de cobro
+</label>
+
+<input
+    type="date"
+    id="fechaPrevista"
+    readonly
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="medioPago">
+Medio de pago
+</label>
+
+<select id="medioPago">
+
+<option value="">
+Seleccionar
+</option>
+
+<option value="Efectivo">
+Efectivo
+</option>
+
+<option value="Transferencia">
+Transferencia
+</option>
+
+<option value="Mercado Pago">
+Mercado Pago
+</option>
+
+<option value="Cheque">
+Cheque
+</option>
+
+<option value="Tarjeta">
+Tarjeta
+</option>
+
+<option value="Otro">
+Otro
+</option>
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label for="observaciones">
+Observaciones
+</label>
+
+<textarea
+    id="observaciones"
+    placeholder="Observaciones del cobro..."
+></textarea>
+
+</div>
+
+
+<button
+    type="button"
+    id="btnGuardar"
+    class="btn-guardar"
+>
+💵 Registrar cobro
+</button>
+
+
+<button
+    type="button"
+    id="btnVolver"
+    class="btn-volver"
+>
+← Volver al panel
+</button>
+
+</section>
+
+
+<!-- ==========================================
+     RESUMEN
+========================================== -->
+
+<section class="resumen">
+
+<div class="resumen-card">
+
+<div class="resumen-titulo">
+Total registrado
+</div>
+
+<div
+    class="resumen-valor"
+    id="totalRegistrado"
+>
+$ 0,00
+</div>
+
+</div>
+
+
+<div class="resumen-card pendiente">
+
+<div class="resumen-titulo">
+Total pendiente
+</div>
+
+<div
+    class="resumen-valor"
+    id="totalPendiente"
+>
+$ 0,00
+</div>
+
+</div>
+
+
+<div class="resumen-card cobrado">
+
+<div class="resumen-titulo">
+Total cobrado
+</div>
+
+<div
+    class="resumen-valor"
+    id="totalCobrado"
+>
+$ 0,00
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ==========================================
+     LISTADO
+========================================== -->
+
+<div class="lista-cabecera">
+
+<h2>
+Mis cobros
+</h2>
+
+<span
+    id="contador"
+    class="contador"
+>
+0 cobros
+</span>
+
+</div>
+
+
+<div
+    id="cargando"
+    class="cargando"
+>
+Cargando cobros...
+</div>
+
+
+<div
+    id="sinCobros"
+    class="sin-cobros"
+>
+
+No hay cobros registrados todavía.
+
+</div>
+
+
+<div
+    id="listaCobros"
+    class="lista-cobros"
+></div>
+
+
+</main>
+
+</div>
+
+
+<!-- ==========================================
+     RECIBO
+========================================== -->
+
+<div
+    id="reciboOverlay"
+    class="recibo-overlay"
+>
+
+<div class="recibo">
+
+
+<div class="recibo-cabecera">
+
+<img
+    id="reciboLogo"
+    class="recibo-logo"
+    alt="Logo"
+>
+
+<div
+    id="reciboEmpresaNombre"
+    class="recibo-empresa"
+>
+GESBASE
+</div>
+
+<div
+    id="reciboEmpresaDatos"
+    class="recibo-empresa-datos"
+></div>
+
+
+<div class="recibo-titulo">
+RECIBO DE COBRO
+</div>
+
+<div
+    id="reciboNumero"
+    class="recibo-numero"
+>
+N.º RC-000001
+</div>
+
+</div>
+
+
+<div class="recibo-linea">
+
+<span>
+Cliente
+</span>
+
+<strong id="reciboCliente">
+-
+</strong>
+
+</div>
+
+
+<div class="recibo-linea">
+
+<span>
+Fecha de registro
+</span>
+
+<strong id="reciboFecha">
+-
+</strong>
+
+</div>
+
+
+<div class="recibo-linea">
+
+<span>
+Trabajo
+</span>
+
+<strong id="reciboTrabajo">
+-
+</strong>
+
+</div>
+
+
+<div class="recibo-linea">
+
+<span>
+Medio de pago
+</span>
+
+<strong id="reciboMedioPago">
+-
+</strong>
+
+</div>
+
+
+<div class="recibo-linea">
+
+<span>
+Días hasta cobrar
+</span>
+
+<strong id="reciboDias">
+-
+</strong>
+
+</div>
+
+
+<div class="recibo-linea">
+
+<span>
+Fecha prevista
+</span>
+
+<strong id="reciboFechaPrevista">
+-
+</strong>
+
+</div>
+
+
+<div
+    id="reciboDescripcion"
+    class="recibo-descripcion"
+>
+Importe a cobrar
+</div>
+
+
+<div class="recibo-total">
+
+<span>
+TOTAL
+</span>
+
+<strong id="reciboTotal">
+$ 0,00
+</strong>
+
+</div>
+
+
+<div
+    id="reciboEstado"
+    class="recibo-estado"
+>
+Estado: PENDIENTE
+</div>
+
+
+<div
+    id="reciboObservaciones"
+    class="recibo-observaciones"
+    style="display:none;"
+></div>
+
+
+<div class="recibo-botones">
+
+<button
+    type="button"
+    id="btnImprimir"
+    class="btn-imprimir"
+>
+🖨️ Imprimir / PDF
+</button>
+
+
+<button
+    type="button"
+    id="btnWhatsApp"
+    class="btn-whatsapp"
+>
+📱 Enviar por WhatsApp
+</button>
+
+
+<button
+    type="button"
+    id="btnCerrarRecibo"
+    class="btn-cerrar"
+>
+Cerrar
+</button>
+
+</div>
+
+
+</div>
+
+</div>
+
+
 <script type="module">
 
-// ==========================================
+// =====================================================
 // FIREBASE
-// ==========================================
+// =====================================================
 
 import {
     auth,
@@ -11,8 +1097,7 @@ import {
 
 import {
     onAuthStateChanged
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
     collection,
@@ -23,13 +1108,12 @@ import {
     updateDoc,
     doc,
     serverTimestamp
-} from
-"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-// ==========================================
+// =====================================================
 // ELEMENTOS
-// ==========================================
+// =====================================================
 
 const btnVolver =
 document.getElementById("btnVolver");
@@ -85,9 +1169,6 @@ document.getElementById("totalPendiente");
 const totalCobrado =
 document.getElementById("totalCobrado");
 
-const cantidadCobros =
-document.getElementById("cantidadCobros");
-
 const reciboOverlay =
 document.getElementById("reciboOverlay");
 
@@ -101,9 +1182,9 @@ const btnCerrarRecibo =
 document.getElementById("btnCerrarRecibo");
 
 
-// ==========================================
-// DATOS
-// ==========================================
+// =====================================================
+// VARIABLES
+// =====================================================
 
 let usuarioActual = null;
 
@@ -120,147 +1201,37 @@ let cobrosActuales = [];
 let reciboActual = null;
 
 
-// ==========================================
-// FECHA LOCAL
-// ==========================================
+// =====================================================
+// UTILIDADES
+// =====================================================
 
-function fechaLocal(){
+function texto(valor){
 
-    const ahora = new Date();
+    if(
+        valor === undefined ||
+        valor === null
+    ){
 
-    const año =
-    ahora.getFullYear();
+        return "";
 
-    const mes =
-    String(
-        ahora.getMonth() + 1
-    ).padStart(2,"0");
+    }
 
-    const dia =
-    String(
-        ahora.getDate()
-    ).padStart(2,"0");
-
-    return `${año}-${mes}-${dia}`;
+    return String(valor).trim();
 
 }
 
 
-function colocarFechaActual(){
+function numero(valor){
 
-    fecha.value =
-    fechaLocal();
+    const n =
+    Number(valor);
 
-    calcularFechaPrevista();
-
-}
-
-
-// ==========================================
-// CALCULAR FECHA PREVISTA
-// ==========================================
-
-function calcularFechaPrevista(){
-
-    if(!fecha.value){
-
-        fechaPrevista.value = "";
-
-        return;
-
-    }
-
-    const dias =
-    Number(
-        diasACobrar.value
-    ) || 0;
-
-    const partes =
-    fecha.value.split("-");
-
-    if(partes.length !== 3){
-
-        fechaPrevista.value = "";
-
-        return;
-
-    }
-
-    const fechaBase =
-    new Date(
-        Number(partes[0]),
-        Number(partes[1]) - 1,
-        Number(partes[2])
-    );
-
-    fechaBase.setDate(
-        fechaBase.getDate() + dias
-    );
-
-    const año =
-    fechaBase.getFullYear();
-
-    const mes =
-    String(
-        fechaBase.getMonth() + 1
-    ).padStart(2,"0");
-
-    const dia =
-    String(
-        fechaBase.getDate()
-    ).padStart(2,"0");
-
-    fechaPrevista.value =
-    `${año}-${mes}-${dia}`;
+    return Number.isFinite(n)
+        ? n
+        : 0;
 
 }
 
-
-fecha.addEventListener(
-    "change",
-    calcularFechaPrevista
-);
-
-diasACobrar.addEventListener(
-    "change",
-    calcularFechaPrevista
-);
-
-
-// ==========================================
-// VOLVER
-// ==========================================
-
-btnVolver.addEventListener(
-    "click",
-    function(){
-
-        window.location.href =
-        "index.html";
-
-    }
-);
-
-
-// ==========================================
-// CERRAR RECIBO
-// ==========================================
-
-btnCerrarRecibo.addEventListener(
-    "click",
-    function(){
-
-        reciboOverlay.classList.remove(
-            "visible"
-        );
-
-    }
-);
-
-
-// ==========================================
-// MENSAJES
-// ==========================================
 
 function mostrarEstado(
     mensaje,
@@ -277,17 +1248,10 @@ function mostrarEstado(
 }
 
 
-// ==========================================
-// MONEDA
-// ==========================================
+function formatoMoneda(valor){
 
-function formatoMoneda(
-    valor
-){
-
-    return Number(
-        valor || 0
-    ).toLocaleString(
+    return numero(valor)
+    .toLocaleString(
         "es-AR",
         {
             style:"currency",
@@ -299,13 +1263,7 @@ function formatoMoneda(
 }
 
 
-// ==========================================
-// FORMATO FECHA
-// ==========================================
-
-function formatoFecha(
-    valor
-){
+function formatoFecha(valor){
 
     if(!valor){
 
@@ -333,13 +1291,7 @@ function formatoFecha(
 }
 
 
-// ==========================================
-// ESCAPAR HTML
-// ==========================================
-
-function escapar(
-    valor
-){
+function escapar(valor){
 
     return String(
         valor ?? ""
@@ -353,9 +1305,127 @@ function escapar(
 }
 
 
-// ==========================================
-// OBTENER EMPRESA
-// ==========================================
+// =====================================================
+// FECHA LOCAL
+// =====================================================
+
+function fechaLocal(){
+
+    const ahora =
+    new Date();
+
+    return (
+        ahora.getFullYear() +
+        "-" +
+        String(
+            ahora.getMonth() + 1
+        ).padStart(2,"0") +
+        "-" +
+        String(
+            ahora.getDate()
+        ).padStart(2,"0")
+    );
+
+}
+
+
+function colocarFechaActual(){
+
+    fecha.value =
+    fechaLocal();
+
+    calcularFechaPrevista();
+
+}
+
+
+// =====================================================
+// FECHA PREVISTA
+// =====================================================
+
+function calcularFechaPrevista(){
+
+    if(!fecha.value){
+
+        fechaPrevista.value =
+        "";
+
+        return;
+
+    }
+
+    const dias =
+    Number(
+        diasACobrar.value
+    ) || 0;
+
+    const partes =
+    fecha.value.split("-");
+
+    if(partes.length !== 3){
+
+        fechaPrevista.value =
+        "";
+
+        return;
+
+    }
+
+    const fechaBase =
+    new Date(
+        Number(partes[0]),
+        Number(partes[1]) - 1,
+        Number(partes[2])
+    );
+
+    fechaBase.setDate(
+        fechaBase.getDate() +
+        dias
+    );
+
+    fechaPrevista.value =
+        fechaBase.getFullYear() +
+        "-" +
+        String(
+            fechaBase.getMonth() + 1
+        ).padStart(2,"0") +
+        "-" +
+        String(
+            fechaBase.getDate()
+        ).padStart(2,"0");
+
+}
+
+
+fecha.addEventListener(
+    "change",
+    calcularFechaPrevista
+);
+
+diasACobrar.addEventListener(
+    "input",
+    calcularFechaPrevista
+);
+
+
+// =====================================================
+// VOLVER
+// =====================================================
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "./index.html";
+
+    }
+);
+
+
+// =====================================================
+// EMPRESA
+// =====================================================
 
 async function cargarEmpresa(){
 
@@ -365,42 +1435,34 @@ async function cargarEmpresa(){
 
     try{
 
-        const referenciaUsuario =
+        const usuarioRef =
         doc(
             db,
             "usuarios",
             usuarioActual.uid
         );
 
-        const documentoUsuario =
+        const usuarioSnap =
         await getDoc(
-            referenciaUsuario
+            usuarioRef
         );
 
         let datosUsuario = {};
 
-        if(
-            documentoUsuario.exists()
-        ){
+        if(usuarioSnap.exists()){
 
             datosUsuario =
-            documentoUsuario.data();
+            usuarioSnap.data();
 
         }
 
-
         empresaIdActual =
-        String(
-            datosUsuario.empresaId ||
-            datosUsuario.empresa ||
-            ""
-        ).trim();
-
-
-        /*
-         * Compatibilidad con usuarios
-         * que todavía no tienen empresaId.
-         */
+        texto(
+            datosUsuario.empresaId
+        ) ||
+        texto(
+            datosUsuario.empresa
+        );
 
         if(!empresaIdActual){
 
@@ -409,26 +1471,22 @@ async function cargarEmpresa(){
 
         }
 
-
-        const referenciaEmpresa =
+        const empresaRef =
         doc(
             db,
             "empresas",
             empresaIdActual
         );
 
-        const documentoEmpresa =
+        const empresaSnap =
         await getDoc(
-            referenciaEmpresa
+            empresaRef
         );
 
-
-        if(
-            documentoEmpresa.exists()
-        ){
+        if(empresaSnap.exists()){
 
             empresaActual =
-            documentoEmpresa.data();
+            empresaSnap.data();
 
         }
 
@@ -436,25 +1494,21 @@ async function cargarEmpresa(){
     catch(error){
 
         console.error(
-            "Error cargando empresa:",
+            "Error empresa:",
             error
         );
 
-        if(!empresaIdActual){
-
-            empresaIdActual =
-            usuarioActual.uid;
-
-        }
+        empresaIdActual =
+        usuarioActual.uid;
 
     }
 
 }
 
 
-// ==========================================
+// =====================================================
 // CARGAR CLIENTES
-// ==========================================
+// =====================================================
 
 async function cargarClientes(){
 
@@ -463,7 +1517,6 @@ async function cargarClientes(){
             Cargando clientes...
         </option>
     `;
-
 
     try{
 
@@ -475,9 +1528,7 @@ async function cargarClientes(){
             )
         );
 
-
         clientes = [];
-
 
         snapshot.forEach(
             function(documento){
@@ -485,30 +1536,21 @@ async function cargarClientes(){
                 const datos =
                 documento.data();
 
-
                 const perteneceEmpresa =
-                (
                     datos.empresaId ===
                     empresaIdActual
-                )
-                ||
-                (
+                    ||
                     datos.usuarioId ===
                     usuarioActual.uid
-                )
-                ||
-                (
+                    ||
                     datos.uid ===
-                    usuarioActual.uid
-                );
-
+                    usuarioActual.uid;
 
                 if(!perteneceEmpresa){
 
                     return;
 
                 }
-
 
                 const nombre =
                 [
@@ -518,14 +1560,12 @@ async function cargarClientes(){
                 .filter(Boolean)
                 .join(" ");
 
-
                 const nombreFinal =
                 nombre ||
                 datos.empresa ||
                 datos.razonSocial ||
                 datos.razon_social ||
                 "Cliente";
-
 
                 clientes.push({
 
@@ -543,7 +1583,6 @@ async function cargarClientes(){
             }
         );
 
-
         clientes.sort(
             function(a,b){
 
@@ -555,13 +1594,11 @@ async function cargarClientes(){
             }
         );
 
-
         cliente.innerHTML = `
             <option value="">
                 Seleccionar cliente
             </option>
         `;
-
 
         clientes.forEach(
             function(item){
@@ -584,10 +1621,7 @@ async function cargarClientes(){
             }
         );
 
-
-        if(
-            clientes.length === 0
-        ){
+        if(clientes.length === 0){
 
             cliente.innerHTML = `
                 <option value="">
@@ -601,7 +1635,7 @@ async function cargarClientes(){
     catch(error){
 
         console.error(
-            "Error cargando clientes:",
+            "Error clientes:",
             error
         );
 
@@ -622,9 +1656,9 @@ async function cargarClientes(){
 }
 
 
-// ==========================================
-// CARGAR TODOS LOS TRABAJOS
-// ==========================================
+// =====================================================
+// CARGAR TRABAJOS
+// =====================================================
 
 async function cargarTrabajos(){
 
@@ -633,7 +1667,6 @@ async function cargarTrabajos(){
             Seleccioná primero un cliente
         </option>
     `;
-
 
     try{
 
@@ -645,9 +1678,7 @@ async function cargarTrabajos(){
             )
         );
 
-
         trabajos = [];
-
 
         snapshot.forEach(
             function(documento){
@@ -655,23 +1686,15 @@ async function cargarTrabajos(){
                 const datos =
                 documento.data();
 
-
                 const perteneceEmpresa =
-                (
                     datos.empresaId ===
                     empresaIdActual
-                )
-                ||
-                (
+                    ||
                     datos.usuarioId ===
                     usuarioActual.uid
-                )
-                ||
-                (
+                    ||
                     datos.uid ===
-                    usuarioActual.uid
-                );
-
+                    usuarioActual.uid;
 
                 if(!perteneceEmpresa){
 
@@ -679,13 +1702,11 @@ async function cargarTrabajos(){
 
                 }
 
-
                 const clienteId =
-                datos.clienteId ||
-                datos.cliente ||
-                datos.cliente_id ||
-                "";
-
+                    datos.clienteId ||
+                    datos.cliente ||
+                    datos.cliente_id ||
+                    "";
 
                 trabajos.push({
 
@@ -699,17 +1720,7 @@ async function cargarTrabajos(){
                     "Trabajo",
 
                     clienteId:
-                    String(
-                        clienteId
-                    ),
-
-                    estado:
-                    datos.estado ||
-                    "Pendiente",
-
-                    lugar:
-                    datos.lugar ||
-                    "",
+                    String(clienteId),
 
                     datos:
                     datos
@@ -723,17 +1734,11 @@ async function cargarTrabajos(){
     catch(error){
 
         console.error(
-            "Error cargando trabajos:",
+            "Error trabajos:",
             error
         );
 
         trabajos = [];
-
-        trabajo.innerHTML = `
-            <option value="">
-                Error cargando trabajos
-            </option>
-        `;
 
         mostrarEstado(
             "No se pudieron cargar los trabajos. " +
@@ -746,9 +1751,9 @@ async function cargarTrabajos(){
 }
 
 
-// ==========================================
-// MOSTRAR TRABAJOS DEL CLIENTE
-// ==========================================
+// =====================================================
+// FILTRAR TRABAJOS
+// =====================================================
 
 function actualizarTrabajosDelCliente(){
 
@@ -757,13 +1762,11 @@ function actualizarTrabajosDelCliente(){
         cliente.value || ""
     );
 
-
     trabajo.innerHTML = `
         <option value="">
             Cargando trabajos...
         </option>
     `;
-
 
     if(!clienteId){
 
@@ -777,25 +1780,22 @@ function actualizarTrabajosDelCliente(){
 
     }
 
-
     const trabajosCliente =
     trabajos.filter(
         function(item){
 
             return String(
-                item.clienteId || ""
+                item.clienteId
             ) === clienteId;
 
         }
     );
-
 
     trabajo.innerHTML = `
         <option value="">
             Sin trabajo relacionado
         </option>
     `;
-
 
     trabajosCliente.sort(
         function(a,b){
@@ -811,7 +1811,6 @@ function actualizarTrabajosDelCliente(){
 
         }
     );
-
 
     trabajosCliente.forEach(
         function(item){
@@ -834,10 +1833,7 @@ function actualizarTrabajosDelCliente(){
         }
     );
 
-
-    if(
-        trabajosCliente.length === 0
-    ){
+    if(trabajosCliente.length === 0){
 
         trabajo.innerHTML = `
             <option value="">
@@ -850,27 +1846,17 @@ function actualizarTrabajosDelCliente(){
 }
 
 
-// ==========================================
-// CAMBIO DE CLIENTE
-// ==========================================
-
 cliente.addEventListener(
     "change",
-    function(){
-
-        actualizarTrabajosDelCliente();
-
-    }
+    actualizarTrabajosDelCliente
 );
 
 
-// ==========================================
-// NOMBRE CLIENTE
-// ==========================================
+// =====================================================
+// NOMBRES
+// =====================================================
 
-function nombreCliente(
-    id
-){
+function nombreCliente(id){
 
     const encontrado =
     clientes.find(
@@ -881,46 +1867,14 @@ function nombreCliente(
         }
     );
 
-
     return encontrado
-    ? encontrado.nombre
-    : "Cliente";
+        ? encontrado.nombre
+        : "Cliente";
 
 }
 
 
-// ==========================================
-// DATOS CLIENTE
-// ==========================================
-
-function datosCliente(
-    id
-){
-
-    const encontrado =
-    clientes.find(
-        function(item){
-
-            return item.id === id;
-
-        }
-    );
-
-
-    return encontrado
-    ? encontrado.datos
-    : {};
-
-}
-
-
-// ==========================================
-// NOMBRE TRABAJO
-// ==========================================
-
-function nombreTrabajo(
-    id
-){
+function nombreTrabajo(id){
 
     const encontrado =
     trabajos.find(
@@ -931,21 +1885,18 @@ function nombreTrabajo(
         }
     );
 
-
     return encontrado
-    ? encontrado.descripcion
-    : "Sin trabajo relacionado";
+        ? encontrado.descripcion
+        : "Sin trabajo relacionado";
 
 }
 
 
-// ==========================================
-// ESTADO COBRO
-// ==========================================
+// =====================================================
+// ESTADO
+// =====================================================
 
-function estaCobrado(
-    cobro
-){
+function estaCobrado(cobro){
 
     return String(
         cobro.estado || ""
@@ -956,9 +1907,9 @@ function estaCobrado(
 }
 
 
-// ==========================================
+// =====================================================
 // CARGAR COBROS
-// ==========================================
+// =====================================================
 
 async function cargarCobros(){
 
@@ -971,7 +1922,6 @@ async function cargarCobros(){
     sinCobros.style.display =
     "none";
 
-
     try{
 
         const snapshot =
@@ -982,9 +1932,7 @@ async function cargarCobros(){
             )
         );
 
-
         cobrosActuales = [];
-
 
         snapshot.forEach(
             function(documento){
@@ -992,30 +1940,21 @@ async function cargarCobros(){
                 const datos =
                 documento.data();
 
-
                 const perteneceEmpresa =
-                (
                     datos.empresaId ===
                     empresaIdActual
-                )
-                ||
-                (
+                    ||
                     datos.usuarioId ===
                     usuarioActual.uid
-                )
-                ||
-                (
+                    ||
                     datos.uid ===
-                    usuarioActual.uid
-                );
-
+                    usuarioActual.uid;
 
                 if(!perteneceEmpresa){
 
                     return;
 
                 }
-
 
                 cobrosActuales.push({
 
@@ -1028,7 +1967,6 @@ async function cargarCobros(){
 
             }
         );
-
 
         cobrosActuales.sort(
             function(a,b){
@@ -1044,45 +1982,35 @@ async function cargarCobros(){
             }
         );
 
-
         let total = 0;
-
         let pendiente = 0;
-
         let cobrado = 0;
-
 
         cobrosActuales.forEach(
             function(item){
 
-                const importeItem =
-                Number(
-                    item.importe || 0
+                const valor =
+                numero(
+                    item.importe
                 );
 
-
-                total +=
-                importeItem;
-
+                total += valor;
 
                 if(
                     estaCobrado(item)
                 ){
 
-                    cobrado +=
-                    importeItem;
+                    cobrado += valor;
 
                 }
                 else{
 
-                    pendiente +=
-                    importeItem;
+                    pendiente += valor;
 
                 }
 
             }
         );
-
 
         totalRegistrado.textContent =
         formatoMoneda(total);
@@ -1093,10 +2021,6 @@ async function cargarCobros(){
         totalCobrado.textContent =
         formatoMoneda(cobrado);
 
-        cantidadCobros.textContent =
-        cobrosActuales.length;
-
-
         contador.textContent =
         cobrosActuales.length +
         (
@@ -1105,18 +2029,13 @@ async function cargarCobros(){
             : " cobros"
         );
 
-
         listaCobros.innerHTML =
         "";
-
 
         cargando.style.display =
         "none";
 
-
-        if(
-            cobrosActuales.length === 0
-        ){
+        if(cobrosActuales.length === 0){
 
             sinCobros.style.display =
             "block";
@@ -1125,17 +2044,13 @@ async function cargarCobros(){
 
         }
 
-
         listaCobros.style.display =
         "flex";
-
 
         cobrosActuales.forEach(
             function(cobro){
 
-                crearCobro(
-                    cobro
-                );
+                crearCobro(cobro);
 
             }
         );
@@ -1144,14 +2059,12 @@ async function cargarCobros(){
     catch(error){
 
         console.error(
-            "Error cargando cobros:",
+            "Error cobros:",
             error
         );
 
-
         cargando.style.display =
         "none";
-
 
         mostrarEstado(
             "No se pudieron cargar los cobros. " +
@@ -1164,23 +2077,19 @@ async function cargarCobros(){
 }
 
 
-// ==========================================
-// CREAR TARJETA DE COBRO
-// ==========================================
+// =====================================================
+// CREAR TARJETA
+// =====================================================
 
-function crearCobro(
-    cobro
-){
+function crearCobro(cobro){
 
     const tarjeta =
     document.createElement(
         "div"
     );
 
-
     const cobrado =
     estaCobrado(cobro);
-
 
     tarjeta.className =
     "cobro " +
@@ -1190,29 +2099,15 @@ function crearCobro(
         : "pendiente"
     );
 
-
     const nombre =
     nombreCliente(
         cobro.clienteId
     );
 
-
-    const trabajoNombre =
+    const trabajoTexto =
     nombreTrabajo(
         cobro.trabajoId
     );
-
-
-    const dias =
-    cobro.diasACobrar !== undefined
-    ? cobro.diasACobrar
-    : "-";
-
-
-    const fechaPrev =
-    cobro.fechaPrevista ||
-    "";
-
 
     tarjeta.innerHTML = `
 
@@ -1249,9 +2144,7 @@ function crearCobro(
         <div class="cobro-datos">
 
             <div class="cobro-dato">
-
                 Fecha de registro
-
                 <strong>
                     ${escapar(
                         formatoFecha(
@@ -1259,62 +2152,54 @@ function crearCobro(
                         )
                     )}
                 </strong>
-
             </div>
 
 
             <div class="cobro-dato">
-
-                Días a cobrar
-
+                Días hasta cobrar
                 <strong>
-                    ${escapar(
-                        dias + " días"
-                    )}
+                    ${
+                        cobro.diasACobrar !== undefined
+                        ? escapar(
+                            cobro.diasACobrar +
+                            " días"
+                        )
+                        : "-"
+                    }
                 </strong>
-
             </div>
 
 
             <div class="cobro-dato">
-
                 Fecha prevista
-
                 <strong>
                     ${escapar(
                         formatoFecha(
-                            fechaPrev
+                            cobro.fechaPrevista
                         )
                     )}
                 </strong>
-
             </div>
 
 
             <div class="cobro-dato">
-
                 Medio de pago
-
                 <strong>
                     ${escapar(
                         cobro.medioPago ||
                         "No informado"
                     )}
                 </strong>
-
             </div>
 
 
             <div class="cobro-dato">
-
                 Trabajo
-
                 <strong>
                     ${escapar(
-                        trabajoNombre
+                        trabajoTexto
                     )}
                 </strong>
-
             </div>
 
 
@@ -1322,9 +2207,7 @@ function crearCobro(
                 cobrado && cobro.fechaCobrado
                 ? `
                     <div class="cobro-dato">
-
                         Fecha cobrado
-
                         <strong>
                             ${escapar(
                                 formatoFecha(
@@ -1332,7 +2215,6 @@ function crearCobro(
                                 )
                             )}
                         </strong>
-
                     </div>
                 `
                 : ""
@@ -1360,8 +2242,8 @@ function crearCobro(
                 !cobrado
                 ? `
                     <button
-                        class="btn-cobrado"
                         type="button"
+                        class="btn-cobrado"
                         data-cobrado="${cobro.id}"
                     >
                         💵 COBRADO
@@ -1369,8 +2251,8 @@ function crearCobro(
                 `
                 : `
                     <button
-                        class="btn-cobrado"
                         type="button"
+                        class="btn-cobrado"
                         disabled
                     >
                         ✅ COBRADO
@@ -1380,8 +2262,8 @@ function crearCobro(
 
 
             <button
-                class="btn-recibo"
                 type="button"
+                class="btn-recibo"
                 data-recibo="${cobro.id}"
             >
                 🧾 Recibo
@@ -1389,8 +2271,8 @@ function crearCobro(
 
 
             <button
-                class="btn-eliminar"
                 type="button"
+                class="btn-eliminar"
                 data-eliminar="${cobro.id}"
             >
                 🗑️ Eliminar
@@ -1405,7 +2287,6 @@ function crearCobro(
     tarjeta.querySelector(
         "[data-cobrado]"
     );
-
 
     if(botonCobrado){
 
@@ -1428,7 +2309,6 @@ function crearCobro(
         "[data-recibo]"
     );
 
-
     botonRecibo.addEventListener(
         "click",
         function(){
@@ -1445,7 +2325,6 @@ function crearCobro(
     tarjeta.querySelector(
         "[data-eliminar]"
     );
-
 
     botonEliminar.addEventListener(
         "click",
@@ -1466,13 +2345,11 @@ function crearCobro(
 }
 
 
-// ==========================================
+// =====================================================
 // MARCAR COBRADO
-// ==========================================
+// =====================================================
 
-async function marcarComoCobrado(
-    id
-){
+async function marcarComoCobrado(id){
 
     const cobro =
     cobrosActuales.find(
@@ -1483,22 +2360,17 @@ async function marcarComoCobrado(
         }
     );
 
-
     if(!cobro){
 
         return;
 
     }
 
-
-    if(
-        estaCobrado(cobro)
-    ){
+    if(estaCobrado(cobro)){
 
         return;
 
     }
-
 
     if(
         !confirm(
@@ -1510,14 +2382,12 @@ async function marcarComoCobrado(
 
     }
 
-
     try{
 
         mostrarEstado(
             "Marcando como cobrado...",
             "info"
         );
-
 
         await updateDoc(
             doc(
@@ -1536,12 +2406,10 @@ async function marcarComoCobrado(
             }
         );
 
-
         mostrarEstado(
             "Cobro marcado correctamente como COBRADO.",
             "exito"
         );
-
 
         await cargarCobros();
 
@@ -1549,10 +2417,8 @@ async function marcarComoCobrado(
     catch(error){
 
         console.error(
-            "Error marcando cobro:",
             error
         );
-
 
         mostrarEstado(
             "No se pudo marcar como cobrado. " +
@@ -1565,39 +2431,33 @@ async function marcarComoCobrado(
 }
 
 
-// ==========================================
-// NÚMERO DE RECIBO
-// ==========================================
+// =====================================================
+// NÚMERO RECIBO
+// =====================================================
 
 function generarNumeroRecibo(){
 
     let mayor = 0;
 
-
     cobrosActuales.forEach(
         function(cobro){
 
-            const numero =
+            const textoNumero =
             String(
                 cobro.numeroRecibo || ""
             );
 
-
             const coincidencia =
-            numero.match(
+            textoNumero.match(
                 /(\d+)$/
             );
 
-
-            if(
-                coincidencia
-            ){
+            if(coincidencia){
 
                 const n =
                 Number(
                     coincidencia[1]
                 );
-
 
                 if(n > mayor){
 
@@ -1611,7 +2471,6 @@ function generarNumeroRecibo(){
         }
     );
 
-
     return String(
         mayor + 1
     ).padStart(
@@ -1622,17 +2481,14 @@ function generarNumeroRecibo(){
 }
 
 
-// ==========================================
+// =====================================================
 // MOSTRAR RECIBO
-// ==========================================
+// =====================================================
 
-function mostrarRecibo(
-    cobro
-){
+function mostrarRecibo(cobro){
 
     reciboActual =
     cobro;
-
 
     const trabajoDatos =
     trabajos.find(
@@ -1645,16 +2501,18 @@ function mostrarRecibo(
     ) || {};
 
 
-    const empresaNombre =
+    const nombreEmpresa =
     empresaActual.nombreEmpresa ||
     empresaActual.nombre ||
     empresaActual.razonSocial ||
     "GESBASE";
 
 
-    const empresaDatos = [
+    const datosEmpresa = [
 
-        empresaActual.razonSocial,
+        empresaActual.razonSocial
+        ? empresaActual.razonSocial
+        : "",
 
         empresaActual.cuit
         ? "CUIT: " +
@@ -1682,13 +2540,13 @@ function mostrarRecibo(
     document.getElementById(
         "reciboEmpresaNombre"
     ).textContent =
-    empresaNombre;
+    nombreEmpresa;
 
 
     document.getElementById(
         "reciboEmpresaDatos"
     ).textContent =
-    empresaDatos;
+    datosEmpresa;
 
 
     const logo =
@@ -1721,17 +2579,19 @@ function mostrarRecibo(
     }
 
 
-    const numero =
+    const numeroRecibo =
     cobro.numeroRecibo ||
-    "RC-" +
-    generarNumeroRecibo();
+    (
+        "RC-" +
+        generarNumeroRecibo()
+    );
 
 
     document.getElementById(
         "reciboNumero"
     ).textContent =
     "N.º " +
-    numero;
+    numeroRecibo;
 
 
     document.getElementById(
@@ -1770,7 +2630,8 @@ function mostrarRecibo(
     ).textContent =
     (
         cobro.diasACobrar !== undefined
-        ? cobro.diasACobrar + " días"
+        ? cobro.diasACobrar +
+          " días"
         : "-"
     );
 
@@ -1803,10 +2664,12 @@ function mostrarRecibo(
         "reciboEstado"
     ).textContent =
     estaCobrado(cobro)
-    ? "Estado: COBRADO — " +
-      formatoFecha(
-          cobro.fechaCobrado
-      )
+    ? (
+        "Estado: COBRADO — " +
+        formatoFecha(
+            cobro.fechaCobrado
+        )
+    )
     : "Estado: PENDIENTE";
 
 
@@ -1841,9 +2704,25 @@ function mostrarRecibo(
 }
 
 
-// ==========================================
+// =====================================================
+// CERRAR RECIBO
+// =====================================================
+
+btnCerrarRecibo.addEventListener(
+    "click",
+    function(){
+
+        reciboOverlay.classList.remove(
+            "visible"
+        );
+
+    }
+);
+
+
+// =====================================================
 // GUARDAR COBRO
-// ==========================================
+// =====================================================
 
 btnGuardar.addEventListener(
     "click",
@@ -1860,7 +2739,6 @@ btnGuardar.addEventListener(
 
         }
 
-
         if(!empresaIdActual){
 
             mostrarEstado(
@@ -1871,7 +2749,6 @@ btnGuardar.addEventListener(
             return;
 
         }
-
 
         if(!cliente.value){
 
@@ -1884,11 +2761,6 @@ btnGuardar.addEventListener(
 
         }
 
-
-        /*
-         * VERIFICAR QUE EL CLIENTE
-         * REALMENTE PERTENEZCA AL USUARIO.
-         */
 
         const clienteSeleccionado =
         clientes.find(
@@ -1912,13 +2784,6 @@ btnGuardar.addEventListener(
 
         }
 
-
-        /*
-         * VERIFICAR TRABAJO
-         *
-         * Si se seleccionó un trabajo,
-         * debe pertenecer al cliente elegido.
-         */
 
         if(trabajo.value){
 
@@ -1967,13 +2832,12 @@ btnGuardar.addEventListener(
 
 
         const importeNumero =
-        Number(
+        numero(
             importe.value
         );
 
 
         if(
-            !importeNumero ||
             importeNumero <= 0
         ){
 
@@ -1981,6 +2845,8 @@ btnGuardar.addEventListener(
                 "Ingresá un importe válido.",
                 "error"
             );
+
+            importe.focus();
 
             return;
 
@@ -1999,10 +2865,12 @@ btnGuardar.addEventListener(
         }
 
 
-        if(!diasACobrar.value){
+        if(
+            diasACobrar.value === ""
+        ){
 
             mostrarEstado(
-                "Seleccioná los días a cobrar.",
+                "Ingresá los días hasta cobrar.",
                 "error"
             );
 
@@ -2025,7 +2893,6 @@ btnGuardar.addEventListener(
 
             const numero =
             generarNumeroRecibo();
-
 
             const numeroRecibo =
             "RC-" +
@@ -2070,7 +2937,9 @@ btnGuardar.addEventListener(
                 medioPago.value || "",
 
                 observaciones:
-                observaciones.value.trim(),
+                texto(
+                    observaciones.value
+                ),
 
                 numeroRecibo:
                 numeroRecibo,
@@ -2099,11 +2968,6 @@ btnGuardar.addEventListener(
                 ...datosCobro
 
             };
-
-
-            cobrosActuales.push(
-                cobroNuevo
-            );
 
 
             mostrarEstado(
@@ -2146,7 +3010,6 @@ btnGuardar.addEventListener(
                 error
             );
 
-
             mostrarEstado(
                 "No se pudo registrar el cobro. " +
                 error.message,
@@ -2168,9 +3031,9 @@ btnGuardar.addEventListener(
 );
 
 
-// ==========================================
-// IMPRIMIR / PDF
-// ==========================================
+// =====================================================
+// IMPRIMIR
+// =====================================================
 
 btnImprimir.addEventListener(
     "click",
@@ -2182,9 +3045,9 @@ btnImprimir.addEventListener(
 );
 
 
-// ==========================================
+// =====================================================
 // WHATSAPP
-// ==========================================
+// =====================================================
 
 btnWhatsApp.addEventListener(
     "click",
@@ -2196,31 +3059,29 @@ btnWhatsApp.addEventListener(
 
         }
 
-
         const numero =
         reciboActual.numeroRecibo ||
         "";
-
 
         const clienteNombre =
         nombreCliente(
             reciboActual.clienteId
         );
 
-
-        const trabajoNombreTexto =
+        const trabajoTexto =
         nombreTrabajo(
             reciboActual.trabajoId
         );
 
-
         const estadoTexto =
-        estaCobrado(reciboActual)
+        estaCobrado(
+            reciboActual
+        )
         ? "COBRADO"
         : "PENDIENTE";
 
 
-        const mensaje =
+        const mensajeWhatsApp =
 
 `🧾 RECIBO DE COBRO - GESBASE
 
@@ -2228,7 +3089,7 @@ N.º ${numero}
 
 Cliente: ${clienteNombre}
 
-Trabajo: ${trabajoNombreTexto}
+Trabajo: ${trabajoTexto}
 
 Fecha de registro: ${
     formatoFecha(
@@ -2236,8 +3097,8 @@ Fecha de registro: ${
     )
 }
 
-Días a cobrar: ${
-    reciboActual.diasACobrar || "-"
+Días hasta cobrar: ${
+    reciboActual.diasACobrar ?? "-"
 }
 
 Fecha prevista: ${
@@ -2271,7 +3132,7 @@ Gracias por su pago.`;
         const url =
         "https://wa.me/?text=" +
         encodeURIComponent(
-            mensaje
+            mensajeWhatsApp
         );
 
 
@@ -2284,13 +3145,11 @@ Gracias por su pago.`;
 );
 
 
-// ==========================================
-// ELIMINAR COBRO
-// ==========================================
+// =====================================================
+// ELIMINAR
+// =====================================================
 
-async function eliminarCobro(
-    id
-){
+async function eliminarCobro(id){
 
     const cobro =
     cobrosActuales.find(
@@ -2301,27 +3160,22 @@ async function eliminarCobro(
         }
     );
 
-
     if(!cobro){
 
         return;
 
     }
 
-
-    const confirmado =
-    confirm(
-        "¿Querés eliminar este cobro?\n\n" +
-        "Esta acción no se puede deshacer."
-    );
-
-
-    if(!confirmado){
+    if(
+        !confirm(
+            "¿Querés eliminar este cobro?\n\n" +
+            "Esta acción no se puede deshacer."
+        )
+    ){
 
         return;
 
     }
-
 
     try{
 
@@ -2329,7 +3183,6 @@ async function eliminarCobro(
             "Eliminando cobro...",
             "info"
         );
-
 
         await deleteDoc(
             doc(
@@ -2339,12 +3192,10 @@ async function eliminarCobro(
             )
         );
 
-
         mostrarEstado(
             "Cobro eliminado correctamente.",
             "exito"
         );
-
 
         await cargarCobros();
 
@@ -2352,10 +3203,8 @@ async function eliminarCobro(
     catch(error){
 
         console.error(
-            "Error eliminando cobro:",
             error
         );
-
 
         mostrarEstado(
             "No se pudo eliminar el cobro. " +
@@ -2368,9 +3217,9 @@ async function eliminarCobro(
 }
 
 
-// ==========================================
-// INICIO
-// ==========================================
+// =====================================================
+// INICIALIZACIÓN
+// =====================================================
 
 colocarFechaActual();
 
@@ -2382,7 +3231,7 @@ onAuthStateChanged(
         if(!usuario){
 
             window.location.replace(
-                "login.html"
+                "./login.html"
             );
 
             return;
@@ -2396,32 +3245,19 @@ onAuthStateChanged(
 
         try{
 
-            /*
-             * 1. Identificar empresa
-             */
-
+            // 1. Empresa
             await cargarEmpresa();
 
 
-            /*
-             * 2. Cargar clientes
-             */
-
+            // 2. Clientes
             await cargarClientes();
 
 
-            /*
-             * 3. Cargar trabajos
-             */
-
+            // 3. Trabajos
             await cargarTrabajos();
 
 
-            /*
-             * 4. Los trabajos NO se muestran
-             * hasta seleccionar cliente.
-             */
-
+            // 4. Mantener trabajo vacío
             trabajo.innerHTML = `
                 <option value="">
                     Seleccioná primero un cliente
@@ -2429,10 +3265,7 @@ onAuthStateChanged(
             `;
 
 
-            /*
-             * 5. Cargar cobros
-             */
-
+            // 5. Cobros
             await cargarCobros();
 
         }
@@ -2443,10 +3276,8 @@ onAuthStateChanged(
                 error
             );
 
-
             cargando.style.display =
             "none";
-
 
             mostrarEstado(
                 "No se pudo cargar el módulo Cobros. " +
@@ -2460,3 +3291,7 @@ onAuthStateChanged(
 );
 
 </script>
+
+</body>
+
+</html>
