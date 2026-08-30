@@ -15,6 +15,11 @@
     content="#111827"
 >
 
+<meta
+    name="description"
+    content="GESBASE - Acceso exclusivo para empleados"
+>
+
 <title>GESBASE - Acceso empleado</title>
 
 <style>
@@ -59,6 +64,7 @@ body{
 
 .logo h1{
     font-size:30px;
+    letter-spacing:.5px;
 }
 
 .logo p{
@@ -92,10 +98,12 @@ body{
     border-radius:10px;
     font-size:16px;
     outline:none;
+    background:#fff;
 }
 
 .campo input:focus{
     border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.10);
 }
 
 .boton{
@@ -114,6 +122,10 @@ body{
     color:white;
 }
 
+.boton-principal:hover{
+    background:#1f2937;
+}
+
 .boton-principal:disabled{
     opacity:.6;
     cursor:not-allowed;
@@ -122,6 +134,10 @@ body{
 .boton-volver{
     background:#e5e7eb;
     color:#111827;
+}
+
+.boton-volver:hover{
+    background:#d1d5db;
 }
 
 .mensaje{
@@ -176,116 +192,130 @@ body{
 
 <div class="contenedor">
 
-<div class="tarjeta">
+    <div class="tarjeta">
 
-<div class="logo">
+        <div class="logo">
 
-<h1>GESBASE</h1>
+            <h1>GESBASE</h1>
 
-<p>Acceso exclusivo para empleados</p>
+            <p>Acceso exclusivo para empleados</p>
 
-</div>
-
-
-<div
-id="mensajeError"
-class="mensaje error"
-></div>
+        </div>
 
 
-<div
-id="mensajeExito"
-class="mensaje exito"
-></div>
+        <div
+            id="mensajeError"
+            class="mensaje error"
+        ></div>
 
 
-<div
-id="cargando"
-class="cargando"
->
-Verificando acceso...
-</div>
+        <div
+            id="mensajeExito"
+            class="mensaje exito"
+        ></div>
 
 
-<div id="formularioLogin">
-
-<div class="titulo">
-Iniciar sesión
-</div>
-
-
-<div class="campo">
-
-<label for="email">
-Email
-</label>
-
-<input
-type="email"
-id="email"
-placeholder="Ingresá tu email"
-autocomplete="username"
->
-
-</div>
+        <div
+            id="cargando"
+            class="cargando"
+        >
+            Verificando acceso...
+        </div>
 
 
-<div class="campo">
+        <div id="formularioLogin">
 
-<label for="password">
-Contraseña
-</label>
-
-<input
-type="password"
-id="password"
-placeholder="Ingresá tu contraseña"
-autocomplete="current-password"
->
-
-</div>
+            <div class="titulo">
+                Iniciar sesión
+            </div>
 
 
-<button
-type="button"
-id="btnIngresar"
-class="boton boton-principal"
->
-INGRESAR
-</button>
+            <div class="campo">
+
+                <label for="email">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Ingresá tu email"
+                    autocomplete="username"
+                >
+
+            </div>
 
 
-<button
-type="button"
-id="btnVolver"
-class="boton boton-volver"
->
-⬅️ VOLVER
-</button>
+            <div class="campo">
 
-</div>
+                <label for="password">
+                    Contraseña
+                </label>
 
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Ingresá tu contraseña"
+                    autocomplete="current-password"
+                >
 
-<div class="info">
-
-🔐 Utilizá el email y contraseña
-que te proporcionó el administrador.
-
-</div>
+            </div>
 
 
-<div class="pie">
+            <button
+                type="button"
+                id="btnIngresar"
+                class="boton boton-principal"
+            >
+                INGRESAR
+            </button>
 
-GESBASE · Acceso empleado
 
-</div>
+            <button
+                type="button"
+                id="btnVolver"
+                class="boton boton-volver"
+            >
+                ⬅️ VOLVER
+            </button>
 
-</div>
+        </div>
+
+
+        <div class="info">
+
+            🔐 Utilizá el email y contraseña
+            que te proporcionó el administrador.
+
+        </div>
+
+
+        <div class="pie">
+
+            GESBASE · Acceso empleado
+
+        </div>
+
+    </div>
 
 </div>
 
 
 <script type="module">
+
+/*
+=========================================================
+ GESBASE - LOGIN DE EMPLEADOS
+ Firebase 12.18.0
+=========================================================
+*/
+
+
+/*
+=========================================================
+ FIREBASE PRINCIPAL
+=========================================================
+*/
 
 import {
     auth,
@@ -293,10 +323,24 @@ import {
 } from "./Js/firebase.js";
 
 
+/*
+=========================================================
+ FIREBASE AUTHENTICATION
+ MISMA VERSIÓN QUE firebase.js
+=========================================================
+*/
+
 import {
     signInWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
+
+/*
+=========================================================
+ FIRESTORE
+ MISMA VERSIÓN QUE firebase.js
+=========================================================
+*/
 
 import {
     collection,
@@ -304,8 +348,14 @@ import {
     where,
     getDocs,
     limit
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
+
+/*
+=========================================================
+ ELEMENTOS
+=========================================================
+*/
 
 const email =
 document.getElementById("email");
@@ -329,16 +379,22 @@ const cargando =
 document.getElementById("cargando");
 
 
+/*
+=========================================================
+ MENSAJES
+=========================================================
+*/
+
 function mostrarError(mensaje){
 
     mensajeError.textContent =
-    mensaje;
+        mensaje;
 
     mensajeError.style.display =
-    "block";
+        "block";
 
     mensajeExito.style.display =
-    "none";
+        "none";
 
 }
 
@@ -346,13 +402,13 @@ function mostrarError(mensaje){
 function mostrarExito(mensaje){
 
     mensajeExito.textContent =
-    mensaje;
+        mensaje;
 
     mensajeExito.style.display =
-    "block";
+        "block";
 
     mensajeError.style.display =
-    "none";
+        "none";
 
 }
 
@@ -360,24 +416,30 @@ function mostrarExito(mensaje){
 function limpiarMensajes(){
 
     mensajeError.style.display =
-    "none";
+        "none";
 
     mensajeExito.style.display =
-    "none";
+        "none";
 
 }
 
 
+/*
+=========================================================
+ CARGANDO
+=========================================================
+*/
+
 function iniciarCarga(){
 
     cargando.style.display =
-    "block";
+        "block";
 
     btnIngresar.disabled =
-    true;
+        true;
 
     btnIngresar.textContent =
-    "INGRESANDO...";
+        "INGRESANDO...";
 
 }
 
@@ -385,16 +447,22 @@ function iniciarCarga(){
 function terminarCarga(){
 
     cargando.style.display =
-    "none";
+        "none";
 
     btnIngresar.disabled =
-    false;
+        false;
 
     btnIngresar.textContent =
-    "INGRESAR";
+        "INGRESAR";
 
 }
 
+
+/*
+=========================================================
+ CONVERTIR VALORES A TEXTO
+=========================================================
+*/
 
 function texto(valor){
 
@@ -412,34 +480,56 @@ function texto(valor){
 }
 
 
+/*
+=========================================================
+ BUSCAR EMPLEADO
+=========================================================
+*/
+
 async function buscarEmpleado(usuario){
 
-    const referencia =
-    collection(
-        db,
-        "empleados"
-    );
+    /*
+     * REFERENCIA A LA COLECCIÓN
+     */
 
+    const referencia =
+        collection(
+            db,
+            "empleados"
+        );
+
+
+    /*
+     * BUSCAR POR authUid
+     */
 
     const consulta =
-    query(
-        referencia,
+        query(
+            referencia,
 
-        where(
-            "authUid",
-            "==",
-            usuario.uid
-        ),
+            where(
+                "authUid",
+                "==",
+                usuario.uid
+            ),
 
-        limit(1)
-    );
+            limit(1)
+        );
 
+
+    /*
+     * EJECUTAR CONSULTA
+     */
 
     const resultados =
-    await getDocs(
-        consulta
-    );
+        await getDocs(
+            consulta
+        );
 
+
+    /*
+     * NO EXISTE
+     */
 
     if(resultados.empty){
 
@@ -450,14 +540,22 @@ async function buscarEmpleado(usuario){
     }
 
 
-    const documento =
-    resultados.docs[0];
+    /*
+     * PRIMER DOCUMENTO
+     */
 
+    const documento =
+        resultados.docs[0];
+
+
+    /*
+     * DATOS DEL EMPLEADO
+     */
 
     const empleado = {
 
         id:
-        documento.id,
+            documento.id,
 
         ...documento.data()
 
@@ -465,13 +563,17 @@ async function buscarEmpleado(usuario){
 
 
     /*
-     * ESTADO
-     */
+     =====================================================
+     ESTADO DEL EMPLEADO
+     =====================================================
+    */
 
     const estadoEmpleado =
-    texto(
-        empleado.estado
-    ).trim().toLowerCase();
+        texto(
+            empleado.estado
+        )
+        .trim()
+        .toLowerCase();
 
 
     if(
@@ -487,13 +589,16 @@ async function buscarEmpleado(usuario){
 
 
     /*
-     * EMPRESA
-     */
+     =====================================================
+     EMPRESA
+     =====================================================
+    */
 
     const empresaId =
-    texto(
-        empleado.empresaId
-    ).trim();
+        texto(
+            empleado.empresaId
+        )
+        .trim();
 
 
     if(!empresaId){
@@ -506,13 +611,16 @@ async function buscarEmpleado(usuario){
 
 
     /*
-     * VINCULACIÓN
-     */
+     =====================================================
+     VINCULACIÓN CON FIREBASE AUTH
+     =====================================================
+    */
 
     if(
         texto(
             empleado.authUid
-        ).trim() !==
+        )
+        .trim() !==
         usuario.uid
     ){
 
@@ -524,55 +632,65 @@ async function buscarEmpleado(usuario){
 
 
     /*
-     * SESIÓN
-     */
+     =====================================================
+     CREAR SESIÓN DEL EMPLEADO
+     =====================================================
+    */
 
     const sesion = {
 
         uid:
-        usuario.uid,
+            usuario.uid,
 
         empleadoId:
-        empleado.id,
+            empleado.id,
 
         empresaId:
-        empresaId,
+            empresaId,
 
         perfil:
-        "empleado",
+            "empleado",
 
         nombre:
-        texto(
-            empleado.nombre
-        ),
+            texto(
+                empleado.nombre
+            ),
 
         apellido:
-        texto(
-            empleado.apellido
-        ),
+            texto(
+                empleado.apellido
+            ),
 
         email:
-        texto(
-            empleado.email ||
-            usuario.email
-        ),
+            texto(
+                empleado.email ||
+                usuario.email
+            ),
 
         puesto:
-        texto(
-            empleado.puesto
-        ),
+            texto(
+                empleado.puesto
+            ),
 
         pagoDiario:
-        Number(
-            empleado.pagoDiario || 0
-        )
+            Number(
+                empleado.pagoDiario || 0
+            )
 
     };
 
 
+    /*
+     =====================================================
+     GUARDAR SESIÓN
+     =====================================================
+    */
+
     sessionStorage.setItem(
         "gesbaseEmpleado",
-        JSON.stringify(sesion)
+        JSON.stringify(
+            sesion
+        )
     );
 
 
@@ -581,20 +699,38 @@ async function buscarEmpleado(usuario){
 }
 
 
+/*
+=========================================================
+ INICIAR SESIÓN
+=========================================================
+*/
+
 async function iniciarSesion(){
 
     limpiarMensajes();
 
 
-    const emailValor =
-    email.value
-    .trim()
-    .toLowerCase();
+    /*
+     * EMAIL
+     */
 
+    const emailValor =
+        email.value
+        .trim()
+        .toLowerCase();
+
+
+    /*
+     * CONTRASEÑA
+     */
 
     const passwordValor =
-    password.value;
+        password.value;
 
+
+    /*
+     * VALIDAR EMAIL
+     */
 
     if(!emailValor){
 
@@ -608,6 +744,10 @@ async function iniciarSesion(){
 
     }
 
+
+    /*
+     * VALIDAR CONTRASEÑA
+     */
 
     if(!passwordValor){
 
@@ -628,34 +768,40 @@ async function iniciarSesion(){
     try{
 
         /*
-         * AUTENTICAR
-         */
+         =================================================
+         AUTENTICAR EN FIREBASE
+         =================================================
+        */
 
         const resultado =
-        await signInWithEmailAndPassword(
-            auth,
-            emailValor,
-            passwordValor
-        );
+            await signInWithEmailAndPassword(
+                auth,
+                emailValor,
+                passwordValor
+            );
 
 
         const usuario =
-        resultado.user;
+            resultado.user;
 
 
         /*
-         * BUSCAR PERFIL
-         */
+         =================================================
+         BUSCAR PERFIL EN FIRESTORE
+         =================================================
+        */
 
         const empleado =
-        await buscarEmpleado(
-            usuario
-        );
+            await buscarEmpleado(
+                usuario
+            );
 
 
         /*
-         * ÉXITO
-         */
+         =================================================
+         ÉXITO
+         =================================================
+        */
 
         mostrarExito(
             "Bienvenido " +
@@ -668,8 +814,10 @@ async function iniciarSesion(){
 
 
         /*
-         * ENTRAR AL FICHAJE
-         */
+         =================================================
+         ENTRAR AL FICHAJE
+         =================================================
+        */
 
         setTimeout(
             function(){
@@ -692,8 +840,14 @@ async function iniciarSesion(){
 
 
         let mensaje =
-        "No se pudo iniciar sesión.";
+            "No se pudo iniciar sesión.";
 
+
+        /*
+         =================================================
+         ERRORES DE FIREBASE AUTH
+         =================================================
+        */
 
         if(
             error.code ===
@@ -701,7 +855,7 @@ async function iniciarSesion(){
         ){
 
             mensaje =
-            "Email o contraseña incorrectos.";
+                "Email o contraseña incorrectos.";
 
         }
 
@@ -711,7 +865,7 @@ async function iniciarSesion(){
         ){
 
             mensaje =
-            "No existe un usuario con ese email.";
+                "No existe un usuario con ese email.";
 
         }
 
@@ -721,7 +875,7 @@ async function iniciarSesion(){
         ){
 
             mensaje =
-            "La contraseña es incorrecta.";
+                "La contraseña es incorrecta.";
 
         }
 
@@ -731,7 +885,7 @@ async function iniciarSesion(){
         ){
 
             mensaje =
-            "El email no es válido.";
+                "El email no es válido.";
 
         }
 
@@ -741,7 +895,7 @@ async function iniciarSesion(){
         ){
 
             mensaje =
-            "Este usuario está deshabilitado.";
+                "Este usuario está deshabilitado.";
 
         }
 
@@ -751,9 +905,15 @@ async function iniciarSesion(){
         ){
 
             mensaje =
-            "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
+                "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
 
         }
+
+        /*
+         =================================================
+         FIRESTORE - PERMISOS
+         =================================================
+        */
 
         else if(
             error.code ===
@@ -761,27 +921,58 @@ async function iniciarSesion(){
         ){
 
             mensaje =
-            "Firebase rechazó el acceso a los empleados. Hay que revisar las reglas de Firestore.";
+                "Firebase rechazó el acceso a los empleados. Hay que revisar las reglas de Firestore.";
 
         }
+
+        /*
+         =================================================
+         ERROR DE FIRESTORE / REFERENCIA
+         =================================================
+        */
+
+        else if(
+            error.message &&
+            error.message.includes(
+                "Expected first argument to collection()"
+            )
+        ){
+
+            mensaje =
+                "Error de conexión con Firestore. Verificá la configuración de Firebase.";
+
+        }
+
+        /*
+         =================================================
+         OTROS ERRORES
+         =================================================
+        */
 
         else if(error.message){
 
             mensaje =
-            error.message;
+                error.message;
 
         }
 
 
         /*
-         * SI FALLÓ LA VINCULACIÓN,
-         * NO DEJAMOS UNA SESIÓN DE EMPLEADO
-         */
+         =================================================
+         ELIMINAR SESIÓN SI FALLÓ
+         =================================================
+        */
 
         sessionStorage.removeItem(
             "gesbaseEmpleado"
         );
 
+
+        /*
+         =================================================
+         MOSTRAR ERROR
+         =================================================
+        */
 
         mostrarError(
             mensaje
@@ -797,11 +988,23 @@ async function iniciarSesion(){
 }
 
 
+/*
+=========================================================
+ BOTÓN INGRESAR
+=========================================================
+*/
+
 btnIngresar.addEventListener(
     "click",
     iniciarSesion
 );
 
+
+/*
+=========================================================
+ ENTER EN CONTRASEÑA
+=========================================================
+*/
 
 password.addEventListener(
     "keydown",
@@ -820,6 +1023,12 @@ password.addEventListener(
 );
 
 
+/*
+=========================================================
+ ENTER EN EMAIL
+=========================================================
+*/
+
 email.addEventListener(
     "keydown",
     function(event){
@@ -836,6 +1045,12 @@ email.addEventListener(
     }
 );
 
+
+/*
+=========================================================
+ VOLVER
+=========================================================
+*/
 
 btnVolver.addEventListener(
     "click",
