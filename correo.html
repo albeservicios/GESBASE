@@ -5,15 +5,9 @@
 
 <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta
-    name="theme-color"
-    content="#111827"
->
+<meta name="theme-color" content="#111827">
 
 <meta
     name="description"
@@ -219,7 +213,6 @@ textarea:focus{
     border-radius:10px;
     margin-bottom:15px;
     display:none;
-    line-height:1.5;
 }
 
 .exito{
@@ -229,7 +222,6 @@ textarea:focus{
     border-radius:10px;
     margin-bottom:15px;
     display:none;
-    line-height:1.5;
 }
 
 .info{
@@ -240,18 +232,7 @@ textarea:focus{
     border-radius:10px;
     margin-bottom:15px;
     font-size:14px;
-    line-height:1.7;
-}
-
-.info-empresa{
-    background:#f9fafb;
-    border:1px solid #e5e7eb;
-    color:#374151;
-    padding:14px;
-    border-radius:10px;
-    margin-top:10px;
-    font-size:14px;
-    line-height:1.7;
+    line-height:1.6;
 }
 
 .correo-item{
@@ -261,7 +242,6 @@ textarea:focus{
     margin-bottom:10px;
     background:#fafafa;
     cursor:pointer;
-    transition:.15s;
 }
 
 .correo-item:hover{
@@ -366,7 +346,6 @@ textarea:focus{
     padding:8px 0;
     border-bottom:1px solid #e5e7eb;
     font-size:14px;
-    line-height:1.5;
 }
 
 .detalle-mensaje{
@@ -392,15 +371,8 @@ textarea:focus{
     font-size:13px;
 }
 
-.badge{
-    display:inline-block;
-    padding:4px 8px;
-    border-radius:6px;
-    background:#e5e7eb;
-    color:#374151;
-    font-size:11px;
-    font-weight:bold;
-    margin-left:5px;
+.empresa-cargando{
+    color:#6b7280;
 }
 
 @media(max-width:600px){
@@ -442,19 +414,13 @@ textarea:focus{
 
 <main>
 
-<div
-    id="mensajeError"
-    class="error"
-></div>
+<div id="mensajeError" class="error"></div>
 
-<div
-    id="mensajeExito"
-    class="exito"
-></div>
+<div id="mensajeExito" class="exito"></div>
 
 
 <!-- ==============================
-     INFORMACIÓN USUARIO
+     USUARIO
 ============================== -->
 
 <div class="tarjeta">
@@ -472,16 +438,18 @@ Cargando usuario...
 
 <div
     id="empresaActual"
-    class="info-empresa"
+    class="info"
 >
+<span class="empresa-cargando">
 Cargando información de empresa...
+</span>
 </div>
 
 </div>
 
 
 <!-- ==============================
-     NUEVO MENSAJE
+     NUEVO CORREO
 ============================== -->
 
 <div class="tarjeta">
@@ -526,10 +494,6 @@ Mensaje
 ></textarea>
 
 
-<!-- ==============================
-     ARCHIVO
-============================== -->
-
 <div class="archivos">
 
 <label for="archivo">
@@ -550,10 +514,6 @@ Ningún archivo seleccionado.
 
 </div>
 
-
-<!-- ==============================
-     AUDIO
-============================== -->
 
 <div class="archivos">
 
@@ -857,13 +817,13 @@ let usuarioSesion = null;
 
 let perfilActual = null;
 
-let empresaActualDatos = null;
+let empleadoActual = null;
 
 let perfilId = "";
 
 let empresaId = "";
 
-let tipoPerfil = "";
+let empresaDatos = null;
 
 let destinatarios = [];
 
@@ -895,9 +855,7 @@ function texto(valor){
         valor === undefined ||
         valor === null
     ){
-
         return "";
-
     }
 
     return String(valor);
@@ -918,6 +876,10 @@ function escaparHTML(valor){
 
 
 function nombreCompleto(datos){
+
+    if(!datos){
+        return "";
+    }
 
     return (
         texto(datos.nombre) +
@@ -1038,15 +1000,127 @@ function fechaHora(valor){
 }
 
 
+function obtenerTiempo(correo){
+
+    if(
+        correo.creado &&
+        typeof correo.creado.toMillis ===
+        "function"
+    ){
+
+        return correo.creado.toMillis();
+
+    }
+
+    const fecha =
+    texto(correo.fecha);
+
+    const hora =
+    texto(correo.hora);
+
+    const valor =
+    new Date(
+        `${fecha}T${hora || "00:00:00"}`
+    ).getTime();
+
+    if(!isNaN(valor)){
+        return valor;
+    }
+
+    return 0;
+
+}
+
+
+/* =========================================
+   BUSCAR EMPLEADO POR AUTH UID
+========================================= */
+
+async function buscarEmpleado(){
+
+    const consultas = [
+
+        {
+            campo:"authUid",
+            valor:usuarioSesion.uid
+        },
+
+        {
+            campo:"uid",
+            valor:usuarioSesion.uid
+        }
+
+    ];
+
+
+    for(
+        const datosConsulta
+        of consultas
+    ){
+
+        try{
+
+            const q =
+            query(
+                collection(
+                    db,
+                    "empleados"
+                ),
+                where(
+                    datosConsulta.campo,
+                    "==",
+                    datosConsulta.valor
+                ),
+                limit(1)
+            );
+
+
+            const resultado =
+            await getDocs(q);
+
+
+            if(!resultado.empty){
+
+                const documento =
+                resultado.docs[0];
+
+
+                return {
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                };
+
+            }
+
+        }
+        catch(error){
+
+            console.warn(
+                "Error buscando empleado por " +
+                datosConsulta.campo +
+                ":",
+                error
+            );
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
 /* =========================================
    BUSCAR USUARIO
 ========================================= */
 
 async function buscarUsuario(){
-
-    /* -------------------------------------
-       1. usuarios/{uid}
-    ------------------------------------- */
 
     try{
 
@@ -1057,16 +1131,19 @@ async function buscarUsuario(){
             usuarioSesion.uid
         );
 
+
         const resultado =
         await getDoc(
             referencia
         );
 
+
         if(resultado.exists()){
 
             return {
 
-                id:resultado.id,
+                id:
+                resultado.id,
 
                 ...resultado.data()
 
@@ -1078,105 +1155,71 @@ async function buscarUsuario(){
     catch(error){
 
         console.warn(
-            "No se pudo buscar usuarios/{uid}:",
+            "No se pudo buscar usuarios por ID:",
             error
         );
 
     }
 
 
-    /* -------------------------------------
-       2. usuarios donde uid == auth.uid
-    ------------------------------------- */
+    const campos = [
+        "uid",
+        "authUid"
+    ];
 
-    try{
 
-        const consulta =
-        query(
-            collection(db,"usuarios"),
-            where(
-                "uid",
-                "==",
-                usuarioSesion.uid
-            ),
-            limit(1)
-        );
+    for(
+        const campo
+        of campos
+    ){
 
-        const resultado =
-        await getDocs(
-            consulta
-        );
+        try{
 
-        if(!resultado.empty){
+            const q =
+            query(
+                collection(
+                    db,
+                    "usuarios"
+                ),
+                where(
+                    campo,
+                    "==",
+                    usuarioSesion.uid
+                ),
+                limit(1)
+            );
 
-            const documento =
-            resultado.docs[0];
 
-            return {
+            const resultado =
+            await getDocs(q);
 
-                id:documento.id,
 
-                ...documento.data()
+            if(!resultado.empty){
 
-            };
+                const documento =
+                resultado.docs[0];
+
+
+                return {
+
+                    id:
+                    documento.id,
+
+                    ...documento.data()
+
+                };
+
+            }
 
         }
+        catch(error){
 
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo buscar usuario por uid:",
-            error
-        );
-
-    }
-
-
-    /* -------------------------------------
-       3. usuarios donde authUid == auth.uid
-    ------------------------------------- */
-
-    try{
-
-        const consulta =
-        query(
-            collection(db,"usuarios"),
-            where(
-                "authUid",
-                "==",
-                usuarioSesion.uid
-            ),
-            limit(1)
-        );
-
-        const resultado =
-        await getDocs(
-            consulta
-        );
-
-        if(!resultado.empty){
-
-            const documento =
-            resultado.docs[0];
-
-            return {
-
-                id:documento.id,
-
-                ...documento.data()
-
-            };
+            console.warn(
+                "Error buscando usuario:",
+                error
+            );
 
         }
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo buscar usuario por authUid:",
-            error
-        );
 
     }
 
@@ -1192,121 +1235,98 @@ async function buscarUsuario(){
 
 async function buscarEmpresa(){
 
-    let posibleEmpresaId =
-    texto(
-        perfilActual?.empresaId
-    ).trim();
+    if(!empresaId){
 
-
-    if(!posibleEmpresaId){
-
-        posibleEmpresaId =
-        texto(
-            perfilActual?.idEmpresa
-        ).trim();
+        return null;
 
     }
 
 
-    if(!posibleEmpresaId){
+    /* ---------------------------------------
+       PRIMERA OPCIÓN:
+       empresa con ID = empresaId
+    --------------------------------------- */
 
-        posibleEmpresaId =
-        texto(
-            perfilActual?.empresa
-        ).trim();
+    try{
+
+        const referencia =
+        doc(
+            db,
+            "empresas",
+            empresaId
+        );
+
+
+        const resultado =
+        await getDoc(
+            referencia
+        );
+
+
+        if(resultado.exists()){
+
+            return {
+
+                id:
+                resultado.id,
+
+                ...resultado.data()
+
+            };
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo buscar empresa por ID:",
+            error
+        );
 
     }
 
 
-    /* -------------------------------------
-       1. empresas/{empresaId}
-    ------------------------------------- */
+    /* ---------------------------------------
+       SEGUNDA OPCIÓN:
+       buscar por empresaId
+    --------------------------------------- */
 
-    if(posibleEmpresaId){
+    try{
 
-        try{
-
-            const referencia =
-            doc(
+        const q =
+        query(
+            collection(
                 db,
-                "empresas",
-                posibleEmpresaId
-            );
-
-            const resultado =
-            await getDoc(
-                referencia
-            );
-
-            if(resultado.exists()){
-
-                empresaActualDatos = {
-
-                    id:resultado.id,
-
-                    ...resultado.data()
-
-                };
-
-                empresaId =
-                resultado.id;
-
-                return empresaActualDatos;
-
-            }
-
-        }
-        catch(error){
-
-            console.warn(
-                "No se pudo cargar empresas/{empresaId}:",
-                error
-            );
-
-        }
-
-    }
-
-
-    /* -------------------------------------
-       2. Buscar empresa por uidEmpresa
-    ------------------------------------- */
-
-    try{
-
-        const consulta =
-        query(
-            collection(db,"empresas"),
+                "empresas"
+            ),
             where(
-                "uid",
+                "empresaId",
                 "==",
-                usuarioSesion.uid
+                empresaId
             ),
             limit(1)
         );
 
+
         const resultado =
-        await getDocs(
-            consulta
-        );
+        await getDocs(q);
+
 
         if(!resultado.empty){
 
             const documento =
             resultado.docs[0];
 
-            empresaActualDatos = {
 
-                id:documento.id,
+            return {
+
+                id:
+                documento.id,
 
                 ...documento.data()
 
             };
-
-            empresaId =
-            documento.id;
-
-            return empresaActualDatos;
 
         }
 
@@ -1314,52 +1334,53 @@ async function buscarEmpresa(){
     catch(error){
 
         console.warn(
-            "No se pudo buscar empresa por uid:",
+            "No se pudo buscar empresa por empresaId:",
             error
         );
 
     }
 
 
-    /* -------------------------------------
-       3. Buscar empresa por propietarioUid
-    ------------------------------------- */
+    /* ---------------------------------------
+       TERCERA OPCIÓN:
+       buscar empresa por ID interno
+    --------------------------------------- */
 
     try{
 
-        const consulta =
+        const q =
         query(
-            collection(db,"empresas"),
+            collection(
+                db,
+                "empresas"
+            ),
             where(
-                "propietarioUid",
+                "id",
                 "==",
-                usuarioSesion.uid
+                empresaId
             ),
             limit(1)
         );
 
+
         const resultado =
-        await getDocs(
-            consulta
-        );
+        await getDocs(q);
+
 
         if(!resultado.empty){
 
             const documento =
             resultado.docs[0];
 
-            empresaActualDatos = {
 
-                id:documento.id,
+            return {
+
+                id:
+                documento.id,
 
                 ...documento.data()
 
             };
-
-            empresaId =
-            documento.id;
-
-            return empresaActualDatos;
 
         }
 
@@ -1367,56 +1388,9 @@ async function buscarEmpresa(){
     catch(error){
 
         console.warn(
-            "No se pudo buscar empresa por propietarioUid:",
+            "No se pudo buscar empresa por campo id:",
             error
         );
-
-    }
-
-
-    /* -------------------------------------
-       4. Si el usuario es la empresa
-    ------------------------------------- */
-
-    const esEmpresa =
-    texto(
-        perfilActual?.tipo
-    ).toLowerCase() === "empresa" ||
-
-    texto(
-        perfilActual?.rol
-    ).toLowerCase() === "empresa" ||
-
-    Boolean(
-        texto(
-            perfilActual?.nombreEmpresa
-        ).trim()
-    );
-
-
-    if(esEmpresa){
-
-        empresaId =
-        texto(
-            perfilActual.empresaId
-        ).trim() ||
-
-        texto(
-            perfilActual.id
-        ).trim() ||
-
-        usuarioSesion.uid;
-
-
-        empresaActualDatos = {
-
-            id:empresaId,
-
-            ...perfilActual
-
-        };
-
-        return empresaActualDatos;
 
     }
 
@@ -1441,87 +1415,57 @@ async function cargarPerfil(){
     }
 
 
+    /* ---------------------------------------
+       BUSCAR EMPLEADO
+    --------------------------------------- */
+
+    empleadoActual =
+    await buscarEmpleado();
+
+
+    /* ---------------------------------------
+       BUSCAR USUARIO
+    --------------------------------------- */
+
     const usuario =
     await buscarUsuario();
 
 
-    if(!usuario){
-
-        throw new Error(
-            "No encontramos tu usuario en la colección usuarios."
-        );
-
-    }
-
+    /*
+       Para empleados usamos primero
+       la información de empleados.
+    */
 
     perfilActual =
+    empleadoActual ||
     usuario;
 
-    perfilId =
-    usuario.id;
 
+    if(!perfilActual){
 
-    const rol =
-    texto(
-        usuario.rol
-    ).toLowerCase();
-
-
-    const tipo =
-    texto(
-        usuario.tipo
-    ).toLowerCase();
-
-
-    const esEmpresa =
-
-        tipo === "empresa" ||
-
-        rol === "empresa" ||
-
-        Boolean(
-            texto(
-                usuario.nombreEmpresa
-            ).trim()
-        ) ||
-
-        Boolean(
-            texto(
-                usuario.razonSocial
-            ).trim()
+        throw new Error(
+            "No encontramos el usuario ni el empleado asociado a esta sesión."
         );
 
-
-    if(esEmpresa){
-
-        tipoPerfil =
-        "Empresa";
-
-    }
-    else{
-
-        tipoPerfil =
-        texto(
-            usuario.rol
-        ) ||
-
-        texto(
-            usuario.tipo
-        ) ||
-
-        "Usuario";
-
     }
 
 
-    /* -------------------------------------
-       Buscar empresa
-    ------------------------------------- */
-
-    await buscarEmpresa();
+    perfilId =
+    perfilActual.id ||
+    usuarioSesion.uid;
 
 
-    if(!empresaId){
+    /* ---------------------------------------
+       OBTENER EMPRESA ID
+    --------------------------------------- */
+
+    empresaId =
+    texto(
+        perfilActual.empresaId
+    ).trim();
+
+
+    if(!empresaId && usuario){
 
         empresaId =
         texto(
@@ -1533,64 +1477,80 @@ async function cargarPerfil(){
 
     if(!empresaId){
 
-        empresaId =
-        texto(
-            usuario.idEmpresa
-        ).trim();
+        throw new Error(
+            "El usuario está autenticado, pero no tiene empresaId asociado."
+        );
 
     }
 
 
-    if(!empresaId && esEmpresa){
+    /* ---------------------------------------
+       BUSCAR INFORMACIÓN DE EMPRESA
+    --------------------------------------- */
 
-        empresaId =
-        perfilId;
-
-    }
-
-
-    if(!empresaId){
-
-        empresaId =
-        usuarioSesion.uid;
-
-    }
+    empresaDatos =
+    await buscarEmpresa();
 
 
-    /* -------------------------------------
-       Nombre usuario
-    ------------------------------------- */
+    /* ---------------------------------------
+       NOMBRE DEL USUARIO
+    --------------------------------------- */
 
-    let nombreUsuario =
+    const nombreUsuario =
 
-        nombreCompleto(usuario) ||
+    nombreCompleto(
+        perfilActual
+    ) ||
 
-        texto(usuario.nombre) ||
+    texto(
+        perfilActual.email
+    ) ||
 
-        texto(usuario.email) ||
+    texto(
+        usuarioSesion.email
+    ) ||
 
-        texto(usuarioSesion.email) ||
-
-        "Usuario";
+    "Usuario";
 
 
     const emailUsuario =
 
-        texto(usuario.email) ||
+    texto(
+        perfilActual.email
+    ) ||
 
-        texto(usuarioSesion.email);
+    texto(
+        usuarioSesion.email
+    );
+
+
+    const puesto =
+
+    texto(
+        perfilActual.puesto
+    ) ||
+
+    texto(
+        perfilActual.rol
+    ) ||
+
+    texto(
+        perfilActual.perfil
+    ) ||
+
+    "Empleado";
 
 
     usuarioActual.innerHTML = `
 
         <strong>
-            ${escaparHTML(nombreUsuario)}
+        ${escaparHTML(nombreUsuario)}
         </strong>
 
         <br>
 
-        Tipo:
-        ${escaparHTML(tipoPerfil)}
+        Puesto:
+        ${escaparHTML(puesto)}
 
         <br>
 
@@ -1599,111 +1559,119 @@ async function cargarPerfil(){
 
         <br>
 
-        ID usuario:
-        ${escaparHTML(perfilId)}
-
-        <br>
-
-        ID empresa:
+        Empresa ID:
         ${escaparHTML(empresaId)}
 
     `;
 
 
-    /* -------------------------------------
-       Información empresa
-    ------------------------------------- */
+    /* ---------------------------------------
+       MOSTRAR EMPRESA
+    --------------------------------------- */
 
-    const datosEmpresa =
-    empresaActualDatos || perfilActual;
+    if(empresaDatos){
 
-
-    const nombreEmpresa =
+        const nombreEmpresa =
 
         texto(
-            datosEmpresa.nombreEmpresa
+            empresaDatos.nombreEmpresa
         ).trim() ||
 
         texto(
-            datosEmpresa.razonSocial
+            empresaDatos.nombre
         ).trim() ||
 
         texto(
-            datosEmpresa.nombre
+            empresaDatos.razonSocial
         ).trim() ||
 
         "Empresa";
 
 
-    const razonSocial =
-
+        const razonSocial =
         texto(
-            datosEmpresa.razonSocial
+            empresaDatos.razonSocial
         ).trim();
 
 
-    const telefono =
-
+        const telefono =
         texto(
-            datosEmpresa.telefono
+            empresaDatos.telefono
         ).trim();
 
 
-    const emailEmpresa =
-
+        const email =
         texto(
-            datosEmpresa.email
+            empresaDatos.email
         ).trim();
 
 
-    empresaActual.innerHTML = `
+        empresaActual.innerHTML = `
 
-        <strong>🏢 ${escaparHTML(
-            nombreEmpresa
-        )}</strong>
+            <strong>
+            🏢 ${escaparHTML(nombreEmpresa)}
+            </strong>
 
-        ${
-            razonSocial
-            ?
-            `
+            ${
+                razonSocial
+                ?
+                `
+                <br>
+                Razón social:
+                ${escaparHTML(razonSocial)}
+                `
+                :
+                ""
+            }
+
+            ${
+                telefono
+                ?
+                `
+                <br>
+                Teléfono:
+                ${escaparHTML(telefono)}
+                `
+                :
+                ""
+            }
+
+            ${
+                email
+                ?
+                `
+                <br>
+                Email:
+                ${escaparHTML(email)}
+                `
+                :
+                ""
+            }
+
             <br>
-            Razón social:
-            ${escaparHTML(razonSocial)}
-            `
-            :
-            ""
-        }
 
-        ${
-            telefono
-            ?
-            `
+            ID empresa:
+            ${escaparHTML(empresaId)}
+
+        `;
+
+    }
+    else{
+
+        empresaActual.innerHTML = `
+
+            <strong>
+            🏢 Empresa
+            </strong>
+
             <br>
-            Teléfono:
-            ${escaparHTML(telefono)}
-            `
-            :
-            ""
-        }
 
-        ${
-            emailEmpresa
-            ?
-            `
-            <br>
-            Email:
-            ${escaparHTML(emailEmpresa)}
-            `
-            :
-            ""
-        }
+            ID empresa:
+            ${escaparHTML(empresaId)}
 
-        <br>
+        `;
 
-        ID empresa:
-        ${escaparHTML(empresaId)}
-
-    `;
+    }
 
 }
 
@@ -1732,58 +1700,42 @@ function agregarDestinatario(datos){
     }
 
 
-    /* No mostrar el propio perfil */
+    const uid =
+    texto(datos.uid).trim();
 
-    if(id === perfilId){
 
-        return;
-
-    }
+    const authUid =
+    texto(datos.authUid).trim();
 
 
     if(
-        texto(datos.uid).trim() ===
-        usuarioSesion.uid
+        id === perfilId ||
+        uid === usuarioSesion.uid ||
+        authUid === usuarioSesion.uid
     ){
 
         return;
 
     }
 
-
-    if(
-        texto(datos.authUid).trim() ===
-        usuarioSesion.uid
-    ){
-
-        return;
-
-    }
-
-
-    /* -------------------------------------
-       Evitar duplicados
-    ------------------------------------- */
 
     const existe =
     destinatarios.some(
         persona =>
 
-            persona.id === id ||
+        persona.id === id ||
 
-            (
-                persona.uid &&
-                datos.uid &&
-                persona.uid ===
-                datos.uid
-            ) ||
+        (
+            persona.uid &&
+            uid &&
+            persona.uid === uid
+        ) ||
 
-            (
-                persona.authUid &&
-                datos.authUid &&
-                persona.authUid ===
-                datos.authUid
-            )
+        (
+            persona.authUid &&
+            authUid &&
+            persona.authUid === authUid
+        )
     );
 
 
@@ -1796,51 +1748,50 @@ function agregarDestinatario(datos){
 
     const nombre =
 
-        nombreCompleto(datos) ||
+    nombreCompleto(datos) ||
 
-        texto(datos.nombreEmpresa).trim() ||
+    texto(
+        datos.nombreEmpresa
+    ).trim() ||
 
-        texto(datos.razonSocial).trim() ||
+    texto(
+        datos.razonSocial
+    ).trim() ||
 
-        texto(datos.nombre).trim() ||
+    texto(
+        datos.nombre
+    ).trim() ||
 
-        texto(datos.email).trim() ||
+    texto(
+        datos.email
+    ).trim() ||
 
-        "Usuario";
-
-
-    const email =
-
-        texto(datos.email).trim();
-
-
-    if(!email){
-
-        return;
-
-    }
+    "Usuario";
 
 
     destinatarios.push({
 
         id:id,
 
-        uid:texto(datos.uid).trim(),
+        uid:uid,
 
-        authUid:texto(datos.authUid).trim(),
+        authUid:authUid,
 
         nombre:nombre,
 
-        email:email,
+        email:
+        texto(datos.email).trim(),
 
         tipo:
-            texto(datos.tipo).trim() ||
+        texto(datos.tipo).trim() ||
 
-            texto(datos.rol).trim() ||
+        texto(datos.rol).trim() ||
 
-            texto(datos.puesto).trim() ||
+        texto(datos.puesto).trim() ||
 
-            "Usuario"
+        texto(datos.perfil).trim() ||
+
+        "Usuario"
 
     });
 
@@ -1848,16 +1799,19 @@ function agregarDestinatario(datos){
 
 
 /* =========================================
-   EMPLEADOS
+   CARGAR EMPLEADOS
 ========================================= */
 
 async function cargarEmpleadosDestinatarios(){
 
     try{
 
-        const consulta =
+        const q =
         query(
-            collection(db,"empleados"),
+            collection(
+                db,
+                "empleados"
+            ),
             where(
                 "empresaId",
                 "==",
@@ -1867,9 +1821,7 @@ async function cargarEmpleadosDestinatarios(){
 
 
         const resultados =
-        await getDocs(
-            consulta
-        );
+        await getDocs(q);
 
 
         resultados.forEach(
@@ -1881,11 +1833,13 @@ async function cargarEmpleadosDestinatarios(){
 
                 agregarDestinatario({
 
-                    id:documento.id,
+                    id:
+                    documento.id,
 
                     ...datos,
 
-                    tipo:"Empleado"
+                    tipo:
+                    "Empleado"
 
                 });
 
@@ -1906,16 +1860,19 @@ async function cargarEmpleadosDestinatarios(){
 
 
 /* =========================================
-   USUARIOS
+   CARGAR USUARIOS
 ========================================= */
 
 async function cargarUsuariosDestinatarios(){
 
     try{
 
-        const consulta =
+        const q =
         query(
-            collection(db,"usuarios"),
+            collection(
+                db,
+                "usuarios"
+            ),
             where(
                 "empresaId",
                 "==",
@@ -1925,9 +1882,7 @@ async function cargarUsuariosDestinatarios(){
 
 
         const resultados =
-        await getDocs(
-            consulta
-        );
+        await getDocs(q);
 
 
         resultados.forEach(
@@ -1937,7 +1892,7 @@ async function cargarUsuariosDestinatarios(){
                 documento.data();
 
 
-                let tipoUsuario =
+                let tipo =
                 "Usuario";
 
 
@@ -1947,40 +1902,45 @@ async function cargarUsuariosDestinatarios(){
                 ).toLowerCase();
 
 
+                const perfil =
+                texto(
+                    datos.perfil
+                ).toLowerCase();
+
+
                 if(
                     rol.includes("admin") ||
-                    rol.includes("administr")
+                    rol.includes("administr") ||
+                    perfil.includes("admin") ||
+                    perfil.includes("administr")
                 ){
 
-                    tipoUsuario =
+                    tipo =
                     "Administración";
 
                 }
-                else if(
-                    rol.includes("empresa")
+
+
+                if(
+                    rol.includes("empresa") ||
+                    perfil.includes("empresa")
                 ){
 
-                    tipoUsuario =
+                    tipo =
                     "Empresa";
-
-                }
-                else if(
-                    rol.includes("empleado")
-                ){
-
-                    tipoUsuario =
-                    "Empleado";
 
                 }
 
 
                 agregarDestinatario({
 
-                    id:documento.id,
+                    id:
+                    documento.id,
 
                     ...datos,
 
-                    tipo:tipoUsuario
+                    tipo:
+                    tipo
 
                 });
 
@@ -1992,64 +1952,6 @@ async function cargarUsuariosDestinatarios(){
 
         console.warn(
             "No se pudieron cargar usuarios:",
-            error
-        );
-
-    }
-
-}
-
-
-/* =========================================
-   ADMINISTRADORES
-========================================= */
-
-async function cargarAdministracion(){
-
-    try{
-
-        const consulta =
-        query(
-            collection(db,"administradores"),
-            where(
-                "empresaId",
-                "==",
-                empresaId
-            )
-        );
-
-
-        const resultados =
-        await getDocs(
-            consulta
-        );
-
-
-        resultados.forEach(
-            documento => {
-
-                const datos =
-                documento.data();
-
-
-                agregarDestinatario({
-
-                    id:documento.id,
-
-                    ...datos,
-
-                    tipo:"Administración"
-
-                });
-
-            }
-        );
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo cargar administración:",
             error
         );
 
@@ -2072,7 +1974,7 @@ async function cargarDestinatarios(){
         destinatario.innerHTML = `
 
             <option value="">
-                Empresa no identificada
+            Empresa no identificada
             </option>
 
         `;
@@ -2088,7 +1990,7 @@ async function cargarDestinatarios(){
     destinatario.innerHTML = `
 
         <option value="">
-            Cargando destinatarios...
+        Cargando destinatarios...
         </option>
 
     `;
@@ -2097,8 +1999,6 @@ async function cargarDestinatarios(){
     await cargarEmpleadosDestinatarios();
 
     await cargarUsuariosDestinatarios();
-
-    await cargarAdministracion();
 
 
     destinatarios.sort(
@@ -2119,20 +2019,18 @@ async function cargarDestinatarios(){
     destinatario.innerHTML = `
 
         <option value="">
-            Seleccionar destinatario...
+        Seleccionar destinatario...
         </option>
 
     `;
 
 
-    if(
-        destinatarios.length === 0
-    ){
+    if(destinatarios.length === 0){
 
         destinatario.innerHTML = `
 
             <option value="">
-                No hay destinatarios disponibles
+            No hay usuarios vinculados a esta empresa
             </option>
 
         `;
@@ -2158,9 +2056,9 @@ async function cargarDestinatarios(){
 
             option.textContent =
 
-                persona.nombre +
-                " — " +
-                persona.tipo;
+            persona.nombre +
+            " — " +
+            persona.tipo;
 
 
             destinatario.appendChild(
@@ -2173,12 +2071,6 @@ async function cargarDestinatarios(){
 
     btnEnviar.disabled =
     false;
-
-
-    console.log(
-        "Destinatarios cargados:",
-        destinatarios
-    );
 
 }
 
@@ -2209,10 +2101,7 @@ archivo.addEventListener(
     "change",
     function(){
 
-        if(
-            !archivo.files ||
-            !archivo.files.length
-        ){
+        if(!archivo.files.length){
 
             archivoSeleccionado.textContent =
             "Ningún archivo seleccionado.";
@@ -2236,11 +2125,11 @@ archivo.addEventListener(
 
         archivoSeleccionado.textContent =
 
-            "📎 " +
-            file.name +
-            " — " +
-            tamanioMB +
-            " MB";
+        "📎 " +
+        file.name +
+        " — " +
+        tamanioMB +
+        " MB";
 
     }
 );
@@ -2284,7 +2173,7 @@ btnGrabar.addEventListener(
             audioBlob = null;
 
 
-            let mimeType =
+            let tipoAudio =
             "audio/webm";
 
 
@@ -2294,18 +2183,8 @@ btnGrabar.addEventListener(
                 )
             ){
 
-                mimeType =
+                tipoAudio =
                 "audio/webm;codecs=opus";
-
-            }
-            else if(
-                MediaRecorder.isTypeSupported(
-                    "audio/mp4"
-                )
-            ){
-
-                mimeType =
-                "audio/mp4";
 
             }
 
@@ -2314,7 +2193,8 @@ btnGrabar.addEventListener(
             new MediaRecorder(
                 stream,
                 {
-                    mimeType:mimeType
+                    mimeType:
+                    tipoAudio
                 }
             );
 
@@ -2323,10 +2203,7 @@ btnGrabar.addEventListener(
                 "dataavailable",
                 function(event){
 
-                    if(
-                        event.data &&
-                        event.data.size > 0
-                    ){
+                    if(event.data.size > 0){
 
                         audioChunks.push(
                             event.data
@@ -2442,7 +2319,8 @@ btnDetener.addEventListener(
 
         if(
             mediaRecorder &&
-            mediaRecorder.state !== "inactive"
+            mediaRecorder.state !==
+            "inactive"
         ){
 
             mediaRecorder.stop();
@@ -2475,14 +2353,14 @@ async function subirArchivo(file){
 
     const ruta =
 
-        "correos/" +
-        empresaId +
-        "/" +
-        usuarioSesion.uid +
-        "/" +
-        Date.now() +
-        "_" +
-        nombreSeguro;
+    "correos/" +
+    empresaId +
+    "/" +
+    usuarioSesion.uid +
+    "/" +
+    Date.now() +
+    "_" +
+    nombreSeguro;
 
 
     const referencia =
@@ -2506,17 +2384,23 @@ async function subirArchivo(file){
 
     return {
 
-        tipo:"archivo",
+        tipo:
+        "archivo",
 
-        nombre:file.name,
+        nombre:
+        file.name,
 
-        mimeType:file.type,
+        mimeType:
+        file.type,
 
-        tamanio:file.size,
+        tamanio:
+        file.size,
 
-        url:url,
+        url:
+        url,
 
-        ruta:ruta
+        ruta:
+        ruta
 
     };
 
@@ -2536,44 +2420,28 @@ async function subirAudio(){
     }
 
 
-    let extension =
-    "webm";
-
-
-    if(
-        audioBlob.type.includes("ogg")
-    ){
-
-        extension =
-        "ogg";
-
-    }
-    else if(
-        audioBlob.type.includes("mp4")
-    ){
-
-        extension =
-        "mp4";
-
-    }
+    const extension =
+    audioBlob.type.includes("ogg")
+    ? "ogg"
+    : "webm";
 
 
     const nombre =
 
-        "audio_" +
-        Date.now() +
-        "." +
-        extension;
+    "audio_" +
+    Date.now() +
+    "." +
+    extension;
 
 
     const ruta =
 
-        "correos/" +
-        empresaId +
-        "/" +
-        usuarioSesion.uid +
-        "/" +
-        nombre;
+    "correos/" +
+    empresaId +
+    "/" +
+    usuarioSesion.uid +
+    "/" +
+    nombre;
 
 
     const referencia =
@@ -2601,9 +2469,11 @@ async function subirAudio(){
 
     return {
 
-        tipo:"audio",
+        tipo:
+        "audio",
 
-        nombre:nombre,
+        nombre:
+        nombre,
 
         mimeType:
         audioBlob.type,
@@ -2611,9 +2481,11 @@ async function subirAudio(){
         tamanio:
         audioBlob.size,
 
-        url:url,
+        url:
+        url,
 
-        ruta:ruta
+        ruta:
+        ruta
 
     };
 
@@ -2621,7 +2493,7 @@ async function subirAudio(){
 
 
 /* =========================================
-   ENVIAR MENSAJE
+   ENVIAR CORREO
 ========================================= */
 
 btnEnviar.addEventListener(
@@ -2709,38 +2581,34 @@ btnEnviar.addEventListener(
 
             const nombreRemitente =
 
-                texto(
-                    empresaActualDatos?.nombreEmpresa
-                ).trim() ||
+            nombreCompleto(
+                perfilActual
+            ) ||
 
-                texto(
-                    empresaActualDatos?.razonSocial
-                ).trim() ||
+            texto(
+                perfilActual.nombreEmpresa
+            ) ||
 
-                texto(
-                    perfilActual?.nombreEmpresa
-                ).trim() ||
+            texto(
+                perfilActual.razonSocial
+            ) ||
 
-                texto(
-                    perfilActual?.razonSocial
-                ).trim() ||
+            texto(
+                perfilActual.email
+            ) ||
 
-                nombreCompleto(
-                    perfilActual
-                ) ||
-
-                "Usuario";
+            "Usuario";
 
 
             const emailRemitente =
 
-                texto(
-                    perfilActual?.email
-                ).trim() ||
+            texto(
+                perfilActual.email
+            ) ||
 
-                texto(
-                    usuarioSesion.email
-                ).trim();
+            texto(
+                usuarioSesion.email
+            );
 
 
             let adjuntoArchivo =
@@ -2751,9 +2619,7 @@ btnEnviar.addEventListener(
             null;
 
 
-            /* ---------------------------------
-               ARCHIVO
-            --------------------------------- */
+            /* ARCHIVO */
 
             if(
                 archivo.files.length
@@ -2771,9 +2637,7 @@ btnEnviar.addEventListener(
             }
 
 
-            /* ---------------------------------
-               AUDIO
-            --------------------------------- */
+            /* AUDIO */
 
             if(audioBlob){
 
@@ -2839,6 +2703,7 @@ btnEnviar.addEventListener(
                     remitenteEmail:
                     emailRemitente,
 
+
                     destinatarioUid:
                     persona.uid ||
                     persona.authUid ||
@@ -2853,17 +2718,20 @@ btnEnviar.addEventListener(
                     destinatarioEmail:
                     persona.email,
 
+
                     de:
                     emailRemitente,
 
                     para:
                     persona.email,
 
+
                     asunto:
                     asuntoTexto,
 
                     mensaje:
                     mensajeTexto,
+
 
                     adjuntos:
                     adjuntos,
@@ -2872,10 +2740,15 @@ btnEnviar.addEventListener(
                     adjuntos.length > 0,
 
                     tieneArchivo:
-                    Boolean(adjuntoArchivo),
+                    Boolean(
+                        adjuntoArchivo
+                    ),
 
                     tieneAudio:
-                    Boolean(adjuntoAudio),
+                    Boolean(
+                        adjuntoAudio
+                    ),
+
 
                     carpeta:
                     "enviados",
@@ -2883,11 +2756,13 @@ btnEnviar.addEventListener(
                     estado:
                     "enviado",
 
+
                     fecha:
                     fechaActual(),
 
                     hora:
                     horaActual(),
+
 
                     creado:
                     serverTimestamp(),
@@ -2895,8 +2770,10 @@ btnEnviar.addEventListener(
                     enviado:
                     serverTimestamp(),
 
+
                     leido:
                     false,
+
 
                     tipo:
                     "interno"
@@ -2906,9 +2783,7 @@ btnEnviar.addEventListener(
             );
 
 
-            /* ---------------------------------
-               LIMPIAR FORMULARIO
-            --------------------------------- */
+            /* LIMPIAR */
 
             asunto.value =
             "";
@@ -2985,7 +2860,7 @@ btnEnviar.addEventListener(
         finally{
 
             btnEnviar.disabled =
-            destinatarios.length === 0;
+            false;
 
 
             btnEnviar.textContent =
@@ -2998,14 +2873,16 @@ btnEnviar.addEventListener(
 
 
 /* =========================================
-   ADJUNTOS HTML
+   ADJUNTOS
 ========================================= */
 
 function generarAdjuntosHTML(correo){
 
     if(
         !correo.adjuntos ||
-        !Array.isArray(correo.adjuntos) ||
+        !Array.isArray(
+            correo.adjuntos
+        ) ||
         correo.adjuntos.length === 0
     ){
 
@@ -3019,7 +2896,7 @@ function generarAdjuntosHTML(correo){
         <div class="adjunto">
 
             <div class="adjunto-titulo">
-                📎 Archivos adjuntos
+            📎 Archivos adjuntos
             </div>
 
     `;
@@ -3029,7 +2906,8 @@ function generarAdjuntosHTML(correo){
         adjunto => {
 
             if(
-                adjunto.tipo === "audio"
+                adjunto.tipo ===
+                "audio"
             ){
 
                 html += `
@@ -3037,7 +2915,7 @@ function generarAdjuntosHTML(correo){
                     <div style="margin-top:12px;">
 
                         <strong>
-                            🎙️ Audio
+                        🎙️ Audio
                         </strong>
 
                         <audio
@@ -3059,9 +2937,9 @@ function generarAdjuntosHTML(correo){
                     <div style="margin-top:12px;">
 
                         <strong>
-                            📎 ${escaparHTML(
-                                adjunto.nombre
-                            )}
+                        📎 ${escaparHTML(
+                            adjunto.nombre
+                        )}
                         </strong>
 
                         <br>
@@ -3071,7 +2949,7 @@ function generarAdjuntosHTML(correo){
                                 adjunto.url
                             )}"
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener"
                         >
                             📥 ABRIR / DESCARGAR
                         </a>
@@ -3087,9 +2965,7 @@ function generarAdjuntosHTML(correo){
 
 
     html += `
-
         </div>
-
     `;
 
 
@@ -3107,7 +2983,7 @@ async function cargarRecibidos(){
     recibidos.innerHTML = `
 
         <div class="cargando">
-            Cargando mensajes...
+        Cargando mensajes...
         </div>
 
     `;
@@ -3118,16 +2994,17 @@ async function cargarRecibidos(){
         const correos = [];
 
 
-        /* ---------------------------------
-           Por UID
-        --------------------------------- */
+        /* POR UID */
 
         try{
 
-            const consultaUid =
+            const q =
             query(
 
-                collection(db,"correos"),
+                collection(
+                    db,
+                    "correos"
+                ),
 
                 where(
                     "destinatarioUid",
@@ -3140,13 +3017,11 @@ async function cargarRecibidos(){
             );
 
 
-            const resultadosUid =
-            await getDocs(
-                consultaUid
-            );
+            const resultados =
+            await getDocs(q);
 
 
-            resultadosUid.forEach(
+            resultados.forEach(
                 documento => {
 
                     correos.push({
@@ -3165,36 +3040,37 @@ async function cargarRecibidos(){
         catch(error){
 
             console.warn(
-                "Error buscando recibidos por UID:",
+                "Error cargando recibidos por UID:",
                 error
             );
 
         }
 
 
-        /* ---------------------------------
-           Por email
-        --------------------------------- */
+        /* POR EMAIL */
 
         const emailActual =
 
-            texto(
-                perfilActual?.email
-            ).trim() ||
+        texto(
+            perfilActual.email
+        ) ||
 
-            texto(
-                usuarioSesion.email
-            ).trim();
+        texto(
+            usuarioSesion.email
+        );
 
 
         if(emailActual){
 
             try{
 
-                const consultaEmail =
+                const q =
                 query(
 
-                    collection(db,"correos"),
+                    collection(
+                        db,
+                        "correos"
+                    ),
 
                     where(
                         "para",
@@ -3207,13 +3083,11 @@ async function cargarRecibidos(){
                 );
 
 
-                const resultadosEmail =
-                await getDocs(
-                    consultaEmail
-                );
+                const resultados =
+                await getDocs(q);
 
 
-                resultadosEmail.forEach(
+                resultados.forEach(
                     documento => {
 
                         const existe =
@@ -3244,7 +3118,7 @@ async function cargarRecibidos(){
             catch(error){
 
                 console.warn(
-                    "Error buscando recibidos por email:",
+                    "Error cargando recibidos por email:",
                     error
                 );
 
@@ -3253,20 +3127,32 @@ async function cargarRecibidos(){
         }
 
 
-        /* ---------------------------------
-           Ordenar
-        --------------------------------- */
+        /* FILTRAR EMPRESA */
 
         correosRecibidos =
-        correos;
+        correos.filter(
+            correo => {
+
+                const correoEmpresa =
+                texto(
+                    correo.empresaId
+                ).trim();
+
+
+                return !correoEmpresa ||
+                correoEmpresa === empresaId;
+
+            }
+        );
 
 
         correosRecibidos.sort(
             function(a,b){
 
-                return
-                obtenerTiempo(b) -
-                obtenerTiempo(a);
+                return (
+                    obtenerTiempo(b) -
+                    obtenerTiempo(a)
+                );
 
             }
         );
@@ -3287,13 +3173,13 @@ async function cargarRecibidos(){
 
             <div class="sin-registros">
 
-                No se pudieron cargar los mensajes.
+            No se pudieron cargar los mensajes.
 
-                <br><br>
+            <br><br>
 
-                ${escaparHTML(
-                    error.message
-                )}
+            ${escaparHTML(
+                error.message
+            )}
 
             </div>
 
@@ -3317,9 +3203,7 @@ function mostrarRecibidos(){
         recibidos.innerHTML = `
 
             <div class="sin-registros">
-
-                No tenés mensajes recibidos.
-
+            No tenés mensajes recibidos.
             </div>
 
         `;
@@ -3337,47 +3221,48 @@ function mostrarRecibidos(){
         correo => {
 
             const item =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
 
             item.className =
+
             "correo-item" +
+
             (
                 correo.leido
-                ? ""
-                : " no-leido"
+                ?
+                ""
+                :
+                " no-leido"
             );
 
 
             const remitente =
 
-                texto(
-                    correo.remitenteNombre
-                ) ||
+            texto(
+                correo.remitenteNombre
+            ) ||
 
-                texto(
-                    correo.de
-                ) ||
+            texto(
+                correo.de
+            ) ||
 
-                "Usuario";
+            "Usuario";
 
 
             const iconoAdjunto =
 
-                correo.tieneAudio
-                ? " 🎙️"
-                : correo.tieneArchivo
-                ? " 📎"
-                : "";
-
-
-            const fecha =
-
-                correo.fecha ||
-
-                fechaHora(
-                    correo.creado
-                );
+            correo.tieneAudio
+            ?
+            " 🎙️"
+            :
+            correo.tieneArchivo
+            ?
+            " 📎"
+            :
+            "";
 
 
             item.innerHTML = `
@@ -3396,19 +3281,15 @@ function mostrarRecibidos(){
                     <div class="correo-fecha">
 
                         ${escaparHTML(
-                            fecha
+                            correo.fecha ||
+                            fechaHora(
+                                correo.creado
+                            )
                         )}
 
-                        ${
+                        ${escaparHTML(
                             correo.hora
-                            ?
-                            " " +
-                            escaparHTML(
-                                correo.hora
-                            )
-                            :
-                            ""
-                        }
+                        )}
 
                     </div>
 
@@ -3445,15 +3326,19 @@ function mostrarRecibidos(){
                 <span
                     class="estado-correo ${
                         correo.leido
-                        ? ""
-                        : "estado-no-leido"
+                        ?
+                        ""
+                        :
+                        "estado-no-leido"
                     }"
                 >
 
                     ${
                         correo.leido
-                        ? "LEÍDO"
-                        : "NO LEÍDO"
+                        ?
+                        "LEÍDO"
+                        :
+                        "NO LEÍDO"
                     }
 
                 </span>
@@ -3493,7 +3378,7 @@ async function cargarEnviados(){
     enviados.innerHTML = `
 
         <div class="cargando">
-            Cargando mensajes...
+        Cargando mensajes...
         </div>
 
     `;
@@ -3504,16 +3389,17 @@ async function cargarEnviados(){
         const correos = [];
 
 
-        /* ---------------------------------
-           usuarioId
-        --------------------------------- */
+        /* POR usuarioId */
 
         try{
 
-            const consultaUsuario =
+            const q =
             query(
 
-                collection(db,"correos"),
+                collection(
+                    db,
+                    "correos"
+                ),
 
                 where(
                     "usuarioId",
@@ -3526,13 +3412,11 @@ async function cargarEnviados(){
             );
 
 
-            const resultadosUsuario =
-            await getDocs(
-                consultaUsuario
-            );
+            const resultados =
+            await getDocs(q);
 
 
-            resultadosUsuario.forEach(
+            resultados.forEach(
                 documento => {
 
                     correos.push({
@@ -3551,23 +3435,24 @@ async function cargarEnviados(){
         catch(error){
 
             console.warn(
-                "Error buscando enviados por usuarioId:",
+                "Error por usuarioId:",
                 error
             );
 
         }
 
 
-        /* ---------------------------------
-           remitenteUid
-        --------------------------------- */
+        /* POR remitenteUid */
 
         try{
 
-            const consultaRemitente =
+            const q =
             query(
 
-                collection(db,"correos"),
+                collection(
+                    db,
+                    "correos"
+                ),
 
                 where(
                     "remitenteUid",
@@ -3580,13 +3465,11 @@ async function cargarEnviados(){
             );
 
 
-            const resultadosRemitente =
-            await getDocs(
-                consultaRemitente
-            );
+            const resultados =
+            await getDocs(q);
 
 
-            resultadosRemitente.forEach(
+            resultados.forEach(
                 documento => {
 
                     const existe =
@@ -3617,7 +3500,7 @@ async function cargarEnviados(){
         catch(error){
 
             console.warn(
-                "Error buscando enviados por remitenteUid:",
+                "Error por remitenteUid:",
                 error
             );
 
@@ -3625,15 +3508,29 @@ async function cargarEnviados(){
 
 
         correosEnviados =
-        correos;
+        correos.filter(
+            correo => {
+
+                const correoEmpresa =
+                texto(
+                    correo.empresaId
+                ).trim();
+
+
+                return !correoEmpresa ||
+                correoEmpresa === empresaId;
+
+            }
+        );
 
 
         correosEnviados.sort(
             function(a,b){
 
-                return
-                obtenerTiempo(b) -
-                obtenerTiempo(a);
+                return (
+                    obtenerTiempo(b) -
+                    obtenerTiempo(a)
+                );
 
             }
         );
@@ -3654,13 +3551,13 @@ async function cargarEnviados(){
 
             <div class="sin-registros">
 
-                No se pudieron cargar los enviados.
+            No se pudieron cargar los enviados.
 
-                <br><br>
+            <br><br>
 
-                ${escaparHTML(
-                    error.message
-                )}
+            ${escaparHTML(
+                error.message
+            )}
 
             </div>
 
@@ -3684,9 +3581,7 @@ function mostrarEnviados(){
         enviados.innerHTML = `
 
             <div class="sin-registros">
-
-                No tenés mensajes enviados.
-
+            No tenés mensajes enviados.
             </div>
 
         `;
@@ -3704,7 +3599,9 @@ function mostrarEnviados(){
         correo => {
 
             const item =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
 
             item.className =
@@ -3713,33 +3610,28 @@ function mostrarEnviados(){
 
             const destinatarioNombre =
 
-                texto(
-                    correo.destinatarioNombre
-                ) ||
+            texto(
+                correo.destinatarioNombre
+            ) ||
 
-                texto(
-                    correo.para
-                ) ||
+            texto(
+                correo.para
+            ) ||
 
-                "Usuario";
+            "Usuario";
 
 
             const iconoAdjunto =
 
-                correo.tieneAudio
-                ? " 🎙️"
-                : correo.tieneArchivo
-                ? " 📎"
-                : "";
-
-
-            const fecha =
-
-                correo.fecha ||
-
-                fechaHora(
-                    correo.creado
-                );
+            correo.tieneAudio
+            ?
+            " 🎙️"
+            :
+            correo.tieneArchivo
+            ?
+            " 📎"
+            :
+            "";
 
 
             item.innerHTML = `
@@ -3758,19 +3650,15 @@ function mostrarEnviados(){
                     <div class="correo-fecha">
 
                         ${escaparHTML(
-                            fecha
+                            correo.fecha ||
+                            fechaHora(
+                                correo.creado
+                            )
                         )}
 
-                        ${
+                        ${escaparHTML(
                             correo.hora
-                            ?
-                            " " +
-                            escaparHTML(
-                                correo.hora
-                            )
-                            :
-                            ""
-                        }
+                        )}
 
                     </div>
 
@@ -3840,37 +3728,28 @@ async function abrirCorreo(
 
     const remitente =
 
-        texto(
-            correo.remitenteNombre
-        ) ||
+    texto(
+        correo.remitenteNombre
+    ) ||
 
-        texto(
-            correo.de
-        ) ||
+    texto(
+        correo.de
+    ) ||
 
-        "Usuario";
+    "Usuario";
 
 
     const destinatarioNombre =
 
-        texto(
-            correo.destinatarioNombre
-        ) ||
+    texto(
+        correo.destinatarioNombre
+    ) ||
 
-        texto(
-            correo.para
-        ) ||
+    texto(
+        correo.para
+    ) ||
 
-        "Usuario";
-
-
-    const fecha =
-
-        correo.fecha ||
-
-        fechaHora(
-            correo.creado
-        );
+    "Usuario";
 
 
     detalleCorreo.innerHTML = `
@@ -3878,7 +3757,7 @@ async function abrirCorreo(
         <div class="detalle-linea">
 
             <strong>
-                De:
+            De:
             </strong>
 
             ${escaparHTML(
@@ -3891,7 +3770,7 @@ async function abrirCorreo(
         <div class="detalle-linea">
 
             <strong>
-                Para:
+            Para:
             </strong>
 
             ${escaparHTML(
@@ -3904,7 +3783,7 @@ async function abrirCorreo(
         <div class="detalle-linea">
 
             <strong>
-                Asunto:
+            Asunto:
             </strong>
 
             ${escaparHTML(
@@ -3917,23 +3796,19 @@ async function abrirCorreo(
         <div class="detalle-linea">
 
             <strong>
-                Fecha:
+            Fecha:
             </strong>
 
             ${escaparHTML(
-                fecha
+                correo.fecha ||
+                fechaHora(
+                    correo.creado
+                )
             )}
 
-            ${
+            ${escaparHTML(
                 correo.hora
-                ?
-                " " +
-                escaparHTML(
-                    correo.hora
-                )
-                :
-                ""
-            }
+            )}
 
         </div>
 
@@ -3964,10 +3839,6 @@ async function abrirCorreo(
         behavior:"smooth"
     });
 
-
-    /* ---------------------------------
-       Marcar leído
-    --------------------------------- */
 
     if(
         esRecibido &&
@@ -4014,53 +3885,6 @@ async function abrirCorreo(
 
 
 /* =========================================
-   OBTENER TIEMPO
-========================================= */
-
-function obtenerTiempo(correo){
-
-    if(
-        correo.creado &&
-        typeof correo.creado.toMillis ===
-        "function"
-    ){
-
-        return correo.creado.toMillis();
-
-    }
-
-
-    const fecha =
-    texto(
-        correo.fecha
-    );
-
-
-    const hora =
-    texto(
-        correo.hora
-    );
-
-
-    const valor =
-    new Date(
-        `${fecha}T${hora || "00:00:00"}`
-    ).getTime();
-
-
-    if(!isNaN(valor)){
-
-        return valor;
-
-    }
-
-
-    return 0;
-
-}
-
-
-/* =========================================
    CERRAR DETALLE
 ========================================= */
 
@@ -4077,7 +3901,7 @@ btnCerrarDetalle.addEventListener(
 
 
 /* =========================================
-   ACTUALIZAR RECIBIDOS
+   RECIBIDOS
 ========================================= */
 
 btnRecibidos.addEventListener(
@@ -4093,7 +3917,7 @@ btnRecibidos.addEventListener(
 
 
 /* =========================================
-   ACTUALIZAR ENVIADOS
+   ENVIADOS
 ========================================= */
 
 btnEnviados.addEventListener(
@@ -4143,9 +3967,7 @@ btnCerrarSesion.addEventListener(
 
         try{
 
-            await signOut(
-                auth
-            );
+            await signOut(auth);
 
 
             window.location.replace(
@@ -4198,8 +4020,13 @@ onAuthStateChanged(
             "Cargando usuario...";
 
 
-            empresaActual.textContent =
-            "Cargando información de empresa...";
+            empresaActual.innerHTML = `
+
+                <span class="empresa-cargando">
+                Cargando información de empresa...
+                </span>
+
+            `;
 
 
             await cargarPerfil();
@@ -4215,7 +4042,7 @@ onAuthStateChanged(
 
 
             console.log(
-                "GESBASE - CORREO INTERNO INICIALIZADO"
+                "GESBASE CORREO INTERNO INICIALIZADO CORRECTAMENTE"
             );
 
 
@@ -4230,6 +4057,37 @@ onAuthStateChanged(
 
             btnEnviar.disabled =
             true;
+
+
+            usuarioActual.innerHTML = `
+
+                <strong>
+                No se pudo cargar el usuario
+                </strong>
+
+                <br><br>
+
+                ${escaparHTML(
+                    error.message
+                )}
+
+            `;
+
+
+            empresaActual.innerHTML = `
+
+                ⚠️ No se pudo cargar la información de empresa.
+
+            `;
+
+
+            destinatario.innerHTML = `
+
+                <option value="">
+                No se pudieron cargar destinatarios
+                </option>
+
+            `;
 
 
             mostrarError(
