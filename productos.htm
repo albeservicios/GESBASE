@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>Productos - GESBASE</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f3f4f6;
+  color:#111827;
+}
+header{
+  background:#111827;
+  color:#fff;
+  padding:18px;
+  text-align:center;
+}
+header h1{font-size:24px}
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:16px;
+}
+.card{
+  background:#fff;
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+h2{font-size:18px;margin-bottom:12px}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+.full{grid-column:1/-1}
+label{
+  display:block;
+  font-size:13px;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+input,select{
+  width:100%;
+  padding:12px;
+  border:1px solid #d1d5db;
+  border-radius:10px;
+  font-size:15px;
+}
+button{
+  border:none;
+  border-radius:10px;
+  padding:13px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.btn-primary{
+  background:#2563eb;
+  color:#fff;
+}
+.btn-secondary{
+  background:#e5e7eb;
+}
+.busqueda{
+  margin-bottom:12px;
+}
+.tabla{
+  overflow:auto;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  padding:10px;
+  border-bottom:1px solid #e5e7eb;
+  text-align:left;
+  font-size:14px;
+}
+th{
+  background:#f9fafb;
+}
+.stock{
+  font-weight:bold;
+  color:#047857;
+}
+@media(max-width:768px){
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📦 Productos</h1>
+  <p>GESBASE Comercio</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Nuevo producto</h2>
+
+    <div class="grid">
+
+      <div>
+        <label>Código</label>
+        <input id="codigo" placeholder="Ej. 7790001">
+      </div>
+
+      <div>
+        <label>Categoría</label>
+        <input id="categoria" placeholder="Bebidas">
+      </div>
+
+      <div class="full">
+        <label>Nombre del producto</label>
+        <input id="nombre" placeholder="Coca Cola 2.25L">
+      </div>
+
+      <div>
+        <label>Unidad</label>
+        <select id="unidad">
+          <option>Unidad</option>
+          <option>Kg</option>
+          <option>Litro</option>
+          <option>Caja</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Stock inicial</label>
+        <input id="stock" type="number" value="0">
+      </div>
+
+      <div>
+        <label>Precio costo</label>
+        <input id="costo" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>Precio venta</label>
+        <input id="venta" type="number" step="0.01">
+      </div>
+
+      <div class="full">
+        <button class="btn-primary" id="btnGuardar">
+          Guardar producto
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Mis productos</h2>
+
+    <input
+      class="busqueda"
+      id="buscar"
+      placeholder="Buscar producto..."
+    >
+
+    <div class="tabla">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Producto</th>
+            <th>Stock</th>
+            <th>Venta</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="listaProductos"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+<script type="module">
+
+/* =========================================================
+   FIREBASE
+========================================================= */
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+import {
+    collection,
+    addDoc,
+    getDocs,
+    deleteDoc,
+    doc,
+    query,
+    where,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+
+/* =========================================================
+   ELEMENTOS
+========================================================= */
+
+const codigoInput =
+    document.getElementById("codigo");
+
+const categoriaInput =
+    document.getElementById("categoria");
+
+const nombreInput =
+    document.getElementById("nombre");
+
+const unidadInput =
+    document.getElementById("unidad");
+
+const stockInput =
+    document.getElementById("stock");
+
+const costoInput =
+    document.getElementById("costo");
+
+const ventaInput =
+    document.getElementById("venta");
+
+const btnGuardar =
+    document.getElementById("btnGuardar");
+
+const buscarInput =
+    document.getElementById("buscar");
+
+const listaProductos =
+    document.getElementById("listaProductos");
+
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+let usuarioActual = null;
+let empresaId = null;
+let productos = [];
+
+
+/* =========================================================
+   ESCAPAR HTML
+========================================================= */
+
+function escaparHTML(valor){
+
+    return String(valor ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================================================
+   FORMATEAR DINERO
+========================================================= */
+
+function formatearPesos(valor){
+
+    return Number(valor || 0).toLocaleString(
+        "es-AR",
+        {
+            style:"currency",
+            currency:"ARS",
+            minimumFractionDigits:2
+        }
+    );
+
+}
+
+
+/* =========================================================
+   MOSTRAR MENSAJE
+========================================================= */
+
+function mostrarMensaje(texto){
+
+    alert(texto);
+
+}
+
+
+/* =========================================================
+   LIMPIAR FORMULARIO
+========================================================= */
+
+function limpiarFormulario(){
+
+    codigoInput.value = "";
+    categoriaInput.value = "";
+    nombreInput.value = "";
+    unidadInput.value = "Unidad";
+    stockInput.value = "0";
+    costoInput.value = "";
+    ventaInput.value = "";
+
+}
+
+
+/* =========================================================
+   GUARDAR PRODUCTO
+========================================================= */
+
+async function guardarProducto(){
+
+    if(!usuarioActual){
+
+        mostrarMensaje(
+            "No hay una sesión iniciada."
+        );
+
+        return;
+
+    }
+
+
+    if(!empresaId){
+
+        mostrarMensaje(
+            "No se pudo identificar la empresa."
+        );
+
+        return;
+
+    }
+
+
+    const nombre =
+        nombreInput.value.trim();
+
+
+    const codigo =
+        codigoInput.value.trim();
+
+
+    const categoria =
+        categoriaInput.value.trim();
+
+
+    const unidad =
+        unidadInput.value;
+
+
+    const stock =
+        Number(stockInput.value || 0);
+
+
+    const costo =
+        Number(costoInput.value || 0);
+
+
+    const venta =
+        Number(ventaInput.value || 0);
+
+
+    if(!nombre){
+
+        mostrarMensaje(
+            "Ingresá el nombre del producto."
+        );
+
+        nombreInput.focus();
+
+        return;
+
+    }
+
+
+    if(stock < 0){
+
+        mostrarMensaje(
+            "El stock no puede ser negativo."
+        );
+
+        return;
+
+    }
+
+
+    if(costo < 0){
+
+        mostrarMensaje(
+            "El precio de costo no puede ser negativo."
+        );
+
+        return;
+
+    }
+
+
+    if(venta < 0){
+
+        mostrarMensaje(
+            "El precio de venta no puede ser negativo."
+        );
+
+        return;
+
+    }
+
+
+    btnGuardar.disabled = true;
+
+    btnGuardar.textContent =
+        "Guardando...";
+
+
+    try{
+
+        await addDoc(
+            collection(
+                db,
+                "productos"
+            ),
+            {
+
+                empresaId:
+                    empresaId,
+
+                propietarioId:
+                    usuarioActual.uid,
+
+                codigo:
+                    codigo,
+
+                nombre:
+                    nombre,
+
+                categoria:
+                    categoria,
+
+                unidad:
+                    unidad,
+
+                stock:
+                    stock,
+
+                precioCosto:
+                    costo,
+
+                precioVenta:
+                    venta,
+
+                estado:
+                    "activo",
+
+                fechaCreacion:
+                    serverTimestamp(),
+
+                fechaActualizacion:
+                    serverTimestamp()
+
+            }
+        );
+
+
+        mostrarMensaje(
+            "✅ Producto guardado correctamente."
+        );
+
+
+        limpiarFormulario();
+
+
+        await cargarProductos();
+
+
+    }
+    catch(error){
+
+        console.error(
+            "ERROR GUARDANDO PRODUCTO:",
+            error
+        );
+
+
+        mostrarMensaje(
+            "No se pudo guardar el producto.\n\n" +
+            (
+                error.message ||
+                "Error desconocido."
+            )
+        );
+
+    }
+    finally{
+
+        btnGuardar.disabled = false;
+
+        btnGuardar.textContent =
+            "Guardar producto";
+
+    }
+
+}
+
+
+/* =========================================================
+   CARGAR PRODUCTOS
+========================================================= */
+
+async function cargarProductos(){
+
+    if(!empresaId){
+
+        return;
+
+    }
+
+
+    listaProductos.innerHTML = `
+        <tr>
+            <td colspan="5">
+                Cargando productos...
+            </td>
+        </tr>
+    `;
+
+
+    try{
+
+        const consulta =
+            query(
+                collection(
+                    db,
+                    "productos"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                )
+            );
+
+
+        const snapshot =
+            await getDocs(
+                consulta
+            );
+
+
+        productos = [];
+
+
+        snapshot.forEach(
+            documento => {
+
+                productos.push({
+
+                    id:
+                        documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+
+        productos.sort(
+            (a,b) =>
+                String(
+                    a.nombre || ""
+                ).localeCompare(
+                    String(
+                        b.nombre || ""
+                    ),
+                    "es"
+                )
+        );
+
+
+        mostrarProductos();
+
+
+    }
+    catch(error){
+
+        console.error(
+            "ERROR CARGANDO PRODUCTOS:",
+            error
+        );
+
+
+        listaProductos.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    No se pudieron cargar los productos.
+                </td>
+            </tr>
+        `;
+
+    }
+
+}
+
+
+/* =========================================================
+   MOSTRAR PRODUCTOS
+========================================================= */
+
+function mostrarProductos(){
+
+    const textoBusqueda =
+        buscarInput.value
+            .trim()
+            .toLowerCase();
+
+
+    const filtrados =
+        productos.filter(
+            producto => {
+
+                const texto = (
+
+                    String(
+                        producto.codigo || ""
+                    ) +
+
+                    " " +
+
+                    String(
+                        producto.nombre || ""
+                    ) +
+
+                    " " +
+
+                    String(
+                        producto.categoria || ""
+                    )
+
+                ).toLowerCase();
+
+
+                return texto.includes(
+                    textoBusqueda
+                );
+
+            }
+        );
+
+
+    if(filtrados.length === 0){
+
+        listaProductos.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    No hay productos para mostrar.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    listaProductos.innerHTML =
+        filtrados.map(
+            producto => `
+
+                <tr>
+
+                    <td>
+                        ${
+                            escaparHTML(
+                                producto.codigo ||
+                                "-"
+                            )
+                        }
+                    </td>
+
+                    <td>
+
+                        <strong>
+                            ${
+                                escaparHTML(
+                                    producto.nombre ||
+                                    "-"
+                                )
+                            }
+                        </strong>
+
+                        ${
+                            producto.categoria
+                            ?
+                            `
+                            <br>
+                            <small>
+                                ${
+                                    escaparHTML(
+                                        producto.categoria
+                                    )
+                                }
+                            </small>
+                            `
+                            :
+                            ""
+                        }
+
+                    </td>
+
+                    <td>
+
+                        <span class="stock">
+
+                            ${
+                                Number(
+                                    producto.stock || 0
+                                ).toLocaleString(
+                                    "es-AR"
+                                )
+                            }
+
+                            ${
+                                escaparHTML(
+                                    producto.unidad ||
+                                    "Unidad"
+                                )
+                            }
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        ${
+                            formatearPesos(
+                                producto.precioVenta
+                            )
+                        }
+
+                    </td>
+
+                    <td>
+
+                        <button
+                            type="button"
+                            class="btn-secondary"
+                            data-eliminar="${producto.id}"
+                        >
+                            🗑️
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `
+        )
+        .join("");
+
+
+    document
+        .querySelectorAll(
+            "[data-eliminar]"
+        )
+        .forEach(
+            boton => {
+
+                boton.addEventListener(
+                    "click",
+                    () => {
+
+                        eliminarProducto(
+                            boton.dataset.eliminar
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   ELIMINAR PRODUCTO
+========================================================= */
+
+async function eliminarProducto(
+    productoId
+){
+
+    if(!productoId){
+
+        return;
+
+    }
+
+
+    const producto =
+        productos.find(
+            item =>
+                item.id === productoId
+        );
+
+
+    if(!producto){
+
+        return;
+
+    }
+
+
+    const confirmar =
+        confirm(
+            "¿Querés eliminar el producto?\n\n" +
+            producto.nombre
+        );
+
+
+    if(!confirmar){
+
+        return;
+
+    }
+
+
+    try{
+
+        await deleteDoc(
+            doc(
+                db,
+                "productos",
+                productoId
+            )
+        );
+
+
+        mostrarMensaje(
+            "✅ Producto eliminado."
+        );
+
+
+        await cargarProductos();
+
+
+    }
+    catch(error){
+
+        console.error(
+            "ERROR ELIMINANDO PRODUCTO:",
+            error
+        );
+
+
+        mostrarMensaje(
+            "No se pudo eliminar el producto.\n\n" +
+            (
+                error.message ||
+                "Error desconocido."
+            )
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   BUSCADOR
+========================================================= */
+
+buscarInput.addEventListener(
+    "input",
+    mostrarProductos
+);
+
+
+/* =========================================================
+   BOTÓN GUARDAR
+========================================================= */
+
+btnGuardar.addEventListener(
+    "click",
+    guardarProducto
+);
+
+
+/* =========================================================
+   SESIÓN FIREBASE
+========================================================= */
+
+onAuthStateChanged(
+    auth,
+    async usuario => {
+
+        if(!usuario){
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+            usuario;
+
+
+        try{
+
+            /*
+             * Buscamos el usuario de GESBASE.
+             */
+
+            const consultaUsuario =
+                query(
+                    collection(
+                        db,
+                        "usuarios"
+                    ),
+                    where(
+                        "uid",
+                        "==",
+                        usuario.uid
+                    )
+                );
+
+
+            const usuariosSnapshot =
+                await getDocs(
+                    consultaUsuario
+                );
+
+
+            if(
+                !usuariosSnapshot.empty
+            ){
+
+                const datos =
+                    usuariosSnapshot
+                        .docs[0]
+                        .data();
+
+
+                empresaId =
+                    String(
+                        datos.empresaId ||
+                        datos.idEmpresa ||
+                        ""
+                    ).trim();
+
+            }
+
+
+            /*
+             * Compatibilidad:
+             * si el documento de usuarios
+             * no tiene empresaId, buscamos
+             * por propietarioId en empresas.
+             */
+
+            if(!empresaId){
+
+                const consultaEmpresa =
+                    query(
+                        collection(
+                            db,
+                            "empresas"
+                        ),
+                        where(
+                            "propietarioId",
+                            "==",
+                            usuario.uid
+                        )
+                    );
+
+
+                const empresasSnapshot =
+                    await getDocs(
+                        consultaEmpresa
+                    );
+
+
+                if(
+                    !empresasSnapshot.empty
+                ){
+
+                    empresaId =
+                        empresasSnapshot
+                            .docs[0]
+                            .id;
+
+                }
+
+            }
+
+
+            /*
+             * Último respaldo:
+             * algunas instalaciones antiguas
+             * pueden utilizar EMP-UID.
+             */
+
+            if(!empresaId){
+
+                const empresaAntigua =
+                    "EMP-" +
+                    usuario.uid;
+
+
+                const referencia =
+                    doc(
+                        db,
+                        "empresas",
+                        empresaAntigua
+                    );
+
+
+                const documento =
+                    await import(
+                        "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js"
+                    )
+                    .then(
+                        modulo =>
+                            modulo.getDoc(
+                                referencia
+                            )
+                    );
+
+
+                if(
+                    documento.exists()
+                ){
+
+                    empresaId =
+                        empresaAntigua;
+
+                }
+
+            }
+
+
+            if(!empresaId){
+
+                mostrarMensaje(
+                    "No se pudo identificar la empresa de esta cuenta."
+                );
+
+                return;
+
+            }
+
+
+            console.log(
+                "GESBASE productos - UID:",
+                usuario.uid
+            );
+
+
+            console.log(
+                "GESBASE productos - empresaId:",
+                empresaId
+            );
+
+
+            await cargarProductos();
+
+
+        }
+        catch(error){
+
+            console.error(
+                "ERROR INICIALIZANDO PRODUCTOS:",
+                error
+            );
+
+
+            mostrarMensaje(
+                "No se pudo cargar el módulo de productos.\n\n" +
+                (
+                    error.message ||
+                    "Error desconocido."
+                )
+            );
+
+        }
+
+    }
+);
+
+
+console.log(
+    "GESBASE - productos.html cargado correctamente."
+);
+
+</script>
+
+</body>
+  </html>
