@@ -2,6 +2,7 @@
 <html lang="es-AR">
 
 <head>
+
 <meta charset="UTF-8">
 
 <meta
@@ -16,7 +17,7 @@
 
 <meta
     name="description"
-    content="Asistente GESBASE"
+    content="Asistente inteligente GESBASE"
 >
 
 <title>Asistente GESBASE</title>
@@ -39,13 +40,20 @@ body{
 .header{
     background:#111827;
     color:white;
-    padding:18px 16px;
+    padding:16px;
     display:flex;
     align-items:center;
     gap:12px;
     position:sticky;
     top:0;
     z-index:10;
+}
+
+.back{
+    color:white;
+    text-decoration:none;
+    font-size:22px;
+    padding:6px;
 }
 
 .header-icon{
@@ -56,7 +64,7 @@ body{
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:23px;
+    font-size:22px;
 }
 
 .header-text{
@@ -65,32 +73,25 @@ body{
 
 .header-text h1{
     font-size:19px;
-    margin-bottom:3px;
 }
 
 .header-text p{
     font-size:12px;
     color:#cbd5e1;
-}
-
-.back{
-    color:white;
-    text-decoration:none;
-    font-size:14px;
-    padding:8px;
+    margin-top:3px;
 }
 
 .container{
     max-width:800px;
-    margin:0 auto;
-    padding:16px;
+    margin:auto;
+    padding:15px;
 }
 
 .welcome{
     background:white;
     border-radius:18px;
-    padding:20px;
-    margin-bottom:16px;
+    padding:18px;
+    margin-bottom:15px;
     box-shadow:0 2px 8px rgba(0,0,0,.06);
 }
 
@@ -132,7 +133,7 @@ body{
     min-height:300px;
     max-height:55vh;
     overflow-y:auto;
-    padding:4px 0 15px;
+    padding:5px 0 15px;
 }
 
 .message{
@@ -163,6 +164,12 @@ body{
     background:#2563eb;
     color:white;
     border-top-right-radius:5px;
+}
+
+.message.error .bubble{
+    background:#fef2f2;
+    color:#991b1b;
+    border:1px solid #fecaca;
 }
 
 .composer{
@@ -218,6 +225,37 @@ textarea{
     margin-top:8px;
 }
 
+.loading{
+    display:inline-flex;
+    gap:4px;
+    align-items:center;
+}
+
+.dot{
+    width:5px;
+    height:5px;
+    background:#6b7280;
+    border-radius:50%;
+    animation:pulse 1s infinite;
+}
+
+.dot:nth-child(2){
+    animation-delay:.15s;
+}
+
+.dot:nth-child(3){
+    animation-delay:.30s;
+}
+
+@keyframes pulse{
+    0%,100%{
+        opacity:.3;
+    }
+    50%{
+        opacity:1;
+    }
+}
+
 @media(max-width:600px){
 
     .container{
@@ -256,7 +294,7 @@ textarea{
 
     <div class="header-text">
         <h1>Asistente GESBASE</h1>
-        <p>Asistente inteligente de gestión</p>
+        <p>Inteligencia artificial</p>
     </div>
 
 </header>
@@ -269,10 +307,9 @@ textarea{
         <h2>Hola 👋</h2>
 
         <p>
-            Soy el asistente de GESBASE.
-            Próximamente podré ayudarte a analizar
-            presupuestos, trabajos, gastos, cobros,
-            empleados y rentabilidad de tu empresa.
+            Soy el asistente inteligente de GESBASE.
+            Podés preguntarme sobre presupuestos,
+            trabajos, gastos, cobros y gestión de tu empresa.
         </p>
 
         <div class="suggestions">
@@ -293,7 +330,7 @@ textarea{
 
             <button
                 class="suggestion"
-                data-question="¿Cómo controlo los gastos de un trabajo?"
+                data-question="¿Cómo puedo controlar los gastos de un trabajo?"
             >
                 💸 Controlar gastos
             </button>
@@ -318,13 +355,11 @@ textarea{
         <div class="message assistant">
 
             <div class="bubble">
-                🤖 Soy el Asistente GESBASE.
+                🤖 Hola. Soy el asistente de GESBASE.
 
-                Todavía estoy en modo de configuración.
-                Cuando conectemos la inteligencia artificial,
-                voy a poder responder tus consultas y,
-                posteriormente, trabajar con la información
-                de tu empresa.
+                Ya estoy conectado al sistema de inteligencia artificial.
+
+                ¿En qué puedo ayudarte?
             </div>
 
         </div>
@@ -353,8 +388,11 @@ textarea{
 
         </div>
 
-        <div class="status">
-            Asistente GESBASE · Próximamente conectado a IA
+        <div
+            id="status"
+            class="status"
+        >
+            GESBASE IA · Gemini
         </div>
 
     </section>
@@ -362,76 +400,395 @@ textarea{
 </main>
 
 
-<script>
+<script type="module">
 
-const chat = document.getElementById("chat");
-const input = document.getElementById("messageInput");
-const sendButton = document.getElementById("sendButton");
-const suggestions = document.querySelectorAll(".suggestion");
-
-
-function addMessage(text,type){
-
-    const message = document.createElement("div");
-
-    message.className = "message " + type;
-
-    const bubble = document.createElement("div");
-
-    bubble.className = "bubble";
-
-    bubble.textContent = text;
-
-    message.appendChild(bubble);
-
-    chat.appendChild(message);
-
-    chat.scrollTop = chat.scrollHeight;
-}
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 
 
-function assistantResponse(){
+import {
+    initializeAppCheck,
+    ReCaptchaEnterpriseProvider
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app-check.js";
 
-    addMessage(
-        "Esta función está preparada, pero todavía no está conectada a la inteligencia artificial. El próximo paso será conectar de forma segura GESBASE con el backend de IA.",
-        "assistant"
+
+import {
+    getAI,
+    getGenerativeModel,
+    GoogleAIBackend
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-ai.js";
+
+
+import {
+    firebaseConfig
+} from "./firebase-config.js";
+
+
+/*
+====================================================
+CONFIGURACIÓN
+====================================================
+*/
+
+const RECAPTCHA_SITE_KEY =
+    "6LdysqEtAAAAAPPRcPrtI97fIaSbZ6UXclDtVBhJ";
+
+
+/*
+====================================================
+INICIALIZAR FIREBASE
+====================================================
+*/
+
+const app = initializeApp(firebaseConfig);
+
+
+/*
+====================================================
+FIREBASE APP CHECK
+====================================================
+*/
+
+const appCheck = initializeAppCheck(
+    app,
+    {
+        provider:
+            new ReCaptchaEnterpriseProvider(
+                RECAPTCHA_SITE_KEY
+            ),
+
+        isTokenAutoRefreshEnabled:true
+    }
+);
+
+
+/*
+====================================================
+FIREBASE AI LOGIC
+====================================================
+*/
+
+const ai = getAI(
+    app,
+    {
+        backend:
+            new GoogleAIBackend()
+    }
+);
+
+
+/*
+====================================================
+MODELO GEMINI
+====================================================
+*/
+
+const model = getGenerativeModel(
+    ai,
+    {
+        model:"gemini-3.7-flash",
+
+        systemInstruction:`
+Sos el Asistente Inteligente de GESBASE.
+
+GESBASE es un sistema de gestión empresarial.
+
+Tu función es ayudar al usuario con:
+- presupuestos
+- costos
+- materiales
+- mano de obra
+- gastos
+- trabajos
+- empleados
+- fichajes
+- cobros
+- facturación
+- rentabilidad
+- administración empresarial
+
+Respondé siempre en español.
+
+Sé claro, práctico y profesional.
+
+No inventes datos de la empresa.
+Si no tenés información suficiente, indicá qué dato necesitás.
+
+Cuando corresponda:
+- explicá los cálculos
+- diferenciá costos de ingresos
+- señalá posibles pérdidas
+- proponé alternativas
+- ayudá a tomar decisiones
+
+Por ahora no tenés acceso directo a los datos privados de Firebase.
+No afirmes que viste un presupuesto, cliente, trabajo,
+empleado o gasto si el usuario no te proporcionó esos datos
+en la conversación.
+`
+    }
+);
+
+
+/*
+====================================================
+ELEMENTOS
+====================================================
+*/
+
+const chat =
+    document.getElementById("chat");
+
+const input =
+    document.getElementById("messageInput");
+
+const sendButton =
+    document.getElementById("sendButton");
+
+const status =
+    document.getElementById("status");
+
+const suggestions =
+    document.querySelectorAll(".suggestion");
+
+
+/*
+====================================================
+AGREGAR MENSAJE
+====================================================
+*/
+
+function addMessage(
+    text,
+    type
+){
+
+    const message =
+        document.createElement("div");
+
+    message.className =
+        "message " + type;
+
+    const bubble =
+        document.createElement("div");
+
+    bubble.className =
+        "bubble";
+
+    bubble.textContent =
+        text;
+
+    message.appendChild(
+        bubble
     );
 
+    chat.appendChild(
+        message
+    );
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
 }
 
 
-function sendMessage(){
+/*
+====================================================
+INDICADOR DE CARGA
+====================================================
+*/
 
-    const text = input.value.trim();
+function addLoading(){
 
-    if(!text){
-        return;
+    const message =
+        document.createElement("div");
+
+    message.className =
+        "message assistant";
+
+    message.id =
+        "loadingMessage";
+
+    const bubble =
+        document.createElement("div");
+
+    bubble.className =
+        "bubble";
+
+    bubble.innerHTML = `
+        <span class="loading">
+            Pensando
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </span>
+    `;
+
+    message.appendChild(
+        bubble
+    );
+
+    chat.appendChild(
+        message
+    );
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
+}
+
+
+function removeLoading(){
+
+    const loading =
+        document.getElementById(
+            "loadingMessage"
+        );
+
+    if(loading){
+
+        loading.remove();
+
     }
 
-    addMessage(text,"user");
+}
+
+
+/*
+====================================================
+ENVIAR CONSULTA A GEMINI
+====================================================
+*/
+
+async function sendMessage(){
+
+    const text =
+        input.value.trim();
+
+    if(!text){
+
+        return;
+
+    }
+
+
+    addMessage(
+        text,
+        "user"
+    );
+
 
     input.value = "";
 
-    input.style.height = "42px";
+    input.style.height =
+        "42px";
 
-    sendButton.disabled = true;
+    sendButton.disabled =
+        true;
 
-    setTimeout(function(){
+    status.textContent =
+        "Consultando GESBASE IA...";
 
-        assistantResponse();
 
-        sendButton.disabled = false;
+    addLoading();
 
-    },500);
+
+    try{
+
+        const result =
+            await model.generateContent(
+                text
+            );
+
+
+        removeLoading();
+
+
+        const response =
+            result.response;
+
+
+        const answer =
+            response.text();
+
+
+        addMessage(
+            answer,
+            "assistant"
+        );
+
+
+        status.textContent =
+            "GESBASE IA · Gemini";
+
+
+    }catch(error){
+
+        removeLoading();
+
+
+        console.error(
+            "Error Firebase AI Logic:",
+            error
+        );
+
+
+        let message =
+            "No pude procesar la consulta.";
+
+
+        if(
+            error &&
+            error.message
+        ){
+
+            message +=
+                "\n\nDetalle: " +
+                error.message;
+
+        }
+
+
+        addMessage(
+            message,
+            "error"
+        );
+
+
+        status.textContent =
+            "Error de conexión con la IA";
+
+
+    }finally{
+
+        sendButton.disabled =
+            false;
+
+        input.focus();
+
+    }
 
 }
 
+
+/*
+====================================================
+BOTÓN ENVIAR
+====================================================
+*/
 
 sendButton.addEventListener(
     "click",
     sendMessage
 );
 
+
+/*
+====================================================
+ENTER
+====================================================
+*/
 
 input.addEventListener(
     "keydown",
@@ -452,11 +809,18 @@ input.addEventListener(
 );
 
 
+/*
+====================================================
+ALTURA DEL TEXTAREA
+====================================================
+*/
+
 input.addEventListener(
     "input",
     function(){
 
-        this.style.height = "42px";
+        this.style.height =
+            "42px";
 
         this.style.height =
             Math.min(
@@ -467,6 +831,12 @@ input.addEventListener(
     }
 );
 
+
+/*
+====================================================
+PREGUNTAS SUGERIDAS
+====================================================
+*/
 
 suggestions.forEach(
     function(button){
