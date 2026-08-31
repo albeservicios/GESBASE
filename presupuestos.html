@@ -302,13 +302,17 @@ import {
     db
 } from "./Js/firebase.js";
 
+
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
+
 import {
     collection,
-    getDocs
+    getDocs,
+    query,
+    where
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
@@ -340,8 +344,6 @@ let usuarioActual = null;
 
 let todosLosPresupuestos = [];
 
-let empresaIdActual = "";
-
 
 /* =====================================================
    TEXTO
@@ -353,7 +355,9 @@ function texto(valor){
         valor === undefined ||
         valor === null
     ){
+
         return "";
+
     }
 
     return String(valor).trim();
@@ -388,10 +392,15 @@ function numero(valor){
         valor === null ||
         valor === ""
     ){
+
         return 0;
+
     }
 
-    if(typeof valor === "number"){
+
+    if(
+        typeof valor === "number"
+    ){
 
         return Number.isFinite(valor)
             ? valor
@@ -399,12 +408,16 @@ function numero(valor){
 
     }
 
+
     let valorTexto =
     String(valor)
         .replace(/\$/g,"")
         .replace(/\s/g,"");
 
-    if(valorTexto.includes(",")){
+
+    if(
+        valorTexto.includes(",")
+    ){
 
         valorTexto =
         valorTexto
@@ -412,8 +425,10 @@ function numero(valor){
         .replace(",",".");
     }
 
+
     const resultado =
     Number(valorTexto);
+
 
     return Number.isFinite(resultado)
         ? resultado
@@ -482,11 +497,16 @@ function obtenerNumero(datos,id){
 
 function obtenerFecha(datos){
 
-    if(datos.fecha){
+    if(
+        datos.fecha
+    ){
 
-        return texto(datos.fecha);
+        return texto(
+            datos.fecha
+        );
 
     }
+
 
     if(
         datos.creado &&
@@ -495,9 +515,12 @@ function obtenerFecha(datos){
 
         return datos.creado
             .toDate()
-            .toLocaleDateString("es-AR");
+            .toLocaleDateString(
+                "es-AR"
+            );
 
     }
+
 
     if(
         datos.fechaCreacion &&
@@ -506,9 +529,12 @@ function obtenerFecha(datos){
 
         return datos.fechaCreacion
             .toDate()
-            .toLocaleDateString("es-AR");
+            .toLocaleDateString(
+                "es-AR"
+            );
 
     }
+
 
     return "Sin fecha";
 
@@ -547,11 +573,15 @@ function obtenerTotal(datos){
         datos.monto
     );
 
-    if(totalGuardado > 0){
+
+    if(
+        totalGuardado > 0
+    ){
 
         return totalGuardado;
 
     }
+
 
     return (
         numero(
@@ -579,73 +609,7 @@ function obtenerTotal(datos){
 
 
 /* =====================================================
-   OBTENER EMPRESA
-===================================================== */
-
-async function obtenerEmpresa(){
-
-    if(!usuarioActual){
-
-        return "";
-
-    }
-
-    try{
-
-        /*
-         * IMPORTANTE:
-         * collection() recibe directamente db.
-         */
-
-        const referencia =
-        collection(
-            db,
-            "usuarios"
-        );
-
-        const resultado =
-        await getDocs(
-            referencia
-        );
-
-        const documento =
-        resultado.docs.find(
-            doc =>
-            doc.id === usuarioActual.uid
-        );
-
-        if(!documento){
-
-            return "";
-
-        }
-
-        const datos =
-        documento.data();
-
-        return (
-            texto(datos.empresaId) ||
-            texto(datos.empresa) ||
-            ""
-        );
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo obtener empresa:",
-            error
-        );
-
-        return "";
-
-    }
-
-}
-
-
-/* =====================================================
-   CARGAR PRESUPUESTOS
+   CARGAR PRESUPUESTOS DEL USUARIO
 ===================================================== */
 
 async function cargarPresupuestos(){
@@ -665,7 +629,9 @@ async function cargarPresupuestos(){
 
     try{
 
-        if(!usuarioActual){
+        if(
+            !usuarioActual
+        ){
 
             throw new Error(
                 "No hay usuario autenticado."
@@ -675,7 +641,11 @@ async function cargarPresupuestos(){
 
 
         console.log(
-            "GESBASE: cargando presupuestos"
+            "===================================="
+        );
+
+        console.log(
+            "GESBASE - CARGANDO PRESUPUESTOS"
         );
 
         console.log(
@@ -683,19 +653,30 @@ async function cargarPresupuestos(){
             usuarioActual.uid
         );
 
-
-        empresaIdActual =
-        await obtenerEmpresa();
-
+        console.log(
+            "EMAIL:",
+            usuarioActual.email
+        );
 
         console.log(
-            "Empresa:",
-            empresaIdActual
+            "===================================="
         );
 
 
         /*
-         * CARGAMOS LA COLECCION
+         * =================================================
+         * CONSULTA CORREGIDA
+         * =================================================
+         *
+         * En lugar de:
+         *
+         * getDocs(collection(db,"presupuestos"))
+         *
+         * buscamos solamente los documentos cuyo
+         * campo "uid" coincide con el usuario autenticado.
+         *
+         * Esto coincide con la estructura que usa
+         * presupuesto.html al guardar.
          */
 
         const referencia =
@@ -705,14 +686,25 @@ async function cargarPresupuestos(){
         );
 
 
+        const consulta =
+        query(
+            referencia,
+            where(
+                "uid",
+                "==",
+                usuarioActual.uid
+            )
+        );
+
+
         const resultado =
         await getDocs(
-            referencia
+            consulta
         );
 
 
         console.log(
-            "Total documentos:",
+            "Presupuestos encontrados:",
             resultado.size
         );
 
@@ -723,66 +715,24 @@ async function cargarPresupuestos(){
         resultado.forEach(
             function(documento){
 
-                const datos =
-                documento.data();
+                todosLosPresupuestos.push({
 
+                    id:
+                    documento.id,
 
-                const uidDocumento =
-                texto(
-                    datos.uid ||
-                    datos.userId ||
-                    datos.usuarioId ||
-                    datos.usuarioUid
-                );
+                    datos:
+                    documento.data()
 
-
-                const empresaDocumento =
-                texto(
-                    datos.empresaId ||
-                    datos.idEmpresa ||
-                    datos.empresaID
-                );
-
-
-                const perteneceUsuario =
-                uidDocumento ===
-                usuarioActual.uid;
-
-
-                const perteneceEmpresa =
-                empresaIdActual &&
-                empresaDocumento ===
-                empresaIdActual;
-
-
-                /*
-                 * También aceptamos presupuestos
-                 * antiguos que tengan usuarioId.
-                 */
-
-                if(
-                    perteneceUsuario ||
-                    perteneceEmpresa
-                ){
-
-                    todosLosPresupuestos.push({
-
-                        id:
-                        documento.id,
-
-                        datos:
-                        datos
-
-                    });
-
-                }
+                });
 
             }
         );
 
 
         /*
-         * ORDEN
+         * =================================================
+         * ORDENAR
+         * =================================================
          */
 
         todosLosPresupuestos.sort(
@@ -793,10 +743,12 @@ async function cargarPresupuestos(){
                 a.datos.fechaCreacion?.seconds ||
                 0;
 
+
                 const fechaB =
                 b.datos.creado?.seconds ||
                 b.datos.fechaCreacion?.seconds ||
                 0;
+
 
                 return fechaB - fechaA;
 
@@ -808,15 +760,18 @@ async function cargarPresupuestos(){
         "none";
 
 
+        /*
+         * =================================================
+         * MOSTRAR RESULTADO
+         * =================================================
+         */
+
         if(
-            resultado.size > 0 &&
-            todosLosPresupuestos.length === 0
+            resultado.size === 0
         ){
 
             info.textContent =
-            "Firebase encontró " +
-            resultado.size +
-            " presupuesto(s), pero ninguno está asociado al usuario actual. Revisaremos el UID y empresaId con el que fueron guardados.";
+            "No hay presupuestos registrados para este usuario.";
 
             info.style.display =
             "block";
@@ -833,16 +788,78 @@ async function cargarPresupuestos(){
     catch(error){
 
         console.error(
-            "ERROR CARGANDO PRESUPUESTOS:",
+            "===================================="
+        );
+
+        console.error(
+            "ERROR CARGANDO PRESUPUESTOS"
+        );
+
+        console.error(
+            "Código:",
+            error?.code
+        );
+
+        console.error(
+            "Mensaje:",
+            error?.message
+        );
+
+        console.error(
+            "Error completo:",
             error
+        );
+
+        console.error(
+            "===================================="
         );
 
 
         cargando.style.display =
         "none";
 
+
         listaElemento.style.display =
         "none";
+
+
+        let detalle =
+        error?.message ||
+        String(error);
+
+
+        if(
+            error?.code ===
+            "permission-denied"
+        ){
+
+            detalle =
+            "Firebase rechazó la lectura de la colección 'presupuestos'.\n\n" +
+            "Verificá que las reglas de Firestore estén publicadas y que permitan lectura para usuarios autenticados.\n\n" +
+            "UID actual:\n" +
+            usuarioActual?.uid;
+
+        }
+        else if(
+            error?.code ===
+            "failed-precondition"
+        ){
+
+            detalle =
+            "Firebase solicita un índice para esta consulta.\n\n" +
+            "Si aparece un enlace en la consola del navegador, abrilo para crear el índice.";
+
+        }
+        else if(
+            error?.code ===
+            "unauthenticated"
+        ){
+
+            detalle =
+            "Firebase indica que el usuario no está autenticado.\n\n" +
+            "Volvé a iniciar sesión.";
+
+        }
 
 
         errorElemento.textContent =
@@ -854,10 +871,7 @@ async function cargarPresupuestos(){
         ) +
         "\n\n" +
         "Detalle: " +
-        (
-            error?.message ||
-            String(error)
-        );
+        detalle;
 
 
         errorElemento.style.display =
@@ -877,11 +891,14 @@ function mostrarPresupuestos(lista){
     cargando.style.display =
     "none";
 
+
     listaElemento.style.display =
     "flex";
 
 
-    if(!lista.length){
+    if(
+        !lista.length
+    ){
 
         listaElemento.innerHTML = `
 
@@ -1097,7 +1114,9 @@ buscar.addEventListener(
             .trim();
 
 
-        if(!textoBusqueda){
+        if(
+            !textoBusqueda
+        ){
 
             mostrarPresupuestos(
                 todosLosPresupuestos
@@ -1167,7 +1186,7 @@ buscar.addEventListener(
 
 
 /* =====================================================
-   AUTENTICACION
+   AUTENTICACIÓN
 ===================================================== */
 
 onAuthStateChanged(
@@ -1182,7 +1201,9 @@ onAuthStateChanged(
         );
 
 
-        if(!usuario){
+        if(
+            !usuario
+        ){
 
             estadoNoSesion();
 
@@ -1209,6 +1230,7 @@ function estadoNoSesion(){
 
     cargando.style.display =
     "none";
+
 
     listaElemento.style.display =
     "none";
@@ -1237,7 +1259,7 @@ function estadoNoSesion(){
 
 
 /* =====================================================
-   CONTROL
+   CONTROL DE CARGA
 ===================================================== */
 
 setTimeout(
@@ -1255,6 +1277,7 @@ setTimeout(
             errorElemento.textContent =
             "GESBASE quedó esperando la respuesta de Firebase.\n\n" +
             "Verificá Js/firebase.js, Firebase Authentication y Firestore.";
+
 
             errorElemento.style.display =
             "block";
