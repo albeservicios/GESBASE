@@ -44,8 +44,8 @@ body{
 .logo{
     width:42px;
     height:42px;
-    background:#2563eb;
     border-radius:12px;
+    background:#2563eb;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -239,6 +239,7 @@ textarea{
 
 </head>
 
+
 <body>
 
 
@@ -291,7 +292,9 @@ class="option"
 data-question="Quiero analizar un presupuesto."
 >
 
-<div class="option-icon">📊</div>
+<div class="option-icon">
+📊
+</div>
 
 <div class="option-title">
 Analizar presupuesto
@@ -309,14 +312,16 @@ class="option"
 data-question="Quiero analizar un trabajo."
 >
 
-<div class="option-icon">🔧</div>
+<div class="option-icon">
+🔧
+</div>
 
 <div class="option-title">
 Analizar trabajo
 </div>
 
 <div class="option-text">
-Revisar resultado del trabajo.
+Revisar resultado.
 </div>
 
 </button>
@@ -327,14 +332,16 @@ class="option"
 data-question="Quiero analizar mis gastos."
 >
 
-<div class="option-icon">💸</div>
+<div class="option-icon">
+💸
+</div>
 
 <div class="option-title">
 Analizar gastos
 </div>
 
 <div class="option-text">
-Controlar costos y gastos.
+Controlar costos.
 </div>
 
 </button>
@@ -345,14 +352,16 @@ class="option"
 data-question="Quiero analizar mis cobros."
 >
 
-<div class="option-icon">🧾</div>
+<div class="option-icon">
+🧾
+</div>
 
 <div class="option-title">
 Analizar cobros
 </div>
 
 <div class="option-text">
-Ver cobrado y pendiente.
+Cobrado y pendiente.
 </div>
 
 </button>
@@ -363,14 +372,16 @@ class="option"
 data-question="Quiero analizar la rentabilidad."
 >
 
-<div class="option-icon">💰</div>
+<div class="option-icon">
+💰
+</div>
 
 <div class="option-title">
 Rentabilidad
 </div>
 
 <div class="option-text">
-Calcular resultado y margen.
+Resultado y margen.
 </div>
 
 </button>
@@ -381,14 +392,16 @@ class="option"
 data-question="Quiero un resumen de mi empresa."
 >
 
-<div class="option-icon">📈</div>
+<div class="option-icon">
+📈
+</div>
 
 <div class="option-title">
 Resumen empresa
 </div>
 
 <div class="option-text">
-Ver situación general.
+Situación general.
 </div>
 
 </button>
@@ -396,17 +409,19 @@ Ver situación general.
 
 <button
 class="option"
-data-question="Quiero consultar información sobre empleados y fichajes."
+data-question="Quiero consultar empleados y fichajes."
 >
 
-<div class="option-icon">👥</div>
+<div class="option-icon">
+👥
+</div>
 
 <div class="option-title">
 Empleados
 </div>
 
 <div class="option-text">
-Consultar empleados y fichajes.
+Empleados y fichajes.
 </div>
 
 </button>
@@ -417,14 +432,16 @@ class="option"
 data-question=""
 >
 
-<div class="option-icon">💬</div>
+<div class="option-icon">
+💬
+</div>
 
 <div class="option-title">
 Pregunta libre
 </div>
 
 <div class="option-text">
-Escribir una consulta.
+Escribí tu consulta.
 </div>
 
 </button>
@@ -446,9 +463,7 @@ class="chat"
 
 🤖 Hola. Soy el asistente de GESBASE.
 
-Estoy conectado con Gemini.
-
-Elegí una opción o escribime directamente.
+Inicializando Gemini...
 
 </div>
 
@@ -480,7 +495,7 @@ type="button"
 id="status"
 class="status"
 >
-Inicializando GESBASE IA...
+Inicializando...
 </div>
 
 </section>
@@ -500,7 +515,21 @@ FIREBASE
 
 import {
     initializeApp
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+}
+from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+
+
+/*
+==================================================
+APP CHECK
+==================================================
+*/
+
+import {
+    initializeAppCheck,
+    ReCaptchaEnterpriseProvider
+}
+from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app-check.js";
 
 
 /*
@@ -513,18 +542,30 @@ import {
     getAI,
     getGenerativeModel,
     GoogleAIBackend
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-ai.js";
+}
+from "https://www.gstatic.com/firebasejs/12.18.0/firebase-ai.js";
 
 
 /*
 ==================================================
-CONFIGURACIÓN GESBASE
+CONFIGURACIÓN
 ==================================================
 */
 
 import {
     firebaseConfig
-} from "./firebase-config.js";
+}
+from "./firebase-config.js";
+
+
+/*
+==================================================
+CLAVE DE SITIO RECAPTCHA ENTERPRISE
+==================================================
+*/
+
+const RECAPTCHA_SITE_KEY =
+"6LdysqEtAAAAAPPRcPrtI97fIaSbZ6UXclDtVBhJ";
 
 
 /*
@@ -551,128 +592,11 @@ document.querySelectorAll(".option");
 
 /*
 ==================================================
-FIREBASE
+VARIABLES
 ==================================================
 */
-
-let firebaseApp = null;
-
-let ai = null;
 
 let model = null;
-
-
-/*
-==================================================
-INICIALIZAR GEMINI
-==================================================
-*/
-
-async function initializeGemini(){
-
-    try{
-
-        status.textContent =
-        "Conectando con Gemini...";
-
-
-        firebaseApp =
-        initializeApp(
-            firebaseConfig
-        );
-
-
-        ai =
-        getAI(
-            firebaseApp,
-            {
-                backend:
-                new GoogleAIBackend()
-            }
-        );
-
-
-        model =
-        getGenerativeModel(
-            ai,
-            {
-                model:
-                "gemini-3.7-flash",
-
-                systemInstruction: `
-Sos el asistente inteligente de GESBASE.
-
-GESBASE es un sistema de gestión empresarial.
-
-Ayudás con:
-
-- presupuestos
-- clientes
-- trabajos
-- materiales
-- mano de obra
-- viáticos
-- gastos
-- empleados
-- fichajes
-- facturas
-- cobros
-- saldos
-- rentabilidad
-
-Respondé siempre en español.
-
-Sé claro, profesional y práctico.
-
-No inventes datos.
-
-Actualmente todavía no tenés acceso
-automático a los datos privados de Firestore.
-
-Si el usuario pregunta por un cliente,
-presupuesto, trabajo, gasto, empleado
-o cobro específico, explicá que esa
-conexión se agregará posteriormente.
-
-No afirmes haber consultado datos
-que no recibiste.
-
-`
-            }
-        );
-
-
-        status.textContent =
-        "GESBASE IA · Gemini conectado";
-
-
-        return true;
-
-
-    }catch(error){
-
-        console.error(
-            "ERROR INICIALIZANDO GEMINI:",
-            error
-        );
-
-
-        status.textContent =
-        "Error al conectar Gemini";
-
-
-        showMessage(
-            "No se pudo iniciar Gemini.\n\n" +
-            error.message,
-            "error"
-        );
-
-
-        return false;
-
-    }
-
-}
 
 
 /*
@@ -744,7 +668,6 @@ function showLoading(){
     bubble.className =
     "bubble";
 
-
     bubble.textContent =
     "🤖 Gemini está pensando...";
 
@@ -784,7 +707,166 @@ function removeLoading(){
 
 /*
 ==================================================
-ENVIAR A GEMINI
+INICIALIZAR GESBASE IA
+==================================================
+*/
+
+async function iniciarIA(){
+
+    try{
+
+        status.textContent =
+        "1/4 Iniciando Firebase...";
+
+
+        /*
+        ==========================================
+        FIREBASE
+        ==========================================
+        */
+
+        const app =
+        initializeApp(
+            firebaseConfig
+        );
+
+
+        status.textContent =
+        "2/4 Activando reCAPTCHA Enterprise...";
+
+
+        /*
+        ==========================================
+        APP CHECK
+        ==========================================
+        */
+
+        initializeAppCheck(
+            app,
+            {
+                provider:
+                new ReCaptchaEnterpriseProvider(
+                    RECAPTCHA_SITE_KEY
+                ),
+
+                isTokenAutoRefreshEnabled:
+                true
+            }
+        );
+
+
+        status.textContent =
+        "3/4 Iniciando Firebase AI Logic...";
+
+
+        /*
+        ==========================================
+        FIREBASE AI
+        ==========================================
+        */
+
+        const ai =
+        getAI(
+            app,
+            {
+                backend:
+                new GoogleAIBackend()
+            }
+        );
+
+
+        /*
+        ==========================================
+        MODELO
+        ==========================================
+        */
+
+        model =
+        getGenerativeModel(
+            ai,
+            {
+                model:
+                "gemini-3.7-flash",
+
+                systemInstruction: `
+Sos el asistente inteligente de GESBASE.
+
+GESBASE es un sistema de gestión empresarial.
+
+Ayudás con:
+
+- presupuestos
+- clientes
+- trabajos
+- materiales
+- mano de obra
+- viáticos
+- gastos
+- empleados
+- fichajes
+- facturas
+- cobros
+- saldos
+- rentabilidad
+
+Respondé siempre en español.
+
+Sé claro, profesional y práctico.
+
+No inventes datos.
+
+En esta primera versión todavía no tenés
+acceso automático a los datos privados de
+Firestore.
+
+No afirmes que consultaste datos de la
+empresa si no fueron proporcionados.
+
+`
+            }
+        );
+
+
+        status.textContent =
+        "4/4 Gemini conectado";
+
+
+        showMessage(
+            "✅ Gemini está conectado.\n\nEscribime \"Hola\" para probarlo.",
+            "assistant"
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "ERROR GESBASE IA:",
+            error
+        );
+
+
+        status.textContent =
+        "Error de inicialización";
+
+
+        showMessage(
+
+            "❌ No se pudo iniciar la IA.\n\n" +
+            "Error:\n" +
+            error.message,
+
+            "error"
+
+        );
+
+    }
+
+}
+
+
+/*
+==================================================
+ENVIAR MENSAJE
 ==================================================
 */
 
@@ -830,34 +912,21 @@ async function sendMessage(
 
     try{
 
-        /*
-        ==========================================
-        SI GEMINI NO ESTÁ INICIALIZADO
-        ==========================================
-        */
-
         if(!model){
 
-            const ok =
-            await initializeGemini();
-
-
-            if(!ok){
-
-                throw new Error(
-                    "Gemini no pudo inicializarse."
-                );
-
-            }
+            await iniciarIA();
 
         }
 
 
-        /*
-        ==========================================
-        LLAMADA REAL A GEMINI
-        ==========================================
-        */
+        if(!model){
+
+            throw new Error(
+                "Gemini todavía no está disponible."
+            );
+
+        }
+
 
         const result =
         await model.generateContent(
@@ -868,21 +937,8 @@ async function sendMessage(
         removeLoading();
 
 
-        const response =
-        result.response;
-
-
         const answer =
-        response.text();
-
-
-        if(!answer){
-
-            throw new Error(
-                "Gemini no devolvió una respuesta."
-            );
-
-        }
+        result.response.text();
 
 
         showMessage(
@@ -901,15 +957,14 @@ async function sendMessage(
 
 
         console.error(
-            "ERROR GEMINI:",
+            "ERROR AL CONSULTAR GEMINI:",
             error
         );
 
 
         showMessage(
 
-            "No pude obtener una respuesta de Gemini.\n\n" +
-            "Detalle:\n" +
+            "❌ Gemini no pudo responder.\n\n" +
             error.message,
 
             "error"
@@ -924,7 +979,6 @@ async function sendMessage(
 
         send.disabled =
         false;
-
 
         message.focus();
 
@@ -1013,11 +1067,11 @@ options.forEach(
 
 /*
 ==================================================
-INICIO
+ARRANCAR
 ==================================================
 */
 
-initializeGemini();
+iniciarIA();
 
 
 </script>
