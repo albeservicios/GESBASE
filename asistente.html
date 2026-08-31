@@ -44,8 +44,8 @@ body{
 .logo{
     width:42px;
     height:42px;
-    background:#2563eb;
     border-radius:12px;
+    background:#2563eb;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -107,6 +107,10 @@ body{
     cursor:pointer;
 }
 
+.option:active{
+    transform:scale(.98);
+}
+
 .option-icon{
     font-size:23px;
     margin-bottom:6px;
@@ -160,13 +164,19 @@ body{
 .error .bubble{
     background:#fee2e2;
     color:#991b1b;
+    border:1px solid #fecaca;
+}
+
+.loading .bubble{
+    background:white;
+    border:1px solid #e5e7eb;
 }
 
 .composer{
     position:sticky;
     bottom:0;
-    padding:8px 0 15px;
     background:#f3f4f6;
+    padding:8px 0 15px;
 }
 
 .input{
@@ -176,6 +186,7 @@ body{
     padding:8px;
     display:flex;
     gap:8px;
+    align-items:flex-end;
 }
 
 textarea{
@@ -184,8 +195,10 @@ textarea{
     outline:none;
     resize:none;
     padding:10px;
+    font-family:Arial,Helvetica,sans-serif;
     font-size:14px;
     min-height:44px;
+    max-height:120px;
 }
 
 .send{
@@ -196,6 +209,11 @@ textarea{
     background:#2563eb;
     color:white;
     font-size:20px;
+    cursor:pointer;
+}
+
+.send:disabled{
+    opacity:.5;
 }
 
 .status{
@@ -223,9 +241,13 @@ textarea{
 
 <header class="header">
 
-<a href="index.html" class="back">←</a>
+<a href="index.html" class="back">
+←
+</a>
 
-<div class="logo">🤖</div>
+<div class="logo">
+🤖
+</div>
 
 <div>
 
@@ -243,7 +265,9 @@ textarea{
 
 <section class="card">
 
-<h2>Hola 👋</h2>
+<h2>
+Hola 👋
+</h2>
 
 <p>
 Soy el asistente inteligente de GESBASE.
@@ -261,10 +285,32 @@ Elegí una opción o escribí tu consulta.
 
 <button
 class="option"
+data-question="Hola"
+>
+
+<div class="option-icon">
+👋
+</div>
+
+<div class="option-title">
+Probar Gemini
+</div>
+
+<div class="option-text">
+Comprobar que la IA responde.
+</div>
+
+</button>
+
+
+<button
+class="option"
 data-question="Quiero analizar un presupuesto."
 >
 
-<div class="option-icon">📊</div>
+<div class="option-icon">
+📊
+</div>
 
 <div class="option-title">
 Analizar presupuesto
@@ -282,7 +328,9 @@ class="option"
 data-question="Quiero analizar un trabajo."
 >
 
-<div class="option-icon">🔧</div>
+<div class="option-icon">
+🔧
+</div>
 
 <div class="option-title">
 Analizar trabajo
@@ -300,7 +348,9 @@ class="option"
 data-question="Quiero analizar mis gastos."
 >
 
-<div class="option-icon">💸</div>
+<div class="option-icon">
+💸
+</div>
 
 <div class="option-title">
 Analizar gastos
@@ -318,7 +368,9 @@ class="option"
 data-question="Quiero analizar mis cobros."
 >
 
-<div class="option-icon">🧾</div>
+<div class="option-icon">
+🧾
+</div>
 
 <div class="option-title">
 Analizar cobros
@@ -336,7 +388,9 @@ class="option"
 data-question="Quiero analizar la rentabilidad."
 >
 
-<div class="option-icon">💰</div>
+<div class="option-icon">
+💰
+</div>
 
 <div class="option-title">
 Rentabilidad
@@ -354,7 +408,9 @@ class="option"
 data-question="Quiero un resumen de mi empresa."
 >
 
-<div class="option-icon">📈</div>
+<div class="option-icon">
+📈
+</div>
 
 <div class="option-title">
 Resumen empresa
@@ -372,7 +428,9 @@ class="option"
 data-question="Quiero consultar empleados y fichajes."
 >
 
-<div class="option-icon">👥</div>
+<div class="option-icon">
+👥
+</div>
 
 <div class="option-title">
 Empleados
@@ -380,24 +438,6 @@ Empleados
 
 <div class="option-text">
 Empleados y fichajes.
-</div>
-
-</button>
-
-
-<button
-class="option"
-data-question=""
->
-
-<div class="option-icon">💬</div>
-
-<div class="option-title">
-Pregunta libre
-</div>
-
-<div class="option-text">
-Escribí tu consulta.
 </div>
 
 </button>
@@ -419,7 +459,7 @@ class="chat"
 
 🤖 Hola. Soy el asistente de GESBASE.
 
-Inicializando...
+Inicializando Gemini...
 
 </div>
 
@@ -440,6 +480,7 @@ placeholder="Escribí tu consulta..."
 <button
 id="send"
 class="send"
+type="button"
 >
 ➤
 </button>
@@ -450,7 +491,7 @@ class="send"
 id="status"
 class="status"
 >
-Iniciando...
+Inicializando...
 </div>
 
 </section>
@@ -496,7 +537,7 @@ const firebaseConfig = {
 
 /*
 ==================================================
-IMPORTACIONES
+IMPORTACIONES FIREBASE
 ==================================================
 */
 
@@ -526,12 +567,19 @@ from
 
 /*
 ==================================================
-ELEMENTOS
+RECAPTCHA
 ==================================================
 */
 
-const status =
-document.getElementById("status");
+const RECAPTCHA_SITE_KEY =
+"6LdysqEtAAAAAPPRcPrtI97fIaSbZ6UXclDtVBhJ";
+
+
+/*
+==================================================
+ELEMENTOS
+==================================================
+*/
 
 const chat =
 document.getElementById("chat");
@@ -542,56 +590,55 @@ document.getElementById("message");
 const send =
 document.getElementById("send");
 
+const status =
+document.getElementById("status");
+
 
 /*
 ==================================================
-RECAPTCHA
+VARIABLE GEMINI
 ==================================================
 */
-
-const RECAPTCHA_SITE_KEY =
-"6LdysqEtAAAAAPPRcPrtI97fIaSbZ6UXclDtVBhJ";
-
 
 let model = null;
 
 
 /*
 ==================================================
-MENSAJES
+MOSTRAR MENSAJE
 ==================================================
 */
 
-function showMessage(
-    text,
-    type
+function mostrarMensaje(
+    texto,
+    tipo
 ){
 
-    const row =
+    const fila =
     document.createElement("div");
 
-    row.className =
-    "message " + type;
+    fila.className =
+    "message " + tipo;
 
 
-    const bubble =
+    const burbuja =
     document.createElement("div");
 
-    bubble.className =
+    burbuja.className =
     "bubble";
 
 
-    bubble.textContent =
-    text;
+    burbuja.textContent =
+    texto;
 
 
-    row.appendChild(
-    bubble
+    fila.appendChild(
+    burbuja
     );
 
 
     chat.appendChild(
-    row
+    fila
     );
 
 
@@ -603,23 +650,78 @@ function showMessage(
 
 /*
 ==================================================
-INICIAR
+CARGANDO
 ==================================================
 */
 
-async function iniciar(){
+function mostrarCargando(){
+
+    const fila =
+    document.createElement("div");
+
+    fila.id =
+    "loadingMessage";
+
+    fila.className =
+    "message loading";
+
+
+    const burbuja =
+    document.createElement("div");
+
+    burbuja.className =
+    "bubble";
+
+    burbuja.textContent =
+    "🤖 Gemini está pensando...";
+
+
+    fila.appendChild(
+    burbuja
+    );
+
+
+    chat.appendChild(
+    fila
+    );
+
+
+    chat.scrollTop =
+    chat.scrollHeight;
+
+}
+
+
+function quitarCargando(){
+
+    const elemento =
+    document.getElementById(
+        "loadingMessage"
+    );
+
+
+    if(elemento){
+
+        elemento.remove();
+
+    }
+
+}
+
+
+/*
+==================================================
+INICIALIZAR FIREBASE + GEMINI
+==================================================
+*/
+
+async function iniciarIA(){
 
     try{
 
         status.textContent =
         "1/4 Iniciando Firebase...";
 
-
-        /*
-        ==========================================
-        FIREBASE
-        ==========================================
-        */
 
         const app =
         initializeApp(
@@ -628,14 +730,8 @@ async function iniciar(){
 
 
         status.textContent =
-        "2/4 Firebase iniciado. Activando reCAPTCHA...";
+        "2/4 Activando reCAPTCHA Enterprise...";
 
-
-        /*
-        ==========================================
-        APP CHECK
-        ==========================================
-        */
 
         initializeAppCheck(
             app,
@@ -652,14 +748,8 @@ async function iniciar(){
 
 
         status.textContent =
-        "3/4 Conectando Firebase AI Logic...";
+        "3/4 Conectando Gemini Developer API...";
 
-
-        /*
-        ==========================================
-        AI LOGIC
-        ==========================================
-        */
 
         const ai =
         getAI(
@@ -671,12 +761,51 @@ async function iniciar(){
         );
 
 
+        /*
+        ==========================================
+        MODELO GRATUITO
+        ==========================================
+        */
+
         model =
         getGenerativeModel(
             ai,
             {
                 model:
-                "gemini-3.7-flash"
+                "gemini-2.5-flash",
+
+                systemInstruction: `
+Sos el asistente inteligente de GESBASE.
+
+Respondé siempre en español.
+
+Ayudás al usuario con:
+
+presupuestos,
+clientes,
+trabajos,
+materiales,
+mano de obra,
+viáticos,
+gastos,
+empleados,
+fichajes,
+facturas,
+cobros,
+saldos
+y rentabilidad.
+
+Sé claro, profesional y práctico.
+
+No inventes información.
+
+En esta versión todavía no tenés acceso
+automático a los datos privados de Firestore.
+
+No afirmes haber consultado datos de la empresa
+si esos datos no fueron proporcionados.
+
+`
             }
         );
 
@@ -685,7 +814,7 @@ async function iniciar(){
         "4/4 Gemini conectado";
 
 
-        showMessage(
+        mostrarMensaje(
             "✅ Gemini está conectado.\n\nEscribí Hola para probarlo.",
             "assistant"
         );
@@ -693,15 +822,18 @@ async function iniciar(){
 
     }catch(error){
 
-        console.error(error);
+        console.error(
+            "ERROR INICIALIZANDO GEMINI:",
+            error
+        );
 
 
         status.textContent =
-        "❌ Error";
+        "❌ Error de inicialización";
 
 
-        showMessage(
-            "❌ ERROR:\n\n" +
+        mostrarMensaje(
+            "❌ Error al iniciar Gemini:\n\n" +
             error.message,
             "error"
         );
@@ -713,25 +845,27 @@ async function iniciar(){
 
 /*
 ==================================================
-ENVIAR
+ENVIAR CONSULTA
 ==================================================
 */
 
 async function enviar(){
 
-    const text =
+    const texto =
     message.value.trim();
 
 
-    if(!text){
+    if(!texto){
+
+        message.focus();
 
         return;
 
     }
 
 
-    showMessage(
-        text,
+    mostrarMensaje(
+        texto,
         "user"
     );
 
@@ -740,29 +874,63 @@ async function enviar(){
     "";
 
 
+    send.disabled =
+    true;
+
+
+    status.textContent =
+    "Consultando Gemini...";
+
+
+    mostrarCargando();
+
+
     try{
 
         if(!model){
 
             throw new Error(
-                "Gemini todavía no está conectado."
+                "El modelo Gemini no está inicializado."
             );
 
         }
 
 
-        status.textContent =
-        "Consultando Gemini...";
-
-
-        const result =
-        await model.generateContent(
-            text
+        console.log(
+            "Enviando consulta a Gemini..."
         );
 
 
-        showMessage(
-            result.response.text(),
+        const resultado =
+        await model.generateContent(
+            texto
+        );
+
+
+        console.log(
+            "Respuesta recibida:",
+            resultado
+        );
+
+
+        quitarCargando();
+
+
+        const respuesta =
+        resultado.response.text();
+
+
+        if(!respuesta){
+
+            throw new Error(
+                "Gemini devolvió una respuesta vacía."
+            );
+
+        }
+
+
+        mostrarMensaje(
+            respuesta,
             "assistant"
         );
 
@@ -773,10 +941,16 @@ async function enviar(){
 
     }catch(error){
 
-        console.error(error);
+        console.error(
+            "ERROR CONSULTANDO GEMINI:",
+            error
+        );
 
 
-        showMessage(
+        quitarCargando();
+
+
+        mostrarMensaje(
             "❌ Error al consultar Gemini:\n\n" +
             error.message,
             "error"
@@ -784,7 +958,14 @@ async function enviar(){
 
 
         status.textContent =
-        "Error";
+        "❌ Error de Gemini";
+
+    }finally{
+
+        send.disabled =
+        false;
+
+        message.focus();
 
     }
 
@@ -793,7 +974,7 @@ async function enviar(){
 
 /*
 ==================================================
-BOTÓN
+BOTÓN ENVIAR
 ==================================================
 */
 
@@ -830,24 +1011,24 @@ message.addEventListener(
 
 /*
 ==================================================
-OPCIONES
+BOTONES
 ==================================================
 */
 
 document
 .querySelectorAll(".option")
 .forEach(
-    function(button){
+    function(boton){
 
-        button.addEventListener(
+        boton.addEventListener(
             "click",
             function(){
 
-                const question =
+                const pregunta =
                 this.dataset.question;
 
 
-                if(!question){
+                if(!pregunta){
 
                     message.focus();
 
@@ -857,7 +1038,7 @@ document
 
 
                 message.value =
-                question;
+                pregunta;
 
 
                 enviar();
@@ -875,7 +1056,7 @@ INICIAR
 ==================================================
 */
 
-iniciar();
+iniciarIA();
 
 
 </script>
