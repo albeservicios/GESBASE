@@ -1,13 +1,670 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<meta
+    name="description"
+    content="GESBASE - Asistencia y consultas"
+>
+
+<title>Asistencia - GESBASE</title>
+
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:#f3f4f6;
+    color:#111827;
+    min-height:100vh;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:18px 16px;
+}
+
+.header-inner{
+    max-width:900px;
+    margin:auto;
+}
+
+.logo{
+    font-size:25px;
+    font-weight:800;
+}
+
+.subtitulo{
+    margin-top:5px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    width:100%;
+    max-width:900px;
+    margin:0 auto;
+    padding:18px 14px 40px;
+}
+
+.volver{
+    display:inline-block;
+    margin-bottom:15px;
+    text-decoration:none;
+    color:#2563eb;
+    font-weight:bold;
+}
+
+.card{
+    background:white;
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:16px;
+    box-shadow:
+        0 4px 15px rgba(0,0,0,.07);
+}
+
+.card h2{
+    font-size:19px;
+    margin-bottom:15px;
+}
+
+.datos-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+
+.dato{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:12px;
+}
+
+.dato-label{
+    font-size:12px;
+    color:#6b7280;
+    margin-bottom:5px;
+}
+
+.dato-valor{
+    font-size:14px;
+    font-weight:bold;
+    word-break:break-word;
+}
+
+label{
+    display:block;
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    padding:12px;
+    font-size:15px;
+    background:white;
+    color:#111827;
+    outline:none;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+    border-color:#2563eb;
+    box-shadow:
+        0 0 0 3px rgba(37,99,235,.12);
+}
+
+.campo{
+    margin-bottom:15px;
+}
+
+textarea{
+    min-height:130px;
+    resize:vertical;
+}
+
+button{
+    width:100%;
+    border:none;
+    border-radius:11px;
+    padding:13px;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.btn-enviar{
+    background:#2563eb;
+    color:white;
+}
+
+.btn-enviar:hover{
+    background:#1d4ed8;
+}
+
+button:disabled{
+    opacity:.65;
+    cursor:not-allowed;
+}
+
+.alerta{
+    display:none;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-size:14px;
+}
+
+.alerta.exito{
+    display:block;
+    background:#dcfce7;
+    color:#166534;
+    border:1px solid #86efac;
+}
+
+.alerta.error{
+    display:block;
+    background:#fee2e2;
+    color:#991b1b;
+    border:1px solid #fca5a5;
+}
+
+.alerta.info{
+    display:block;
+    background:#dbeafe;
+    color:#1e40af;
+    border:1px solid #93c5fd;
+}
+
+.consulta{
+    border:1px solid #e5e7eb;
+    border-radius:13px;
+    padding:15px;
+    margin-bottom:12px;
+    background:#fff;
+}
+
+.consulta-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.asunto{
+    font-weight:bold;
+    font-size:16px;
+    flex:1;
+}
+
+.estado{
+    font-size:12px;
+    font-weight:bold;
+    padding:6px 9px;
+    border-radius:20px;
+    white-space:nowrap;
+}
+
+.estado.pendiente{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.estado.en_revision{
+    background:#dbeafe;
+    color:#1e40af;
+}
+
+.estado.respondida{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado.cerrada{
+    background:#e5e7eb;
+    color:#374151;
+}
+
+.info{
+    margin-top:8px;
+    color:#6b7280;
+    font-size:12px;
+}
+
+.mensaje-consulta{
+    margin-top:12px;
+    background:#f9fafb;
+    border-radius:10px;
+    padding:12px;
+    font-size:14px;
+    line-height:1.5;
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+.respuesta{
+    margin-top:12px;
+    border-left:4px solid #2563eb;
+    background:#eff6ff;
+    padding:12px;
+    border-radius:8px;
+}
+
+.respuesta-titulo{
+    font-weight:bold;
+    font-size:13px;
+    color:#1d4ed8;
+    margin-bottom:6px;
+}
+
+.respuesta-texto{
+    font-size:14px;
+    line-height:1.5;
+    white-space:pre-wrap;
+}
+
+.cargando,
+.sin-consultas{
+    text-align:center;
+    padding:25px;
+    color:#6b7280;
+}
+
+.estado-sistema{
+    font-size:13px;
+    color:#6b7280;
+    margin-top:8px;
+}
+
+@media(max-width:650px){
+
+    .datos-grid{
+        grid-template-columns:1fr;
+    }
+
+    .consulta-top{
+        flex-direction:column;
+    }
+
+    .estado{
+        align-self:flex-start;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="header-inner">
+
+        <div class="logo">
+            GESBASE
+        </div>
+
+        <div class="subtitulo">
+            Centro de asistencia y consultas
+        </div>
+
+    </div>
+
+</header>
+
+
+<main>
+
+
+    <a
+        href="javascript:history.back()"
+        class="volver"
+    >
+        ← Volver
+    </a>
+
+
+    <!-- =====================================
+         DATOS DEL USUARIO
+    ====================================== -->
+
+    <section class="card">
+
+        <h2>
+            👤 Mi información
+        </h2>
+
+        <div class="datos-grid">
+
+            <div class="dato">
+
+                <div class="dato-label">
+                    Usuario
+                </div>
+
+                <div
+                    class="dato-valor"
+                    id="usuarioNombre"
+                >
+                    Cargando...
+                </div>
+
+            </div>
+
+
+            <div class="dato">
+
+                <div class="dato-label">
+                    Email
+                </div>
+
+                <div
+                    class="dato-valor"
+                    id="usuarioEmail"
+                >
+                    Cargando...
+                </div>
+
+            </div>
+
+
+            <div class="dato">
+
+                <div class="dato-label">
+                    ID de usuario
+                </div>
+
+                <div
+                    class="dato-valor"
+                    id="usuarioId"
+                >
+                    Cargando...
+                </div>
+
+            </div>
+
+
+            <div class="dato">
+
+                <div class="dato-label">
+                    Empresa
+                </div>
+
+                <div
+                    class="dato-valor"
+                    id="nombreEmpresa"
+                >
+                    Cargando...
+                </div>
+
+            </div>
+
+
+            <div class="dato">
+
+                <div class="dato-label">
+                    ID de empresa
+                </div>
+
+                <div
+                    class="dato-valor"
+                    id="empresaId"
+                >
+                    Cargando...
+                </div>
+
+            </div>
+
+
+            <div class="dato">
+
+                <div class="dato-label">
+                    Estado
+                </div>
+
+                <div
+                    class="dato-valor"
+                    id="estadoUsuario"
+                >
+                    Cargando...
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="estado-sistema"
+            id="estadoSistema"
+        >
+            Verificando sesión...
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         RESULTADO
+    ====================================== -->
+
+    <div
+        id="resultado"
+        class="alerta"
+    ></div>
+
+
+
+    <!-- =====================================
+         NUEVA CONSULTA
+    ====================================== -->
+
+    <section class="card">
+
+        <h2>
+            📩 Nueva consulta
+        </h2>
+
+
+        <form id="formConsulta">
+
+
+            <div class="campo">
+
+                <label for="categoria">
+                    Tipo de consulta
+                </label>
+
+                <select id="categoria" required>
+
+                    <option value="">
+                        Seleccioná una opción
+                    </option>
+
+                    <option value="Consulta sobre GESBASE">
+                        Consulta sobre GESBASE
+                    </option>
+
+                    <option value="Facturación">
+                        Facturación
+                    </option>
+
+                    <option value="Pagos">
+                        Pagos
+                    </option>
+
+                    <option value="Suscripción">
+                        Suscripción
+                    </option>
+
+                    <option value="Problema técnico">
+                        Problema técnico
+                    </option>
+
+                    <option value="Cuenta y acceso">
+                        Cuenta y acceso
+                    </option>
+
+                    <option value="Clientes">
+                        Clientes
+                    </option>
+
+                    <option value="Presupuestos">
+                        Presupuestos
+                    </option>
+
+                    <option value="Trabajos">
+                        Trabajos
+                    </option>
+
+                    <option value="Empleados">
+                        Empleados
+                    </option>
+
+                    <option value="Ventas">
+                        Ventas
+                    </option>
+
+                    <option value="Otro">
+                        Otro
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <div class="campo">
+
+                <label for="asunto">
+                    Asunto
+                </label>
+
+                <input
+                    type="text"
+                    id="asunto"
+                    maxlength="150"
+                    placeholder="Ej.: No puedo registrar un cliente"
+                    required
+                >
+
+            </div>
+
+
+
+            <div class="campo">
+
+                <label for="mensaje">
+                    Mensaje
+                </label>
+
+                <textarea
+                    id="mensaje"
+                    maxlength="5000"
+                    placeholder="Escribí detalladamente tu consulta..."
+                    required
+                ></textarea>
+
+            </div>
+
+
+
+            <button
+                type="submit"
+                id="btnEnviar"
+                class="btn-enviar"
+            >
+                📩 Enviar consulta
+            </button>
+
+
+        </form>
+
+    </section>
+
+
+
+    <!-- =====================================
+         CONSULTAS ANTERIORES
+    ====================================== -->
+
+    <section class="card">
+
+        <h2>
+            💬 Mis consultas
+        </h2>
+
+
+        <div id="listaConsultas">
+
+            <div class="cargando">
+                Cargando consultas...
+            </div>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
 <script type="module">
+
+
+/* ==========================================
+   FIREBASE
+========================================== */
 
 import {
     auth,
     db
 } from "./firebase.js";
 
+
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
 
 import {
     collection,
@@ -19,92 +676,84 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
+
+/* ==========================================
+   ELEMENTOS
+========================================== */
+
+const usuarioNombre =
+    document.getElementById(
+        "usuarioNombre"
+    );
+
 const usuarioEmail =
-    document.getElementById("usuarioEmail");
+    document.getElementById(
+        "usuarioEmail"
+    );
 
 const usuarioId =
-    document.getElementById("usuarioId");
+    document.getElementById(
+        "usuarioId"
+    );
+
+const nombreEmpresa =
+    document.getElementById(
+        "nombreEmpresa"
+    );
 
 const empresaId =
-    document.getElementById("empresaId");
+    document.getElementById(
+        "empresaId"
+    );
+
+const estadoUsuario =
+    document.getElementById(
+        "estadoUsuario"
+    );
+
+const estadoSistema =
+    document.getElementById(
+        "estadoSistema"
+    );
 
 const formConsulta =
-    document.getElementById("formConsulta");
+    document.getElementById(
+        "formConsulta"
+    );
 
 const btnEnviar =
-    document.getElementById("btnEnviar");
+    document.getElementById(
+        "btnEnviar"
+    );
 
 const resultado =
-    document.getElementById("resultado");
+    document.getElementById(
+        "resultado"
+    );
 
 const listaConsultas =
-    document.getElementById("listaConsultas");
+    document.getElementById(
+        "listaConsultas"
+    );
+
 
 
 /* ==========================================
-   MOSTRAR DATOS
+   DATOS ACTUALES
 ========================================== */
 
-function mostrarUsuario(user){
+let perfilActual = {
 
-    if(!user){
+    usuarioId:"",
+    empresaId:"",
+    nombre:"",
+    apellido:"",
+    email:"",
+    nombreEmpresa:"",
+    estado:""
 
-        usuarioEmail.textContent =
-            "NO AUTENTICADO";
+};
 
-        usuarioId.textContent =
-            "NO DISPONIBLE";
-
-        empresaId.textContent =
-            "NO DISPONIBLE";
-
-        return;
-
-    }
-
-
-    usuarioEmail.textContent =
-        user.email || "Sin email";
-
-    usuarioId.textContent =
-        user.uid || "Sin UID";
-
-
-    console.log(
-        "USUARIO FIREBASE:",
-        user
-    );
-
-    console.log(
-        "UID:",
-        user.uid
-    );
-
-    console.log(
-        "EMAIL:",
-        user.email
-    );
-
-
-    empresaId.textContent =
-        "Buscando empresa...";
-
-}
-
-
-/* ==========================================
-   MENSAJES
-========================================== */
-
-function mensaje(texto,tipo){
-
-    resultado.textContent =
-        texto;
-
-    resultado.className =
-        "alerta " + tipo;
-
-}
 
 
 /* ==========================================
@@ -123,22 +772,43 @@ function escapar(texto){
     }
 
     return String(texto)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
+
 
 
 /* ==========================================
    FECHA
 ========================================== */
 
-function fechaTexto(timestamp){
+function fechaTexto(fecha){
 
-    if(!timestamp){
+    if(!fecha){
 
         return "Fecha pendiente";
 
@@ -147,18 +817,41 @@ function fechaTexto(timestamp){
 
     try{
 
-        return timestamp
-            .toDate()
-            .toLocaleString(
-                "es-AR",
-                {
-                    day:"2-digit",
-                    month:"2-digit",
-                    year:"numeric",
-                    hour:"2-digit",
-                    minute:"2-digit"
-                }
-            );
+        if(
+            typeof fecha.toDate ===
+            "function"
+        ){
+
+            return fecha
+                .toDate()
+                .toLocaleString(
+                    "es-AR",
+                    {
+                        day:"2-digit",
+                        month:"2-digit",
+                        year:"numeric",
+                        hour:"2-digit",
+                        minute:"2-digit"
+                    }
+                );
+
+        }
+
+
+        if(
+            fecha instanceof Date
+        ){
+
+            return fecha
+                .toLocaleString(
+                    "es-AR"
+                );
+
+        }
+
+
+        return String(fecha);
+
 
     }catch(error){
 
@@ -167,6 +860,7 @@ function fechaTexto(timestamp){
     }
 
 }
+
 
 
 /* ==========================================
@@ -175,50 +869,120 @@ function fechaTexto(timestamp){
 
 function estadoTexto(estado){
 
-    if(estado === "pendiente")
-        return "Pendiente";
+    switch(estado){
 
-    if(estado === "en_revision")
-        return "En revisión";
+        case "pendiente":
+            return "Pendiente";
 
-    if(estado === "respondida")
-        return "Respondida";
+        case "en_revision":
+            return "En revisión";
 
-    if(estado === "cerrada")
-        return "Cerrada";
+        case "respondida":
+            return "Respondida";
 
-    return estado || "Pendiente";
+        case "cerrada":
+            return "Cerrada";
+
+        default:
+            return estado ||
+                "Pendiente";
+
+    }
 
 }
 
 
+
 /* ==========================================
-   CARGAR EMPRESA
+   MOSTRAR MENSAJE
 ========================================== */
 
-async function buscarEmpresa(user){
+function mensaje(
+    texto,
+    tipo
+){
+
+    resultado.textContent =
+        texto;
+
+    resultado.className =
+        "alerta " + tipo;
+
+}
+
+
+
+/* ==========================================
+   BUSCAR PERFIL
+========================================== */
+
+async function buscarPerfil(user){
+
+    perfilActual = {
+
+        usuarioId:user.uid,
+
+        empresaId:"",
+
+        nombre:
+            user.displayName || "",
+
+        apellido:"",
+
+        email:
+            user.email || "",
+
+        nombreEmpresa:"",
+
+        estado:""
+
+    };
+
+
+    usuarioNombre.textContent =
+        user.displayName ||
+        "Usuario GESBASE";
+
+
+    usuarioEmail.textContent =
+        user.email ||
+        "Sin email";
+
+
+    usuarioId.textContent =
+        user.uid ||
+        "Sin UID";
+
+
+    nombreEmpresa.textContent =
+        "Buscando...";
+
 
     empresaId.textContent =
-        "Buscando empresa...";
+        "Buscando...";
 
+
+    estadoUsuario.textContent =
+        "Autenticado";
+
+
+    estadoSistema.textContent =
+        "Sesión de GESBASE activa.";
+
+
+
+    /* ======================================
+       1. BUSCAR EN USUARIOS
+    ====================================== */
 
     try{
 
-        /*
-         * Primero intentamos buscar el documento
-         * de usuario usando el UID como ID.
-         */
-
-        const usuarioRef =
-            collection(
-                db,
-                "usuarios"
-            );
-
-
-        const usuarioQuery =
+        const qUsuarios =
             query(
-                usuarioRef,
+                collection(
+                    db,
+                    "usuarios"
+                ),
                 where(
                     "uid",
                     "==",
@@ -227,72 +991,398 @@ async function buscarEmpresa(user){
             );
 
 
-        const usuarioSnapshot =
+        const snapUsuarios =
             await getDocs(
-                usuarioQuery
+                qUsuarios
             );
 
 
-        if(!usuarioSnapshot.empty){
+        if(
+            !snapUsuarios.empty
+        ){
 
             const datos =
-                usuarioSnapshot.docs[0].data();
+                snapUsuarios
+                    .docs[0]
+                    .data();
 
 
             console.log(
-                "PERFIL EN USUARIOS:",
+                "PERFIL USUARIOS:",
                 datos
             );
 
 
-            const empresa =
+            perfilActual.nombre =
+                datos.nombre ||
+                perfilActual.nombre ||
+                "";
+
+
+            perfilActual.apellido =
+                datos.apellido ||
+                "";
+
+
+            perfilActual.email =
+                datos.email ||
+                perfilActual.email ||
+                "";
+
+
+            perfilActual.empresaId =
                 datos.empresaId ||
                 datos.idEmpresa ||
                 datos.empresa ||
                 "";
 
 
-            if(empresa){
+            perfilActual.estado =
+                datos.estado ||
+                "";
 
-                empresaId.textContent =
-                    empresa;
 
-                return empresa;
+            if(
+                perfilActual.nombre ||
+                perfilActual.apellido
+            ){
+
+                usuarioNombre.textContent =
+                    (
+                        perfilActual.nombre +
+                        " " +
+                        perfilActual.apellido
+                    ).trim();
+
+            }
+
+
+            if(
+                perfilActual.email
+            ){
+
+                usuarioEmail.textContent =
+                    perfilActual.email;
+
+            }
+
+
+            if(
+                perfilActual.estado
+            ){
+
+                estadoUsuario.textContent =
+                    perfilActual.estado;
 
             }
 
         }
 
-
-        /*
-         * Si no encontramos empresa,
-         * mostramos que el usuario está autenticado.
-         */
-
-        empresaId.textContent =
-            "Sin empresa asociada";
-
-
-        return "";
-
-
     }catch(error){
 
-        console.error(
-            "ERROR BUSCANDO EMPRESA:",
+        console.warn(
+            "No se pudo consultar usuarios:",
             error
         );
 
-
-        empresaId.textContent =
-            "No se pudo consultar";
+    }
 
 
-        return "";
+
+    /* ======================================
+       2. SI NO HAY EMPRESA,
+          BUSCAR EN EMPLEADOS
+    ====================================== */
+
+    if(
+        !perfilActual.empresaId
+    ){
+
+        try{
+
+            const qEmpleado =
+                query(
+                    collection(
+                        db,
+                        "empleados"
+                    ),
+                    where(
+                        "authUid",
+                        "==",
+                        user.uid
+                    )
+                );
+
+
+            const snapEmpleado =
+                await getDocs(
+                    qEmpleado
+                );
+
+
+            if(
+                !snapEmpleado.empty
+            ){
+
+                const datos =
+                    snapEmpleado
+                        .docs[0]
+                        .data();
+
+
+                console.log(
+                    "PERFIL EMPLEADO:",
+                    datos
+                );
+
+
+                perfilActual.empresaId =
+                    datos.empresaId ||
+                    "";
+
+
+                perfilActual.nombre =
+                    datos.nombre ||
+                    perfilActual.nombre ||
+                    "";
+
+
+                perfilActual.apellido =
+                    datos.apellido ||
+                    "";
+
+
+                perfilActual.email =
+                    datos.email ||
+                    perfilActual.email ||
+                    "";
+
+
+                perfilActual.estado =
+                    datos.estado ||
+                    perfilActual.estado ||
+                    "";
+
+
+                usuarioNombre.textContent =
+                    (
+                        perfilActual.nombre +
+                        " " +
+                        perfilActual.apellido
+                    ).trim();
+
+
+                usuarioEmail.textContent =
+                    perfilActual.email;
+
+
+                estadoUsuario.textContent =
+                    perfilActual.estado ||
+                    "Activo";
+
+            }
+
+        }catch(error){
+
+            console.warn(
+                "No se pudo consultar empleados:",
+                error
+            );
+
+        }
 
     }
 
+
+
+    /* ======================================
+       3. BUSCAR EMPRESA
+    ====================================== */
+
+    if(
+        perfilActual.empresaId
+    ){
+
+        nombreEmpresa.textContent =
+            "Cargando empresa...";
+
+
+        try{
+
+            const qEmpresa =
+                query(
+                    collection(
+                        db,
+                        "empresas"
+                    ),
+                    where(
+                        "__name__",
+                        "==",
+                        perfilActual.empresaId
+                    )
+                );
+
+
+            const snapEmpresa =
+                await getDocs(
+                    qEmpresa
+                );
+
+
+            if(
+                !snapEmpresa.empty
+            ){
+
+                const empresa =
+                    snapEmpresa
+                        .docs[0]
+                        .data();
+
+
+                console.log(
+                    "EMPRESA:",
+                    empresa
+                );
+
+
+                perfilActual.nombreEmpresa =
+                    empresa.nombreEmpresa ||
+                    empresa.nombre ||
+                    empresa.razonSocial ||
+                    "";
+
+
+            }
+
+        }catch(error){
+
+            console.warn(
+                "Error buscando empresa por ID:",
+                error
+            );
+
+        }
+
+    }
+
+
+
+    /* ======================================
+       4. SI TODAVÍA NO HAY EMPRESA,
+          BUSCAR EMPRESA POR PROPIETARIO
+    ====================================== */
+
+    if(
+        !perfilActual.empresaId
+    ){
+
+        try{
+
+            const qEmpresaProp =
+                query(
+                    collection(
+                        db,
+                        "empresas"
+                    ),
+                    where(
+                        "propietarioUid",
+                        "==",
+                        user.uid
+                    )
+                );
+
+
+            const snapEmpresaProp =
+                await getDocs(
+                    qEmpresaProp
+                );
+
+
+            if(
+                !snapEmpresaProp.empty
+            ){
+
+                const docEmpresa =
+                    snapEmpresaProp
+                        .docs[0];
+
+
+                const datosEmpresa =
+                    docEmpresa.data();
+
+
+                perfilActual.empresaId =
+                    datosEmpresa.empresaId ||
+                    docEmpresa.id;
+
+
+                perfilActual.nombreEmpresa =
+                    datosEmpresa.nombreEmpresa ||
+                    datosEmpresa.nombre ||
+                    datosEmpresa.razonSocial ||
+                    "";
+
+
+                console.log(
+                    "EMPRESA POR PROPIETARIO:",
+                    datosEmpresa
+                );
+
+            }
+
+        }catch(error){
+
+            console.warn(
+                "No se pudo buscar empresa por propietario:",
+                error
+            );
+
+        }
+
+    }
+
+
+
+    /* ======================================
+       5. MOSTRAR EMPRESA
+    ====================================== */
+
+    empresaId.textContent =
+        perfilActual.empresaId ||
+        "Sin empresa asociada";
+
+
+    nombreEmpresa.textContent =
+        perfilActual.nombreEmpresa ||
+        "Sin empresa asociada";
+
+
+    if(
+        perfilActual.empresaId
+    ){
+
+        estadoSistema.textContent =
+            "Usuario y empresa identificados correctamente.";
+
+    }else{
+
+        estadoSistema.textContent =
+            "Usuario autenticado. No se encontró una empresa asociada.";
+
+    }
+
+
+    console.log(
+        "PERFIL FINAL:",
+        perfilActual
+    );
+
+
+
+    return perfilActual;
+
 }
+
 
 
 /* ==========================================
@@ -325,7 +1415,9 @@ async function cargarConsultas(user){
             await getDocs(q);
 
 
-        if(snapshot.empty){
+        if(
+            snapshot.empty
+        ){
 
             listaConsultas.innerHTML =
                 '<div class="sin-consultas">Todavía no tenés consultas.</div>';
@@ -338,27 +1430,35 @@ async function cargarConsultas(user){
         const consultas = [];
 
 
-        snapshot.forEach(doc => {
+        snapshot.forEach(
+            doc => {
 
-            consultas.push({
+                consultas.push({
 
-                id:doc.id,
+                    id:doc.id,
 
-                ...doc.data()
+                    ...doc.data()
 
-            });
+                });
 
-        });
+            }
+        );
 
 
         consultas.sort(
             (a,b) => {
 
                 const fechaA =
-                    a.fechaCreacion?.toMillis?.() || 0;
+                    a.fechaCreacion?.toMillis?.() ||
+                    a.fecha?.toMillis?.() ||
+                    0;
+
 
                 const fechaB =
-                    b.fechaCreacion?.toMillis?.() || 0;
+                    b.fechaCreacion?.toMillis?.() ||
+                    b.fecha?.toMillis?.() ||
+                    0;
+
 
                 return fechaB - fechaA;
 
@@ -369,77 +1469,128 @@ async function cargarConsultas(user){
         let html = "";
 
 
-        consultas.forEach(consulta => {
-
-            const estado =
-                consulta.estado ||
-                "pendiente";
+        consultas.forEach(
+            consulta => {
 
 
-            html += `
+                const estado =
+                    consulta.estado ||
+                    "pendiente";
 
-                <div class="consulta">
 
-                    <div class="consulta-top">
+                const respuesta =
+                    consulta.ultimaRespuesta ||
+                    consulta.respuesta ||
+                    "";
 
-                        <div class="asunto">
 
-                            ${escapar(
-                                consulta.asunto ||
-                                "Sin asunto"
-                            )}
+                const fecha =
+                    consulta.fechaCreacion ||
+                    consulta.fecha ||
+                    consulta.creado ||
+                    null;
 
-                        </div>
 
-                        <div
-                            class="estado ${escapar(
-                                estado
-                            )}"
-                        >
+                html += `
 
-                            ${escapar(
-                                estadoTexto(
+                    <div class="consulta">
+
+
+                        <div class="consulta-top">
+
+                            <div class="asunto">
+
+                                ${escapar(
+                                    consulta.asunto ||
+                                    "Sin asunto"
+                                )}
+
+                            </div>
+
+
+                            <div
+                                class="estado ${escapar(
                                     estado
-                                )
+                                )}"
+                            >
+
+                                ${escapar(
+                                    estadoTexto(
+                                        estado
+                                    )
+                                )}
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="info">
+
+                            ${escapar(
+                                consulta.categoria ||
+                                consulta.tipo ||
+                                "Consulta"
+                            )}
+
+                            ·
+
+                            ${escapar(
+                                fechaTexto(fecha)
                             )}
 
                         </div>
 
-                    </div>
 
 
-                    <div class="info">
+                        <div class="mensaje-consulta">
 
-                        ${escapar(
-                            consulta.categoria ||
-                            "Sin categoría"
-                        )}
+                            ${escapar(
+                                consulta.mensaje ||
+                                ""
+                            )}
 
-                        ·
-
-                        ${escapar(
-                            fechaTexto(
-                                consulta.fechaCreacion
-                            )
-                        )}
-
-                    </div>
+                        </div>
 
 
-                    <div class="mensaje-consulta">
 
-                        ${escapar(
-                            consulta.mensaje ||
+                        ${
+                            respuesta
+                            ?
+                            `
+
+                            <div class="respuesta">
+
+                                <div class="respuesta-titulo">
+
+                                    👨‍💼 Respuesta de asistencia
+
+                                </div>
+
+
+                                <div class="respuesta-texto">
+
+                                    ${escapar(
+                                        respuesta
+                                    )}
+
+                                </div>
+
+                            </div>
+
+                            `
+                            :
                             ""
-                        )}
+                        }
+
 
                     </div>
 
-                </div>
+                `;
 
-            `;
-
-        });
+            }
+        );
 
 
         listaConsultas.innerHTML =
@@ -449,24 +1600,28 @@ async function cargarConsultas(user){
     }catch(error){
 
         console.error(
-            "ERROR CONSULTANDO FIRESTORE:",
+            "ERROR CARGANDO CONSULTAS:",
             error
         );
 
 
         listaConsultas.innerHTML = `
 
-            <div class="alerta error"
-                 style="display:block">
+            <div
+                class="alerta error"
+                style="display:block"
+            >
 
-                Error al cargar las consultas.
+                ❌ No se pudieron cargar tus consultas.
 
                 <br><br>
 
                 <small>
+
                     ${escapar(
                         error.message
                     )}
+
                 </small>
 
             </div>
@@ -476,6 +1631,7 @@ async function cargarConsultas(user){
     }
 
 }
+
 
 
 /* ==========================================
@@ -496,7 +1652,7 @@ formConsulta.addEventListener(
         if(!user){
 
             mensaje(
-                "No hay un usuario autenticado.",
+                "❌ No hay una sesión activa.",
                 "error"
             );
 
@@ -507,21 +1663,27 @@ formConsulta.addEventListener(
 
         const categoria =
             document
-                .getElementById("categoria")
+                .getElementById(
+                    "categoria"
+                )
                 .value
                 .trim();
 
 
         const asunto =
             document
-                .getElementById("asunto")
+                .getElementById(
+                    "asunto"
+                )
                 .value
                 .trim();
 
 
         const texto =
             document
-                .getElementById("mensaje")
+                .getElementById(
+                    "mensaje"
+                )
                 .value
                 .trim();
 
@@ -533,7 +1695,7 @@ formConsulta.addEventListener(
         ){
 
             mensaje(
-                "Completá todos los campos.",
+                "⚠️ Completá todos los campos.",
                 "error"
             );
 
@@ -545,11 +1707,32 @@ formConsulta.addEventListener(
         btnEnviar.disabled =
             true;
 
+
         btnEnviar.textContent =
             "Enviando...";
 
 
         try{
+
+
+            /*
+             * Nos aseguramos de tener
+             * el perfil actualizado.
+             */
+
+            if(
+                !perfilActual.usuarioId
+            ){
+
+                await buscarPerfil(user);
+
+            }
+
+
+
+            /* ==================================
+               CREAR CONSULTA
+            ================================== */
 
             await addDoc(
                 collection(
@@ -558,21 +1741,49 @@ formConsulta.addEventListener(
                 ),
                 {
 
+                    /* IDENTIFICACIÓN */
+
                     usuarioId:
                         user.uid,
 
+                    uid:
+                        user.uid,
+
                     empresaId:
+                        perfilActual.empresaId ||
                         "",
 
+
+                    /* USUARIO */
+
                     nombre:
+                        perfilActual.nombre ||
                         user.displayName ||
                         "",
 
+                    apellido:
+                        perfilActual.apellido ||
+                        "",
+
                     email:
+                        perfilActual.email ||
                         user.email ||
                         "",
 
+
+                    /* EMPRESA */
+
+                    empresa:
+                        perfilActual.nombreEmpresa ||
+                        "",
+
+
+                    /* CONSULTA */
+
                     categoria:
+                        categoria,
+
+                    tipo:
                         categoria,
 
                     asunto:
@@ -581,11 +1792,17 @@ formConsulta.addEventListener(
                     mensaje:
                         texto,
 
+
+                    /* ESTADO */
+
                     estado:
                         "pendiente",
 
                     prioridad:
                         "normal",
+
+
+                    /* FECHAS */
 
                     fechaCreacion:
                         serverTimestamp(),
@@ -593,23 +1810,61 @@ formConsulta.addEventListener(
                     fechaActualizacion:
                         serverTimestamp(),
 
+                    creado:
+                        serverTimestamp(),
+
+                    actualizado:
+                        serverTimestamp(),
+
+                    fecha:
+                        serverTimestamp(),
+
+
+                    /* RESPUESTA */
+
                     ultimaRespuesta:
+                        "",
+
+                    respondidaPor:
+                        "",
+
+                    respondidaPorEmail:
+                        "",
+
+
+                    /* ARCHIVO */
+
+                    archivoURL:
+                        "",
+
+                    nombreArchivo:
                         ""
 
                 }
+
             );
 
+
+            /* ==================================
+               LIMPIAR FORMULARIO
+            ================================== */
 
             formConsulta.reset();
 
 
             mensaje(
-                "✅ Consulta enviada correctamente.",
+                "✅ Consulta enviada correctamente. El equipo de asistencia la revisará.",
                 "exito"
             );
 
 
-            await cargarConsultas(user);
+            /* ==================================
+               RECARGAR LISTA
+            ================================== */
+
+            await cargarConsultas(
+                user
+            );
 
 
         }catch(error){
@@ -621,7 +1876,7 @@ formConsulta.addEventListener(
 
 
             mensaje(
-                "No se pudo enviar: " +
+                "❌ No se pudo enviar la consulta: " +
                 error.message,
                 "error"
             );
@@ -630,6 +1885,7 @@ formConsulta.addEventListener(
 
             btnEnviar.disabled =
                 false;
+
 
             btnEnviar.textContent =
                 "📩 Enviar consulta";
@@ -640,12 +1896,13 @@ formConsulta.addEventListener(
 );
 
 
+
 /* ==========================================
-   FIREBASE AUTH
+   AUTENTICACIÓN
 ========================================== */
 
 console.log(
-    "ASISTENCIA: esperando autenticación..."
+    "GESBASE ASISTENCIA: esperando autenticación..."
 );
 
 
@@ -654,25 +1911,52 @@ onAuthStateChanged(
     async function(user){
 
         console.log(
-            "ASISTENCIA - AUTH:",
+            "GESBASE ASISTENCIA AUTH:",
             user
         );
 
 
         if(!user){
 
-            usuarioEmail.textContent =
+            usuarioNombre.textContent =
                 "No autenticado";
 
+            usuarioEmail.textContent =
+                "No disponible";
+
             usuarioId.textContent =
+                "No disponible";
+
+            nombreEmpresa.textContent =
                 "No disponible";
 
             empresaId.textContent =
                 "No disponible";
 
+            estadoUsuario.textContent =
+                "Sesión cerrada";
 
-            listaConsultas.innerHTML =
-                '<div class="alerta error" style="display:block">No hay una sesión activa de GESBASE.</div>';
+
+            estadoSistema.textContent =
+                "No hay una sesión activa de GESBASE.";
+
+
+            listaConsultas.innerHTML = `
+
+                <div
+                    class="alerta error"
+                    style="display:block"
+                >
+
+                    ❌ No hay una sesión activa de GESBASE.
+
+                    <br><br>
+
+                    Iniciá sesión para utilizar asistencia.
+
+                </div>
+
+            `;
 
 
             return;
@@ -680,20 +1964,71 @@ onAuthStateChanged(
         }
 
 
-        /*
-         * AQUÍ SABEMOS QUE FIREBASE AUTH
-         * ENCONTRÓ AL USUARIO.
-         */
 
-        mostrarUsuario(user);
+        try{
 
 
-        await buscarEmpresa(user);
+            /* ================================
+               CARGAR PERFIL
+            ================================= */
+
+            await buscarPerfil(
+                user
+            );
 
 
-        await cargarConsultas(user);
+            /* ================================
+               CARGAR CONSULTAS
+            ================================= */
+
+            await cargarConsultas(
+                user
+            );
+
+
+        }catch(error){
+
+            console.error(
+                "ERROR GENERAL ASISTENCIA:",
+                error
+            );
+
+
+            estadoSistema.textContent =
+                "Error cargando los datos.";
+
+
+            listaConsultas.innerHTML = `
+
+                <div
+                    class="alerta error"
+                    style="display:block"
+                >
+
+                    ❌ Ocurrió un error al cargar asistencia.
+
+                    <br><br>
+
+                    <small>
+
+                        ${escapar(
+                            error.message
+                        )}
+
+                    </small>
+
+                </div>
+
+            `;
+
+        }
 
     }
 );
 
 </script>
+
+
+</body>
+
+</html>
