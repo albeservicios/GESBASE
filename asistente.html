@@ -223,6 +223,16 @@ textarea{
     margin-top:7px;
 }
 
+.company-info{
+    background:#eff6ff;
+    border:1px solid #dbeafe;
+    border-radius:12px;
+    padding:10px;
+    margin-top:12px;
+    font-size:12px;
+    color:#1e40af;
+}
+
 @media(max-width:600px){
 
     .options{
@@ -266,17 +276,24 @@ textarea{
 <section class="card">
 
 <h2>
-Hola 👋
+Asistente inteligente 🤖
 </h2>
 
 <p>
-Soy el asistente inteligente de GESBASE.
-Elegí una opción o escribí tu consulta.
+Consultá información de tu empresa y pedile a GESBASE
+que la analice.
 </p>
+
+<div
+id="companyInfo"
+class="company-info"
+>
+Identificando empresa...
+</div>
 
 
 <div class="options-title">
-¿Qué querés hacer?
+Consultas rápidas
 </div>
 
 
@@ -285,147 +302,7 @@ Elegí una opción o escribí tu consulta.
 
 <button
 class="option"
-data-question="Hola"
->
-
-<div class="option-icon">
-👋
-</div>
-
-<div class="option-title">
-Probar Gemini
-</div>
-
-<div class="option-text">
-Comprobar que la IA responde.
-</div>
-
-</button>
-
-
-<button
-class="option"
-data-question="Quiero analizar un presupuesto."
->
-
-<div class="option-icon">
-📊
-</div>
-
-<div class="option-title">
-Analizar presupuesto
-</div>
-
-<div class="option-text">
-Revisar costos y margen.
-</div>
-
-</button>
-
-
-<button
-class="option"
-data-question="Quiero analizar un trabajo."
->
-
-<div class="option-icon">
-🔧
-</div>
-
-<div class="option-title">
-Analizar trabajo
-</div>
-
-<div class="option-text">
-Revisar resultado.
-</div>
-
-</button>
-
-
-<button
-class="option"
-data-question="Quiero analizar mis gastos."
->
-
-<div class="option-icon">
-💸
-</div>
-
-<div class="option-title">
-Analizar gastos
-</div>
-
-<div class="option-text">
-Controlar costos.
-</div>
-
-</button>
-
-
-<button
-class="option"
-data-question="Quiero analizar mis cobros."
->
-
-<div class="option-icon">
-🧾
-</div>
-
-<div class="option-title">
-Analizar cobros
-</div>
-
-<div class="option-text">
-Cobrado y pendiente.
-</div>
-
-</button>
-
-
-<button
-class="option"
-data-question="Quiero analizar la rentabilidad."
->
-
-<div class="option-icon">
-💰
-</div>
-
-<div class="option-title">
-Rentabilidad
-</div>
-
-<div class="option-text">
-Resultado y margen.
-</div>
-
-</button>
-
-
-<button
-class="option"
-data-question="Quiero un resumen de mi empresa."
->
-
-<div class="option-icon">
-📈
-</div>
-
-<div class="option-title">
-Resumen empresa
-</div>
-
-<div class="option-text">
-Situación general.
-</div>
-
-</button>
-
-
-<button
-class="option"
-data-question="Quiero consultar empleados y fichajes."
+data-question="¿Qué clientes tengo?"
 >
 
 <div class="option-icon">
@@ -433,11 +310,71 @@ data-question="Quiero consultar empleados y fichajes."
 </div>
 
 <div class="option-title">
-Empleados
+Mis clientes
 </div>
 
 <div class="option-text">
-Empleados y fichajes.
+Consultar clientes registrados.
+</div>
+
+</button>
+
+
+<button
+class="option"
+data-question="¿Cuántos clientes tengo?"
+>
+
+<div class="option-icon">
+🔢
+</div>
+
+<div class="option-title">
+Cantidad de clientes
+</div>
+
+<div class="option-text">
+Contar clientes de mi empresa.
+</div>
+
+</button>
+
+
+<button
+class="option"
+data-question="Mostrame los clientes de mi empresa."
+>
+
+<div class="option-icon">
+📋
+</div>
+
+<div class="option-title">
+Lista de clientes
+</div>
+
+<div class="option-text">
+Ver nombres y localidades.
+</div>
+
+</button>
+
+
+<button
+class="option"
+data-question="¿Qué clientes tengo en cada provincia?"
+>
+
+<div class="option-icon">
+📍
+</div>
+
+<div class="option-title">
+Clientes por provincia
+</div>
+
+<div class="option-text">
+Agrupar clientes por provincia.
 </div>
 
 </button>
@@ -459,7 +396,7 @@ class="chat"
 
 🤖 Hola. Soy el asistente de GESBASE.
 
-Inicializando Gemini...
+Inicializando Gemini y verificando tu empresa...
 
 </div>
 
@@ -474,7 +411,7 @@ Inicializando Gemini...
 
 <textarea
 id="message"
-placeholder="Escribí tu consulta..."
+placeholder="Ej.: ¿Qué clientes tengo?"
 ></textarea>
 
 <button
@@ -505,7 +442,58 @@ Inicializando...
 
 /*
 ==================================================
-FIREBASE CONFIG
+IMPORTACIONES FIREBASE
+==================================================
+*/
+
+import {
+    initializeApp
+}
+from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+
+
+import {
+    getAuth,
+    onAuthStateChanged
+}
+from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    collection,
+    query,
+    where,
+    getDocs
+}
+from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+
+import {
+    initializeAppCheck,
+    ReCaptchaEnterpriseProvider
+}
+from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-app-check.js";
+
+
+import {
+    getAI,
+    getGenerativeModel,
+    GoogleAIBackend
+}
+from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-ai.js";
+
+
+/*
+==================================================
+CONFIGURACIÓN
 ==================================================
 */
 
@@ -537,37 +525,7 @@ const firebaseConfig = {
 
 /*
 ==================================================
-IMPORTACIONES FIREBASE
-==================================================
-*/
-
-import {
-    initializeApp
-}
-from
-"https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-
-
-import {
-    initializeAppCheck,
-    ReCaptchaEnterpriseProvider
-}
-from
-"https://www.gstatic.com/firebasejs/12.18.0/firebase-app-check.js";
-
-
-import {
-    getAI,
-    getGenerativeModel,
-    GoogleAIBackend
-}
-from
-"https://www.gstatic.com/firebasejs/12.18.0/firebase-ai.js";
-
-
-/*
-==================================================
-RECAPTCHA
+RECAPTCHA ENTERPRISE
 ==================================================
 */
 
@@ -577,30 +535,149 @@ const RECAPTCHA_SITE_KEY =
 
 /*
 ==================================================
+FIREBASE
+==================================================
+*/
+
+const app =
+initializeApp(
+    firebaseConfig
+);
+
+
+const auth =
+getAuth(
+    app
+);
+
+
+const db =
+getFirestore(
+    app
+);
+
+
+/*
+==================================================
+APP CHECK
+==================================================
+*/
+
+initializeAppCheck(
+    app,
+    {
+        provider:
+        new ReCaptchaEnterpriseProvider(
+            RECAPTCHA_SITE_KEY
+        ),
+
+        isTokenAutoRefreshEnabled:
+        true
+    }
+);
+
+
+/*
+==================================================
+GEMINI
+==================================================
+*/
+
+const ai =
+getAI(
+    app,
+    {
+        backend:
+        new GoogleAIBackend()
+    }
+);
+
+
+const model =
+getGenerativeModel(
+    ai,
+    {
+        model:
+        "gemini-3.6-flash",
+
+        systemInstruction: `
+Sos el asistente inteligente de GESBASE.
+
+Respondé siempre en español.
+
+Tu función es analizar exclusivamente los datos
+que GESBASE te entregue en cada consulta.
+
+No inventes datos.
+
+No supongas información que no haya sido enviada.
+
+Si los datos no alcanzan para responder,
+decilo claramente.
+
+No afirmes que consultaste Firestore directamente.
+
+Los datos que recibas pertenecen a la empresa
+del usuario autenticado.
+
+Podés ayudar a analizar clientes, presupuestos,
+trabajos, gastos, cobros, facturas, empleados,
+fichajes y rentabilidad cuando esos datos sean
+proporcionados por GESBASE.
+
+Sé claro, profesional y práctico.
+`
+    }
+);
+
+
+/*
+==================================================
 ELEMENTOS
 ==================================================
 */
 
 const chat =
-document.getElementById("chat");
+document.getElementById(
+    "chat"
+);
+
 
 const message =
-document.getElementById("message");
+document.getElementById(
+    "message"
+);
+
 
 const send =
-document.getElementById("send");
+document.getElementById(
+    "send"
+);
+
 
 const status =
-document.getElementById("status");
+document.getElementById(
+    "status"
+);
+
+
+const companyInfo =
+document.getElementById(
+    "companyInfo"
+);
 
 
 /*
 ==================================================
-VARIABLE GEMINI
+DATOS DE SESIÓN
 ==================================================
 */
 
-let model = null;
+let usuarioActual = null;
+
+let empresaIdActual = null;
+
+let clientesEmpresa = [];
 
 
 /*
@@ -615,14 +692,18 @@ function mostrarMensaje(
 ){
 
     const fila =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
 
     fila.className =
     "message " + tipo;
 
 
     const burbuja =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
 
     burbuja.className =
     "bubble";
@@ -633,12 +714,12 @@ function mostrarMensaje(
 
 
     fila.appendChild(
-    burbuja
+        burbuja
     );
 
 
     chat.appendChild(
-    fila
+        fila
     );
 
 
@@ -657,7 +738,9 @@ CARGANDO
 function mostrarCargando(){
 
     const fila =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
 
     fila.id =
     "loadingMessage";
@@ -667,22 +750,24 @@ function mostrarCargando(){
 
 
     const burbuja =
-    document.createElement("div");
+    document.createElement(
+        "div"
+    );
 
     burbuja.className =
     "bubble";
 
     burbuja.textContent =
-    "🤖 Gemini está pensando...";
+    "🤖 Consultando los datos de GESBASE...";
 
 
     fila.appendChild(
-    burbuja
+        burbuja
     );
 
 
     chat.appendChild(
-    fila
+        fila
     );
 
 
@@ -711,141 +796,218 @@ function quitarCargando(){
 
 /*
 ==================================================
-INICIALIZAR FIREBASE + GEMINI
+OBTENER EMPRESA DEL USUARIO
 ==================================================
 */
 
-async function iniciarIA(){
+async function cargarEmpresa(){
 
-    try{
-
-        status.textContent =
-        "1/4 Iniciando Firebase...";
+    const user =
+    auth.currentUser;
 
 
-        const app =
-        initializeApp(
-            firebaseConfig
-        );
+    if(!user){
 
-
-        status.textContent =
-        "2/4 Activando reCAPTCHA Enterprise...";
-
-
-        initializeAppCheck(
-            app,
-            {
-                provider:
-                new ReCaptchaEnterpriseProvider(
-                    RECAPTCHA_SITE_KEY
-                ),
-
-                isTokenAutoRefreshEnabled:
-                true
-            }
-        );
-
-
-        status.textContent =
-        "3/4 Conectando Gemini Developer API...";
-
-
-        const ai =
-        getAI(
-            app,
-            {
-                backend:
-                new GoogleAIBackend()
-            }
-        );
-
-
-        /*
-        ==========================================
-        MODELO GRATUITO
-        ==========================================
-        */
-
-        model =
-        getGenerativeModel(
-            ai,
-            {
-                model:
-                "gemini-3.6-flash",
-
-                systemInstruction: `
-Sos el asistente inteligente de GESBASE.
-
-Respondé siempre en español.
-
-Ayudás al usuario con:
-
-presupuestos,
-clientes,
-trabajos,
-materiales,
-mano de obra,
-viáticos,
-gastos,
-empleados,
-fichajes,
-facturas,
-cobros,
-saldos
-y rentabilidad.
-
-Sé claro, profesional y práctico.
-
-No inventes información.
-
-En esta versión todavía no tenés acceso
-automático a los datos privados de Firestore.
-
-No afirmes haber consultado datos de la empresa
-si esos datos no fueron proporcionados.
-
-`
-            }
-        );
-
-
-        status.textContent =
-        "4/4 Gemini conectado";
-
-
-        mostrarMensaje(
-            "✅ Gemini está conectado.\n\nEscribí Hola para probarlo.",
-            "assistant"
-        );
-
-
-    }catch(error){
-
-        console.error(
-            "ERROR INICIALIZANDO GEMINI:",
-            error
-        );
-
-
-        status.textContent =
-        "❌ Error de inicialización";
-
-
-        mostrarMensaje(
-            "❌ Error al iniciar Gemini:\n\n" +
-            error.message,
-            "error"
+        throw new Error(
+            "No hay un usuario autenticado. Iniciá sesión en GESBASE."
         );
 
     }
+
+
+    usuarioActual =
+    user;
+
+
+    const usuarioRef =
+    doc(
+        db,
+        "usuarios",
+        user.uid
+    );
+
+
+    const usuarioSnap =
+    await getDoc(
+        usuarioRef
+    );
+
+
+    if(!usuarioSnap.exists()){
+
+        throw new Error(
+            "No existe el perfil del usuario en la colección usuarios."
+        );
+
+    }
+
+
+    const datosUsuario =
+    usuarioSnap.data();
+
+
+    const empresaId =
+    datosUsuario.empresaId;
+
+
+    if(
+        !empresaId ||
+        typeof empresaId !== "string" ||
+        !empresaId.trim()
+    ){
+
+        throw new Error(
+            "El usuario no tiene un empresaId válido."
+        );
+
+    }
+
+
+    empresaIdActual =
+    empresaId.trim();
+
+
+    companyInfo.textContent =
+    "🏢 Empresa identificada correctamente.";
+
+
+    /*
+    ==============================================
+    CARGAR CLIENTES DE LA EMPRESA
+    ==============================================
+    */
+
+    const clientesRef =
+    collection(
+        db,
+        "clientes"
+    );
+
+
+    const clientesQuery =
+    query(
+        clientesRef,
+        where(
+            "empresaId",
+            "==",
+            empresaIdActual
+        )
+    );
+
+
+    const snapshot =
+    await getDocs(
+        clientesQuery
+    );
+
+
+    clientesEmpresa =
+    [];
+
+
+    snapshot.forEach(
+        function(docSnap){
+
+            const datos =
+            docSnap.data();
+
+
+            clientesEmpresa.push({
+
+                id:
+                docSnap.id,
+
+                nombre:
+                datos.nombre || "",
+
+                cuit:
+                datos.cuit || "",
+
+                direccion:
+                datos.direccion || "",
+
+                email:
+                datos.email || "",
+
+                localidad:
+                datos.localidad || "",
+
+                provincia:
+                datos.provincia || "",
+
+                telefono:
+                datos.telefono || "",
+
+                observaciones:
+                datos.observaciones || ""
+
+            });
+
+        }
+    );
+
+
+    companyInfo.textContent =
+    "🏢 Empresa identificada · " +
+    clientesEmpresa.length +
+    " cliente(s) disponible(s).";
+
+
+    status.textContent =
+    "4/4 Gemini conectado · Datos de empresa listos";
+
 
 }
 
 
 /*
 ==================================================
-ENVIAR CONSULTA
+PREPARAR DATOS PARA GEMINI
+==================================================
+*/
+
+function prepararDatosClientes(){
+
+    return clientesEmpresa.map(
+        function(cliente){
+
+            return {
+
+                nombre:
+                cliente.nombre,
+
+                cuit:
+                cliente.cuit,
+
+                localidad:
+                cliente.localidad,
+
+                provincia:
+                cliente.provincia,
+
+                telefono:
+                cliente.telefono,
+
+                email:
+                cliente.email,
+
+                direccion:
+                cliente.direccion,
+
+                observaciones:
+                cliente.observaciones
+
+            };
+
+        }
+    );
+
+}
+
+
+/*
+==================================================
+CONSULTAR GEMINI
 ==================================================
 */
 
@@ -887,37 +1049,100 @@ async function enviar(){
 
     try{
 
-        if(!model){
+        if(!usuarioActual){
 
             throw new Error(
-                "El modelo Gemini no está inicializado."
+                "No hay sesión de usuario activa."
             );
 
         }
 
 
+        if(!empresaIdActual){
+
+            throw new Error(
+                "No se pudo identificar la empresa."
+            );
+
+        }
+
+
+        const datosClientes =
+        prepararDatosClientes();
+
+
+        /*
+        ==========================================
+        CONTEXTO ENVIADO A GEMINI
+        ==========================================
+        */
+
+        const contexto = {
+
+            empresaId:
+            empresaIdActual,
+
+            cantidadClientes:
+            datosClientes.length,
+
+            clientes:
+            datosClientes
+
+        };
+
+
+        const prompt = `
+
+CONSULTA DEL USUARIO:
+
+${texto}
+
+
+DATOS DISPONIBLES DE GESBASE:
+
+${JSON.stringify(
+    contexto,
+    null,
+    2
+)}
+
+
+INSTRUCCIONES:
+
+Respondé la consulta utilizando únicamente
+los datos proporcionados arriba.
+
+No inventes información.
+
+Si preguntan cuántos clientes hay,
+utilizá cantidadClientes.
+
+Si preguntan por clientes, utilizá la lista
+clientes.
+
+No muestres el empresaId al usuario.
+
+Respondé en español.
+
+`;
+
+
         console.log(
-            "Enviando consulta a Gemini..."
+            "Enviando consulta con datos de empresa."
         );
 
 
         const resultado =
         await model.generateContent(
-            texto
+            prompt
         );
-
-
-        console.log(
-            "Respuesta recibida:",
-            resultado
-        );
-
-
-        quitarCargando();
 
 
         const respuesta =
         resultado.response.text();
+
+
+        quitarCargando();
 
 
         if(!respuesta){
@@ -936,7 +1161,7 @@ async function enviar(){
 
 
         status.textContent =
-        "GESBASE IA · Gemini";
+        "GESBASE IA · Gemini 3.6";
 
 
     }catch(error){
@@ -958,7 +1183,8 @@ async function enviar(){
 
 
         status.textContent =
-        "❌ Error de Gemini";
+        "❌ Error";
+
 
     }finally{
 
@@ -970,6 +1196,84 @@ async function enviar(){
     }
 
 }
+
+
+/*
+==================================================
+AUTENTICACIÓN
+==================================================
+*/
+
+onAuthStateChanged(
+    auth,
+    async function(user){
+
+        if(!user){
+
+            companyInfo.textContent =
+            "⚠️ No hay una sesión iniciada.";
+
+            status.textContent =
+            "Debés iniciar sesión en GESBASE.";
+
+            mostrarMensaje(
+                "⚠️ No hay un usuario autenticado.\n\nIniciá sesión en GESBASE y luego abrí nuevamente el asistente.",
+                "error"
+            );
+
+            send.disabled =
+            true;
+
+            return;
+
+        }
+
+
+        try{
+
+            status.textContent =
+            "1/4 Usuario autenticado...";
+
+
+            await cargarEmpresa();
+
+
+            mostrarMensaje(
+                "✅ Gemini está conectado.\n\n🏢 Empresa identificada.\n👥 Clientes cargados.\n\nProbá preguntando: “¿Qué clientes tengo?”",
+                "assistant"
+            );
+
+
+        }catch(error){
+
+            console.error(
+                "ERROR CARGANDO EMPRESA:",
+                error
+            );
+
+
+            companyInfo.textContent =
+            "❌ No se pudieron cargar los datos de la empresa.";
+
+
+            status.textContent =
+            "❌ Error de datos";
+
+
+            mostrarMensaje(
+                "❌ No pude cargar los datos de tu empresa:\n\n" +
+                error.message,
+                "error"
+            );
+
+
+            send.disabled =
+            true;
+
+        }
+
+    }
+);
 
 
 /*
@@ -1011,7 +1315,7 @@ message.addEventListener(
 
 /*
 ==================================================
-BOTONES
+BOTONES RÁPIDOS
 ==================================================
 */
 
@@ -1028,15 +1332,6 @@ document
                 this.dataset.question;
 
 
-                if(!pregunta){
-
-                    message.focus();
-
-                    return;
-
-                }
-
-
                 message.value =
                 pregunta;
 
@@ -1048,15 +1343,6 @@ document
 
     }
 );
-
-
-/*
-==================================================
-INICIAR
-==================================================
-*/
-
-iniciarIA();
 
 
 </script>
