@@ -443,7 +443,7 @@ Hacer cualquier consulta
 
 <br><br>
 
-Inicializando...
+Preparando asistente...
 
 </div>
 
@@ -461,7 +461,7 @@ Inicializando...
 <div class="bottom">
 
 <div id="status">
-Inicializando...
+Conectando...
 </div>
 
 
@@ -489,6 +489,7 @@ Enviar
 /* =====================================================
    GESBASE
    ASISTENTE INTELIGENTE
+   VERSIÓN OPTIMIZADA
 ===================================================== */
 
 
@@ -548,24 +549,22 @@ const status =
 
 
 /* =====================================================
-   MODELO
+   VARIABLES
 ===================================================== */
 
 let model = null;
 
+let inicializado = false;
+
 
 /* =====================================================
-   CAMBIAR ESTADO
+   ESTADO
 ===================================================== */
 
 function setStatus(text){
 
-    if(status){
-
-        status.textContent =
-            text;
-
-    }
+    status.textContent =
+        text;
 
     console.log(
         "GESBASE IA:",
@@ -576,7 +575,7 @@ function setStatus(text){
 
 
 /* =====================================================
-   MOSTRAR MENSAJE
+   MENSAJES
 ===================================================== */
 
 function showMessage(
@@ -602,7 +601,7 @@ function showMessage(
 
 
 /* =====================================================
-   ELIMINAR MENSAJE INICIAL
+   MENSAJE INICIAL
 ===================================================== */
 
 function removeInitialMessage(){
@@ -622,7 +621,7 @@ function removeInitialMessage(){
 
 
 /* =====================================================
-   INICIAR GEMINI
+   INICIALIZAR IA
 ===================================================== */
 
 async function iniciarIA(){
@@ -632,12 +631,12 @@ async function iniciarIA(){
         send.disabled = true;
 
 
-        /* =================================================
-           1 - FIREBASE
-        ================================================= */
+        /* =============================================
+           FIREBASE
+        ============================================= */
 
         setStatus(
-            "1/6 Cargando Firebase..."
+            "Conectando con Firebase..."
         );
 
 
@@ -647,28 +646,18 @@ async function iniciarIA(){
             );
 
 
-        console.log(
-            "GESBASE: Firebase cargado"
-        );
-
-
         const app =
             firebase.initializeApp(
                 firebaseConfig
             );
 
 
-        console.log(
-            "GESBASE: Firebase inicializado"
-        );
-
-
-        /* =================================================
-           2 - APP CHECK
-        ================================================= */
+        /* =============================================
+           APP CHECK
+        ============================================= */
 
         setStatus(
-            "2/6 Activando reCAPTCHA..."
+            "Verificando seguridad..."
         );
 
 
@@ -676,11 +665,6 @@ async function iniciarIA(){
             await import(
                 "https://www.gstatic.com/firebasejs/12.18.0/firebase-app-check.js"
             );
-
-
-        console.log(
-            "GESBASE: App Check cargado"
-        );
 
 
         appCheck.initializeAppCheck(
@@ -699,17 +683,12 @@ async function iniciarIA(){
         );
 
 
-        console.log(
-            "GESBASE: App Check inicializado"
-        );
-
-
-        /* =================================================
-           3 - FIREBASE AI LOGIC
-        ================================================= */
+        /* =============================================
+           FIREBASE AI
+        ============================================= */
 
         setStatus(
-            "3/6 Cargando Firebase AI..."
+            "Preparando inteligencia artificial..."
         );
 
 
@@ -717,20 +696,6 @@ async function iniciarIA(){
             await import(
                 "https://www.gstatic.com/firebasejs/12.18.0/firebase-ai.js"
             );
-
-
-        console.log(
-            "GESBASE: Firebase AI cargado"
-        );
-
-
-        /* =================================================
-           4 - CONECTAR IA
-        ================================================= */
-
-        setStatus(
-            "4/6 Conectando Gemini..."
-        );
 
 
         const ai =
@@ -745,19 +710,9 @@ async function iniciarIA(){
             );
 
 
-        console.log(
-            "GESBASE: Firebase AI conectado"
-        );
-
-
-        /* =================================================
-           5 - CREAR MODELO
-        ================================================= */
-
-        setStatus(
-            "5/6 Cargando Gemini..."
-        );
-
+        /* =============================================
+           MODELO
+        ============================================= */
 
         model =
             firebaseAI.getGenerativeModel(
@@ -804,69 +759,24 @@ si realmente no fue realizada.
             );
 
 
-        console.log(
-            "GESBASE: modelo Gemini creado"
-        );
+        /* =============================================
+           LISTO
+        ============================================= */
 
+        inicializado =
+            true;
 
-        /* =================================================
-           6 - PRUEBA REAL
-        ================================================= */
-
-        setStatus(
-            "6/6 Probando Gemini..."
-        );
-
-
-        console.log(
-            "GESBASE: enviando prueba a Gemini"
-        );
-
-
-        const resultado =
-            await model.generateContent(
-                "Respondé solamente: GESBASE IA funcionando."
-            );
-
-
-        const respuesta =
-            resultado.response.text();
-
-
-        console.log(
-            "GESBASE: respuesta Gemini:",
-            respuesta
-        );
-
-
-        if(
-            !respuesta ||
-            !respuesta.trim()
-        ){
-
-            throw new Error(
-                "Gemini no devolvió ninguna respuesta."
-            );
-
-        }
-
-
-        /* =================================================
-           CONEXIÓN CORRECTA
-        ================================================= */
 
         removeInitialMessage();
 
 
         showMessage(
-            "✅ Gemini está conectado correctamente.\n\n" +
-            respuesta,
-            "assistant"
+            "🤖 Hola. Soy el asistente de GESBASE.\n\n¿En qué puedo ayudarte?"
         );
 
 
         setStatus(
-            "✅ Gemini conectado"
+            "✅ Asistente listo"
         );
 
 
@@ -874,8 +784,11 @@ si realmente no fue realizada.
             false;
 
 
+        message.focus();
+
+
         console.log(
-            "GESBASE IA: FUNCIONANDO"
+            "GESBASE IA: LISTO"
         );
 
     }
@@ -883,29 +796,16 @@ si realmente no fue realizada.
     catch(error){
 
         console.error(
-            "========================================"
-        );
-
-        console.error(
-            "GESBASE IA - ERROR"
-        );
-
-        console.error(
+            "GESBASE IA ERROR:",
             error
-        );
-
-        console.error(
-            "Mensaje:",
-            error?.message
-        );
-
-        console.error(
-            "========================================"
         );
 
 
         model =
             null;
+
+        inicializado =
+            false;
 
 
         send.disabled =
@@ -916,7 +816,7 @@ si realmente no fue realizada.
 
 
         setStatus(
-            "❌ Error"
+            "❌ Error de conexión"
         );
 
 
@@ -957,10 +857,10 @@ async function enviarMensaje(){
     }
 
 
-    if(!model){
+    if(!inicializado || !model){
 
         showMessage(
-            "❌ Gemini todavía no está conectado.",
+            "⏳ El asistente todavía se está preparando.",
             "error"
         );
 
@@ -984,7 +884,7 @@ async function enviarMensaje(){
 
 
     setStatus(
-        "🤖 Gemini está pensando..."
+        "🤖 Pensando..."
     );
 
 
@@ -1006,7 +906,7 @@ async function enviarMensaje(){
         ){
 
             throw new Error(
-                "Gemini no devolvió una respuesta."
+                "Gemini no devolvió ninguna respuesta."
             );
 
         }
@@ -1019,7 +919,7 @@ async function enviarMensaje(){
 
 
         setStatus(
-            "✅ Gemini conectado"
+            "✅ Asistente listo"
         );
 
     }
@@ -1034,7 +934,7 @@ async function enviarMensaje(){
 
         showMessage(
 
-            "❌ Error al consultar Gemini.\n\n" +
+            "❌ Error al consultar el asistente.\n\n" +
 
             (
                 error?.message ||
@@ -1060,7 +960,7 @@ async function enviarMensaje(){
 
 
 /* =====================================================
-   BOTÓN ENVIAR
+   BOTÓN
 ===================================================== */
 
 send.addEventListener(
@@ -1070,7 +970,7 @@ send.addEventListener(
 
 
 /* =====================================================
-   ENTER PARA ENVIAR
+   ENTER
 ===================================================== */
 
 message.addEventListener(
