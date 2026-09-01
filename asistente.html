@@ -381,6 +381,10 @@ main{
 
 <script type="module">
 
+/* =====================================================
+   FIREBASE AUTH
+===================================================== */
+
 import {
     auth
 } from "./firebase.js";
@@ -391,22 +395,12 @@ import {
 
 
 /* =====================================================
-   CONFIGURACIÓN
+   GEMINI
 ===================================================== */
 
-/*
-   IMPORTANTE:
-
-   Después de desplegar Firebase Functions,
-   reemplazá esta URL por la URL REAL de tu función.
-
-   Ejemplo:
-
-   https://us-central1-gesbase-4bf94.cloudfunctions.net/asistenteIA
-*/
-
-const API_URL =
-    "https://us-central1-gesbase-4bf94.cloudfunctions.net/asistenteIA";
+import {
+    preguntarGemini
+} from "./gemini.js";
 
 
 /* =====================================================
@@ -434,22 +428,6 @@ let usuarioActual = null;
 
 
 /* =====================================================
-   ESCAPAR HTML
-===================================================== */
-
-function escapar(texto){
-
-    return String(texto || "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-
-}
-
-
-/* =====================================================
    AGREGAR MENSAJE
 ===================================================== */
 
@@ -470,8 +448,8 @@ function agregarMensaje(
     chat.appendChild(div);
 
     window.scrollTo({
-        top:document.body.scrollHeight,
-        behavior:"smooth"
+        top: document.body.scrollHeight,
+        behavior: "smooth"
     });
 
     return div;
@@ -508,8 +486,8 @@ function mostrarCargando(){
     chat.appendChild(div);
 
     window.scrollTo({
-        top:document.body.scrollHeight,
-        behavior:"smooth"
+        top: document.body.scrollHeight,
+        behavior: "smooth"
     });
 
     return div;
@@ -518,7 +496,7 @@ function mostrarCargando(){
 
 
 /* =====================================================
-   ENVIAR
+   ENVIAR PREGUNTA A GEMINI
 ===================================================== */
 
 async function enviarPregunta(pregunta){
@@ -546,16 +524,25 @@ async function enviarPregunta(pregunta){
     }
 
 
+    /* Mostrar pregunta */
+
     agregarMensaje(
         pregunta,
         "usuario"
     );
 
 
+    /* Limpiar campo */
+
     mensajeInput.value = "";
+
+
+    /* Desactivar botón */
 
     btnEnviar.disabled = true;
 
+
+    /* Mostrar cargando */
 
     const cargando =
         mostrarCargando();
@@ -563,67 +550,27 @@ async function enviarPregunta(pregunta){
 
     try{
 
-        const token =
-            await usuarioActual.getIdToken(
-                true
-            );
-
+        /*
+         * La conexión con Firebase y Gemini
+         * se realiza desde gemini.js.
+         */
 
         const respuesta =
-            await fetch(
-                API_URL,
-                {
-
-                    method:"POST",
-
-                    headers:{
-                        "Content-Type":
-                            "application/json",
-
-                        "Authorization":
-                            "Bearer " + token
-
-                    },
-
-                    body:
-                        JSON.stringify({
-                            pregunta:pregunta
-                        })
-
-                }
+            await preguntarGemini(
+                pregunta
             );
 
 
-        let datos = null;
-
-        try{
-
-            datos =
-                await respuesta.json();
-
-        }catch(e){
-
-            datos = null;
-
-        }
-
+        /* Quitar "Pensando..." */
 
         cargando.remove();
 
 
-        if(!respuesta.ok){
-
-            throw new Error(
-                datos?.error ||
-                "No se pudo conectar con el asistente."
-            );
-
-        }
-
+        /* Mostrar respuesta */
 
         agregarMensaje(
-            datos?.respuesta ||
-            "No recibí una respuesta.",
+            respuesta ||
+            "No recibí una respuesta de la inteligencia artificial.",
             "ia"
         );
 
@@ -631,7 +578,7 @@ async function enviarPregunta(pregunta){
     }catch(error){
 
         console.error(
-            "ERROR ASISTENTE:",
+            "ERROR GESBASE IA:",
             error
         );
 
@@ -639,9 +586,21 @@ async function enviarPregunta(pregunta){
         cargando.remove();
 
 
+        let mensajeError =
+            "No pude procesar la consulta.";
+
+
+        if(error?.message){
+
+            mensajeError +=
+                "\n\n" +
+                error.message;
+
+        }
+
+
         agregarMensaje(
-            "No pude procesar la consulta. " +
-            (error.message || ""),
+            mensajeError,
             "ia error"
         );
 
@@ -677,7 +636,7 @@ formulario.addEventListener(
 
 
 /* =====================================================
-   ENTER
+   ENTER PARA ENVIAR
 ===================================================== */
 
 mensajeInput.addEventListener(
@@ -722,7 +681,7 @@ document
 
 
 /* =====================================================
-   FIREBASE AUTH
+   AUTENTICACIÓN FIREBASE
 ===================================================== */
 
 onAuthStateChanged(
