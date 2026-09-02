@@ -2,6 +2,7 @@
 <html lang="es-AR">
 
 <head>
+
 <meta charset="UTF-8">
 
 <meta
@@ -91,7 +92,6 @@ main{
 
 .notificacion.no-leida{
     border-left-color:#dc2626;
-    background:#fff;
 }
 
 .notificacion.leida{
@@ -118,9 +118,6 @@ main{
 
 .acciones{
     margin-top:14px;
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
 }
 
 .btn{
@@ -171,16 +168,20 @@ main{
     line-height:1.5;
 }
 
-.contador-resumen{
-    margin-top:8px;
-    font-size:13px;
-    color:#6b7280;
+.resumen{
+    background:white;
+    border-radius:14px;
+    padding:15px;
+    margin-bottom:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
 }
 
 </style>
+
 </head>
 
 <body>
+
 
 <header>
 
@@ -190,12 +191,12 @@ main{
             class="btn-volver"
             id="btnVolver"
             type="button"
-            aria-label="Volver"
         >
             ←
         </button>
 
         <div>
+
             <div class="titulo">
                 🔔 Notificaciones
             </div>
@@ -203,6 +204,7 @@ main{
             <div class="subtitulo">
                 Mensajes y avisos de GESBASE
             </div>
+
         </div>
 
     </div>
@@ -212,7 +214,10 @@ main{
 
 <main>
 
-    <div id="estadoUsuario" class="estado">
+    <div
+        id="estadoUsuario"
+        class="estado"
+    >
         Cargando usuario...
     </div>
 
@@ -239,7 +244,13 @@ main{
 
 <script type="module">
 
+
+/* =========================================================
+   FIREBASE
+========================================================= */
+
 import { auth, db } from "./Js/firebase.js";
+
 
 import {
     collection,
@@ -251,45 +262,97 @@ import {
 } from
 "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
+
 import {
     onAuthStateChanged
 } from
 "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 
+/* =========================================================
+   ELEMENTOS
+========================================================= */
+
 const contenedor =
-    document.getElementById("contenedorNotificaciones");
+    document.getElementById(
+        "contenedorNotificaciones"
+    );
 
 const estadoUsuario =
-    document.getElementById("estadoUsuario");
+    document.getElementById(
+        "estadoUsuario"
+    );
 
 const btnVolver =
-    document.getElementById("btnVolver");
+    document.getElementById(
+        "btnVolver"
+    );
 
 const btnVolverIndex =
-    document.getElementById("btnVolverIndex");
+    document.getElementById(
+        "btnVolverIndex"
+    );
 
 
 /* =========================================================
    VOLVER
 ========================================================= */
 
-btnVolver.addEventListener("click", () => {
+function volver(){
 
-    window.location.href = "index.html";
+    window.location.href =
+        "index.html";
 
-});
+}
 
 
-btnVolverIndex.addEventListener("click", () => {
+btnVolver.addEventListener(
+    "click",
+    volver
+);
 
-    window.location.href = "index.html";
 
-});
+btnVolverIndex.addEventListener(
+    "click",
+    volver
+);
 
 
 /* =========================================================
-   FECHA
+   ESCAPAR HTML
+========================================================= */
+
+function escaparHTML(texto){
+
+    return String(
+        texto || ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+
+/* =========================================================
+   CONVERTIR FECHA
 ========================================================= */
 
 function convertirFecha(timestamp){
@@ -300,34 +363,39 @@ function convertirFecha(timestamp){
 
     }
 
+
     try{
 
-        /*
-         * Firebase Timestamp
-         */
+        if(
+            typeof timestamp.toDate ===
+            "function"
+        ){
 
-        if(typeof timestamp.toDate === "function"){
-
-            const fecha = timestamp.toDate();
-
-            return fecha.toLocaleString("es-AR", {
-                dateStyle:"short",
-                timeStyle:"short"
-            });
+            return timestamp
+                .toDate()
+                .toLocaleString(
+                    "es-AR",
+                    {
+                        dateStyle:"short",
+                        timeStyle:"short"
+                    }
+                );
 
         }
 
 
-        /*
-         * Si eventualmente la fecha llega como Date
-         */
+        if(
+            timestamp instanceof Date
+        ){
 
-        if(timestamp instanceof Date){
-
-            return timestamp.toLocaleString("es-AR", {
-                dateStyle:"short",
-                timeStyle:"short"
-            });
+            return timestamp
+                .toLocaleString(
+                    "es-AR",
+                    {
+                        dateStyle:"short",
+                        timeStyle:"short"
+                    }
+                );
 
         }
 
@@ -335,11 +403,6 @@ function convertirFecha(timestamp){
         return "Fecha no disponible";
 
     }catch(error){
-
-        console.error(
-            "Error convirtiendo fecha:",
-            error
-        );
 
         return "Fecha no disponible";
 
@@ -349,10 +412,10 @@ function convertirFecha(timestamp){
 
 
 /* =========================================================
-   CONVERTIR FECHA PARA ORDENAMIENTO
+   FECHA PARA ORDENAR
 ========================================================= */
 
-function obtenerMilisegundosFecha(timestamp){
+function fechaEnMilisegundos(timestamp){
 
     if(!timestamp){
 
@@ -360,35 +423,32 @@ function obtenerMilisegundosFecha(timestamp){
 
     }
 
+
     try{
 
-        /*
-         * Firebase Timestamp
-         */
-
-        if(typeof timestamp.toMillis === "function"){
+        if(
+            typeof timestamp.toMillis ===
+            "function"
+        ){
 
             return timestamp.toMillis();
 
         }
 
 
-        /*
-         * Firebase Timestamp mediante seconds
-         */
-
-        if(typeof timestamp.seconds === "number"){
+        if(
+            typeof timestamp.seconds ===
+            "number"
+        ){
 
             return timestamp.seconds * 1000;
 
         }
 
 
-        /*
-         * Date
-         */
-
-        if(timestamp instanceof Date){
+        if(
+            timestamp instanceof Date
+        ){
 
             return timestamp.getTime();
 
@@ -413,46 +473,71 @@ function obtenerMilisegundosFecha(timestamp){
 async function cargarNotificaciones(uid){
 
     contenedor.innerHTML = `
+
         <div class="cargando">
             Cargando notificaciones...
         </div>
+
     `;
 
 
     try{
 
-        const referencia =
-            collection(db, "notificaciones");
-
-
         /*
-         * IMPORTANTE:
+         * ====================================================
+         * IMPORTANTE
          *
-         * Solamente usamos where("uid").
+         * SOLAMENTE FILTRAMOS POR UID.
          *
-         * NO usamos orderBy("fecha") en Firebase.
+         * NO HAY orderBy().
          *
-         * De esta manera evitamos el índice compuesto.
+         * NO SE NECESITA ÍNDICE COMPUESTO.
+         * ====================================================
          */
+
+        const referencia =
+            collection(
+                db,
+                "notificaciones"
+            );
+
 
         const consulta =
             query(
                 referencia,
-                where("uid", "==", uid)
+                where(
+                    "uid",
+                    "==",
+                    uid
+                )
             );
 
 
         const resultado =
-            await getDocs(consulta);
+            await getDocs(
+                consulta
+            );
 
 
-        if(resultado.empty){
+        /*
+         * ====================================================
+         * SI NO HAY NOTIFICACIONES
+         * ====================================================
+         */
+
+        if(
+            resultado.empty
+        ){
 
             contenedor.innerHTML = `
+
                 <div class="vacio">
 
                     <div
-                        style="font-size:42px;margin-bottom:10px;"
+                        style="
+                            font-size:42px;
+                            margin-bottom:10px;
+                        "
                     >
                         🔔
                     </div>
@@ -461,12 +546,17 @@ async function cargarNotificaciones(uid){
                         No tenés notificaciones
                     </strong>
 
-                    <div style="margin-top:6px;">
-                        Cuando GESBASE te envíe un aviso,
-                        aparecerá acá.
+                    <div
+                        style="
+                            margin-top:6px;
+                        "
+                    >
+                        Cuando GESBASE te envíe
+                        un aviso, aparecerá acá.
                     </div>
 
                 </div>
+
             `;
 
             return;
@@ -475,83 +565,109 @@ async function cargarNotificaciones(uid){
 
 
         /*
-         * Convertimos los documentos en un array
+         * ====================================================
+         * PASAR A ARRAY
+         * ====================================================
          */
 
-        const notificaciones = [];
+        const lista = [];
 
 
-        resultado.forEach((documento) => {
+        resultado.forEach(
+            (documento) => {
 
-            const datos =
-                documento.data();
+                lista.push({
 
-            notificaciones.push({
+                    id:
+                        documento.id,
 
-                id: documento.id,
+                    ...documento.data()
 
-                ...datos
+                });
 
-            });
-
-        });
+            }
+        );
 
 
         /*
-         * ORDENAR POR FECHA
+         * ====================================================
+         * ORDENAR EN EL NAVEGADOR
          *
          * Más nuevas primero.
+         *
+         * Esto reemplaza orderBy("fecha","desc")
+         * de Firebase.
+         * ====================================================
          */
 
-        notificaciones.sort((a,b) => {
+        lista.sort(
+            (a,b) => {
 
-            const fechaA =
-                obtenerMilisegundosFecha(a.fecha);
+                return (
+                    fechaEnMilisegundos(
+                        b.fecha
+                    )
+                    -
+                    fechaEnMilisegundos(
+                        a.fecha
+                    )
+                );
 
-            const fechaB =
-                obtenerMilisegundosFecha(b.fecha);
-
-            return fechaB - fechaA;
-
-        });
+            }
+        );
 
 
         /*
+         * ====================================================
          * CONTADORES
+         * ====================================================
          */
 
         const total =
-            notificaciones.length;
+            lista.length;
 
-        const pendientes =
-            notificaciones.filter(
+
+        const noLeidas =
+            lista.filter(
                 notificacion =>
                     notificacion.leida !== true
             ).length;
 
 
+        /*
+         * ====================================================
+         * MOSTRAR RESUMEN
+         * ====================================================
+         */
+
         contenedor.innerHTML = `
 
-            <div
-                class="estado"
-                style="margin-bottom:16px;"
-            >
+            <div class="resumen">
 
                 <strong>
                     ${total}
-                    ${total === 1
+                    ${
+                        total === 1
                         ? " notificación"
-                        : " notificaciones"}
+                        : " notificaciones"
+                    }
                 </strong>
 
                 ${
-                    pendientes > 0
+                    noLeidas > 0
                     ?
                     `
-                    <div class="contador-resumen">
-                        🔴 ${pendientes}
+                    <div
+                        style="
+                            margin-top:7px;
+                            color:#dc2626;
+                            font-size:13px;
+                            font-weight:700;
+                        "
+                    >
+                        🔴 ${noLeidas}
                         ${
-                            pendientes === 1
+                            noLeidas === 1
                             ? " sin leer"
                             : " sin leer"
                         }
@@ -559,8 +675,15 @@ async function cargarNotificaciones(uid){
                     `
                     :
                     `
-                    <div class="contador-resumen">
-                        ✓ Todas las notificaciones están leídas
+                    <div
+                        style="
+                            margin-top:7px;
+                            color:#16a34a;
+                            font-size:13px;
+                            font-weight:700;
+                        "
+                    >
+                        ✓ Todas están leídas
                     </div>
                     `
                 }
@@ -571,163 +694,184 @@ async function cargarNotificaciones(uid){
 
 
         /*
-         * MOSTRAR NOTIFICACIONES
+         * ====================================================
+         * MOSTRAR CADA NOTIFICACIÓN
+         * ====================================================
          */
 
-        notificaciones.forEach((datos) => {
+        lista.forEach(
+            (datos) => {
+
+                const leida =
+                    datos.leida === true;
 
 
-            const leida =
-                datos.leida === true;
+                const tarjeta =
+                    document.createElement(
+                        "div"
+                    );
 
 
-            const tarjeta =
-                document.createElement("div");
+                tarjeta.className =
+                    `notificacion ${
+                        leida
+                        ? "leida"
+                        : "no-leida"
+                    }`;
 
 
-            tarjeta.className =
-                `notificacion ${
-                    leida
-                    ? "leida"
-                    : "no-leida"
-                }`;
+                tarjeta.innerHTML = `
+
+                    <div class="notificacion-titulo">
+
+                        ${escaparHTML(
+                            datos.titulo ||
+                            "Notificación"
+                        )}
+
+                    </div>
 
 
-            tarjeta.innerHTML = `
+                    <div class="notificacion-mensaje">
 
-                <div class="notificacion-titulo">
+                        ${escaparHTML(
+                            datos.mensaje ||
+                            ""
+                        )}
 
-                    ${escaparHTML(
-                        datos.titulo ||
-                        "Notificación"
-                    )}
-
-                </div>
+                    </div>
 
 
-                <div class="notificacion-mensaje">
+                    <div class="notificacion-fecha">
 
-                    ${escaparHTML(
-                        datos.mensaje ||
-                        ""
-                    )}
+                        ${convertirFecha(
+                            datos.fecha
+                        )}
 
-                </div>
-
-
-                <div class="notificacion-fecha">
-
-                    ${convertirFecha(
-                        datos.fecha
-                    )}
-
-                </div>
+                    </div>
 
 
-                <div class="acciones">
+                    <div class="acciones">
 
-                    ${
-                        !leida
-                        ?
-                        `
-                        <button
-                            class="btn btn-leer"
-                            data-id="${escaparHTML(datos.id)}"
-                        >
-                            ✓ Marcar como leída
-                        </button>
-                        `
-                        :
-                        `
-                        <span
-                            style="
-                                color:#16a34a;
-                                font-weight:700;
-                            "
-                        >
-                            ✓ Leída
-                        </span>
-                        `
-                    }
-
-                </div>
-
-            `;
-
-
-            const botonLeer =
-                tarjeta.querySelector(".btn-leer");
-
-
-            if(botonLeer){
-
-                botonLeer.addEventListener(
-                    "click",
-                    async () => {
-
-                        try{
-
-                            botonLeer.disabled = true;
-
-                            botonLeer.textContent =
-                                "Guardando...";
-
-
-                            await updateDoc(
-                                doc(
-                                    db,
-                                    "notificaciones",
-                                    datos.id
-                                ),
-                                {
-                                    leida:true
-                                }
-                            );
-
-
-                            /*
-                             * Volvemos a cargar.
-                             */
-
-                            await cargarNotificaciones(uid);
-
-
-                        }catch(error){
-
-                            console.error(
-                                "Error marcando notificación:",
-                                error
-                            );
-
-
-                            alert(
-                                "No se pudo marcar la notificación como leída."
-                            );
-
-
-                            botonLeer.disabled = false;
-
-
-                            botonLeer.textContent =
-                                "✓ Marcar como leída";
-
+                        ${
+                            !leida
+                            ?
+                            `
+                            <button
+                                class="btn btn-leer"
+                                type="button"
+                            >
+                                ✓ Marcar como leída
+                            </button>
+                            `
+                            :
+                            `
+                            <span
+                                style="
+                                    color:#16a34a;
+                                    font-weight:700;
+                                "
+                            >
+                                ✓ Leída
+                            </span>
+                            `
                         }
 
-                    }
+                    </div>
+
+                `;
+
+
+                /*
+                 * =================================================
+                 * BOTÓN MARCAR COMO LEÍDA
+                 * =================================================
+                 */
+
+                const botonLeer =
+                    tarjeta.querySelector(
+                        ".btn-leer"
+                    );
+
+
+                if(
+                    botonLeer
+                ){
+
+                    botonLeer.addEventListener(
+                        "click",
+                        async () => {
+
+                            try{
+
+                                botonLeer.disabled =
+                                    true;
+
+
+                                botonLeer.textContent =
+                                    "Guardando...";
+
+
+                                await updateDoc(
+
+                                    doc(
+                                        db,
+                                        "notificaciones",
+                                        datos.id
+                                    ),
+
+                                    {
+                                        leida:true
+                                    }
+
+                                );
+
+
+                                await cargarNotificaciones(
+                                    uid
+                                );
+
+
+                            }catch(error){
+
+                                console.error(
+                                    "Error:",
+                                    error
+                                );
+
+
+                                alert(
+                                    "No se pudo marcar la notificación como leída."
+                                );
+
+
+                                botonLeer.disabled =
+                                    false;
+
+
+                                botonLeer.textContent =
+                                    "✓ Marcar como leída";
+
+                            }
+
+                        }
+                    );
+
+                }
+
+
+                contenedor.appendChild(
+                    tarjeta
                 );
 
             }
-
-
-            contenedor.appendChild(tarjeta);
-
-        });
+        );
 
 
     }catch(error){
 
         console.error(
-            "Error cargando notificaciones:",
+            "ERROR CARGANDO NOTIFICACIONES:",
             error
         );
 
@@ -752,22 +896,6 @@ async function cargarNotificaciones(uid){
         `;
 
     }
-
-}
-
-
-/* =========================================================
-   SEGURIDAD HTML
-========================================================= */
-
-function escaparHTML(texto){
-
-    return String(texto)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
 
 }
 
@@ -802,7 +930,9 @@ onAuthStateChanged(
                 Usuario:
             </strong>
 
-            ${escaparHTML(nombre)}
+            ${escaparHTML(
+                nombre
+            )}
 
             <br>
 
@@ -830,4 +960,5 @@ onAuthStateChanged(
 </script>
 
 </body>
+
 </html>
