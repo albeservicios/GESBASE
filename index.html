@@ -70,6 +70,7 @@ header{
     padding:28px 20px;
     text-align:center;
     border-bottom:1px solid #1f2937;
+    position:relative;
 }
 
 .logo{
@@ -85,6 +86,79 @@ header{
     color:#d1d5db;
     font-weight:500;
     line-height:1.4;
+}
+
+/* =========================================================
+   🔔 CAMPANITA DE NOTIFICACIONES
+========================================================= */
+
+.notificaciones-header{
+    position:absolute;
+    right:20px;
+    top:20px;
+    z-index:20;
+}
+
+.btn-campanita{
+    position:relative;
+    width:48px;
+    height:48px;
+    border:1px solid #374151;
+    border-radius:50%;
+    background:#1f2937;
+    color:#ffffff;
+    font-size:24px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 4px 10px rgba(0,0,0,.20);
+    transition:
+        transform .2s,
+        background .2s;
+    -webkit-tap-highlight-color:transparent;
+}
+
+.btn-campanita:hover{
+    background:#374151;
+    transform:scale(1.05);
+}
+
+.btn-campanita:active{
+    transform:scale(.96);
+}
+
+.contador-notificaciones{
+    position:absolute;
+    top:-5px;
+    right:-5px;
+    min-width:21px;
+    height:21px;
+    padding:0 5px;
+    border-radius:20px;
+    background:#dc2626;
+    color:#ffffff;
+    font-size:11px;
+    font-weight:800;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    border:2px solid #111827;
+}
+
+@media(max-width:600px){
+
+    .notificaciones-header{
+        right:12px;
+        top:12px;
+    }
+
+    .btn-campanita{
+        width:44px;
+        height:44px;
+        font-size:22px;
+    }
+
 }
 
 /* =========================================================
@@ -378,7 +452,7 @@ main{
 }
 
 /* =========================================================
-   NUEVO BOTÓN PRIVACIDAD Y SEGURIDAD
+   PRIVACIDAD Y SEGURIDAD
 ========================================================= */
 
 .boton-privacidad{
@@ -439,6 +513,14 @@ main{
     text-transform:uppercase;
 }
 
+.oculto{
+    display:none !important;
+}
+
+.boton.bloqueado{
+    opacity:.75;
+}
+
 /* =========================================================
    CERRAR SESION
 ========================================================= */
@@ -465,14 +547,6 @@ main{
 
 #btnCerrarSesion:active{
     transform:scale(.99);
-}
-
-.oculto{
-    display:none !important;
-}
-
-.boton.bloqueado{
-    opacity:.75;
 }
 
 /* =========================================================
@@ -566,26 +640,6 @@ main{
 
 }
 
-@media(max-width:600px){
-
-    .asistente-flotante{
-        right:16px;
-        bottom:
-            calc(16px + env(safe-area-inset-bottom));
-    }
-
-    .asistente-globo{
-        width:60px;
-        height:60px;
-        font-size:28px;
-    }
-
-    .asistente-etiqueta{
-        display:none;
-    }
-
-}
-
 /* =========================================================
    TABLET
 ========================================================= */
@@ -634,6 +688,8 @@ main{
     .subtitulo{
         font-size:13px;
         margin-top:8px;
+        padding-right:45px;
+        padding-left:45px;
     }
 
     main{
@@ -741,6 +797,21 @@ main{
         padding:15px;
     }
 
+    .asistente-flotante{
+        right:16px;
+        bottom:calc(16px + env(safe-area-inset-bottom));
+    }
+
+    .asistente-globo{
+        width:60px;
+        height:60px;
+        font-size:28px;
+    }
+
+    .asistente-etiqueta{
+        display:none;
+    }
+
 }
 
 /* =========================================================
@@ -827,6 +898,35 @@ main{
 
     <div class="subtitulo">
         Tu empresa. Todo organizado.
+    </div>
+
+    <!-- =================================================
+         🔔 NOTIFICACIONES
+    ================================================== -->
+
+    <div
+        id="contenedorCampanita"
+        class="notificaciones-header"
+    >
+
+        <button
+            id="btnCampanita"
+            class="btn-campanita"
+            type="button"
+            aria-label="Notificaciones"
+            title="Notificaciones"
+        >
+            🔔
+
+            <span
+                id="contadorNotificaciones"
+                class="contador-notificaciones"
+            >
+                0
+            </span>
+
+        </button>
+
     </div>
 
 </header>
@@ -1384,6 +1484,21 @@ main{
             Panel de Administrador
         </button>
 
+
+        <!-- =============================================
+             🔔 MANDAR NOTIFICACIONES
+        ============================================== -->
+
+        <button
+            id="btnNotificacionesAdministrador"
+            class="boton panel-admin"
+            type="button"
+            style="display:none;"
+        >
+            <span class="icono">🔔</span>
+            Mandar Notificaciones
+        </button>
+
     </section>
 
 </section>
@@ -1413,8 +1528,6 @@ main{
             Control de accesos
         </button>
 
-
-        <!-- NUEVO -->
 
         <button
             id="btnPrivacidadSeguridad"
@@ -1612,6 +1725,26 @@ document.getElementById(
 
 
 /* =========================================================
+   🔔 ELEMENTOS NOTIFICACIONES
+========================================================= */
+
+const btnCampanita =
+document.getElementById(
+    "btnCampanita"
+);
+
+const contadorNotificaciones =
+document.getElementById(
+    "contadorNotificaciones"
+);
+
+const btnNotificacionesAdministrador =
+document.getElementById(
+    "btnNotificacionesAdministrador"
+);
+
+
+/* =========================================================
    ADMIN GESBASE
 ========================================================= */
 
@@ -1620,6 +1753,170 @@ const EMAIL_ADMIN =
 
 let accesoPermitido =
 false;
+
+
+/* =========================================================
+   🔔 CONTADOR DE NOTIFICACIONES
+========================================================= */
+
+async function cargarContadorNotificaciones(uid){
+
+    if(!uid){
+        return;
+    }
+
+    try{
+
+        /*
+         * Buscamos las notificaciones
+         * correspondientes al usuario.
+         *
+         * Filtramos las no leídas
+         * en el navegador para evitar
+         * depender de un índice compuesto.
+         */
+
+        const consulta =
+        query(
+            collection(
+                db,
+                "notificaciones"
+            ),
+            where(
+                "uid",
+                "==",
+                uid
+            )
+        );
+
+
+        const snapshot =
+        await getDocs(
+            consulta
+        );
+
+
+        let cantidad = 0;
+
+
+        snapshot.forEach(
+            documento => {
+
+                const datos =
+                    documento.data();
+
+                if(
+                    datos.leida !== true
+                ){
+
+                    cantidad++;
+
+                }
+
+            }
+        );
+
+
+        if(cantidad > 0){
+
+            contadorNotificaciones.textContent =
+                cantidad > 99
+                ? "99+"
+                : String(cantidad);
+
+            contadorNotificaciones.style.display =
+                "flex";
+
+        }
+        else{
+
+            contadorNotificaciones.style.display =
+                "none";
+
+        }
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando notificaciones:",
+            error
+        );
+
+        contadorNotificaciones.style.display =
+            "none";
+
+    }
+
+}
+
+
+/* =========================================================
+   🔔 ABRIR NOTIFICACIONES
+========================================================= */
+
+btnCampanita.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+            "notificaciones.html";
+
+    }
+);
+
+
+/* =========================================================
+   🔔 PANEL ADMINISTRADOR DE NOTIFICACIONES
+========================================================= */
+
+btnNotificacionesAdministrador.addEventListener(
+    "click",
+    function(){
+
+        const usuarioActual =
+            auth.currentUser;
+
+
+        if(!usuarioActual){
+
+            alert(
+                "⛔ No hay una sesión iniciada."
+            );
+
+            return;
+
+        }
+
+
+        const email =
+        String(
+            usuarioActual.email ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+        if(
+            email !==
+            EMAIL_ADMIN.toLowerCase()
+        ){
+
+            alert(
+                "⛔ No tenés autorización para acceder."
+            );
+
+            return;
+
+        }
+
+
+        window.location.href =
+            "notificacion.html";
+
+    }
+);
 
 
 /* =========================================================
@@ -2388,6 +2685,15 @@ onAuthStateChanged(
             );
 
 
+            /* =================================================
+               🔔 NOTIFICACIONES DEL USUARIO
+            ================================================= */
+
+            await cargarContadorNotificaciones(
+                usuario.uid
+            );
+
+
             if(
                 esAdministradorGesbase
             ){
@@ -2454,6 +2760,10 @@ onAuthStateChanged(
             }
 
 
+            /* =================================================
+               ADMINISTRACIÓN GESBASE
+            ================================================= */
+
             if(
                 rol === "administrador"
                 ||
@@ -2468,6 +2778,10 @@ onAuthStateChanged(
             }
 
 
+            /* =================================================
+               SOLO ADMINISTRADOR GESBASE
+            ================================================= */
+
             if(
                 esAdministradorGesbase
             ){
@@ -2476,6 +2790,9 @@ onAuthStateChanged(
                     "block";
 
                 seccionAtencion.style.display =
+                    "block";
+
+                btnNotificacionesAdministrador.style.display =
                     "block";
 
             }
