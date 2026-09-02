@@ -992,33 +992,13 @@ tr:hover td{
 
                     <tr>
 
-                        <th>
-                            Usuario
-                        </th>
-
-                        <th>
-                            Empresa
-                        </th>
-
-                        <th>
-                            Términos
-                        </th>
-
-                        <th>
-                            Fecha términos
-                        </th>
-
-                        <th>
-                            Privacidad
-                        </th>
-
-                        <th>
-                            Fecha privacidad
-                        </th>
-
-                        <th>
-                            Acciones
-                        </th>
+                        <th>Usuario</th>
+                        <th>Empresa</th>
+                        <th>Términos</th>
+                        <th>Fecha términos</th>
+                        <th>Privacidad</th>
+                        <th>Fecha privacidad</th>
+                        <th>Acciones</th>
 
                     </tr>
 
@@ -1035,7 +1015,6 @@ tr:hover td{
                             class="cargando"
                         >
                             Cargando consentimientos...
-
                         </td>
 
                     </tr>
@@ -1082,37 +1061,14 @@ tr:hover td{
 
                     <tr>
 
-                        <th>
-                            Usuario
-                        </th>
-
-                        <th>
-                            Email
-                        </th>
-
-                        <th>
-                            Empresa
-                        </th>
-
-                        <th>
-                            Plan
-                        </th>
-
-                        <th>
-                            Acceso
-                        </th>
-
-                        <th>
-                            Términos
-                        </th>
-
-                        <th>
-                            Privacidad
-                        </th>
-
-                        <th>
-                            Acciones
-                        </th>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Empresa</th>
+                        <th>Plan</th>
+                        <th>Acceso</th>
+                        <th>Términos</th>
+                        <th>Privacidad</th>
+                        <th>Acciones</th>
 
                     </tr>
 
@@ -1129,7 +1085,6 @@ tr:hover td{
                             class="cargando"
                         >
                             Cargando usuarios...
-
                         </td>
 
                     </tr>
@@ -1195,12 +1150,7 @@ tr:hover td{
             Detalle del usuario
         </h2>
 
-
-        <div
-            id="modalContenido"
-        >
-
-        </div>
+        <div id="modalContenido"></div>
 
     </div>
 
@@ -1214,10 +1164,12 @@ import {
     db
 } from "./Js/firebase.js";
 
+
 import {
     onAuthStateChanged,
     signOut
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
 
 import {
     collection,
@@ -1236,19 +1188,9 @@ const EMAIL_ADMIN =
     "julianbattauz006@gmail.com";
 
 
-/*
-    Versiones vigentes.
-
-    Cuando actualices los documentos legales,
-    cambiá estas versiones.
-
-    Ejemplo:
-    1.0 → 1.1
-    1.1 → 2.0
-*/
-
 const VERSION_TERMINOS =
     "1.0";
+
 
 const VERSION_PRIVACIDAD =
     "1.0";
@@ -1284,46 +1226,56 @@ let consentimientos = [];
 const mensaje =
     document.getElementById("mensaje");
 
+
 const btnSalir =
     document.getElementById("btnSalir");
 
+
 const buscarUsuario =
     document.getElementById("buscarUsuario");
+
 
 const buscarConsentimiento =
     document.getElementById(
         "buscarConsentimiento"
     );
 
+
 const tablaUsuarios =
     document.getElementById(
         "tablaUsuarios"
     );
+
 
 const tablaConsentimientos =
     document.getElementById(
         "tablaConsentimientos"
     );
 
+
 const empresasGrid =
     document.getElementById(
         "empresasGrid"
     );
+
 
 const modalUsuario =
     document.getElementById(
         "modalUsuario"
     );
 
+
 const cerrarModal =
     document.getElementById(
         "cerrarModal"
     );
 
+
 const modalTitulo =
     document.getElementById(
         "modalTitulo"
     );
+
 
 const modalContenido =
     document.getElementById(
@@ -1350,20 +1302,7 @@ function escapeHTML(valor){
         .replace(/>/g,"&gt;")
         .replace(/"/g,"&quot;")
         .replace(/'/g,"&#039;");
-}
 
-
-function textoSeguro(valor){
-
-    if(
-        valor === null ||
-        valor === undefined ||
-        valor === ""
-    ){
-        return "No informado";
-    }
-
-    return String(valor);
 }
 
 
@@ -1377,6 +1316,7 @@ function convertirFecha(valor){
 
         let fecha;
 
+
         if(
             typeof valor.toDate ===
             "function"
@@ -1384,31 +1324,45 @@ function convertirFecha(valor){
 
             fecha = valor.toDate();
 
-        }else if(
+        }
+        else if(
             valor instanceof Date
         ){
 
             fecha = valor;
 
-        }else if(
+        }
+        else if(
             typeof valor === "string"
         ){
 
             fecha = new Date(valor);
 
-        }else{
+        }
+        else if(
+            typeof valor === "number"
+        ){
+
+            fecha = new Date(valor);
+
+        }
+        else{
 
             return "No registrada";
 
         }
+
 
         if(
             Number.isNaN(
                 fecha.getTime()
             )
         ){
+
             return "No registrada";
+
         }
+
 
         return fecha.toLocaleString(
             "es-AR",
@@ -1418,7 +1372,8 @@ function convertirFecha(valor){
             }
         );
 
-    }catch(error){
+    }
+    catch(error){
 
         return "No registrada";
 
@@ -1434,17 +1389,23 @@ function obtenerNombreUsuario(usuario){
         usuario.nombres ||
         "";
 
+
     const apellido =
         usuario.apellido ||
         usuario.apellidos ||
         "";
 
+
     const completo =
         `${nombre} ${apellido}`.trim();
 
+
     if(completo){
+
         return completo;
+
     }
+
 
     return (
         usuario.nombreCompleto ||
@@ -1470,6 +1431,7 @@ function obtenerEmpresaUsuario(usuario){
 
     }
 
+
     if(
         usuario.empresaID
     ){
@@ -1481,6 +1443,7 @@ function obtenerEmpresaUsuario(usuario){
         );
 
     }
+
 
     if(
         usuario.idEmpresa
@@ -1494,14 +1457,15 @@ function obtenerEmpresaUsuario(usuario){
 
     }
 
-    const empresaPorPropietario =
-        empresas.find(
-            empresa =>
-                empresa.propietarioUid ===
-                usuario.uid
-        );
 
-    return empresaPorPropietario;
+    return empresas.find(
+        empresa =>
+            empresa.propietarioUid ===
+            (
+                usuario.uid ||
+                usuario.id
+            )
+    );
 
 }
 
@@ -1509,11 +1473,17 @@ function obtenerEmpresaUsuario(usuario){
 function obtenerEmpresaId(usuario){
 
     const empresa =
-        obtenerEmpresaUsuario(usuario);
+        obtenerEmpresaUsuario(
+            usuario
+        );
+
 
     if(empresa){
+
         return empresa.id;
+
     }
+
 
     return (
         usuario.empresaId ||
@@ -1528,7 +1498,10 @@ function obtenerEmpresaId(usuario){
 function obtenerEmpresaNombre(usuario){
 
     const empresa =
-        obtenerEmpresaUsuario(usuario);
+        obtenerEmpresaUsuario(
+            usuario
+        );
+
 
     if(empresa){
 
@@ -1540,6 +1513,7 @@ function obtenerEmpresaNombre(usuario){
         );
 
     }
+
 
     return (
         usuario.nombreEmpresa ||
@@ -1553,7 +1527,9 @@ function tieneAceptacionTerminos(usuario){
 
     return (
         usuario.terminosAceptados === true ||
-        usuario.terminosAceptados === "true"
+        usuario.terminosAceptados === "true" ||
+        usuario.aceptacionTerminos === true ||
+        usuario.aceptacionTerminos === "true"
     );
 
 }
@@ -1563,7 +1539,9 @@ function tieneAceptacionPrivacidad(usuario){
 
     return (
         usuario.privacidadAceptada === true ||
-        usuario.privacidadAceptada === "true"
+        usuario.privacidadAceptada === "true" ||
+        usuario.aceptacionPrivacidad === true ||
+        usuario.aceptacionPrivacidad === "true"
     );
 
 }
@@ -1614,14 +1592,97 @@ function obtenerVersionPrivacidad(usuario){
 
 
 /* =====================================================
+   BUSCAR CONSENTIMIENTO POR USUARIO
+===================================================== */
+
+function obtenerConsentimientosUsuario(usuario){
+
+    const uid =
+        usuario.uid ||
+        usuario.id;
+
+
+    return consentimientos.filter(
+        item => {
+
+            return (
+                item.uid === uid ||
+                item.usuarioId === uid
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   OBTENER ÚLTIMO CONSENTIMIENTO
+===================================================== */
+
+function obtenerUltimoConsentimiento(
+    usuario,
+    tipo
+){
+
+    const lista =
+        obtenerConsentimientosUsuario(
+            usuario
+        )
+        .filter(
+            item =>
+                item.tipo === tipo &&
+                item.aceptado === true
+        );
+
+
+    if(!lista.length){
+
+        return null;
+
+    }
+
+
+    lista.sort(
+        (a,b) => {
+
+            const fechaA =
+                a.fechaAceptacion
+                    ?.toDate?.()
+                    ?.getTime?.() ||
+                0;
+
+
+            const fechaB =
+                b.fechaAceptacion
+                    ?.toDate?.()
+                    ?.getTime?.() ||
+                0;
+
+
+            return fechaB - fechaA;
+
+        }
+    );
+
+
+    return lista[0];
+
+}
+
+
+/* =====================================================
    ESTADO DE ACCESO
 ===================================================== */
 
 function accesoEmpresa(empresa){
 
     if(!empresa){
+
         return false;
+
     }
+
 
     return (
         empresa.accesoHabilitado === true
@@ -1644,6 +1705,7 @@ onAuthStateChanged(
                 "index.html";
 
             return;
+
         }
 
 
@@ -1655,22 +1717,30 @@ onAuthStateChanged(
             mensaje.className =
                 "alerta error";
 
+
             mensaje.textContent =
                 "Acceso denegado. Esta sección es privada.";
 
-            setTimeout(() => {
 
-                window.location.href =
-                    "index.html";
+            setTimeout(
+                () => {
 
-            },1500);
+                    window.location.href =
+                        "index.html";
+
+                },
+                1500
+            );
+
 
             return;
+
         }
 
 
         mensaje.className =
             "alerta exito";
+
 
         mensaje.textContent =
             "Acceso autorizado. Cargando información de seguridad...";
@@ -1759,11 +1829,12 @@ async function cargarDatos(){
         mensaje.className =
             "alerta exito";
 
+
         mensaje.textContent =
             "Información cargada correctamente.";
 
-
-    }catch(error){
+    }
+    catch(error){
 
         console.error(
             "Error cargando privacidad y seguridad:",
@@ -1772,9 +1843,9 @@ async function cargarDatos(){
 
 
         /*
-            Si la colección consentimientos todavía
-            no existe o no tiene permisos, seguimos
-            mostrando usuarios y empresas.
+            Si todavía no existe historial
+            o la colección no está disponible,
+            cargamos igualmente usuarios y empresas.
         */
 
         try{
@@ -1834,15 +1905,21 @@ async function cargarDatos(){
             mensaje.className =
                 "alerta info";
 
+
             mensaje.textContent =
-                "Usuarios y empresas cargados. Todavía no hay historial de consentimientos disponible.";
+                "Usuarios y empresas cargados. El historial de consentimientos todavía no está disponible.";
 
-        }catch(error2){
+        }
+        catch(error2){
 
-            console.error(error2);
+            console.error(
+                error2
+            );
+
 
             mensaje.className =
                 "alerta error";
+
 
             mensaje.textContent =
                 "No se pudo cargar la información. Revisá las reglas de Firestore.";
@@ -1863,15 +1940,22 @@ function actualizarResumen(){
     const total =
         usuarios.length;
 
+
     const habilitadas =
         empresas.filter(
             empresa =>
-                accesoEmpresa(empresa)
+                accesoEmpresa(
+                    empresa
+                )
         ).length;
 
+
     const bloqueadas =
-        empresas.length -
-        habilitadas;
+        Math.max(
+            empresas.length -
+            habilitadas,
+            0
+        );
 
 
     document.getElementById(
@@ -1913,18 +1997,48 @@ function actualizarResumen(){
     let revisiones = 0;
 
 
-    usuarios.forEach(usuario => {
+    usuarios.forEach(
+        usuario => {
 
-        if(
-            !tieneAceptacionTerminos(usuario) ||
-            !tieneAceptacionPrivacidad(usuario)
-        ){
+            const terminos =
+                tieneAceptacionTerminos(
+                    usuario
+                );
 
-            revisiones++;
+
+            const privacidad =
+                tieneAceptacionPrivacidad(
+                    usuario
+                );
+
+
+            const versionTerminos =
+                obtenerVersionTerminos(
+                    usuario
+                );
+
+
+            const versionPrivacidad =
+                obtenerVersionPrivacidad(
+                    usuario
+                );
+
+
+            if(
+                !terminos ||
+                !privacidad ||
+                versionTerminos !==
+                    VERSION_TERMINOS ||
+                versionPrivacidad !==
+                    VERSION_PRIVACIDAD
+            ){
+
+                revisiones++;
+
+            }
 
         }
-
-    });
+    );
 
 
     document.getElementById(
@@ -1946,21 +2060,32 @@ function actualizarConsentimientos(){
     let privacidad = 0;
 
 
-    usuarios.forEach(usuario => {
+    usuarios.forEach(
+        usuario => {
 
-        if(
-            tieneAceptacionTerminos(usuario)
-        ){
-            terminos++;
+            if(
+                tieneAceptacionTerminos(
+                    usuario
+                )
+            ){
+
+                terminos++;
+
+            }
+
+
+            if(
+                tieneAceptacionPrivacidad(
+                    usuario
+                )
+            ){
+
+                privacidad++;
+
+            }
+
         }
-
-        if(
-            tieneAceptacionPrivacidad(usuario)
-        ){
-            privacidad++;
-        }
-
-    });
+    );
 
 
     document.getElementById(
@@ -2016,35 +2141,39 @@ function mostrarConsentimientos(){
 
 
     const lista =
-        usuarios.filter(usuario => {
+        usuarios.filter(
+            usuario => {
 
-            const nombre =
-                obtenerNombreUsuario(
-                    usuario
-                )
-                .toLowerCase();
-
-            const email =
-                (
-                    usuario.email ||
-                    ""
-                )
-                .toLowerCase();
-
-            const empresa =
-                obtenerEmpresaNombre(
-                    usuario
-                )
-                .toLowerCase();
+                const nombre =
+                    obtenerNombreUsuario(
+                        usuario
+                    )
+                    .toLowerCase();
 
 
-            return (
-                nombre.includes(busqueda) ||
-                email.includes(busqueda) ||
-                empresa.includes(busqueda)
-            );
+                const email =
+                    (
+                        usuario.email ||
+                        ""
+                    )
+                    .toLowerCase();
 
-        });
+
+                const empresa =
+                    obtenerEmpresaNombre(
+                        usuario
+                    )
+                    .toLowerCase();
+
+
+                return (
+                    nombre.includes(busqueda) ||
+                    email.includes(busqueda) ||
+                    empresa.includes(busqueda)
+                );
+
+            }
+        );
 
 
     if(!lista.length){
@@ -2058,7 +2187,6 @@ function mostrarConsentimientos(){
                     class="vacio"
                 >
                     No se encontraron usuarios.
-
                 </td>
 
             </tr>
@@ -2066,188 +2194,202 @@ function mostrarConsentimientos(){
         `;
 
         return;
+
     }
 
 
     tablaConsentimientos.innerHTML =
-        lista.map(usuario => {
+        lista.map(
+            usuario => {
 
-            const terminos =
-                tieneAceptacionTerminos(
-                    usuario
-                );
-
-            const privacidad =
-                tieneAceptacionPrivacidad(
-                    usuario
-                );
+                const terminos =
+                    tieneAceptacionTerminos(
+                        usuario
+                    );
 
 
-            return `
+                const privacidad =
+                    tieneAceptacionPrivacidad(
+                        usuario
+                    );
 
-                <tr>
 
-                    <td>
-                        <strong>
+                return `
+
+                    <tr>
+
+                        <td>
+
+                            <strong>
+                                ${escapeHTML(
+                                    obtenerNombreUsuario(
+                                        usuario
+                                    )
+                                )}
+                            </strong>
+
+                            <br>
+
+                            <small>
+                                ${escapeHTML(
+                                    usuario.email ||
+                                    ""
+                                )}
+                            </small>
+
+                        </td>
+
+
+                        <td>
                             ${escapeHTML(
-                                obtenerNombreUsuario(
+                                obtenerEmpresaNombre(
                                     usuario
                                 )
                             )}
-                        </strong>
-                        <br>
-                        <small>
+                        </td>
+
+
+                        <td>
+
+                            ${
+                                terminos
+
+                                ? `
+                                    <span
+                                        class="badge badge-verde"
+                                    >
+                                        ✓ Aceptados
+                                    </span>
+                                `
+
+                                : `
+                                    <span
+                                        class="badge badge-rojo"
+                                    >
+                                        Pendientes
+                                    </span>
+                                `
+                            }
+
+                            <br>
+
+                            <small>
+                                Versión:
+                                ${escapeHTML(
+                                    obtenerVersionTerminos(
+                                        usuario
+                                    )
+                                )}
+                            </small>
+
+                        </td>
+
+
+                        <td>
+
                             ${escapeHTML(
-                                usuario.email ||
-                                ""
-                            )}
-                        </small>
-                    </td>
-
-
-                    <td>
-                        ${escapeHTML(
-                            obtenerEmpresaNombre(
-                                usuario
-                            )
-                        )}
-                    </td>
-
-
-                    <td>
-
-                        ${
-                            terminos
-
-                            ? `
-                                <span
-                                    class="badge badge-verde"
-                                >
-                                    ✓ Aceptados
-                                </span>
-                            `
-
-                            : `
-                                <span
-                                    class="badge badge-rojo"
-                                >
-                                    Pendientes
-                                </span>
-                            `
-                        }
-
-                        <br>
-
-                        <small>
-                            Versión:
-                            ${escapeHTML(
-                                obtenerVersionTerminos(
-                                    usuario
+                                convertirFecha(
+                                    obtenerFechaTerminos(
+                                        usuario
+                                    )
                                 )
                             )}
-                        </small>
 
-                    </td>
-
-
-                    <td>
-                        ${escapeHTML(
-                            convertirFecha(
-                                obtenerFechaTerminos(
-                                    usuario
-                                )
-                            )
-                        )}
-                    </td>
+                        </td>
 
 
-                    <td>
+                        <td>
 
-                        ${
-                            privacidad
+                            ${
+                                privacidad
 
-                            ? `
-                                <span
-                                    class="badge badge-verde"
-                                >
-                                    ✓ Aceptada
-                                </span>
-                            `
+                                ? `
+                                    <span
+                                        class="badge badge-verde"
+                                    >
+                                        ✓ Aceptada
+                                    </span>
+                                `
 
-                            : `
-                                <span
-                                    class="badge badge-rojo"
-                                >
-                                    Pendiente
-                                </span>
-                            `
-                        }
+                                : `
+                                    <span
+                                        class="badge badge-rojo"
+                                    >
+                                        Pendiente
+                                    </span>
+                                `
+                            }
 
-                        <br>
+                            <br>
 
-                        <small>
-                            Versión:
+                            <small>
+                                Versión:
+                                ${escapeHTML(
+                                    obtenerVersionPrivacidad(
+                                        usuario
+                                    )
+                                )}
+                            </small>
+
+                        </td>
+
+
+                        <td>
+
                             ${escapeHTML(
-                                obtenerVersionPrivacidad(
-                                    usuario
+                                convertirFecha(
+                                    obtenerFechaPrivacidad(
+                                        usuario
+                                    )
                                 )
                             )}
-                        </small>
 
-                    </td>
-
-
-                    <td>
-                        ${escapeHTML(
-                            convertirFecha(
-                                obtenerFechaPrivacidad(
-                                    usuario
-                                )
-                            )
-                        )}
-                    </td>
+                        </td>
 
 
-                    <td>
+                        <td>
 
-                        <button
-                            class="btn btn-detalle"
-                            type="button"
-                            data-id="${escapeHTML(
-                                usuario.id
-                            )}"
-                            data-accion="detalle"
-                        >
-                            Ver detalle
-                        </button>
+                            <button
+                                class="btn btn-detalle"
+                                type="button"
+                                data-id="${escapeHTML(
+                                    usuario.id
+                                )}"
+                                data-accion="detalle"
+                            >
+                                Ver detalle
+                            </button>
 
-                    </td>
+                        </td>
 
-                </tr>
+                    </tr>
 
-            `;
+                `;
 
-        }).join("");
+            }
+        ).join("");
 
 
     document
         .querySelectorAll(
             '[data-accion="detalle"]'
         )
-        .forEach(boton => {
+        .forEach(
+            boton => {
 
-            boton.addEventListener(
-                "click",
-                () => {
+                boton.addEventListener(
+                    "click",
+                    () => {
 
-                    abrirDetalleUsuario(
-                        boton.dataset.id
-                    );
+                        abrirDetalleUsuario(
+                            boton.dataset.id
+                        );
 
-                }
-            );
+                    }
+                );
 
-        });
+            }
+        );
 
 }
 
@@ -2268,35 +2410,39 @@ function mostrarUsuarios(){
 
 
     const lista =
-        usuarios.filter(usuario => {
+        usuarios.filter(
+            usuario => {
 
-            const nombre =
-                obtenerNombreUsuario(
-                    usuario
-                )
-                .toLowerCase();
-
-            const email =
-                (
-                    usuario.email ||
-                    ""
-                )
-                .toLowerCase();
-
-            const empresa =
-                obtenerEmpresaNombre(
-                    usuario
-                )
-                .toLowerCase();
+                const nombre =
+                    obtenerNombreUsuario(
+                        usuario
+                    )
+                    .toLowerCase();
 
 
-            return (
-                nombre.includes(busqueda) ||
-                email.includes(busqueda) ||
-                empresa.includes(busqueda)
-            );
+                const email =
+                    (
+                        usuario.email ||
+                        ""
+                    )
+                    .toLowerCase();
 
-        });
+
+                const empresa =
+                    obtenerEmpresaNombre(
+                        usuario
+                    )
+                    .toLowerCase();
+
+
+                return (
+                    nombre.includes(busqueda) ||
+                    email.includes(busqueda) ||
+                    empresa.includes(busqueda)
+                );
+
+            }
+        );
 
 
     if(!lista.length){
@@ -2310,7 +2456,6 @@ function mostrarUsuarios(){
                     class="vacio"
                 >
                     No se encontraron usuarios.
-
                 </td>
 
             </tr>
@@ -2318,198 +2463,207 @@ function mostrarUsuarios(){
         `;
 
         return;
+
     }
 
 
     tablaUsuarios.innerHTML =
-        lista.map(usuario => {
+        lista.map(
+            usuario => {
 
-            const empresa =
-                obtenerEmpresaUsuario(
-                    usuario
-                );
-
-
-            const acceso =
-                empresa
-                    ? accesoEmpresa(empresa)
-                    : false;
+                const empresa =
+                    obtenerEmpresaUsuario(
+                        usuario
+                    );
 
 
-            const terminos =
-                tieneAceptacionTerminos(
-                    usuario
-                );
+                const acceso =
+                    empresa
+                        ? accesoEmpresa(
+                            empresa
+                        )
+                        : false;
 
 
-            const privacidad =
-                tieneAceptacionPrivacidad(
-                    usuario
-                );
+                const terminos =
+                    tieneAceptacionTerminos(
+                        usuario
+                    );
 
 
-            return `
+                const privacidad =
+                    tieneAceptacionPrivacidad(
+                        usuario
+                    );
 
-                <tr>
 
-                    <td>
+                return `
 
-                        <strong>
+                    <tr>
+
+                        <td>
+
+                            <strong>
+                                ${escapeHTML(
+                                    obtenerNombreUsuario(
+                                        usuario
+                                    )
+                                )}
+                            </strong>
+
+                        </td>
+
+
+                        <td>
                             ${escapeHTML(
-                                obtenerNombreUsuario(
+                                usuario.email ||
+                                "No informado"
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHTML(
+                                obtenerEmpresaNombre(
                                     usuario
                                 )
                             )}
-                        </strong>
-
-                    </td>
+                        </td>
 
 
-                    <td>
-                        ${escapeHTML(
-                            usuario.email ||
-                            "No informado"
-                        )}
-                    </td>
+                        <td>
+
+                            <span
+                                class="badge badge-azul"
+                            >
+                                ${escapeHTML(
+                                    usuario.plan ||
+                                    empresa?.plan ||
+                                    "Sin plan"
+                                )}
+                            </span>
+
+                        </td>
 
 
-                    <td>
-                        ${escapeHTML(
-                            obtenerEmpresaNombre(
-                                usuario
-                            )
-                        )}
-                    </td>
+                        <td>
+
+                            ${
+                                acceso
+
+                                ? `
+                                    <span
+                                        class="badge badge-verde"
+                                    >
+                                        ✓ Habilitado
+                                    </span>
+                                `
+
+                                : `
+                                    <span
+                                        class="badge badge-rojo"
+                                    >
+                                        Bloqueado
+                                    </span>
+                                `
+                            }
+
+                        </td>
 
 
-                    <td>
-                        <span
-                            class="badge badge-azul"
-                        >
-                            ${escapeHTML(
-                                usuario.plan ||
-                                empresa?.plan ||
-                                "Sin plan"
-                            )}
-                        </span>
-                    </td>
+                        <td>
+
+                            ${
+                                terminos
+
+                                ? `
+                                    <span
+                                        class="badge badge-verde"
+                                    >
+                                        ✓
+                                    </span>
+                                `
+
+                                : `
+                                    <span
+                                        class="badge badge-rojo"
+                                    >
+                                        Pendiente
+                                    </span>
+                                `
+                            }
+
+                        </td>
 
 
-                    <td>
+                        <td>
 
-                        ${
-                            acceso
+                            ${
+                                privacidad
 
-                            ? `
-                                <span
-                                    class="badge badge-verde"
-                                >
-                                    ✓ Habilitado
-                                </span>
-                            `
+                                ? `
+                                    <span
+                                        class="badge badge-verde"
+                                    >
+                                        ✓
+                                    </span>
+                                `
 
-                            : `
-                                <span
-                                    class="badge badge-rojo"
-                                >
-                                    Bloqueado
-                                </span>
-                            `
-                        }
+                                : `
+                                    <span
+                                        class="badge badge-rojo"
+                                    >
+                                        Pendiente
+                                    </span>
+                                `
+                            }
 
-                    </td>
-
-
-                    <td>
-
-                        ${
-                            terminos
-
-                            ? `
-                                <span
-                                    class="badge badge-verde"
-                                >
-                                    ✓
-                                </span>
-                            `
-
-                            : `
-                                <span
-                                    class="badge badge-rojo"
-                                >
-                                    Pendiente
-                                </span>
-                            `
-                        }
-
-                    </td>
+                        </td>
 
 
-                    <td>
+                        <td>
 
-                        ${
-                            privacidad
+                            <button
+                                class="btn btn-detalle"
+                                type="button"
+                                data-id="${escapeHTML(
+                                    usuario.id
+                                )}"
+                                data-accion="detalle"
+                            >
+                                Detalle
+                            </button>
 
-                            ? `
-                                <span
-                                    class="badge badge-verde"
-                                >
-                                    ✓
-                                </span>
-                            `
+                        </td>
 
-                            : `
-                                <span
-                                    class="badge badge-rojo"
-                                >
-                                    Pendiente
-                                </span>
-                            `
-                        }
+                    </tr>
 
-                    </td>
+                `;
 
-
-                    <td>
-
-                        <button
-                            class="btn btn-detalle"
-                            type="button"
-                            data-id="${escapeHTML(
-                                usuario.id
-                            )}"
-                            data-accion="detalle"
-                        >
-                            Detalle
-                        </button>
-
-                    </td>
-
-                </tr>
-
-            `;
-
-        }).join("");
+            }
+        ).join("");
 
 
     document
         .querySelectorAll(
             '[data-accion="detalle"]'
         )
-        .forEach(boton => {
+        .forEach(
+            boton => {
 
-            boton.addEventListener(
-                "click",
-                () => {
+                boton.addEventListener(
+                    "click",
+                    () => {
 
-                    abrirDetalleUsuario(
-                        boton.dataset.id
-                    );
+                        abrirDetalleUsuario(
+                            boton.dataset.id
+                        );
 
-                }
-            );
+                    }
+                );
 
-        });
+            }
+        );
 
 }
 
@@ -2525,219 +2679,223 @@ function mostrarEmpresas(){
         empresasGrid.innerHTML = `
 
             <div class="vacio">
-
                 No hay empresas registradas.
-
             </div>
 
         `;
 
         return;
+
     }
 
 
     empresasGrid.innerHTML =
-        empresas.map(empresa => {
+        empresas.map(
+            empresa => {
 
-            const habilitada =
-                accesoEmpresa(
-                    empresa
-                );
-
-
-            const nombre =
-                empresa.nombreEmpresa ||
-                empresa.razonSocial ||
-                empresa.nombre ||
-                "Empresa sin nombre";
+                const habilitada =
+                    accesoEmpresa(
+                        empresa
+                    );
 
 
-            return `
+                const nombre =
+                    empresa.nombreEmpresa ||
+                    empresa.razonSocial ||
+                    empresa.nombre ||
+                    "Empresa sin nombre";
 
-                <div class="empresa-card">
 
-                    <div class="empresa-nombre">
+                return `
 
-                        ${escapeHTML(
-                            nombre
-                        )}
+                    <div class="empresa-card">
+
+                        <div class="empresa-nombre">
+
+                            ${escapeHTML(
+                                nombre
+                            )}
+
+                        </div>
+
+
+                        <div class="empresa-dato">
+
+                            <strong>
+                                Razón social:
+                            </strong>
+
+                            ${escapeHTML(
+                                empresa.razonSocial ||
+                                "No informada"
+                            )}
+
+                        </div>
+
+
+                        <div class="empresa-dato">
+
+                            <strong>
+                                CUIT:
+                            </strong>
+
+                            ${escapeHTML(
+                                empresa.cuit ||
+                                "No informado"
+                            )}
+
+                        </div>
+
+
+                        <div class="empresa-dato">
+
+                            <strong>
+                                Plan:
+                            </strong>
+
+                            ${escapeHTML(
+                                empresa.plan ||
+                                "Sin plan"
+                            )}
+
+                        </div>
+
+
+                        <div class="empresa-dato">
+
+                            <strong>
+                                Propietario:
+                            </strong>
+
+                            ${escapeHTML(
+                                empresa.propietarioUid ||
+                                "No informado"
+                            )}
+
+                        </div>
+
+
+                        <div class="empresa-dato">
+
+                            <strong>
+                                Teléfono:
+                            </strong>
+
+                            ${escapeHTML(
+                                empresa.telefono ||
+                                "No informado"
+                            )}
+
+                        </div>
+
+
+                        <div class="empresa-dato">
+
+                            <strong>
+                                Tipo de acceso:
+                            </strong>
+
+                            ${escapeHTML(
+                                empresa.tipoAcceso ||
+                                "No especificado"
+                            )}
+
+                        </div>
+
+
+                        <div
+                            style="
+                                margin-top:12px;
+                                margin-bottom:12px;
+                            "
+                        >
+
+                            ${
+                                habilitada
+
+                                ? `
+                                    <span
+                                        class="badge badge-verde"
+                                    >
+                                        ✓ Acceso habilitado
+                                    </span>
+                                `
+
+                                : `
+                                    <span
+                                        class="badge badge-rojo"
+                                    >
+                                        🔒 Acceso bloqueado
+                                    </span>
+                                `
+                            }
+
+                        </div>
+
+
+                        <button
+                            class="btn ${
+                                habilitada
+                                ? "btn-bloquear"
+                                : "btn-activar"
+                            }"
+                            type="button"
+                            data-empresa-id="${escapeHTML(
+                                empresa.id
+                            )}"
+                            data-estado="${
+                                habilitada
+                                    ? "false"
+                                    : "true"
+                            }"
+                        >
+
+                            ${
+                                habilitada
+                                    ? "Bloquear acceso"
+                                    : "Habilitar acceso"
+                            }
+
+                        </button>
 
                     </div>
 
+                `;
 
-                    <div class="empresa-dato">
-
-                        <strong>
-                            Razón social:
-                        </strong>
-
-                        ${escapeHTML(
-                            empresa.razonSocial ||
-                            "No informada"
-                        )}
-
-                    </div>
-
-
-                    <div class="empresa-dato">
-
-                        <strong>
-                            CUIT:
-                        </strong>
-
-                        ${escapeHTML(
-                            empresa.cuit ||
-                            "No informado"
-                        )}
-
-                    </div>
-
-
-                    <div class="empresa-dato">
-
-                        <strong>
-                            Plan:
-                        </strong>
-
-                        ${escapeHTML(
-                            empresa.plan ||
-                            "Sin plan"
-                        )}
-
-                    </div>
-
-
-                    <div class="empresa-dato">
-
-                        <strong>
-                            Propietario:
-                        </strong>
-
-                        ${escapeHTML(
-                            empresa.propietarioUid ||
-                            "No informado"
-                        )}
-
-                    </div>
-
-
-                    <div class="empresa-dato">
-
-                        <strong>
-                            Teléfono:
-                        </strong>
-
-                        ${escapeHTML(
-                            empresa.telefono ||
-                            "No informado"
-                        )}
-
-                    </div>
-
-
-                    <div class="empresa-dato">
-
-                        <strong>
-                            Tipo de acceso:
-                        </strong>
-
-                        ${escapeHTML(
-                            empresa.tipoAcceso ||
-                            "No especificado"
-                        )}
-
-                    </div>
-
-
-                    <div
-                        style="
-                            margin-top:12px;
-                            margin-bottom:12px;
-                        "
-                    >
-
-                        ${
-                            habilitada
-
-                            ? `
-                                <span
-                                    class="badge badge-verde"
-                                >
-                                    ✓ Acceso habilitado
-                                </span>
-                            `
-
-                            : `
-                                <span
-                                    class="badge badge-rojo"
-                                >
-                                    🔒 Acceso bloqueado
-                                </span>
-                            `
-                        }
-
-                    </div>
-
-
-                    <button
-                        class="btn ${
-                            habilitada
-                            ? "btn-bloquear"
-                            : "btn-activar"
-                        }"
-                        type="button"
-                        data-empresa-id="${escapeHTML(
-                            empresa.id
-                        )}"
-                        data-estado="${
-                            habilitada
-                                ? "false"
-                                : "true"
-                        }"
-                    >
-
-                        ${
-                            habilitada
-                                ? "Bloquear acceso"
-                                : "Habilitar acceso"
-                        }
-
-                    </button>
-
-                </div>
-
-            `;
-
-        }).join("");
+            }
+        ).join("");
 
 
     document
         .querySelectorAll(
             "[data-empresa-id]"
         )
-        .forEach(boton => {
+        .forEach(
+            boton => {
 
-            boton.addEventListener(
-                "click",
-                async () => {
+                boton.addEventListener(
+                    "click",
+                    async () => {
 
-                    const empresaId =
-                        boton.dataset.empresaId;
-
-                    const nuevoEstado =
-                        boton.dataset.estado ===
-                        "true";
+                        const empresaId =
+                            boton.dataset.empresaId;
 
 
-                    await cambiarAcceso(
-                        empresaId,
-                        nuevoEstado
-                    );
+                        const nuevoEstado =
+                            boton.dataset.estado ===
+                            "true";
 
-                }
-            );
 
-        });
+                        await cambiarAcceso(
+                            empresaId,
+                            nuevoEstado
+                        );
+
+                    }
+                );
+
+            }
+        );
 
 }
 
@@ -2752,7 +2910,9 @@ async function cambiarAcceso(
 ){
 
     if(!empresaId){
+
         return;
+
     }
 
 
@@ -2765,7 +2925,9 @@ async function cambiarAcceso(
 
 
     if(!empresa){
+
         return;
+
     }
 
 
@@ -2778,15 +2940,15 @@ async function cambiarAcceso(
     const confirmacion =
         confirm(
             estado
-
-            ? `¿Querés habilitar el acceso de ${nombre}?`
-
-            : `¿Querés bloquear el acceso de ${nombre}?`
+                ? `¿Querés habilitar el acceso de ${nombre}?`
+                : `¿Querés bloquear el acceso de ${nombre}?`
         );
 
 
     if(!confirmacion){
+
         return;
+
     }
 
 
@@ -2822,18 +2984,24 @@ async function cambiarAcceso(
         mensaje.className =
             "alerta exito";
 
+
         mensaje.textContent =
             estado
                 ? "Acceso habilitado correctamente."
                 : "Acceso bloqueado correctamente.";
 
+    }
+    catch(error){
 
-    }catch(error){
+        console.error(
+            "Error cambiando acceso:",
+            error
+        );
 
-        console.error(error);
 
         mensaje.className =
             "alerta error";
+
 
         mensaje.textContent =
             "No se pudo modificar el acceso.";
@@ -2860,7 +3028,9 @@ function abrirDetalleUsuario(
 
 
     if(!usuario){
+
         return;
+
     }
 
 
@@ -2870,15 +3040,45 @@ function abrirDetalleUsuario(
         );
 
 
+    /*
+        CORRECCIÓN IMPORTANTE:
+
+        Antes estaba:
+        tieneAceptacionTerminos(usuarios)
+
+        Ahora:
+        tieneAceptacionTerminos(usuario)
+    */
+
     const terminos =
         tieneAceptacionTerminos(
-            usuarios
+            usuario
         );
 
 
     const privacidad =
         tieneAceptacionPrivacidad(
             usuario
+        );
+
+
+    const historial =
+        obtenerConsentimientosUsuario(
+            usuario
+        );
+
+
+    const ultimoTerminos =
+        obtenerUltimoConsentimiento(
+            usuario,
+            "terminos"
+        );
+
+
+    const ultimaPrivacidad =
+        obtenerUltimoConsentimiento(
+            usuario,
+            "privacidad"
         );
 
 
@@ -2900,11 +3100,13 @@ function abrirDetalleUsuario(
                 </div>
 
                 <div class="valor">
+
                     ${escapeHTML(
                         obtenerNombreUsuario(
                             usuario
                         )
                     )}
+
                 </div>
 
             </div>
@@ -2917,10 +3119,12 @@ function abrirDetalleUsuario(
                 </div>
 
                 <div class="valor">
+
                     ${escapeHTML(
                         usuario.email ||
                         "No informado"
                     )}
+
                 </div>
 
             </div>
@@ -2933,11 +3137,13 @@ function abrirDetalleUsuario(
                 </div>
 
                 <div class="valor">
+
                     ${escapeHTML(
                         usuario.uid ||
                         usuario.id ||
                         "No informado"
                     )}
+
                 </div>
 
             </div>
@@ -2950,12 +3156,14 @@ function abrirDetalleUsuario(
                 </div>
 
                 <div class="valor">
+
                     ${escapeHTML(
                         obtenerEmpresaId(
                             usuario
                         ) ||
                         "No informado"
                     )}
+
                 </div>
 
             </div>
@@ -2968,11 +3176,32 @@ function abrirDetalleUsuario(
                 </div>
 
                 <div class="valor">
+
                     ${escapeHTML(
                         usuario.telefono ||
                         usuario.phone ||
                         "No informado"
                     )}
+
+                </div>
+
+            </div>
+
+
+            <div class="detalle-item">
+
+                <div class="label">
+                    Empresa
+                </div>
+
+                <div class="valor">
+
+                    ${escapeHTML(
+                        obtenerEmpresaNombre(
+                            usuario
+                        )
+                    )}
+
                 </div>
 
             </div>
@@ -2985,17 +3214,59 @@ function abrirDetalleUsuario(
                 </div>
 
                 <div class="valor">
+
                     ${escapeHTML(
                         usuario.plan ||
                         empresa?.plan ||
                         "Sin plan"
                     )}
+
+                </div>
+
+            </div>
+
+
+            <div class="detalle-item">
+
+                <div class="label">
+                    Estado de acceso
+                </div>
+
+                <div class="valor">
+
+                    ${
+                        empresa &&
+                        accesoEmpresa(
+                            empresa
+                        )
+
+                        ? `
+                            <span
+                                class="badge badge-verde"
+                            >
+                                ✓ Habilitado
+                            </span>
+                        `
+
+                        : `
+                            <span
+                                class="badge badge-rojo"
+                            >
+                                🔒 Bloqueado
+                            </span>
+                        `
+                    }
+
                 </div>
 
             </div>
 
         </div>
 
+
+        <!-- =========================
+             TÉRMINOS
+        ========================== -->
 
         <div class="modal-seccion">
 
@@ -3005,6 +3276,7 @@ function abrirDetalleUsuario(
 
 
             <div class="detalle-grid">
+
 
                 <div class="detalle-item">
 
@@ -3046,11 +3318,13 @@ function abrirDetalleUsuario(
                     </div>
 
                     <div class="valor">
+
                         ${escapeHTML(
                             obtenerVersionTerminos(
                                 usuario
                             )
                         )}
+
                     </div>
 
                 </div>
@@ -3059,10 +3333,28 @@ function abrirDetalleUsuario(
                 <div class="detalle-item">
 
                     <div class="label">
-                        Fecha y hora de aceptación
+                        Versión vigente
                     </div>
 
                     <div class="valor">
+
+                        ${escapeHTML(
+                            VERSION_TERMINOS
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="detalle-item">
+
+                    <div class="label">
+                        Fecha y hora
+                    </div>
+
+                    <div class="valor">
+
                         ${escapeHTML(
                             convertirFecha(
                                 obtenerFechaTerminos(
@@ -3070,14 +3362,46 @@ function abrirDetalleUsuario(
                                 )
                             )
                         )}
+
                     </div>
 
                 </div>
+
+
+                ${
+                    ultimoTerminos
+
+                    ? `
+
+                        <div class="detalle-item">
+
+                            <div class="label">
+                                Registro de auditoría
+                            </div>
+
+                            <div class="valor">
+
+                                ✓ Registrado en
+                                consentimientos
+
+                            </div>
+
+                        </div>
+
+                    `
+
+                    : ""
+
+                }
 
             </div>
 
         </div>
 
+
+        <!-- =========================
+             PRIVACIDAD
+        ========================== -->
 
         <div class="modal-seccion">
 
@@ -3087,6 +3411,7 @@ function abrirDetalleUsuario(
 
 
             <div class="detalle-grid">
+
 
                 <div class="detalle-item">
 
@@ -3128,11 +3453,13 @@ function abrirDetalleUsuario(
                     </div>
 
                     <div class="valor">
+
                         ${escapeHTML(
                             obtenerVersionPrivacidad(
                                 usuario
                             )
                         )}
+
                     </div>
 
                 </div>
@@ -3141,10 +3468,28 @@ function abrirDetalleUsuario(
                 <div class="detalle-item">
 
                     <div class="label">
-                        Fecha y hora de aceptación
+                        Versión vigente
                     </div>
 
                     <div class="valor">
+
+                        ${escapeHTML(
+                            VERSION_PRIVACIDAD
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="detalle-item">
+
+                    <div class="label">
+                        Fecha y hora
+                    </div>
+
+                    <div class="valor">
+
                         ${escapeHTML(
                             convertirFecha(
                                 obtenerFechaPrivacidad(
@@ -3152,14 +3497,46 @@ function abrirDetalleUsuario(
                                 )
                             )
                         )}
+
                     </div>
 
                 </div>
+
+
+                ${
+                    ultimaPrivacidad
+
+                    ? `
+
+                        <div class="detalle-item">
+
+                            <div class="label">
+                                Registro de auditoría
+                            </div>
+
+                            <div class="valor">
+
+                                ✓ Registrado en
+                                consentimientos
+
+                            </div>
+
+                        </div>
+
+                    `
+
+                    : ""
+
+                }
 
             </div>
 
         </div>
 
+
+        <!-- =========================
+             HISTORIAL
+        ========================== -->
 
         <div class="modal-seccion">
 
@@ -3168,9 +3545,11 @@ function abrirDetalleUsuario(
             </h3>
 
 
-            ${mostrarHistorialConsentimientos(
-                usuario
-            )}
+            ${
+                mostrarHistorialConsentimientos(
+                    usuario
+                )
+            }
 
         </div>
 
@@ -3185,28 +3564,16 @@ function abrirDetalleUsuario(
 
 
 /* =====================================================
-   HISTORIAL DE CONSENTIMIENTOS
+   HISTORIAL
 ===================================================== */
 
 function mostrarHistorialConsentimientos(
     usuario
 ){
 
-    const uid =
-        usuario.uid ||
-        usuario.id;
-
-
     const historial =
-        consentimientos.filter(
-            item => {
-
-                return (
-                    item.uid === uid ||
-                    item.usuarioId === uid
-                );
-
-            }
+        obtenerConsentimientosUsuario(
+            usuario
         );
 
 
@@ -3222,12 +3589,8 @@ function mostrarHistorialConsentimientos(
 
                 <br><br>
 
-                Esto no significa necesariamente
-                que el usuario no haya aceptado;
-                puede significar que la aceptación
-                todavía se está guardando
-                directamente en su documento
-                de usuario.
+                La aceptación puede estar registrada
+                directamente en el documento del usuario.
 
             </div>
 
@@ -3246,11 +3609,13 @@ function mostrarHistorialConsentimientos(
                         ?.getTime?.() ||
                     0;
 
+
                 const fechaB =
                     b.fechaAceptacion
                         ?.toDate?.()
                         ?.getTime?.() ||
                     0;
+
 
                 return fechaB - fechaA;
 
@@ -3283,7 +3648,7 @@ function mostrarHistorialConsentimientos(
                         </th>
 
                         <th>
-                            Fecha
+                            Fecha y hora
                         </th>
 
                     </tr>
@@ -3299,11 +3664,26 @@ function mostrarHistorialConsentimientos(
                                 <tr>
 
                                     <td>
-                                        ${escapeHTML(
-                                            item.tipo ||
-                                            "No especificado"
-                                        )}
+
+                                        ${
+                                            item.tipo ===
+                                            "terminos"
+
+                                            ? "Términos y Condiciones"
+
+                                            : item.tipo ===
+                                            "privacidad"
+
+                                            ? "Política de Privacidad"
+
+                                            : escapeHTML(
+                                                item.tipo ||
+                                                "No especificado"
+                                            )
+                                        }
+
                                     </td>
+
 
                                     <td>
 
@@ -3329,19 +3709,25 @@ function mostrarHistorialConsentimientos(
 
                                     </td>
 
+
                                     <td>
+
                                         ${escapeHTML(
                                             item.version ||
                                             "-"
                                         )}
+
                                     </td>
 
+
                                     <td>
+
                                         ${escapeHTML(
                                             convertirFecha(
                                                 item.fechaAceptacion
                                             )
                                         )}
+
                                     </td>
 
                                 </tr>
@@ -3422,14 +3808,21 @@ btnSalir.addEventListener(
 
         try{
 
-            await signOut(auth);
+            await signOut(
+                auth
+            );
+
 
             window.location.href =
                 "index.html";
 
-        }catch(error){
+        }
+        catch(error){
 
-            console.error(error);
+            console.error(
+                "Error cerrando sesión:",
+                error
+            );
 
         }
 
