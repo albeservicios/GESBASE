@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+
+<title>GESBASE - Notificaciones</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    color: #111827;
+}
+
+header {
+    background: #111827;
+    color: white;
+    padding: 18px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 25px auto;
+    padding: 0 16px;
+}
+
+.card {
+    background: white;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+h2 {
+    margin-top: 0;
+    font-size: 20px;
+}
+
+label {
+    display: block;
+    margin-top: 18px;
+    margin-bottom: 7px;
+    font-weight: bold;
+}
+
+select,
+input,
+textarea {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 16px;
+    background: white;
+}
+
+textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+button {
+    width: 100%;
+    margin-top: 22px;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: #111827;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#estado {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 10px;
+    display: none;
+    text-align: center;
+}
+
+.exito {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.usuario-info {
+    margin-top: 12px;
+    padding: 10px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    font-size: 14px;
+    display: none;
+}
+
+.volver {
+    display: block;
+    text-align: center;
+    margin-top: 18px;
+    color: #111827;
+    text-decoration: none;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🔔 Notificaciones GESBASE</h1>
+</header>
+
+<div class="container">
+
+    <div class="card">
+
+        <h2>Mandar notificación</h2>
+
+        <label for="destinatario">
+            Destinatario
+        </label>
+
+        <select id="destinatario">
+            <option value="">Cargando usuarios...</option>
+        </select>
+
+        <div id="usuarioInfo" class="usuario-info"></div>
+
+        <label for="titulo">
+            Título
+        </label>
+
+        <input
+            type="text"
+            id="titulo"
+            placeholder="Ej: Nueva función disponible"
+            maxlength="100"
+        >
+
+        <label for="mensaje">
+            Mensaje
+        </label>
+
+        <textarea
+            id="mensaje"
+            placeholder="Escribí el mensaje..."
+            maxlength="1000"
+        ></textarea>
+
+        <button id="btnMandar">
+            📤 Mandar
+        </button>
+
+        <div id="estado"></div>
+
+    </div>
+
+    <a href="index.html" class="volver">
+        ← Volver
+    </a>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+
+import {
+    getAuth,
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+import {
+    getFirestore,
+    collection,
+    getDocs,
+    addDoc,
+    serverTimestamp,
+    query,
+    orderBy
+} from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+import { firebaseConfig } from "./firebase-config.js";
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const destinatario =
+    document.getElementById("destinatario");
+
+const titulo =
+    document.getElementById("titulo");
+
+const mensaje =
+    document.getElementById("mensaje");
+
+const btnMandar =
+    document.getElementById("btnMandar");
+
+const estado =
+    document.getElementById("estado");
+
+const usuarioInfo =
+    document.getElementById("usuarioInfo");
+
+let usuarios = [];
+
+function mostrarEstado(texto, tipo) {
+
+    estado.textContent = texto;
+
+    estado.className = tipo;
+
+    estado.style.display = "block";
+}
+
+function ocultarEstado() {
+
+    estado.style.display = "none";
+}
+
+function escaparTexto(valor) {
+
+    return String(valor || "").trim();
+}
+
+
+/* =========================================================
+   VERIFICAR SESIÓN
+========================================================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+    if (!user) {
+
+        mostrarEstado(
+            "Debés iniciar sesión para acceder.",
+            "error"
+        );
+
+        btnMandar.disabled = true;
+
+        setTimeout(() => {
+            window.location.href = "login.html";
+        }, 1800);
+
+        return;
+    }
+
+    await cargarUsuarios();
+
+});
+
+
+/* =========================================================
+   CARGAR USUARIOS
+========================================================= */
+
+async function cargarUsuarios() {
+
+    try {
+
+        const snapshot =
+            await getDocs(collection(db, "usuarios"));
+
+        usuarios = [];
+
+        destinatario.innerHTML = "";
+
+        const opcionTodos =
+            document.createElement("option");
+
+        opcionTodos.value = "TODOS";
+
+        opcionTodos.textContent =
+            "📢 Todos los usuarios";
+
+        destinatario.appendChild(opcionTodos);
+
+
+        snapshot.forEach((docSnap) => {
+
+            const datos = docSnap.data();
+
+            usuarios.push({
+                id: docSnap.id,
+                ...datos
+            });
+
+            const opcion =
+                document.createElement("option");
+
+            opcion.value = docSnap.id;
+
+            const nombre =
+                datos.nombre ||
+                datos.nombreCompleto ||
+                "Usuario";
+
+            const apellido =
+                datos.apellido || "";
+
+            const email =
+                datos.email || "";
+
+            opcion.textContent =
+                `${nombre} ${apellido}` +
+                (email ? ` - ${email}` : "");
+
+            destinatario.appendChild(opcion);
+
+        });
+
+        if (usuarios.length === 0) {
+
+            destinatario.innerHTML =
+                '<option value="">No hay usuarios registrados</option>';
+
+            btnMandar.disabled = true;
+
+        } else {
+
+            btnMandar.disabled = false;
+
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        mostrarEstado(
+            "No se pudieron cargar los usuarios.",
+            "error"
+        );
+
+        btnMandar.disabled = true;
+    }
+}
+
+
+/* =========================================================
+   MOSTRAR INFORMACIÓN DEL USUARIO
+========================================================= */
+
+destinatario.addEventListener("change", () => {
+
+    const id = destinatario.value;
+
+    if (!id || id === "TODOS") {
+
+        usuarioInfo.style.display = "none";
+
+        return;
+    }
+
+    const usuario =
+        usuarios.find(u => u.id === id);
+
+    if (!usuario) return;
+
+    const nombre =
+        `${usuario.nombre || ""} ${usuario.apellido || ""}`.trim();
+
+    usuarioInfo.innerHTML =
+        `<strong>Usuario seleccionado:</strong><br>
+         ${nombre || "Sin nombre"}<br>
+         ${usuario.email || "Sin email"}`;
+
+    usuarioInfo.style.display = "block";
+});
+
+
+/* =========================================================
+   MANDAR NOTIFICACIÓN
+========================================================= */
+
+btnMandar.addEventListener("click", async () => {
+
+    ocultarEstado();
+
+    const destino =
+        destinatario.value;
+
+    const tituloTexto =
+        escaparTexto(titulo.value);
+
+    const mensajeTexto =
+        escaparTexto(mensaje.value);
+
+
+    if (!destino) {
+
+        mostrarEstado(
+            "Seleccioná un destinatario.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    if (!tituloTexto) {
+
+        mostrarEstado(
+            "Escribí un título.",
+            "error"
+        );
+
+        titulo.focus();
+
+        return;
+    }
+
+
+    if (!mensajeTexto) {
+
+        mostrarEstado(
+            "Escribí el mensaje.",
+            "error"
+        );
+
+        mensaje.focus();
+
+        return;
+    }
+
+
+    btnMandar.disabled = true;
+
+    mostrarEstado(
+        "Enviando notificación...",
+        "info"
+    );
+
+
+    try {
+
+        const usuarioActual = auth.currentUser;
+
+        if (!usuarioActual) {
+
+            throw new Error(
+                "La sesión expiró."
+            );
+        }
+
+
+        /* =====================================================
+           TODOS LOS USUARIOS
+        ===================================================== */
+
+        if (destino === "TODOS") {
+
+            let enviados = 0;
+
+            for (const usuario of usuarios) {
+
+                await addDoc(
+                    collection(db, "notificaciones"),
+                    {
+
+                        uid: usuario.id,
+
+                        titulo: tituloTexto,
+
+                        mensaje: mensajeTexto,
+
+                        leida: false,
+
+                        activa: true,
+
+                        tipo: "administrador",
+
+                        creadoPor:
+                            usuarioActual.uid,
+
+                        fecha:
+                            serverTimestamp()
+
+                    }
+                );
+
+                enviados++;
+            }
+
+
+            mostrarEstado(
+                `✅ Notificación enviada a ${enviados} usuarios.`,
+                "exito"
+            );
+
+        }
+
+
+        /* =====================================================
+           UN SOLO USUARIO
+        ===================================================== */
+
+        else {
+
+            await addDoc(
+                collection(db, "notificaciones"),
+                {
+
+                    uid: destino,
+
+                    titulo: tituloTexto,
+
+                    mensaje: mensajeTexto,
+
+                    leida: false,
+
+                    activa: true,
+
+                    tipo: "administrador",
+
+                    creadoPor:
+                        usuarioActual.uid,
+
+                    fecha:
+                        serverTimestamp()
+
+                }
+            );
+
+
+            const usuario =
+                usuarios.find(
+                    u => u.id === destino
+                );
+
+            const nombre =
+                usuario?.nombre ||
+                "usuario";
+
+
+            mostrarEstado(
+                `✅ Notificación enviada a ${nombre}.`,
+                "exito"
+            );
+
+        }
+
+
+        titulo.value = "";
+
+        mensaje.value = "";
+
+        destinatario.value = "TODOS";
+
+        usuarioInfo.style.display = "none";
+
+
+    } catch (error) {
+
+        console.error(
+            "Error enviando notificación:",
+            error
+        );
+
+        mostrarEstado(
+            "❌ No se pudo enviar la notificación. Revisá las reglas de Firestore.",
+            "error"
+        );
+
+    } finally {
+
+        btnMandar.disabled = false;
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>
