@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+
+<head>
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<meta name="theme-color" content="#111827">
+
+<title>GESBASE - Notificaciones</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:18px;
+    position:sticky;
+    top:0;
+    z-index:10;
+}
+
+.header-contenido{
+    max-width:900px;
+    margin:auto;
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.btn-volver{
+    width:42px;
+    height:42px;
+    border:1px solid #374151;
+    border-radius:10px;
+    background:#1f2937;
+    color:white;
+    font-size:20px;
+    cursor:pointer;
+}
+
+.titulo{
+    font-size:22px;
+    font-weight:800;
+}
+
+.subtitulo{
+    margin-top:3px;
+    font-size:13px;
+    color:#d1d5db;
+}
+
+main{
+    max-width:900px;
+    margin:0 auto;
+    padding:20px 14px 40px;
+}
+
+.estado{
+    background:white;
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+
+.notificacion{
+    background:white;
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+    border-left:5px solid #2563eb;
+}
+
+.notificacion.no-leida{
+    border-left-color:#dc2626;
+    background:#fff;
+}
+
+.notificacion.leida{
+    opacity:.78;
+}
+
+.notificacion-titulo{
+    font-size:17px;
+    font-weight:800;
+    margin-bottom:8px;
+}
+
+.notificacion-mensaje{
+    font-size:15px;
+    line-height:1.5;
+    white-space:pre-wrap;
+}
+
+.notificacion-fecha{
+    margin-top:12px;
+    font-size:12px;
+    color:#6b7280;
+}
+
+.acciones{
+    margin-top:14px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    border:0;
+    border-radius:9px;
+    padding:10px 14px;
+    cursor:pointer;
+    font-weight:700;
+}
+
+.btn-leer{
+    background:#2563eb;
+    color:white;
+}
+
+.btn-volver-index{
+    width:100%;
+    background:#111827;
+    color:white;
+    padding:13px;
+    margin-top:15px;
+}
+
+.vacio{
+    text-align:center;
+    padding:50px 20px;
+    background:white;
+    border-radius:16px;
+    color:#6b7280;
+}
+
+.cargando{
+    text-align:center;
+    padding:40px;
+    color:#6b7280;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+    padding:15px;
+    border-radius:12px;
+    line-height:1.5;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="header-contenido">
+
+        <button
+            class="btn-volver"
+            id="btnVolver"
+            type="button"
+            aria-label="Volver"
+        >
+            ←
+        </button>
+
+        <div>
+            <div class="titulo">🔔 Notificaciones</div>
+            <div class="subtitulo">
+                Mensajes y avisos de GESBASE
+            </div>
+        </div>
+
+    </div>
+
+</header>
+
+<main>
+
+    <div id="estadoUsuario" class="estado">
+        Cargando usuario...
+    </div>
+
+    <div id="contenedorNotificaciones">
+
+        <div class="cargando">
+            Cargando notificaciones...
+        </div>
+
+    </div>
+
+    <button
+        id="btnVolverIndex"
+        class="btn btn-volver-index"
+        type="button"
+    >
+        ← Volver a GESBASE
+    </button>
+
+</main>
+
+<script type="module">
+
+import { auth, db } from "./Js/firebase.js";
+
+import {
+    collection,
+    query,
+    where,
+    orderBy,
+    getDocs,
+    doc,
+    updateDoc
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+
+const contenedor =
+    document.getElementById("contenedorNotificaciones");
+
+const estadoUsuario =
+    document.getElementById("estadoUsuario");
+
+const btnVolver =
+    document.getElementById("btnVolver");
+
+const btnVolverIndex =
+    document.getElementById("btnVolverIndex");
+
+
+/* =========================================================
+   VOLVER
+========================================================= */
+
+btnVolver.addEventListener("click", () => {
+    window.location.href = "index.html";
+});
+
+btnVolverIndex.addEventListener("click", () => {
+    window.location.href = "index.html";
+});
+
+
+/* =========================================================
+   FECHA
+========================================================= */
+
+function convertirFecha(timestamp){
+
+    if(!timestamp){
+        return "Fecha no disponible";
+    }
+
+    try{
+
+        const fecha = timestamp.toDate();
+
+        return fecha.toLocaleString("es-AR", {
+            dateStyle:"short",
+            timeStyle:"short"
+        });
+
+    }catch(error){
+
+        return "Fecha no disponible";
+
+    }
+
+}
+
+
+/* =========================================================
+   CARGAR NOTIFICACIONES
+========================================================= */
+
+async function cargarNotificaciones(uid){
+
+    contenedor.innerHTML = `
+        <div class="cargando">
+            Cargando notificaciones...
+        </div>
+    `;
+
+    try{
+
+        const referencia =
+            collection(db, "notificaciones");
+
+        const consulta =
+            query(
+                referencia,
+                where("uid", "==", uid),
+                orderBy("fecha", "desc")
+            );
+
+        const resultado =
+            await getDocs(consulta);
+
+        if(resultado.empty){
+
+            contenedor.innerHTML = `
+                <div class="vacio">
+                    <div style="font-size:42px;margin-bottom:10px;">
+                        🔔
+                    </div>
+
+                    <strong>
+                        No tenés notificaciones
+                    </strong>
+
+                    <div style="margin-top:6px;">
+                        Cuando GESBASE te envíe un aviso,
+                        aparecerá acá.
+                    </div>
+                </div>
+            `;
+
+            return;
+        }
+
+
+        contenedor.innerHTML = "";
+
+
+        resultado.forEach((documento) => {
+
+            const datos = documento.data();
+
+            const leida =
+                datos.leida === true;
+
+            const tarjeta =
+                document.createElement("div");
+
+            tarjeta.className =
+                `notificacion ${leida ? "leida" : "no-leida"}`;
+
+
+            tarjeta.innerHTML = `
+
+                <div class="notificacion-titulo">
+                    ${escaparHTML(datos.titulo || "Notificación")}
+                </div>
+
+                <div class="notificacion-mensaje">
+                    ${escaparHTML(datos.mensaje || "")}
+                </div>
+
+                <div class="notificacion-fecha">
+                    ${convertirFecha(datos.fecha)}
+                </div>
+
+                <div class="acciones">
+
+                    ${
+                        !leida
+                        ?
+                        `
+                        <button
+                            class="btn btn-leer"
+                            data-id="${documento.id}"
+                        >
+                            ✓ Marcar como leída
+                        </button>
+                        `
+                        :
+                        `
+                        <span style="color:#16a34a;font-weight:700;">
+                            ✓ Leída
+                        </span>
+                        `
+                    }
+
+                </div>
+
+            `;
+
+
+            const botonLeer =
+                tarjeta.querySelector(".btn-leer");
+
+
+            if(botonLeer){
+
+                botonLeer.addEventListener(
+                    "click",
+                    async () => {
+
+                        try{
+
+                            botonLeer.disabled = true;
+
+                            botonLeer.textContent =
+                                "Guardando...";
+
+
+                            await updateDoc(
+                                doc(
+                                    db,
+                                    "notificaciones",
+                                    documento.id
+                                ),
+                                {
+                                    leida:true
+                                }
+                            );
+
+
+                            await cargarNotificaciones(uid);
+
+                        }catch(error){
+
+                            console.error(error);
+
+                            alert(
+                                "No se pudo marcar la notificación como leída."
+                            );
+
+                            botonLeer.disabled = false;
+
+                            botonLeer.textContent =
+                                "✓ Marcar como leída";
+                        }
+
+                    }
+                );
+
+            }
+
+
+            contenedor.appendChild(tarjeta);
+
+        });
+
+
+    }catch(error){
+
+        console.error(
+            "Error cargando notificaciones:",
+            error
+        );
+
+        contenedor.innerHTML = `
+            <div class="error">
+                <strong>
+                    No se pudieron cargar las notificaciones.
+                </strong>
+
+                <br><br>
+
+                ${escaparHTML(error.message || "")}
+
+            </div>
+        `;
+
+    }
+
+}
+
+
+/* =========================================================
+   SEGURIDAD HTML
+========================================================= */
+
+function escaparHTML(texto){
+
+    return String(texto)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================================
+   AUTENTICACIÓN
+========================================================= */
+
+onAuthStateChanged(
+    auth,
+    async (usuario) => {
+
+        if(!usuario){
+
+            window.location.href =
+                "login.html";
+
+            return;
+        }
+
+
+        const nombre =
+            usuario.displayName ||
+            usuario.email ||
+            "Usuario";
+
+
+        estadoUsuario.innerHTML = `
+            <strong>Usuario:</strong>
+            ${escaparHTML(nombre)}
+            <br>
+
+            <span style="font-size:13px;color:#6b7280;">
+                ${escaparHTML(usuario.email || "")}
+            </span>
+        `;
+
+
+        await cargarNotificaciones(
+            usuario.uid
+        );
+
+    }
+);
+
+</script>
+
+</body>
+</html>
