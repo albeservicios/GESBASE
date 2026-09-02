@@ -52,6 +52,7 @@ header{
     color:white;
     font-size:20px;
     cursor:pointer;
+    flex-shrink:0;
 }
 
 .titulo{
@@ -135,6 +136,11 @@ main{
     color:white;
 }
 
+.btn-leer:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
 .btn-volver-index{
     width:100%;
     background:#111827;
@@ -165,6 +171,12 @@ main{
     line-height:1.5;
 }
 
+.contador-resumen{
+    margin-top:8px;
+    font-size:13px;
+    color:#6b7280;
+}
+
 </style>
 </head>
 
@@ -184,7 +196,10 @@ main{
         </button>
 
         <div>
-            <div class="titulo">🔔 Notificaciones</div>
+            <div class="titulo">
+                🔔 Notificaciones
+            </div>
+
             <div class="subtitulo">
                 Mensajes y avisos de GESBASE
             </div>
@@ -194,11 +209,13 @@ main{
 
 </header>
 
+
 <main>
 
     <div id="estadoUsuario" class="estado">
         Cargando usuario...
     </div>
+
 
     <div id="contenedorNotificaciones">
 
@@ -207,6 +224,7 @@ main{
         </div>
 
     </div>
+
 
     <button
         id="btnVolverIndex"
@@ -218,6 +236,7 @@ main{
 
 </main>
 
+
 <script type="module">
 
 import { auth, db } from "./Js/firebase.js";
@@ -226,15 +245,16 @@ import {
     collection,
     query,
     where,
-    orderBy,
     getDocs,
     doc,
     updateDoc
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+} from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 import {
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+} from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 
 const contenedor =
@@ -255,11 +275,16 @@ const btnVolverIndex =
 ========================================================= */
 
 btnVolver.addEventListener("click", () => {
+
     window.location.href = "index.html";
+
 });
 
+
 btnVolverIndex.addEventListener("click", () => {
+
     window.location.href = "index.html";
+
 });
 
 
@@ -270,21 +295,111 @@ btnVolverIndex.addEventListener("click", () => {
 function convertirFecha(timestamp){
 
     if(!timestamp){
+
         return "Fecha no disponible";
+
     }
 
     try{
 
-        const fecha = timestamp.toDate();
+        /*
+         * Firebase Timestamp
+         */
 
-        return fecha.toLocaleString("es-AR", {
-            dateStyle:"short",
-            timeStyle:"short"
-        });
+        if(typeof timestamp.toDate === "function"){
+
+            const fecha = timestamp.toDate();
+
+            return fecha.toLocaleString("es-AR", {
+                dateStyle:"short",
+                timeStyle:"short"
+            });
+
+        }
+
+
+        /*
+         * Si eventualmente la fecha llega como Date
+         */
+
+        if(timestamp instanceof Date){
+
+            return timestamp.toLocaleString("es-AR", {
+                dateStyle:"short",
+                timeStyle:"short"
+            });
+
+        }
+
+
+        return "Fecha no disponible";
 
     }catch(error){
 
+        console.error(
+            "Error convirtiendo fecha:",
+            error
+        );
+
         return "Fecha no disponible";
+
+    }
+
+}
+
+
+/* =========================================================
+   CONVERTIR FECHA PARA ORDENAMIENTO
+========================================================= */
+
+function obtenerMilisegundosFecha(timestamp){
+
+    if(!timestamp){
+
+        return 0;
+
+    }
+
+    try{
+
+        /*
+         * Firebase Timestamp
+         */
+
+        if(typeof timestamp.toMillis === "function"){
+
+            return timestamp.toMillis();
+
+        }
+
+
+        /*
+         * Firebase Timestamp mediante seconds
+         */
+
+        if(typeof timestamp.seconds === "number"){
+
+            return timestamp.seconds * 1000;
+
+        }
+
+
+        /*
+         * Date
+         */
+
+        if(timestamp instanceof Date){
+
+            return timestamp.getTime();
+
+        }
+
+
+        return 0;
+
+    }catch(error){
+
+        return 0;
 
     }
 
@@ -303,26 +418,42 @@ async function cargarNotificaciones(uid){
         </div>
     `;
 
+
     try{
 
         const referencia =
             collection(db, "notificaciones");
 
+
+        /*
+         * IMPORTANTE:
+         *
+         * Solamente usamos where("uid").
+         *
+         * NO usamos orderBy("fecha") en Firebase.
+         *
+         * De esta manera evitamos el índice compuesto.
+         */
+
         const consulta =
             query(
                 referencia,
-                where("uid", "==", uid),
-                orderBy("fecha", "desc")
+                where("uid", "==", uid)
             );
+
 
         const resultado =
             await getDocs(consulta);
+
 
         if(resultado.empty){
 
             contenedor.innerHTML = `
                 <div class="vacio">
-                    <div style="font-size:42px;margin-bottom:10px;">
+
+                    <div
+                        style="font-size:42px;margin-bottom:10px;"
+                    >
                         🔔
                     </div>
 
@@ -334,43 +465,164 @@ async function cargarNotificaciones(uid){
                         Cuando GESBASE te envíe un aviso,
                         aparecerá acá.
                     </div>
+
                 </div>
             `;
 
             return;
+
         }
 
 
-        contenedor.innerHTML = "";
+        /*
+         * Convertimos los documentos en un array
+         */
+
+        const notificaciones = [];
 
 
         resultado.forEach((documento) => {
 
-            const datos = documento.data();
+            const datos =
+                documento.data();
+
+            notificaciones.push({
+
+                id: documento.id,
+
+                ...datos
+
+            });
+
+        });
+
+
+        /*
+         * ORDENAR POR FECHA
+         *
+         * Más nuevas primero.
+         */
+
+        notificaciones.sort((a,b) => {
+
+            const fechaA =
+                obtenerMilisegundosFecha(a.fecha);
+
+            const fechaB =
+                obtenerMilisegundosFecha(b.fecha);
+
+            return fechaB - fechaA;
+
+        });
+
+
+        /*
+         * CONTADORES
+         */
+
+        const total =
+            notificaciones.length;
+
+        const pendientes =
+            notificaciones.filter(
+                notificacion =>
+                    notificacion.leida !== true
+            ).length;
+
+
+        contenedor.innerHTML = `
+
+            <div
+                class="estado"
+                style="margin-bottom:16px;"
+            >
+
+                <strong>
+                    ${total}
+                    ${total === 1
+                        ? " notificación"
+                        : " notificaciones"}
+                </strong>
+
+                ${
+                    pendientes > 0
+                    ?
+                    `
+                    <div class="contador-resumen">
+                        🔴 ${pendientes}
+                        ${
+                            pendientes === 1
+                            ? " sin leer"
+                            : " sin leer"
+                        }
+                    </div>
+                    `
+                    :
+                    `
+                    <div class="contador-resumen">
+                        ✓ Todas las notificaciones están leídas
+                    </div>
+                    `
+                }
+
+            </div>
+
+        `;
+
+
+        /*
+         * MOSTRAR NOTIFICACIONES
+         */
+
+        notificaciones.forEach((datos) => {
+
 
             const leida =
                 datos.leida === true;
 
+
             const tarjeta =
                 document.createElement("div");
 
+
             tarjeta.className =
-                `notificacion ${leida ? "leida" : "no-leida"}`;
+                `notificacion ${
+                    leida
+                    ? "leida"
+                    : "no-leida"
+                }`;
 
 
             tarjeta.innerHTML = `
 
                 <div class="notificacion-titulo">
-                    ${escaparHTML(datos.titulo || "Notificación")}
+
+                    ${escaparHTML(
+                        datos.titulo ||
+                        "Notificación"
+                    )}
+
                 </div>
+
 
                 <div class="notificacion-mensaje">
-                    ${escaparHTML(datos.mensaje || "")}
+
+                    ${escaparHTML(
+                        datos.mensaje ||
+                        ""
+                    )}
+
                 </div>
 
+
                 <div class="notificacion-fecha">
-                    ${convertirFecha(datos.fecha)}
+
+                    ${convertirFecha(
+                        datos.fecha
+                    )}
+
                 </div>
+
 
                 <div class="acciones">
 
@@ -380,14 +632,19 @@ async function cargarNotificaciones(uid){
                         `
                         <button
                             class="btn btn-leer"
-                            data-id="${documento.id}"
+                            data-id="${escaparHTML(datos.id)}"
                         >
                             ✓ Marcar como leída
                         </button>
                         `
                         :
                         `
-                        <span style="color:#16a34a;font-weight:700;">
+                        <span
+                            style="
+                                color:#16a34a;
+                                font-weight:700;
+                            "
+                        >
                             ✓ Leída
                         </span>
                         `
@@ -420,7 +677,7 @@ async function cargarNotificaciones(uid){
                                 doc(
                                     db,
                                     "notificaciones",
-                                    documento.id
+                                    datos.id
                                 ),
                                 {
                                     leida:true
@@ -428,20 +685,32 @@ async function cargarNotificaciones(uid){
                             );
 
 
+                            /*
+                             * Volvemos a cargar.
+                             */
+
                             await cargarNotificaciones(uid);
+
 
                         }catch(error){
 
-                            console.error(error);
+                            console.error(
+                                "Error marcando notificación:",
+                                error
+                            );
+
 
                             alert(
                                 "No se pudo marcar la notificación como leída."
                             );
 
+
                             botonLeer.disabled = false;
+
 
                             botonLeer.textContent =
                                 "✓ Marcar como leída";
+
                         }
 
                     }
@@ -462,17 +731,24 @@ async function cargarNotificaciones(uid){
             error
         );
 
+
         contenedor.innerHTML = `
+
             <div class="error">
+
                 <strong>
                     No se pudieron cargar las notificaciones.
                 </strong>
 
                 <br><br>
 
-                ${escaparHTML(error.message || "")}
+                ${escaparHTML(
+                    error.message ||
+                    "Error desconocido."
+                )}
 
             </div>
+
         `;
 
     }
@@ -510,6 +786,7 @@ onAuthStateChanged(
                 "login.html";
 
             return;
+
         }
 
 
@@ -520,13 +797,26 @@ onAuthStateChanged(
 
 
         estadoUsuario.innerHTML = `
-            <strong>Usuario:</strong>
+
+            <strong>
+                Usuario:
+            </strong>
+
             ${escaparHTML(nombre)}
+
             <br>
 
-            <span style="font-size:13px;color:#6b7280;">
-                ${escaparHTML(usuario.email || "")}
+            <span
+                style="
+                    font-size:13px;
+                    color:#6b7280;
+                "
+            >
+                ${escaparHTML(
+                    usuario.email || ""
+                )}
             </span>
+
         `;
 
 
