@@ -1400,6 +1400,8 @@ import {
 import {
     doc,
     setDoc,
+    addDoc,
+    collection,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
@@ -1900,6 +1902,18 @@ registroForm.addEventListener(
 
 
             /* ===============================================
+               FECHA DE ACEPTACIÓN
+               
+               Se crea una única referencia temporal.
+               Firestore guardará el timestamp real
+               en cada documento.
+            =============================================== */
+
+            const fechaAceptacion =
+                serverTimestamp();
+
+
+            /* ===============================================
                CREAR EMPRESA
             =============================================== */
 
@@ -2093,6 +2107,12 @@ registroForm.addEventListener(
                     aceptacionPrivacidad:
                         true,
 
+                    terminosAceptados:
+                        true,
+
+                    privacidadAceptada:
+                        true,
+
                     versionTerminos:
                         VERSION_TERMINOS,
 
@@ -2100,12 +2120,84 @@ registroForm.addEventListener(
                         VERSION_PRIVACIDAD,
 
                     fechaAceptacionLegal:
-                        serverTimestamp(),
+                        fechaAceptacion,
 
                     fechaAceptacionTerminos:
-                        serverTimestamp(),
+                        fechaAceptacion,
 
                     fechaAceptacionPrivacidad:
+                        fechaAceptacion
+
+                }
+            );
+
+
+            /* =====================================================
+               HISTORIAL DE CONSENTIMIENTO — TÉRMINOS
+            ===================================================== */
+
+            await addDoc(
+                collection(
+                    db,
+                    "consentimientos"
+                ),
+                {
+
+                    uid:
+                        uid,
+
+                    empresaId:
+                        empresaId,
+
+                    email:
+                        datos.email,
+
+                    tipo:
+                        "terminos",
+
+                    aceptado:
+                        true,
+
+                    version:
+                        VERSION_TERMINOS,
+
+                    fechaAceptacion:
+                        serverTimestamp()
+
+                }
+            );
+
+
+            /* =====================================================
+               HISTORIAL DE CONSENTIMIENTO — PRIVACIDAD
+            ===================================================== */
+
+            await addDoc(
+                collection(
+                    db,
+                    "consentimientos"
+                ),
+                {
+
+                    uid:
+                        uid,
+
+                    empresaId:
+                        empresaId,
+
+                    email:
+                        datos.email,
+
+                    tipo:
+                        "privacidad",
+
+                    aceptado:
+                        true,
+
+                    version:
+                        VERSION_PRIVACIDAD,
+
+                    fechaAceptacion:
                         serverTimestamp()
 
                 }
@@ -2200,15 +2292,6 @@ registroForm.addEventListener(
 
                     texto =
                         "Firebase rechazó la creación de los datos. Revisá las reglas de Firestore.";
-
-                    break;
-
-
-                case
-                "permission-denied":
-
-                    texto =
-                        "No tenés permisos suficientes para guardar los datos.";
 
                     break;
 
