@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Publicar empleo - Red GESBASE</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial;background:#EEF2F3;color:#17252A}
+header{background:#12343B;color:#fff;padding:16px;font-size:20px;font-weight:bold}
+form{padding:14px}
+.card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+label{display:block;margin:12px 0 6px;font-weight:bold;font-size:14px}
+input,select,textarea{
+width:100%;padding:12px;border:1px solid #D7E0E2;border-radius:10px;font-size:14px
+}
+textarea{min-height:120px;resize:vertical}
+.plan{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.opcion{border:2px solid #D7E0E2;border-radius:12px;padding:12px;text-align:center;cursor:pointer}
+.opcion.active{border-color:#12343B;background:#E7F0F1}
+button{
+width:100%;margin-top:18px;padding:14px;border:none;border-radius:12px;
+background:#12343B;color:#fff;font-size:16px;font-weight:bold
+}
+.info{background:#FFF7E6;border-left:4px solid #F59E0B;padding:10px;border-radius:8px;font-size:13px;margin-top:14px}
+</style>
+</head>
+<body>
+
+<header>💼 Publicar empleo</header>
+
+<form id="empleoForm">
+<div class="card">
+
+<label>Puesto</label>
+<input id="puesto" placeholder="Ej: Ayudante de construcción" required>
+
+<label>Empresa</label>
+<input id="empresa" placeholder="Nombre de la empresa" required>
+
+<label>Provincia</label>
+<input id="provincia" placeholder="Río Negro">
+
+<label>Ciudad</label>
+<input id="ciudad" placeholder="Catriel">
+
+<label>Modalidad</label>
+<select id="modalidad">
+<option>Tiempo completo</option>
+<option>Medio tiempo</option>
+<option>Por obra</option>
+<option>Freelance</option>
+</select>
+
+<label>Sueldo (opcional)</label>
+<input id="sueldo" placeholder="$ 1.200.000">
+
+<label>Descripción</label>
+<textarea id="descripcion" placeholder="Describí el trabajo, requisitos y horarios..." required></textarea>
+
+<label>Tipo de publicación</label>
+
+<div class="plan">
+<div class="opcion active" onclick="plan('gratis')" id="gratis">
+<b>Gratis</b><br><small>Normal</small>
+</div>
+
+<div class="opcion" onclick="plan('destacado')" id="destacado">
+<b>Destacado</b><br><small>7 días</small>
+</div>
+</div>
+
+<div class="info">
+⭐ Los avisos destacados aparecerán primero y luego se cobrarán con Mercado Pago.
+</div>
+
+<button type="submit">Publicar empleo</button>
+
+</div>
+</form>
+
+<script type="module">
+import { auth, db } from "./Js/firebase.js";
+import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+let tipo="gratis";
+
+window.plan=(p)=>{
+tipo=p;
+document.getElementById("gratis").classList.remove("active");
+document.getElementById("destacado").classList.remove("active");
+document.getElementById(p).classList.add("active");
+};
+
+document.getElementById("empleoForm").addEventListener("submit",async(e)=>{
+e.preventDefault();
+
+await addDoc(collection(db,"empleos"),{
+uid:auth.currentUser.uid,
+puesto:puesto.value,
+empresa:empresa.value,
+provincia:provincia.value,
+ciudad:ciudad.value,
+modalidad:modalidad.value,
+sueldo:sueldo.value,
+descripcion:descripcion.value,
+tipo:tipo,
+estado:"activo",
+fecha:serverTimestamp()
+});
+
+alert("Empleo publicado correctamente");
+location.href="red-empleo.html";
+});
+</script>
+
+</body>
+</html>
