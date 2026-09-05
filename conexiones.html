@@ -81,6 +81,62 @@
             margin-bottom:20px;
         }
 
+        /* =====================================
+           DIAGNÓSTICO
+        ===================================== */
+
+        .diagnostico{
+            background:#111827;
+            color:#f9fafb;
+            border-radius:14px;
+            padding:15px;
+            margin-bottom:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,.15);
+        }
+
+        .diagnostico-titulo{
+            font-size:16px;
+            font-weight:bold;
+            margin-bottom:10px;
+        }
+
+        .diagnostico-linea{
+            font-family:monospace;
+            font-size:12px;
+            line-height:1.6;
+            padding:3px 0;
+            word-break:break-word;
+        }
+
+        .ok{
+            color:#86efac;
+        }
+
+        .error-d{
+            color:#fca5a5;
+        }
+
+        .aviso{
+            color:#fde68a;
+        }
+
+        .info{
+            color:#93c5fd;
+        }
+
+        .limpiar{
+            margin-top:10px;
+            border:0;
+            border-radius:7px;
+            padding:8px 11px;
+            cursor:pointer;
+            font-weight:bold;
+        }
+
+        /* =====================================
+           BUSCADOR
+        ===================================== */
+
         .buscador{
             background:white;
             padding:16px;
@@ -143,6 +199,10 @@
             cursor:not-allowed;
         }
 
+        /* =====================================
+           TABS
+        ===================================== */
+
         .tabs{
             display:flex;
             gap:8px;
@@ -173,6 +233,10 @@
         .seccion.activa{
             display:block;
         }
+
+        /* =====================================
+           TARJETAS
+        ===================================== */
 
         .grid{
             display:grid;
@@ -335,10 +399,40 @@
     </p>
 
 
+    <!-- =====================================
+         PANEL DE DIAGNÓSTICO
+    ====================================== -->
+
+    <div class="diagnostico">
+
+        <div class="diagnostico-titulo">
+            🛠 Diagnóstico de Red GESBASE
+        </div>
+
+        <div id="diagnosticoContenido">
+
+            <div class="diagnostico-linea info">
+                Iniciando diagnóstico...
+            </div>
+
+        </div>
+
+        <button
+            class="limpiar"
+            id="btnLimpiarDiagnostico"
+        >
+            Limpiar diagnóstico
+        </button>
+
+    </div>
+
+
     <div class="error" id="mensajeError"></div>
 
 
-    <!-- BUSCADOR -->
+    <!-- =====================================
+         BUSCADOR
+    ====================================== -->
 
     <div class="buscador">
 
@@ -354,11 +448,26 @@
             <select id="tipoFiltro">
 
                 <option value="">Todos</option>
-                <option value="persona">Personas</option>
-                <option value="profesional">Profesionales</option>
-                <option value="trabajador">Trabajadores</option>
-                <option value="empresa">Empresas</option>
-                <option value="comercio">Comercios</option>
+
+                <option value="persona">
+                    Personas
+                </option>
+
+                <option value="profesional">
+                    Profesionales
+                </option>
+
+                <option value="trabajador">
+                    Trabajadores
+                </option>
+
+                <option value="empresa">
+                    Empresas
+                </option>
+
+                <option value="comercio">
+                    Comercios
+                </option>
 
             </select>
 
@@ -374,7 +483,9 @@
     </div>
 
 
-    <!-- TABS -->
+    <!-- =====================================
+         TABS
+    ====================================== -->
 
     <div class="tabs">
 
@@ -402,7 +513,9 @@
     </div>
 
 
-    <!-- BUSCAR -->
+    <!-- =====================================
+         BUSCAR
+    ====================================== -->
 
     <section
         id="seccionBuscar"
@@ -423,7 +536,9 @@
     </section>
 
 
-    <!-- SOLICITUDES -->
+    <!-- =====================================
+         SOLICITUDES
+    ====================================== -->
 
     <section
         id="seccionSolicitudes"
@@ -444,7 +559,9 @@
     </section>
 
 
-    <!-- CONECTADOS -->
+    <!-- =====================================
+         CONECTADOS
+    ====================================== -->
 
     <section
         id="seccionConectados"
@@ -469,6 +586,10 @@
 
 <script type="module">
 
+/* ==========================================
+   FIREBASE
+========================================== */
+
 import { auth, db } from "./firebase.js";
 
 import {
@@ -487,19 +608,41 @@ import {
    ELEMENTOS
 ========================================== */
 
-const busqueda = document.getElementById("busqueda");
-const tipoFiltro = document.getElementById("tipoFiltro");
-const btnBuscar = document.getElementById("btnBuscar");
+const busqueda =
+    document.getElementById("busqueda");
 
-const resultados = document.getElementById("resultados");
-const solicitudes = document.getElementById("solicitudes");
-const conectados = document.getElementById("conectados");
+const tipoFiltro =
+    document.getElementById("tipoFiltro");
 
-const mensajeError = document.getElementById("mensajeError");
+const btnBuscar =
+    document.getElementById("btnBuscar");
 
-const seccionBuscar = document.getElementById("seccionBuscar");
-const seccionSolicitudes = document.getElementById("seccionSolicitudes");
-const seccionConectados = document.getElementById("seccionConectados");
+const resultados =
+    document.getElementById("resultados");
+
+const solicitudes =
+    document.getElementById("solicitudes");
+
+const conectados =
+    document.getElementById("conectados");
+
+const mensajeError =
+    document.getElementById("mensajeError");
+
+const seccionBuscar =
+    document.getElementById("seccionBuscar");
+
+const seccionSolicitudes =
+    document.getElementById("seccionSolicitudes");
+
+const seccionConectados =
+    document.getElementById("seccionConectados");
+
+const diagnosticoContenido =
+    document.getElementById("diagnosticoContenido");
+
+const btnLimpiarDiagnostico =
+    document.getElementById("btnLimpiarDiagnostico");
 
 
 let usuarioActual = null;
@@ -508,20 +651,97 @@ let conexiones = [];
 
 
 /* ==========================================
+   DIAGNÓSTICO
+========================================== */
+
+function diagnostico(mensaje, tipo = "info"){
+
+    const linea =
+        document.createElement("div");
+
+    linea.className =
+        "diagnostico-linea " + tipo;
+
+    const hora =
+        new Date().toLocaleTimeString();
+
+    linea.textContent =
+        `[${hora}] ${mensaje}`;
+
+    diagnosticoContenido.appendChild(linea);
+
+    console.log(
+        "[GESBASE]",
+        mensaje
+    );
+
+}
+
+
+function diagnosticoError(error){
+
+    console.error(
+        "[GESBASE ERROR]",
+        error
+    );
+
+    let texto =
+        "Error desconocido";
+
+    if(error){
+
+        texto =
+            error.code
+            ? `${error.code} — ${error.message || ""}`
+            : (error.message || String(error));
+
+    }
+
+    diagnostico(
+        texto,
+        "error-d"
+    );
+
+}
+
+
+btnLimpiarDiagnostico.addEventListener(
+    "click",
+    () => {
+
+        diagnosticoContenido.innerHTML = "";
+
+        diagnostico(
+            "Diagnóstico limpiado.",
+            "info"
+        );
+
+    }
+);
+
+
+/* ==========================================
    UTILIDADES
 ========================================== */
 
 function mostrarError(mensaje){
 
-    mensajeError.textContent = mensaje;
-    mensajeError.style.display = "block";
+    mensajeError.textContent =
+        mensaje;
+
+    mensajeError.style.display =
+        "block";
 
 }
 
+
 function ocultarError(){
 
-    mensajeError.textContent = "";
-    mensajeError.style.display = "none";
+    mensajeError.textContent =
+        "";
+
+    mensajeError.style.display =
+        "none";
 
 }
 
@@ -552,21 +772,50 @@ function escaparHTML(texto){
    AUTENTICACIÓN
 ========================================== */
 
-auth.onAuthStateChanged(async (user) => {
+diagnostico(
+    "Cargando Firebase...",
+    "info"
+);
 
-    if(!user){
 
-        window.location.href = "red-login.html";
-        return;
+auth.onAuthStateChanged(
+    async (user) => {
+
+        if(!user){
+
+            diagnostico(
+                "NO hay usuario autenticado.",
+                "error-d"
+            );
+
+            window.location.href =
+                "red-login.html";
+
+            return;
+
+        }
+
+
+        usuarioActual = user;
+
+
+        diagnostico(
+            `Usuario autenticado correctamente. UID: ${user.uid}`,
+            "ok"
+        );
+
+        diagnostico(
+            `Email autenticado: ${user.email || "sin email"}`,
+            "ok"
+        );
+
+
+        await cargarDirectorio();
+
+        await cargarConexiones();
 
     }
-
-    usuarioActual = user;
-
-    await cargarDirectorio();
-    await cargarConexiones();
-
-});
+);
 
 
 /* ==========================================
@@ -575,54 +824,105 @@ auth.onAuthStateChanged(async (user) => {
 
 async function cargarDirectorio(){
 
+    diagnostico(
+        "Consultando colección: directorio_red",
+        "info"
+    );
+
+
     resultados.innerHTML = `
         <div class="cargando">
-            Cargando personas y empresas...
+            Consultando Red GESBASE...
         </div>
     `;
 
+
     try{
 
-        const snapshot = await getDocs(
-            collection(db,"directorio_red")
+        const referencia =
+            collection(
+                db,
+                "directorio_red"
+            );
+
+
+        const snapshot =
+            await getDocs(referencia);
+
+
+        diagnostico(
+            `Firebase respondió correctamente. Documentos encontrados: ${snapshot.size}`,
+            "ok"
         );
+
 
         directorio = [];
 
-        snapshot.forEach((docSnap) => {
 
-            const datos = docSnap.data();
+        snapshot.forEach(
+            (docSnap) => {
 
-            if(
-                datos.uid &&
-                datos.uid !== usuarioActual.uid &&
-                datos.activo !== false
-            ){
+                const datos =
+                    docSnap.data();
 
-                directorio.push({
-                    id: docSnap.id,
-                    ...datos
-                });
+
+                diagnostico(
+                    `Documento ${docSnap.id}: uid=${datos.uid || "(sin uid)"}, nombre=${datos.nombreCompleto || "(sin nombre)"}`,
+                    "info"
+                );
+
+
+                if(
+                    datos.uid &&
+                    datos.uid !== usuarioActual.uid &&
+                    datos.activo !== false
+                ){
+
+                    directorio.push({
+
+                        id:docSnap.id,
+
+                        ...datos
+
+                    });
+
+                }
 
             }
+        );
 
-        });
+
+        diagnostico(
+            `Usuarios disponibles para búsqueda: ${directorio.length}`,
+            directorio.length > 0
+                ? "ok"
+                : "aviso"
+        );
+
 
         mostrarResultados();
 
+
     }catch(error){
 
-        console.error(error);
-
-        mostrarError(
-            "No se pudo cargar el directorio de Red GESBASE."
+        diagnostico(
+            "FALLÓ la consulta a directorio_red.",
+            "error-d"
         );
+
+        diagnosticoError(error);
+
 
         resultados.innerHTML = `
             <div class="mensaje">
-                No se pudieron cargar los usuarios.
+                No se pudo cargar el directorio.
             </div>
         `;
+
+
+        mostrarError(
+            "Firebase no pudo leer directorio_red. Mirá el diagnóstico."
+        );
 
     }
 
@@ -635,26 +935,53 @@ async function cargarDirectorio(){
 
 function mostrarResultados(){
 
-    ocultarError();
-
-    const texto = normalizar(busqueda.value);
-    const tipo = normalizar(tipoFiltro.value);
-
-    let lista = directorio.filter((persona) => {
-
-        const contenido = normalizar(
-            `${persona.nombreCompleto || ""} ${persona.rubro || ""} ${persona.localidad || ""} ${persona.provincia || ""}`
+    const texto =
+        normalizar(
+            busqueda.value
         );
 
-        const coincideTexto =
-            !texto || contenido.includes(texto);
+    const tipo =
+        normalizar(
+            tipoFiltro.value
+        );
 
-        const coincideTipo =
-            !tipo || normalizar(persona.tipo) === tipo;
 
-        return coincideTexto && coincideTipo;
+    let lista =
+        directorio.filter(
+            (persona) => {
 
-    });
+                const contenido =
+                    normalizar(
+                        `${persona.nombreCompleto || ""}
+                         ${persona.rubro || ""}
+                         ${persona.localidad || ""}
+                         ${persona.provincia || ""}`
+                    );
+
+
+                const coincideTexto =
+                    !texto ||
+                    contenido.includes(texto);
+
+
+                const coincideTipo =
+                    !tipo ||
+                    normalizar(persona.tipo) === tipo;
+
+
+                return (
+                    coincideTexto &&
+                    coincideTipo
+                );
+
+            }
+        );
+
+
+    diagnostico(
+        `Filtro aplicado: "${busqueda.value || "(vacío)"}" — resultados: ${lista.length}`,
+        "info"
+    );
 
 
     if(lista.length === 0){
@@ -670,134 +997,182 @@ function mostrarResultados(){
     }
 
 
-    resultados.innerHTML = lista.map((persona) => {
+    resultados.innerHTML =
+        lista.map(
+            (persona) => {
 
-        const estado = obtenerEstadoConexion(persona.uid);
-
-        let boton = "";
-
-        if(estado === "aceptada"){
-
-            boton = `
-                <button
-                    class="btn btn-secundario"
-                    disabled
-                >
-                    ✓ Ya están conectados
-                </button>
-            `;
-
-        }else if(estado === "pendiente_enviada"){
-
-            boton = `
-                <button
-                    class="btn btn-secundario"
-                    disabled
-                >
-                    Solicitud enviada
-                </button>
-            `;
-
-        }else if(estado === "pendiente_recibida"){
-
-            boton = `
-                <button
-                    class="btn btn-aceptar"
-                    data-aceptar-desde-busqueda="${persona.uid}"
-                >
-                    Aceptar solicitud
-                </button>
-            `;
-
-        }else{
-
-            boton = `
-                <button
-                    class="btn btn-principal"
-                    data-conectar="${persona.uid}"
-                >
-                    🤝 Conectar
-                </button>
-            `;
-
-        }
+                const estado =
+                    obtenerEstadoConexion(
+                        persona.uid
+                    );
 
 
-        return `
-
-            <article class="card">
-
-                <div class="perfil">
-
-                    <div class="foto">
-
-                        ${
-                            persona.fotoURL
-                            ?
-                            `<img src="${escaparHTML(persona.fotoURL)}" alt="">`
-                            :
-                            `👤`
-                        }
-
-                    </div>
-
-                    <div>
-
-                        <div class="nombre">
-                            ${escaparHTML(persona.nombreCompleto || "Usuario")}
-                        </div>
-
-                        <div class="detalle">
-
-                            ${escaparHTML(persona.tipo || "")}
-
-                            ${
-                                persona.rubro
-                                ?
-                                ` · ${escaparHTML(persona.rubro)}`
-                                :
-                                ""
-                            }
-
-                            ${
-                                persona.localidad
-                                ?
-                                `<br>📍 ${escaparHTML(persona.localidad)}${persona.provincia ? `, ${escaparHTML(persona.provincia)}` : ""}`
-                                :
-                                ""
-                            }
-
-                        </div>
-
-                    </div>
-
-                </div>
+                let boton = "";
 
 
-                ${
-                    persona.descripcion
-                    ?
-                    `
-                    <div class="detalle" style="margin-bottom:14px;">
-                        ${escaparHTML(persona.descripcion)}
-                    </div>
-                    `
-                    :
-                    ""
+                if(
+                    estado === "aceptada"
+                ){
+
+                    boton = `
+                        <button
+                            class="btn btn-secundario"
+                            disabled
+                        >
+                            ✓ Ya están conectados
+                        </button>
+                    `;
+
+                }
+
+                else if(
+                    estado === "pendiente_enviada"
+                ){
+
+                    boton = `
+                        <button
+                            class="btn btn-secundario"
+                            disabled
+                        >
+                            Solicitud enviada
+                        </button>
+                    `;
+
+                }
+
+                else if(
+                    estado === "pendiente_recibida"
+                ){
+
+                    boton = `
+                        <button
+                            class="btn btn-aceptar"
+                            data-aceptar-desde-busqueda="${escaparHTML(persona.uid)}"
+                        >
+                            Aceptar solicitud
+                        </button>
+                    `;
+
+                }
+
+                else{
+
+                    boton = `
+                        <button
+                            class="btn btn-principal"
+                            data-conectar="${escaparHTML(persona.uid)}"
+                        >
+                            🤝 Conectar
+                        </button>
+                    `;
+
                 }
 
 
-                <div class="acciones">
+                return `
 
-                    ${boton}
+                    <article class="card">
 
-                </div>
+                        <div class="perfil">
 
-            </article>
+                            <div class="foto">
 
-        `;
+                                ${
+                                    persona.fotoURL
+                                    ?
+                                    `<img
+                                        src="${escaparHTML(persona.fotoURL)}"
+                                        alt=""
+                                    >`
+                                    :
+                                    `👤`
+                                }
 
-    }).join("");
+                            </div>
+
+
+                            <div>
+
+                                <div class="nombre">
+                                    ${escaparHTML(
+                                        persona.nombreCompleto ||
+                                        "Usuario"
+                                    )}
+                                </div>
+
+
+                                <div class="detalle">
+
+                                    ${escaparHTML(
+                                        persona.tipo || ""
+                                    )}
+
+                                    ${
+                                        persona.rubro
+                                        ?
+                                        ` · ${escaparHTML(
+                                            persona.rubro
+                                        )}`
+                                        :
+                                        ""
+                                    }
+
+
+                                    ${
+                                        persona.localidad
+                                        ?
+                                        `<br>📍 ${escaparHTML(
+                                            persona.localidad
+                                        )}${
+                                            persona.provincia
+                                            ?
+                                            `, ${escaparHTML(
+                                                persona.provincia
+                                            )}`
+                                            :
+                                            ""
+                                        }`
+                                        :
+                                        ""
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        ${
+                            persona.descripcion
+                            ?
+                            `
+                            <div
+                                class="detalle"
+                                style="margin-bottom:14px;"
+                            >
+                                ${escaparHTML(
+                                    persona.descripcion
+                                )}
+                            </div>
+                            `
+                            :
+                            ""
+                        }
+
+
+                        <div class="acciones">
+
+                            ${boton}
+
+                        </div>
+
+                    </article>
+
+                `;
+
+            }
+        ).join("");
 
 
     agregarEventosResultados();
@@ -811,34 +1186,58 @@ function mostrarResultados(){
 
 function agregarEventosResultados(){
 
-    document.querySelectorAll("[data-conectar]").forEach((boton) => {
+    document
+        .querySelectorAll(
+            "[data-conectar]"
+        )
+        .forEach(
+            (boton) => {
 
-        boton.addEventListener("click", async () => {
+                boton.addEventListener(
+                    "click",
+                    async () => {
 
-            const receptorUid = boton.dataset.conectar;
+                        const receptorUid =
+                            boton.dataset.conectar;
 
-            await enviarSolicitud(receptorUid, boton);
+                        await enviarSolicitud(
+                            receptorUid,
+                            boton
+                        );
 
-        });
+                    }
+                );
 
-    });
+            }
+        );
 
 
-    document.querySelectorAll("[data-aceptar-desde-busqueda]").forEach((boton) => {
+    document
+        .querySelectorAll(
+            "[data-aceptar-desde-busqueda]"
+        )
+        .forEach(
+            (boton) => {
 
-        boton.addEventListener("click", async () => {
+                boton.addEventListener(
+                    "click",
+                    async () => {
 
-            const emisorUid =
-                boton.dataset.aceptarDesdeBusqueda;
+                        const emisorUid =
+                            boton.dataset
+                                .aceptarDesdeBusqueda;
 
-            await aceptarSolicitudPorUid(
-                emisorUid,
-                boton
-            );
 
-        });
+                        await aceptarSolicitudPorUid(
+                            emisorUid,
+                            boton
+                        );
 
-    });
+                    }
+                );
+
+            }
+        );
 
 }
 
@@ -849,29 +1248,56 @@ function agregarEventosResultados(){
 
 function obtenerEstadoConexion(uid){
 
-    const conexion = conexiones.find((item) => {
+    const conexion =
+        conexiones.find(
+            (item) => {
 
-        return (
-            (item.emisor === usuarioActual.uid && item.receptor === uid) ||
-            (item.receptor === usuarioActual.uid && item.emisor === uid)
+                return (
+
+                    (
+                        item.emisor ===
+                        usuarioActual.uid &&
+
+                        item.receptor === uid
+                    )
+
+                    ||
+
+                    (
+                        item.receptor ===
+                        usuarioActual.uid &&
+
+                        item.emisor === uid
+                    )
+
+                );
+
+            }
         );
-
-    });
 
 
     if(!conexion){
+
         return "ninguna";
+
     }
 
 
-    if(conexion.estado === "aceptada"){
+    if(
+        conexion.estado ===
+        "aceptada"
+    ){
+
         return "aceptada";
+
     }
 
 
     if(
         conexion.estado === "pendiente" &&
-        conexion.emisor === usuarioActual.uid
+
+        conexion.emisor ===
+        usuarioActual.uid
     ){
 
         return "pendiente_enviada";
@@ -881,7 +1307,9 @@ function obtenerEstadoConexion(uid){
 
     if(
         conexion.estado === "pendiente" &&
-        conexion.receptor === usuarioActual.uid
+
+        conexion.receptor ===
+        usuarioActual.uid
     ){
 
         return "pendiente_recibida";
@@ -889,7 +1317,8 @@ function obtenerEstadoConexion(uid){
     }
 
 
-    return conexion.estado || "ninguna";
+    return conexion.estado ||
+        "ninguna";
 
 }
 
@@ -900,57 +1329,122 @@ function obtenerEstadoConexion(uid){
 
 async function cargarConexiones(){
 
+    diagnostico(
+        "Consultando conexiones del usuario...",
+        "info"
+    );
+
+
     try{
 
         conexiones = [];
 
-        const enviadosQuery = query(
-            collection(db,"conexiones"),
-            where("emisor","==",usuarioActual.uid)
+
+        const enviadosQuery =
+            query(
+                collection(
+                    db,
+                    "conexiones"
+                ),
+
+                where(
+                    "emisor",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
+
+
+        const recibidosQuery =
+            query(
+                collection(
+                    db,
+                    "conexiones"
+                ),
+
+                where(
+                    "receptor",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
+
+
+        const resultado =
+            await Promise.all([
+
+                getDocs(
+                    enviadosQuery
+                ),
+
+                getDocs(
+                    recibidosQuery
+                )
+
+            ]);
+
+
+        const enviados =
+            resultado[0];
+
+        const recibidos =
+            resultado[1];
+
+
+        enviados.forEach(
+            (docSnap) => {
+
+                conexiones.push({
+
+                    id:docSnap.id,
+
+                    ...docSnap.data()
+
+                });
+
+            }
         );
 
-        const recibidosQuery = query(
-            collection(db,"conexiones"),
-            where("receptor","==",usuarioActual.uid)
+
+        recibidos.forEach(
+            (docSnap) => {
+
+                conexiones.push({
+
+                    id:docSnap.id,
+
+                    ...docSnap.data()
+
+                });
+
+            }
         );
 
 
-        const [enviados, recibidos] = await Promise.all([
-            getDocs(enviadosQuery),
-            getDocs(recibidosQuery)
-        ]);
-
-
-        enviados.forEach((docSnap) => {
-
-            conexiones.push({
-                id:docSnap.id,
-                ...docSnap.data()
-            });
-
-        });
-
-
-        recibidos.forEach((docSnap) => {
-
-            conexiones.push({
-                id:docSnap.id,
-                ...docSnap.data()
-            });
-
-        });
+        diagnostico(
+            `Conexiones cargadas: ${conexiones.length}`,
+            "ok"
+        );
 
 
         mostrarSolicitudes();
+
         mostrarConectados();
+
         mostrarResultados();
+
 
     }catch(error){
 
-        console.error(error);
+        diagnostico(
+            "FALLÓ la consulta de conexiones.",
+            "error-d"
+        );
+
+        diagnosticoError(error);
 
         mostrarError(
-            "No se pudieron cargar tus conexiones."
+            "No se pudieron cargar las conexiones. Mirá el diagnóstico."
         );
 
     }
@@ -962,21 +1456,33 @@ async function cargarConexiones(){
    ENVIAR SOLICITUD
 ========================================== */
 
-async function enviarSolicitud(receptorUid, boton){
+async function enviarSolicitud(
+    receptorUid,
+    boton
+){
 
     if(!usuarioActual){
-        return;
-    }
-
-
-    if(receptorUid === usuarioActual.uid){
 
         return;
 
     }
 
 
-    const estado = obtenerEstadoConexion(receptorUid);
+    if(
+        receptorUid ===
+        usuarioActual.uid
+    ){
+
+        return;
+
+    }
+
+
+    const estado =
+        obtenerEstadoConexion(
+            receptorUid
+        );
+
 
     if(
         estado === "aceptada" ||
@@ -989,51 +1495,126 @@ async function enviarSolicitud(receptorUid, boton){
 
 
     boton.disabled = true;
-    boton.textContent = "Enviando...";
+
+    boton.textContent =
+        "Enviando...";
+
+
+    diagnostico(
+        `Enviando solicitud a UID: ${receptorUid}`,
+        "info"
+    );
 
 
     try{
 
-        const existente = conexiones.find((item) => {
+        const existente =
+            conexiones.find(
+                (item) => {
 
-            return (
-                item.emisor === usuarioActual.uid &&
-                item.receptor === receptorUid
+                    return (
+
+                        item.emisor ===
+                        usuarioActual.uid &&
+
+                        item.receptor ===
+                        receptorUid
+
+                    );
+
+                }
             );
-
-        });
 
 
         if(existente){
 
-            boton.textContent = "Solicitud enviada";
+            boton.textContent =
+                "Solicitud enviada";
+
             return;
 
         }
 
 
-        const conexionRef = await addDoc(
-            collection(db,"conexiones"),
-            {
-                emisor: usuarioActual.uid,
-                receptor: receptorUid,
-                estado: "pendiente",
-                fecha: serverTimestamp()
-            }
+        const conexionRef =
+            await addDoc(
+                collection(
+                    db,
+                    "conexiones"
+                ),
+                {
+
+                    emisor:
+                        usuarioActual.uid,
+
+                    receptor:
+                        receptorUid,
+
+                    estado:
+                        "pendiente",
+
+                    fecha:
+                        serverTimestamp()
+
+                }
+            );
+
+
+        diagnostico(
+            `Solicitud creada correctamente. ID: ${conexionRef.id}`,
+            "ok"
         );
 
 
-        await addDoc(
-            collection(db,"notificaciones"),
-            {
-                uid: receptorUid,
-                tipo: "solicitud_conexion",
-                emisorUid: usuarioActual.uid,
-                conexionId: conexionRef.id,
-                estado: "no_leida",
-                fecha: serverTimestamp()
-            }
-        );
+        try{
+
+            await addDoc(
+                collection(
+                    db,
+                    "notificaciones"
+                ),
+                {
+
+                    uid:
+                        receptorUid,
+
+                    tipo:
+                        "solicitud_conexion",
+
+                    emisorUid:
+                        usuarioActual.uid,
+
+                    conexionId:
+                        conexionRef.id,
+
+                    estado:
+                        "no_leida",
+
+                    fecha:
+                        serverTimestamp()
+
+                }
+            );
+
+
+            diagnostico(
+                "Notificación de solicitud creada correctamente.",
+                "ok"
+            );
+
+
+        }catch(errorNotificacion){
+
+            diagnostico(
+                "La conexión se creó, pero la notificación falló.",
+                "aviso"
+            );
+
+            diagnosticoError(
+                errorNotificacion
+            );
+
+        }
 
 
         await cargarConexiones();
@@ -1041,13 +1622,23 @@ async function enviarSolicitud(receptorUid, boton){
 
     }catch(error){
 
-        console.error(error);
+        diagnostico(
+            "FALLÓ el envío de la solicitud.",
+            "error-d"
+        );
 
-        boton.disabled = false;
-        boton.textContent = "🤝 Conectar";
+        diagnosticoError(error);
+
+
+        boton.disabled =
+            false;
+
+        boton.textContent =
+            "🤝 Conectar";
+
 
         mostrarError(
-            "No se pudo enviar la solicitud."
+            "No se pudo enviar la solicitud. Mirá el diagnóstico."
         );
 
     }
@@ -1061,17 +1652,27 @@ async function enviarSolicitud(receptorUid, boton){
 
 function mostrarSolicitudes(){
 
-    const pendientes = conexiones.filter((item) => {
+    const pendientes =
+        conexiones.filter(
+            (item) => {
 
-        return (
-            item.receptor === usuarioActual.uid &&
-            item.estado === "pendiente"
+                return (
+
+                    item.receptor ===
+                    usuarioActual.uid &&
+
+                    item.estado ===
+                    "pendiente"
+
+                );
+
+            }
         );
 
-    });
 
-
-    if(pendientes.length === 0){
+    if(
+        pendientes.length === 0
+    ){
 
         solicitudes.innerHTML = `
             <div class="mensaje">
@@ -1084,113 +1685,159 @@ function mostrarSolicitudes(){
     }
 
 
-    solicitudes.innerHTML = pendientes.map((conexion) => {
+    solicitudes.innerHTML =
+        pendientes.map(
+            (conexion) => {
 
-        const persona = directorio.find(
-            (item) => item.uid === conexion.emisor
+                const persona =
+                    directorio.find(
+                        (item) =>
+                            item.uid ===
+                            conexion.emisor
+                    );
+
+
+                return `
+
+                    <article class="card">
+
+                        <div class="perfil">
+
+                            <div class="foto">
+
+                                ${
+                                    persona &&
+                                    persona.fotoURL
+                                    ?
+                                    `<img
+                                        src="${escaparHTML(
+                                            persona.fotoURL
+                                        )}"
+                                        alt=""
+                                    >`
+                                    :
+                                    `👤`
+                                }
+
+                            </div>
+
+
+                            <div>
+
+                                <div class="nombre">
+
+                                    ${
+                                        persona
+                                        ?
+                                        escaparHTML(
+                                            persona.nombreCompleto ||
+                                            "Usuario"
+                                        )
+                                        :
+                                        "Usuario"
+                                    }
+
+                                </div>
+
+
+                                <div class="detalle">
+
+                                    ${
+                                        persona
+                                        ?
+                                        `${escaparHTML(
+                                            persona.tipo || ""
+                                        )}${
+                                            persona.rubro
+                                            ?
+                                            ` · ${escaparHTML(
+                                                persona.rubro
+                                            )}`
+                                            :
+                                            ""
+                                        }`
+                                        :
+                                        "Solicitud de conexión"
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="acciones">
+
+                            <button
+                                class="btn btn-aceptar"
+                                data-aceptar="${conexion.id}"
+                            >
+                                ✓ Aceptar
+                            </button>
+
+
+                            <button
+                                class="btn btn-rechazar"
+                                data-rechazar="${conexion.id}"
+                            >
+                                ✕ Rechazar
+                            </button>
+
+                        </div>
+
+                    </article>
+
+                `;
+
+            }
+        ).join("");
+
+
+    document
+        .querySelectorAll(
+            "[data-aceptar]"
+        )
+        .forEach(
+            (boton) => {
+
+                boton.addEventListener(
+                    "click",
+                    async () => {
+
+                        await aceptarSolicitud(
+                            boton.dataset.aceptar,
+                            boton
+                        );
+
+                    }
+                );
+
+            }
         );
 
 
-        return `
+    document
+        .querySelectorAll(
+            "[data-rechazar]"
+        )
+        .forEach(
+            (boton) => {
 
-            <article class="card">
+                boton.addEventListener(
+                    "click",
+                    async () => {
 
-                <div class="perfil">
+                        await rechazarSolicitud(
+                            boton.dataset.rechazar,
+                            boton
+                        );
 
-                    <div class="foto">
+                    }
+                );
 
-                        ${
-                            persona && persona.fotoURL
-                            ?
-                            `<img src="${escaparHTML(persona.fotoURL)}" alt="">`
-                            :
-                            `👤`
-                        }
-
-                    </div>
-
-                    <div>
-
-                        <div class="nombre">
-
-                            ${
-                                persona
-                                ?
-                                escaparHTML(persona.nombreCompleto || "Usuario")
-                                :
-                                "Usuario"
-                            }
-
-                        </div>
-
-                        <div class="detalle">
-
-                            ${
-                                persona
-                                ?
-                                `${escaparHTML(persona.tipo || "")}${persona.rubro ? ` · ${escaparHTML(persona.rubro)}` : ""}`
-                                :
-                                "Solicitud de conexión"
-                            }
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="acciones">
-
-                    <button
-                        class="btn btn-aceptar"
-                        data-aceptar="${conexion.id}"
-                    >
-                        ✓ Aceptar
-                    </button>
-
-                    <button
-                        class="btn btn-rechazar"
-                        data-rechazar="${conexion.id}"
-                    >
-                        ✕ Rechazar
-                    </button>
-
-                </div>
-
-            </article>
-
-        `;
-
-    }).join("");
-
-
-    document.querySelectorAll("[data-aceptar]").forEach((boton) => {
-
-        boton.addEventListener("click", async () => {
-
-            await aceptarSolicitud(
-                boton.dataset.aceptar,
-                boton
-            );
-
-        });
-
-    });
-
-
-    document.querySelectorAll("[data-rechazar]").forEach((boton) => {
-
-        boton.addEventListener("click", async () => {
-
-            await rechazarSolicitud(
-                boton.dataset.rechazar,
-                boton
-            );
-
-        });
-
-    });
+            }
+        );
 
 }
 
@@ -1199,43 +1846,113 @@ function mostrarSolicitudes(){
    ACEPTAR SOLICITUD
 ========================================== */
 
-async function aceptarSolicitud(conexionId, boton){
+async function aceptarSolicitud(
+    conexionId,
+    boton
+){
 
-    boton.disabled = true;
-    boton.textContent = "Aceptando...";
+    boton.disabled =
+        true;
+
+    boton.textContent =
+        "Aceptando...";
+
+
+    diagnostico(
+        `Aceptando conexión: ${conexionId}`,
+        "info"
+    );
 
 
     try{
 
-        const conexion = conexiones.find(
-            (item) => item.id === conexionId
-        );
+        const conexion =
+            conexiones.find(
+                (item) =>
+                    item.id ===
+                    conexionId
+            );
 
 
         if(!conexion){
+
+            diagnostico(
+                "No se encontró la conexión.",
+                "error-d"
+            );
+
             return;
+
         }
 
 
         await updateDoc(
-            doc(db,"conexiones",conexionId),
+            doc(
+                db,
+                "conexiones",
+                conexionId
+            ),
             {
-                estado:"aceptada"
+                estado:
+                    "aceptada"
             }
         );
 
 
-        await addDoc(
-            collection(db,"notificaciones"),
-            {
-                uid: conexion.emisor,
-                tipo:"conexion_aceptada",
-                emisorUid:usuarioActual.uid,
-                conexionId:conexionId,
-                estado:"no_leida",
-                fecha:serverTimestamp()
-            }
+        diagnostico(
+            "Solicitud aceptada correctamente.",
+            "ok"
         );
+
+
+        try{
+
+            await addDoc(
+                collection(
+                    db,
+                    "notificaciones"
+                ),
+                {
+
+                    uid:
+                        conexion.emisor,
+
+                    tipo:
+                        "conexion_aceptada",
+
+                    emisorUid:
+                        usuarioActual.uid,
+
+                    conexionId:
+                        conexionId,
+
+                    estado:
+                        "no_leida",
+
+                    fecha:
+                        serverTimestamp()
+
+                }
+            );
+
+
+            diagnostico(
+                "Notificación de aceptación creada.",
+                "ok"
+            );
+
+        }catch(errorNotificacion){
+
+            diagnostico(
+                "La conexión fue aceptada, pero la notificación falló.",
+                "aviso"
+            );
+
+            diagnosticoError(
+                errorNotificacion
+            );
+
+        }
 
 
         await cargarConexiones();
@@ -1243,14 +1960,19 @@ async function aceptarSolicitud(conexionId, boton){
 
     }catch(error){
 
-        console.error(error);
-
-        boton.disabled = false;
-        boton.textContent = "✓ Aceptar";
-
-        mostrarError(
-            "No se pudo aceptar la solicitud."
+        diagnostico(
+            "FALLÓ al aceptar la solicitud.",
+            "error-d"
         );
+
+        diagnosticoError(error);
+
+
+        boton.disabled =
+            false;
+
+        boton.textContent =
+            "✓ Aceptar";
 
     }
 
@@ -1266,19 +1988,36 @@ async function aceptarSolicitudPorUid(
     boton
 ){
 
-    const conexion = conexiones.find((item) => {
+    const conexion =
+        conexiones.find(
+            (item) => {
 
-        return (
-            item.emisor === emisorUid &&
-            item.receptor === usuarioActual.uid &&
-            item.estado === "pendiente"
+                return (
+
+                    item.emisor ===
+                    emisorUid &&
+
+                    item.receptor ===
+                    usuarioActual.uid &&
+
+                    item.estado ===
+                    "pendiente"
+
+                );
+
+            }
         );
-
-    });
 
 
     if(!conexion){
+
+        diagnostico(
+            "No se encontró la solicitud pendiente.",
+            "error-d"
+        );
+
         return;
+
     }
 
 
@@ -1299,17 +2038,37 @@ async function rechazarSolicitud(
     boton
 ){
 
-    boton.disabled = true;
-    boton.textContent = "Rechazando...";
+    boton.disabled =
+        true;
+
+    boton.textContent =
+        "Rechazando...";
+
+
+    diagnostico(
+        `Rechazando conexión: ${conexionId}`,
+        "info"
+    );
 
 
     try{
 
         await updateDoc(
-            doc(db,"conexiones",conexionId),
+            doc(
+                db,
+                "conexiones",
+                conexionId
+            ),
             {
-                estado:"rechazada"
+                estado:
+                    "rechazada"
             }
+        );
+
+
+        diagnostico(
+            "Solicitud rechazada correctamente.",
+            "ok"
         );
 
 
@@ -1318,14 +2077,19 @@ async function rechazarSolicitud(
 
     }catch(error){
 
-        console.error(error);
-
-        boton.disabled = false;
-        boton.textContent = "✕ Rechazar";
-
-        mostrarError(
-            "No se pudo rechazar la solicitud."
+        diagnostico(
+            "FALLÓ al rechazar la solicitud.",
+            "error-d"
         );
+
+        diagnosticoError(error);
+
+
+        boton.disabled =
+            false;
+
+        boton.textContent =
+            "✕ Rechazar";
 
     }
 
@@ -1338,14 +2102,17 @@ async function rechazarSolicitud(
 
 function mostrarConectados(){
 
-    const aceptadas = conexiones.filter((item) => {
+    const aceptadas =
+        conexiones.filter(
+            (item) =>
+                item.estado ===
+                "aceptada"
+        );
 
-        return item.estado === "aceptada";
 
-    });
-
-
-    if(aceptadas.length === 0){
+    if(
+        aceptadas.length === 0
+    ){
 
         conectados.innerHTML = `
             <div class="mensaje">
@@ -1358,85 +2125,131 @@ function mostrarConectados(){
     }
 
 
-    conectados.innerHTML = aceptadas.map((conexion) => {
+    conectados.innerHTML =
+        aceptadas.map(
+            (conexion) => {
 
-        const otroUid =
-            conexion.emisor === usuarioActual.uid
-            ? conexion.receptor
-            : conexion.emisor;
+                const otroUid =
+                    conexion.emisor ===
+                    usuarioActual.uid
+
+                    ?
+
+                    conexion.receptor
+
+                    :
+
+                    conexion.emisor;
 
 
-        const persona = directorio.find(
-            (item) => item.uid === otroUid
-        );
+                const persona =
+                    directorio.find(
+                        (item) =>
+                            item.uid ===
+                            otroUid
+                    );
 
 
-        return `
+                return `
 
-            <article class="card">
+                    <article class="card">
 
-                <div class="perfil">
+                        <div class="perfil">
 
-                    <div class="foto">
+                            <div class="foto">
 
-                        ${
-                            persona && persona.fotoURL
-                            ?
-                            `<img src="${escaparHTML(persona.fotoURL)}" alt="">`
-                            :
-                            `👤`
-                        }
+                                ${
+                                    persona &&
+                                    persona.fotoURL
+                                    ?
+                                    `<img
+                                        src="${escaparHTML(
+                                            persona.fotoURL
+                                        )}"
+                                        alt=""
+                                    >`
+                                    :
+                                    `👤`
+                                }
 
-                    </div>
+                            </div>
 
-                    <div>
 
-                        <div class="nombre">
+                            <div>
 
-                            ${
-                                persona
-                                ?
-                                escaparHTML(persona.nombreCompleto || "Usuario")
-                                :
-                                "Usuario conectado"
-                            }
+                                <div class="nombre">
+
+                                    ${
+                                        persona
+                                        ?
+                                        escaparHTML(
+                                            persona.nombreCompleto ||
+                                            "Usuario"
+                                        )
+                                        :
+                                        "Usuario conectado"
+                                    }
+
+                                </div>
+
+
+                                <div class="detalle">
+
+                                    ${
+                                        persona
+                                        ?
+                                        `${escaparHTML(
+                                            persona.tipo || ""
+                                        )}${
+                                            persona.rubro
+                                            ?
+                                            ` · ${escaparHTML(
+                                                persona.rubro
+                                            )}`
+                                            :
+                                            ""
+                                        }`
+                                        :
+                                        ""
+                                    }
+
+
+                                    ${
+                                        persona &&
+                                        persona.localidad
+                                        ?
+                                        `<br>📍 ${escaparHTML(
+                                            persona.localidad
+                                        )}${
+                                            persona.provincia
+                                            ?
+                                            `, ${escaparHTML(
+                                                persona.provincia
+                                            )}`
+                                            :
+                                            ""
+                                        }`
+                                        :
+                                        ""
+                                    }
+
+                                </div>
+
+                            </div>
 
                         </div>
 
-                        <div class="detalle">
 
-                            ${
-                                persona
-                                ?
-                                `${escaparHTML(persona.tipo || "")}${persona.rubro ? ` · ${escaparHTML(persona.rubro)}` : ""}`
-                                :
-                                ""
-                            }
+                        <span class="estado aceptada">
+                            ✓ Conectado
+                        </span>
 
-                            ${
-                                persona && persona.localidad
-                                ?
-                                `<br>📍 ${escaparHTML(persona.localidad)}${persona.provincia ? `, ${escaparHTML(persona.provincia)}` : ""}`
-                                :
-                                ""
-                            }
+                    </article>
 
-                        </div>
+                `;
 
-                    </div>
-
-                </div>
-
-
-                <span class="estado aceptada">
-                    ✓ Conectado
-                </span>
-
-            </article>
-
-        `;
-
-    }).join("");
+            }
+        ).join("");
 
 }
 
@@ -1445,86 +2258,156 @@ function mostrarConectados(){
    TABS
 ========================================== */
 
-document.querySelectorAll(".tab").forEach((tab) => {
+document
+    .querySelectorAll(".tab")
+    .forEach(
+        (tab) => {
 
-    tab.addEventListener("click", () => {
+            tab.addEventListener(
+                "click",
+                () => {
 
-        document.querySelectorAll(".tab").forEach((item) => {
-            item.classList.remove("activo");
-        });
+                    document
+                        .querySelectorAll(".tab")
+                        .forEach(
+                            (item) => {
 
-        tab.classList.add("activo");
+                                item.classList.remove(
+                                    "activo"
+                                );
 
-
-        document.querySelectorAll(".seccion").forEach((seccion) => {
-            seccion.classList.remove("activa");
-        });
-
-
-        const destino = tab.dataset.tab;
+                            }
+                        );
 
 
-        if(destino === "buscar"){
+                    tab.classList.add(
+                        "activo"
+                    );
 
-            seccionBuscar.classList.add("activa");
+
+                    document
+                        .querySelectorAll(
+                            ".seccion"
+                        )
+                        .forEach(
+                            (seccion) => {
+
+                                seccion.classList.remove(
+                                    "activa"
+                                );
+
+                            }
+                        );
+
+
+                    const destino =
+                        tab.dataset.tab;
+
+
+                    if(
+                        destino ===
+                        "buscar"
+                    ){
+
+                        seccionBuscar.classList.add(
+                            "activa"
+                        );
+
+                    }
+
+
+                    if(
+                        destino ===
+                        "solicitudes"
+                    ){
+
+                        seccionSolicitudes.classList.add(
+                            "activa"
+                        );
+
+                        cargarConexiones();
+
+                    }
+
+
+                    if(
+                        destino ===
+                        "conectados"
+                    ){
+
+                        seccionConectados.classList.add(
+                            "activa"
+                        );
+
+                        cargarConexiones();
+
+                    }
+
+                }
+            );
 
         }
-
-        if(destino === "solicitudes"){
-
-            seccionSolicitudes.classList.add("activa");
-            cargarConexiones();
-
-        }
-
-        if(destino === "conectados"){
-
-            seccionConectados.classList.add("activa");
-            cargarConexiones();
-
-        }
-
-    });
-
-});
+    );
 
 
 /* ==========================================
-   BUSCAR
+   BUSCADOR
 ========================================== */
 
-btnBuscar.addEventListener("click", () => {
+btnBuscar.addEventListener(
+    "click",
+    () => {
 
-    mostrarResultados();
+        mostrarResultados();
 
-});
-
-
-busqueda.addEventListener("input", () => {
-
-    mostrarResultados();
-
-});
+    }
+);
 
 
-tipoFiltro.addEventListener("change", () => {
+busqueda.addEventListener(
+    "input",
+    () => {
 
-    mostrarResultados();
+        mostrarResultados();
 
-});
+    }
+);
+
+
+tipoFiltro.addEventListener(
+    "change",
+    () => {
+
+        mostrarResultados();
+
+    }
+);
 
 
 /* ==========================================
    VOLVER
 ========================================== */
 
-document.getElementById("btnVolver").addEventListener(
-    "click",
-    () => {
+document
+    .getElementById("btnVolver")
+    .addEventListener(
+        "click",
+        () => {
 
-        window.location.href = "red.html";
+            window.location.href =
+                "red.html";
 
-    }
+        }
+    );
+
+
+/* ==========================================
+   FIN
+========================================== */
+
+diagnostico(
+    "JavaScript de Conexiones cargado correctamente.",
+    "ok"
 );
 
 </script>
