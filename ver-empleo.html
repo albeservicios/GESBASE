@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta name="theme-color" content="#12343B">
+
+    <meta
+        name="description"
+        content="Detalle de empleo - Red GESBASE"
+    >
+
+    <title>Ver empleo - Red GESBASE</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f3f5f7;
+            color: #1f2937;
+            padding-bottom: 82px;
+        }
+
+        button,
+        input,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #12343B;
+            color: white;
+            padding:
+                calc(12px + env(safe-area-inset-top))
+                16px
+                12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.15);
+        }
+
+        .topbar-inner {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .brand {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .brand span {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            opacity: .8;
+            margin-top: 2px;
+        }
+
+        .back-btn {
+            border: 0;
+            background: rgba(255,255,255,.12);
+            color: white;
+            border-radius: 10px;
+            padding: 9px 12px;
+            font-weight: 700;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            padding: 18px 14px 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.07);
+            overflow: hidden;
+        }
+
+        .job-cover {
+            background: #12343B;
+            color: white;
+            padding: 26px 20px;
+        }
+
+        .featured {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            border-radius: 999px;
+            padding: 7px 11px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        .status {
+            display: inline-block;
+            background: rgba(255,255,255,.15);
+            color: white;
+            border-radius: 999px;
+            padding: 7px 11px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-left: 5px;
+        }
+
+        .job-title {
+            font-size: 29px;
+            line-height: 1.2;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .company {
+            font-size: 17px;
+            opacity: .92;
+        }
+
+        .content {
+            padding: 22px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 13px;
+            padding: 14px;
+        }
+
+        .info-label {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            display: block;
+            color: #111827;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .section {
+            margin-top: 24px;
+        }
+
+        .section h2 {
+            font-size: 19px;
+            margin-bottom: 10px;
+            color: #111827;
+        }
+
+        .description {
+            color: #475569;
+            line-height: 1.65;
+            white-space: pre-wrap;
+        }
+
+        .date {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+
+        .main-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 12px;
+            padding: 13px 17px;
+            font-weight: 800;
+        }
+
+        .btn-primary {
+            background: #12343B;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-secondary {
+            background: #e8eef0;
+            color: #12343B;
+        }
+
+        .message {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            color: #64748b;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+        }
+
+        .message.error {
+            color: #b91c1c;
+            background: #fff1f2;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: rgba(15,23,42,.68);
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 560px;
+            background: white;
+            border-radius: 19px;
+            padding: 21px;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .modal-header h2 {
+            font-size: 21px;
+        }
+
+        .close-btn {
+            width: 36px;
+            height: 36px;
+            border: 0;
+            border-radius: 50%;
+            background: #f1f5f9;
+            font-size: 21px;
+        }
+
+        .field {
+            margin-bottom: 15px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 7px;
+            color: #334155;
+        }
+
+        .field input,
+        .field textarea {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 11px;
+            padding: 12px;
+            outline: none;
+            background: white;
+        }
+
+        .field input:focus,
+        .field textarea:focus {
+            border-color: #12343B;
+            box-shadow: 0 0 0 3px rgba(18,52,59,.10);
+        }
+
+        .field textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+        }
+
+        .notice {
+            background: #f1f5f9;
+            border-radius: 11px;
+            padding: 11px;
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.45;
+            margin-top: 12px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -3px 12px rgba(0,0,0,.08);
+            padding:
+                7px
+                6px
+                calc(7px + env(safe-area-inset-bottom));
+        }
+
+        .bottom-nav-inner {
+            max-width: 700px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .nav-item {
+            text-decoration: none;
+            color: #64748b;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 2px;
+            border-radius: 10px;
+        }
+
+        .nav-item .icon {
+            display: block;
+            font-size: 21px;
+            margin-bottom: 2px;
+        }
+
+        .nav-item.active {
+            color: #12343B;
+            background: #eef3f4;
+        }
+
+        @media (max-width: 560px) {
+
+            .job-title {
+                font-size: 24px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .main-actions {
+                flex-direction: column;
+            }
+
+            .main-actions .btn {
+                width: 100%;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="topbar-inner">
+
+        <div class="brand">
+            GESBASE
+            <span>Red Empleo</span>
+        </div>
+
+        <button
+            type="button"
+            class="back-btn"
+            id="btnVolver"
+        >
+            ← Volver
+        </button>
+
+    </div>
+
+</header>
+
+
+<main class="container">
+
+    <div
+        id="cargando"
+        class="message"
+    >
+        Cargando empleo...
+    </div>
+
+
+    <article
+        id="empleoCard"
+        class="card"
+        style="display:none;"
+    >
+
+        <div class="job-cover">
+
+            <div id="badges"></div>
+
+            <h1
+                id="puesto"
+                class="job-title"
+            ></h1>
+
+            <div
+                id="empresa"
+                class="company"
+            ></div>
+
+        </div>
+
+
+        <div class="content">
+
+            <div class="info-grid">
+
+                <div class="info-box">
+
+                    <span class="info-label">
+                        📍 Ubicación
+                    </span>
+
+                    <span
+                        id="ubicacion"
+                        class="info-value"
+                    ></span>
+
+                </div>
+
+
+                <div class="info-box">
+
+                    <span class="info-label">
+                        💼 Modalidad
+                    </span>
+
+                    <span
+                        id="modalidad"
+                        class="info-value"
+                    ></span>
+
+                </div>
+
+
+                <div
+                    id="sueldoBox"
+                    class="info-box"
+                >
+
+                    <span class="info-label">
+                        💰 Sueldo
+                    </span>
+
+                    <span
+                        id="sueldo"
+                        class="info-value"
+                    ></span>
+
+                </div>
+
+
+                <div class="info-box">
+
+                    <span class="info-label">
+                        📌 Estado
+                    </span>
+
+                    <span
+                        id="estadoEmpleo"
+                        class="info-value"
+                    ></span>
+
+                </div>
+
+            </div>
+
+
+            <section class="section">
+
+                <h2>
+                    Sobre el empleo
+                </h2>
+
+                <div
+                    id="descripcion"
+                    class="description"
+                ></div>
+
+            </section>
+
+
+            <div
+                id="fecha"
+                class="date"
+            ></div>
+
+
+            <div class="main-actions">
+
+                <button
+                    type="button"
+                    id="btnPostular"
+                    class="btn btn-primary"
+                >
+                    📝 Postularme
+                </button>
+
+                <button
+                    type="button"
+                    id="btnEmpleos"
+                    class="btn btn-secondary"
+                >
+                    💼 Ver empleos
+                </button>
+
+            </div>
+
+        </div>
+
+    </article>
+
+</main>
+
+
+<nav class="bottom-nav">
+
+    <div class="bottom-nav-inner">
+
+        <a
+            class="nav-item"
+            href="red.html"
+        >
+            <span class="icon">🏠</span>
+            Inicio
+        </a>
+
+        <a
+            class="nav-item active"
+            href="red-empleo.html"
+        >
+            <span class="icon">💼</span>
+            Empleo
+        </a>
+
+        <a
+            class="nav-item"
+            href="red-buscar.html"
+        >
+            <span class="icon">🔎</span>
+            Buscar
+        </a>
+
+        <a
+            class="nav-item"
+            href="conexiones.html"
+        >
+            <span class="icon">👥</span>
+            Conexiones
+        </a>
+
+        <a
+            class="nav-item"
+            href="red-perfil.html"
+        >
+            <span class="icon">👤</span>
+            Perfil
+        </a>
+
+    </div>
+
+</nav>
+
+
+<!-- MODAL POSTULACIÓN -->
+
+<div
+    id="modalPostulacion"
+    class="modal-overlay"
+>
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>
+                📝 Postularme
+            </h2>
+
+            <button
+                type="button"
+                class="close-btn"
+                id="btnCerrarModal"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <form id="formPostulacion">
+
+            <div class="field">
+
+                <label for="telefono">
+                    Teléfono / WhatsApp
+                </label>
+
+                <input
+                    id="telefono"
+                    type="tel"
+                    placeholder="Ej: 299 1234567"
+                    maxlength="40"
+                    required
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label for="mensaje">
+                    Mensaje para la empresa
+                </label>
+
+                <textarea
+                    id="mensaje"
+                    placeholder="Contale brevemente a la empresa por qué te interesa el puesto y tu experiencia."
+                    maxlength="1500"
+                ></textarea>
+
+            </div>
+
+
+            <div class="notice">
+                Tus datos serán enviados al responsable de la publicación para que pueda contactarte.
+            </div>
+
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    id="btnCancelar"
+                    class="btn btn-secondary"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    id="btnEnviar"
+                    class="btn btn-primary"
+                >
+                    Enviar postulación
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script type="module">
+
+    import {
+        auth,
+        db
+    } from "./Js/firebase.js";
+
+
+    import {
+        onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+
+    import {
+        doc,
+        getDoc,
+        collection,
+        query,
+        where,
+        getDocs,
+        setDoc,
+        serverTimestamp,
+        addDoc
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+
+    /*
+     * ---------------------------------------------------------
+     * ELEMENTOS
+     * ---------------------------------------------------------
+     */
+
+    const cargando =
+        document.getElementById("cargando");
+
+    const empleoCard =
+        document.getElementById("empleoCard");
+
+    const puesto =
+        document.getElementById("puesto");
+
+    const empresa =
+        document.getElementById("empresa");
+
+    const badges =
+        document.getElementById("badges");
+
+    const ubicacion =
+        document.getElementById("ubicacion");
+
+    const modalidad =
+        document.getElementById("modalidad");
+
+    const sueldo =
+        document.getElementById("sueldo");
+
+    const sueldoBox =
+        document.getElementById("sueldoBox");
+
+    const estadoEmpleo =
+        document.getElementById("estadoEmpleo");
+
+    const descripcion =
+        document.getElementById("descripcion");
+
+    const fecha =
+        document.getElementById("fecha");
+
+    const btnPostular =
+        document.getElementById("btnPostular");
+
+    const btnVolver =
+        document.getElementById("btnVolver");
+
+    const btnEmpleos =
+        document.getElementById("btnEmpleos");
+
+    const modal =
+        document.getElementById("modalPostulacion");
+
+    const btnCerrarModal =
+        document.getElementById("btnCerrarModal");
+
+    const btnCancelar =
+        document.getElementById("btnCancelar");
+
+    const formPostulacion =
+        document.getElementById("formPostulacion");
+
+    const telefono =
+        document.getElementById("telefono");
+
+    const mensaje =
+        document.getElementById("mensaje");
+
+    const btnEnviar =
+        document.getElementById("btnEnviar");
+
+
+    /*
+     * ---------------------------------------------------------
+     * VARIABLES
+     * ---------------------------------------------------------
+     */
+
+    let usuarioActual = null;
+    let empleoActual = null;
+
+
+    /*
+     * ---------------------------------------------------------
+     * OBTENER ID DE URL
+     * ---------------------------------------------------------
+     */
+
+    const parametros =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const empleoId =
+        parametros.get("id");
+
+
+    /*
+     * ---------------------------------------------------------
+     * AUTENTICACIÓN
+     * ---------------------------------------------------------
+     */
+
+    onAuthStateChanged(
+        auth,
+        async usuario => {
+
+            if (!usuario) {
+
+                window.location.href =
+                    "red-login.html";
+
+                return;
+            }
+
+            usuarioActual =
+                usuario;
+
+            if (!empleoId) {
+
+                mostrarError(
+                    "No se indicó qué empleo querés ver."
+                );
+
+                return;
+            }
+
+            await cargarEmpleo();
+        }
+    );
+
+
+    /*
+     * ---------------------------------------------------------
+     * CARGAR EMPLEO
+     * ---------------------------------------------------------
+     */
+
+    async function cargarEmpleo() {
+
+        try {
+
+            const referencia =
+                doc(
+                    db,
+                    "empleos",
+                    empleoId
+                );
+
+
+            const snapshot =
+                await getDoc(
+                    referencia
+                );
+
+
+            if (!snapshot.exists()) {
+
+                mostrarError(
+                    "El empleo no existe o fue eliminado."
+                );
+
+                return;
+            }
+
+
+            empleoActual = {
+                id: snapshot.id,
+                ...snapshot.data()
+            };
+
+
+            mostrarEmpleo();
+
+
+        } catch (error) {
+
+            console.error(
+                "Error cargando empleo:",
+                error
+            );
+
+            mostrarError(
+                "No se pudo cargar el empleo."
+            );
+        }
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * MOSTRAR EMPLEO
+     * ---------------------------------------------------------
+     */
+
+    function mostrarEmpleo() {
+
+        cargando.style.display =
+            "none";
+
+        empleoCard.style.display =
+            "block";
+
+
+        puesto.textContent =
+            empleoActual.puesto ||
+            "Empleo sin título";
+
+
+        empresa.textContent =
+            empleoActual.empresa ||
+            "Empresa";
+
+
+        badges.innerHTML =
+            "";
+
+
+        if (
+            empleoActual.tipo === "destacado"
+        ) {
+
+            const destacado =
+                document.createElement("span");
+
+            destacado.className =
+                "featured";
+
+            destacado.textContent =
+                "⭐ Empleo destacado";
+
+            badges.appendChild(
+                destacado
+            );
+        }
+
+
+        const estado =
+            document.createElement("span");
+
+        estado.className =
+            "status";
+
+        estado.textContent =
+            empleoActual.estado === "activo"
+                ? "● Activo"
+                : "● Inactivo";
+
+        badges.appendChild(
+            estado
+        );
+
+
+        const localidad =
+            empleoActual.ciudad ||
+            "";
+
+        const provincia =
+            empleoActual.provincia ||
+            "";
+
+        const ubicacionTexto =
+            [localidad, provincia]
+                .filter(Boolean)
+                .join(", ");
+
+
+        ubicacion.textContent =
+            ubicacionTexto ||
+            "No especificada";
+
+
+        modalidad.textContent =
+            empleoActual.modalidad ||
+            "No especificada";
+
+
+        if (empleoActual.sueldo) {
+
+            sueldo.textContent =
+                empleoActual.sueldo;
+
+            sueldoBox.style.display =
+                "block";
+
+        } else {
+
+            sueldoBox.style.display =
+                "none";
+        }
+
+
+        estadoEmpleo.textContent =
+            empleoActual.estado === "activo"
+                ? "Activo"
+                : "Inactivo";
+
+
+        descripcion.textContent =
+            empleoActual.descripcion ||
+            "No se agregó una descripción para este empleo.";
+
+
+        fecha.textContent =
+            "Publicado: " +
+            formatearFecha(
+                empleoActual
+            );
+
+
+        /*
+         * Si el empleo pertenece al usuario actual,
+         * no tiene sentido mostrarle "Postularme".
+         */
+
+        if (
+            usuarioActual &&
+            empleoActual.uid ===
+            usuarioActual.uid
+        ) {
+
+            btnPostular.textContent =
+                "👤 Es tu publicación";
+
+            btnPostular.disabled =
+                true;
+
+            btnPostular.style.opacity =
+                ".6";
+
+            btnPostular.style.cursor =
+                "default";
+
+        } else if (
+            empleoActual.estado !== "activo"
+        ) {
+
+            btnPostular.textContent =
+                "Postulación cerrada";
+
+            btnPostular.disabled =
+                true;
+
+            btnPostular.style.opacity =
+                ".6";
+
+            btnPostular.style.cursor =
+                "default";
+
+        } else {
+
+            btnPostular.textContent =
+                "📝 Postularme";
+
+            btnPostular.disabled =
+                false;
+        }
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * FECHA
+     * ---------------------------------------------------------
+     */
+
+    function formatearFecha(
+        empleo
+    ) {
+
+        let fechaReal = null;
+
+
+        if (
+            empleo.fechaCliente
+        ) {
+
+            fechaReal =
+                new Date(
+                    empleo.fechaCliente
+                );
+        }
+
+
+        if (
+            !fechaReal &&
+            empleo.fecha
+        ) {
+
+            if (
+                typeof empleo.fecha.toDate ===
+                "function"
+            ) {
+
+                fechaReal =
+                    empleo.fecha.toDate();
+
+            } else if (
+                typeof empleo.fecha.seconds ===
+                "number"
+            ) {
+
+                fechaReal =
+                    new Date(
+                        empleo.fecha.seconds * 1000
+                    );
+            }
+        }
+
+
+        if (
+            !fechaReal ||
+            isNaN(
+                fechaReal.getTime()
+            )
+        ) {
+
+            return "Fecha no disponible";
+        }
+
+
+        return fechaReal.toLocaleDateString(
+            "es-AR",
+            {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }
+        );
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * ERROR
+     * ---------------------------------------------------------
+     */
+
+    function mostrarError(
+        texto
+    ) {
+
+        empleoCard.style.display =
+            "none";
+
+        cargando.style.display =
+            "block";
+
+        cargando.className =
+            "message error";
+
+        cargando.textContent =
+            texto;
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * ABRIR MODAL
+     * ---------------------------------------------------------
+     */
+
+    btnPostular.addEventListener(
+        "click",
+        () => {
+
+            if (
+                !empleoActual ||
+                !usuarioActual
+            ) {
+                return;
+            }
+
+            if (
+                empleoActual.uid ===
+                usuarioActual.uid
+            ) {
+                return;
+            }
+
+            if (
+                empleoActual.estado !==
+                "activo"
+            ) {
+                return;
+            }
+
+            modal.classList.add(
+                "show"
+            );
+
+            telefono.focus();
+        }
+    );
+
+
+    /*
+     * ---------------------------------------------------------
+     * CERRAR MODAL
+     * ---------------------------------------------------------
+     */
+
+    function cerrarModal() {
+
+        modal.classList.remove(
+            "show"
+        );
+    }
+
+
+    btnCerrarModal.addEventListener(
+        "click",
+        cerrarModal
+    );
+
+
+    btnCancelar.addEventListener(
+        "click",
+        cerrarModal
+    );
+
+
+    modal.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target === modal
+            ) {
+                cerrarModal();
+            }
+        }
+    );
+
+
+    /*
+     * ---------------------------------------------------------
+     * ENVIAR POSTULACIÓN
+     * ---------------------------------------------------------
+     */
+
+    formPostulacion.addEventListener(
+        "submit",
+        async event => {
+
+            event.preventDefault();
+
+
+            if (
+                !usuarioActual ||
+                !empleoActual
+            ) {
+                return;
+            }
+
+
+            const telefonoValor =
+                telefono.value.trim();
+
+            const mensajeValor =
+                mensaje.value.trim();
+
+
+            if (!telefonoValor) {
+
+                alert(
+                    "Ingresá tu teléfono o WhatsApp."
+                );
+
+                telefono.focus();
+
+                return;
+            }
+
+
+            btnEnviar.disabled =
+                true;
+
+            btnEnviar.textContent =
+                "Enviando...";
+
+
+            try {
+
+                /*
+                 * Usamos un ID determinístico:
+                 *
+                 * empleoId + uid
+                 *
+                 * De esta manera no necesitamos
+                 * una consulta compuesta para saber
+                 * si ya se postuló.
+                 */
+
+                const postulacionId =
+                    empleoActual.id +
+                    "_" +
+                    usuarioActual.uid;
+
+
+                const postulacionRef =
+                    doc(
+                        db,
+                        "postulaciones",
+                        postulacionId
+                    );
+
+
+                const existente =
+                    await getDoc(
+                        postulacionRef
+                    );
+
+
+                if (
+                    existente.exists()
+                ) {
+
+                    alert(
+                        "Ya te postulaste a este empleo."
+                    );
+
+                    cerrarModal();
+
+                    return;
+                }
+
+
+                await setDoc(
+                    postulacionRef,
+                    {
+                        empleoId:
+                            empleoActual.id,
+
+                        empleoPuesto:
+                            empleoActual.puesto ||
+                            "",
+
+                        empresa:
+                            empleoActual.empresa ||
+                            "",
+
+                        postulanteUid:
+                            usuarioActual.uid,
+
+                        postulanteEmail:
+                            usuarioActual.email ||
+                            "",
+
+                        telefono:
+                            telefonoValor,
+
+                        mensaje:
+                            mensajeValor,
+
+                        estado:
+                            "pendiente",
+
+                        fecha:
+                            serverTimestamp(),
+
+                        fechaCliente:
+                            Date.now()
+                    }
+                );
+
+
+                /*
+                 * Crear notificación para el responsable
+                 */
+
+                if (
+                    empleoActual.uid &&
+                    empleoActual.uid !==
+                    usuarioActual.uid
+                ) {
+
+                    await addDoc(
+                        collection(
+                            db,
+                            "notificaciones"
+                        ),
+                        {
+                            receptorUid:
+                                empleoActual.uid,
+
+                            emisorUid:
+                                usuarioActual.uid,
+
+                            tipo:
+                                "postulacion_empleo",
+
+                            titulo:
+                                "Nueva postulación",
+
+                            mensaje:
+                                "Recibiste una nueva postulación para " +
+                                (
+                                    empleoActual.puesto ||
+                                    "tu empleo"
+                                ),
+
+                            leida:
+                                false,
+
+                            referenciaId:
+                                empleoActual.id,
+
+                            url:
+                                "mis-empleos.html",
+
+                            fecha:
+                                serverTimestamp(),
+
+                            fechaCliente:
+                                Date.now()
+                        }
+                    );
+                }
+
+
+                alert(
+                    "¡Postulación enviada correctamente!"
+                );
+
+
+                formPostulacion.reset();
+
+                cerrarModal();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Error enviando postulación:",
+                    error
+                );
+
+                alert(
+                    "No se pudo enviar la postulación. Intentá nuevamente."
+                );
+
+            } finally {
+
+                btnEnviar.disabled =
+                    false;
+
+                btnEnviar.textContent =
+                    "Enviar postulación";
+            }
+        }
+    );
+
+
+    /*
+     * ---------------------------------------------------------
+     * NAVEGACIÓN
+     * ---------------------------------------------------------
+     */
+
+    btnVolver.addEventListener(
+        "click",
+        () => {
+
+            window.location.href =
+                "red-empleo.html";
+        }
+    );
+
+
+    btnEmpleos.addEventListener(
+        "click",
+        () => {
+
+            window.location.href =
+                "red-empleo.html";
+        }
+    );
+
+
+    /*
+     * ---------------------------------------------------------
+     * ESC PARA CERRAR
+     * ---------------------------------------------------------
+     */
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Escape"
+            ) {
+                cerrarModal();
+            }
+        }
+    );
+
+</script>
+
+</body>
+</html>
