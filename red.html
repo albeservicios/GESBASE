@@ -1,2035 +1,383 @@
-<!DOCTYPE html>
-<html lang="es-AR">
-<head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    >
-
-    <meta name="theme-color" content="#12343B">
-
-    <meta
-        name="description"
-        content="Red GESBASE: conectá personas, profesionales, trabajadores, empresas y comercios."
-    >
-
-    <meta
-        name="keywords"
-        content="GESBASE, Red GESBASE, red profesional, empresas, profesionales, trabajadores, comercios, Argentina"
-    >
-
-    <meta name="robots" content="index, follow">
-
-    <meta
-        property="og:title"
-        content="Red GESBASE | Conectá, trabajá y crecé"
-    >
-
-    <meta
-        property="og:description"
-        content="La red empresarial de GESBASE para conectar personas, profesionales, empresas y comercios."
-    >
-
-    <meta
-        property="og:type"
-        content="website"
-    >
-
-    <title>Red GESBASE | Conectá, trabajá y crecé</title>
-
-    <style>
-        :root{
-            --verde:#12343B;
-            --verde-2:#1B4D50;
-            --verde-3:#286B65;
-            --naranja:#E97824;
-
-            --fondo:#F3F5F4;
-            --blanco:#FFFFFF;
-            --texto:#182326;
-            --gris:#697579;
-            --borde:#DCE3E1;
-
-            --sombra:0 8px 24px rgba(18,52,59,.08);
-            --radio:18px;
-        }
-
-        *{
-            box-sizing:border-box;
-            margin:0;
-            padding:0;
-        }
-
-        html{
-            scroll-behavior:smooth;
-        }
-
-        body{
-            font-family:
-                Inter,
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-
-            background:var(--fondo);
-            color:var(--texto);
-            min-height:100vh;
-        }
-
-        button,
-        input,
-        textarea{
-            font:inherit;
-        }
-
-        button{
-            cursor:pointer;
-        }
-
-        img{
-            max-width:100%;
-            display:block;
-        }
-
-        /* =========================
-           HEADER
-        ========================= */
-
-        .topbar{
-            position:sticky;
-            top:0;
-            z-index:1000;
-
-            height:68px;
-
-            background:var(--verde);
-            color:white;
-
-            display:flex;
-            align-items:center;
-
-            padding:
-                0
-                max(18px, calc((100% - 1400px) / 2));
+<script type="module">
 
-            box-shadow:0 4px 18px rgba(0,0,0,.12);
-        }
+import { auth, db } from "./firebase.js";
 
-        .topbar-inner{
-            width:100%;
-            display:flex;
-            align-items:center;
-            gap:18px;
-        }
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    addDoc,
+    updateDoc,
+    doc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-        .brand{
-            display:flex;
-            align-items:center;
-            gap:10px;
-            min-width:190px;
-        }
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
-        .brand-logo{
-            width:38px;
-            height:38px;
 
-            border-radius:11px;
+let usuarioActual = null;
 
-            background:white;
-            color:var(--verde);
 
-            display:grid;
-            place-items:center;
+/* =====================================
+   USUARIO ACTUAL
+===================================== */
 
-            font-weight:900;
-            font-size:18px;
-        }
+onAuthStateChanged(auth, async (user) => {
 
-        .brand-name{
-            font-size:21px;
-            font-weight:900;
-            letter-spacing:-.5px;
-        }
+    if (!user) {
 
-        .brand-sub{
-            font-size:11px;
-            opacity:.72;
-            display:block;
-        }
+        usuarioActual = null;
 
-        .global-search{
-            flex:1;
-            max-width:580px;
-            position:relative;
-        }
+        console.log("Red GESBASE: usuario no autenticado");
 
-        .global-search input{
-            width:100%;
-            height:43px;
+        return;
+    }
 
-            border:0;
-            outline:0;
+    usuarioActual = user;
 
-            border-radius:13px;
+    console.log(
+        "Red GESBASE: usuario conectado",
+        user.uid
+    );
 
-            background:rgba(255,255,255,.13);
-            color:white;
+});
 
-            padding:0 16px 0 43px;
-        }
 
-        .global-search input::placeholder{
-            color:rgba(255,255,255,.72);
-        }
+/* =====================================
+   ABRIR CONEXIONES
+===================================== */
 
-        .search-icon{
-            position:absolute;
-            left:15px;
-            top:50%;
-            transform:translateY(-50%);
-            opacity:.75;
-        }
+window.abrirConexiones = function(){
 
-        .top-actions{
-            margin-left:auto;
+    if (!usuarioActual) {
 
-            display:flex;
-            align-items:center;
-            gap:8px;
-        }
+        showToast(
+            "Iniciá sesión para ver tus conexiones"
+        );
 
-        .icon-btn{
-            width:43px;
-            height:43px;
+        setTimeout(() => {
 
-            border:0;
-            border-radius:13px;
+            window.location.href =
+                "red-login.html";
 
-            background:rgba(255,255,255,.1);
-            color:white;
+        }, 1000);
 
-            display:grid;
-            place-items:center;
+        return;
+    }
 
-            font-size:19px;
-        }
 
-        .icon-btn:hover{
-            background:rgba(255,255,255,.18);
-        }
+    showToast(
+        "Cargando tus conexiones..."
+    );
 
-        .profile-mini{
-            display:flex;
-            align-items:center;
-            gap:9px;
 
-            padding:5px 9px 5px 5px;
+    /*
+     * Próximo paso:
+     * mostrar solicitudes y conexiones
+     */
 
-            border-radius:13px;
+};
 
-            background:rgba(255,255,255,.1);
 
-            color:white;
-            border:0;
-        }
+/* =====================================
+   ENVIAR SOLICITUD
+===================================== */
 
-        .avatar{
-            width:35px;
-            height:35px;
+window.enviarSolicitud = async function(toUid){
 
-            border-radius:50%;
+    try {
 
-            background:#DDE9E6;
-            color:var(--verde);
-
-            display:grid;
-            place-items:center;
-
-            font-weight:800;
-
-            overflow:hidden;
-        }
-
-        .avatar img{
-            width:100%;
-            height:100%;
-            object-fit:cover;
-        }
-
-        /* =========================
-           LAYOUT
-        ========================= */
-
-        .page{
-            width:min(1400px, calc(100% - 32px));
-            margin:24px auto 90px;
-
-            display:grid;
-
-            grid-template-columns:
-                240px
-                minmax(420px, 680px)
-                300px;
-
-            gap:22px;
-
-            align-items:start;
-        }
-
-        /* =========================
-           LEFT SIDEBAR
-        ========================= */
-
-        .sidebar{
-            position:sticky;
-            top:92px;
-        }
-
-        .menu-card,
-        .card{
-            background:var(--blanco);
-            border:1px solid var(--borde);
-            border-radius:var(--radio);
-            box-shadow:var(--sombra);
-        }
-
-        .menu-card{
-            padding:10px;
-        }
-
-        .menu-item{
-            width:100%;
-
-            border:0;
-            background:transparent;
-
-            display:flex;
-            align-items:center;
-            gap:12px;
-
-            padding:12px 13px;
-
-            border-radius:13px;
-
-            color:var(--texto);
-            text-align:left;
-
-            font-weight:700;
-        }
-
-        .menu-item:hover,
-        .menu-item.active{
-            background:#EAF1EF;
-            color:var(--verde);
-        }
-
-        .menu-icon{
-            width:30px;
-            height:30px;
-
-            border-radius:9px;
-
-            display:grid;
-            place-items:center;
-
-            background:#F0F4F3;
-
-            font-size:16px;
-        }
-
-        .menu-item.active .menu-icon{
-            background:var(--verde);
-            color:white;
-        }
-
-        .sidebar-title{
-            margin:24px 12px 9px;
-
-            font-size:11px;
-            text-transform:uppercase;
-            letter-spacing:.8px;
-
-            color:var(--gris);
-            font-weight:800;
-        }
-
-        .sidebar-info{
-            padding:15px;
-        }
-
-        .sidebar-info strong{
-            display:block;
-            font-size:14px;
-        }
-
-        .sidebar-info p{
-            color:var(--gris);
-            font-size:12px;
-            margin-top:4px;
-            line-height:1.45;
-        }
-
-        /* =========================
-           MAIN
-        ========================= */
-
-        .main{
-            min-width:0;
-        }
-
-        .hero{
-            position:relative;
-            overflow:hidden;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    var(--verde),
-                    var(--verde-2)
-                );
-
-            color:white;
-
-            border-radius:22px;
-
-            padding:28px;
-
-            margin-bottom:18px;
-
-            box-shadow:var(--sombra);
-        }
-
-        .hero::after{
-            content:"";
-
-            position:absolute;
-
-            width:180px;
-            height:180px;
-
-            border-radius:50%;
-
-            border:35px solid rgba(255,255,255,.05);
-
-            right:-40px;
-            top:-50px;
-        }
-
-        .hero h1{
-            font-size:clamp(25px,4vw,38px);
-            line-height:1.05;
-            letter-spacing:-1.3px;
-            max-width:520px;
-        }
-
-        .hero p{
-            margin-top:10px;
-            max-width:570px;
-
-            line-height:1.55;
-
-            color:rgba(255,255,255,.82);
-            font-size:14px;
-        }
-
-        .hero-actions{
-            margin-top:20px;
-
-            display:flex;
-            gap:9px;
-            flex-wrap:wrap;
-        }
-
-        .btn{
-            border:0;
-            border-radius:12px;
-
-            padding:11px 16px;
-
-            font-weight:800;
-        }
-
-        .btn-primary{
-            background:var(--naranja);
-            color:white;
-        }
-
-        .btn-light{
-            background:white;
-            color:var(--verde);
-        }
-
-        /* =========================
-           COMPOSER
-        ========================= */
-
-        .composer{
-            padding:16px;
-            margin-bottom:18px;
-        }
-
-        .composer-top{
-            display:flex;
-            align-items:center;
-            gap:11px;
-        }
-
-        .composer-input{
-            flex:1;
-
-            border:1px solid var(--borde);
-            background:#F6F8F7;
-
-            border-radius:13px;
-
-            min-height:43px;
-
-            padding:11px 14px;
-
-            color:var(--gris);
-
-            text-align:left;
-        }
-
-        .composer-actions{
-            display:flex;
-            gap:7px;
-
-            margin-top:13px;
-            padding-top:12px;
-
-            border-top:1px solid var(--borde);
-        }
-
-        .composer-action{
-            flex:1;
-
-            border:0;
-            background:transparent;
-
-            padding:9px;
-
-            border-radius:10px;
-
-            color:var(--gris);
-            font-weight:700;
-        }
-
-        .composer-action:hover{
-            background:#F1F4F3;
-            color:var(--verde);
-        }
-
-        /* =========================
-           POST
-        ========================= */
-
-        .post{
-            padding:17px;
-            margin-bottom:18px;
-        }
-
-        .post-header{
-            display:flex;
-            align-items:center;
-            gap:11px;
-        }
-
-        .post-author{
-            min-width:0;
-            flex:1;
-        }
-
-        .post-author strong{
-            display:block;
-            font-size:14px;
-        }
-
-        .post-meta{
-            color:var(--gris);
-            font-size:11px;
-            margin-top:3px;
-        }
-
-        .more-btn{
-            border:0;
-            background:transparent;
-
-            width:35px;
-            height:35px;
-
-            border-radius:9px;
-
-            font-size:18px;
-
-            color:var(--gris);
-        }
-
-        .post-text{
-            margin:15px 0;
-
-            font-size:14px;
-            line-height:1.6;
-        }
-
-        .post-image{
-            border-radius:14px;
-            overflow:hidden;
-
-            background:#E9EFED;
-
-            min-height:220px;
-
-            display:grid;
-            place-items:center;
-
-            color:var(--gris);
-            font-size:13px;
-        }
-
-        .post-stats{
-            display:flex;
-            justify-content:space-between;
-
-            color:var(--gris);
-
-            font-size:12px;
-
-            padding:12px 2px 8px;
-        }
-
-        .post-actions{
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-
-            border-top:1px solid var(--borde);
-            border-bottom:1px solid var(--borde);
-        }
-
-        .post-action{
-            border:0;
-            background:transparent;
-
-            padding:11px 5px;
-
-            color:var(--gris);
-            font-weight:700;
-
-            border-radius:8px;
-        }
-
-        .post-action:hover{
-            background:#F1F4F3;
-            color:var(--verde);
-        }
-
-        /* =========================
-           RIGHT SIDEBAR
-        ========================= */
-
-        .right-sidebar{
-            position:sticky;
-            top:92px;
-        }
-
-        .right-card{
-            padding:17px;
-            margin-bottom:18px;
-        }
-
-        .right-title{
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-
-            margin-bottom:14px;
-        }
-
-        .right-title h2{
-            font-size:15px;
-        }
-
-        .right-title button{
-            border:0;
-            background:transparent;
-
-            color:var(--verde);
-
-            font-size:11px;
-            font-weight:800;
-        }
-
-        .person{
-            display:flex;
-            align-items:center;
-            gap:10px;
-
-            padding:9px 0;
-
-            border-bottom:1px solid #EEF2F0;
-        }
-
-        .person:last-child{
-            border-bottom:0;
-        }
-
-        .person-info{
-            flex:1;
-            min-width:0;
-        }
-
-        .person-info strong{
-            display:block;
-
-            white-space:nowrap;
-            overflow:hidden;
-            text-overflow:ellipsis;
-
-            font-size:13px;
-        }
-
-        .person-info span{
-            display:block;
-
-            margin-top:2px;
-
-            color:var(--gris);
-            font-size:11px;
-        }
-
-        .connect-small{
-            border:1px solid var(--verde);
-
-            background:white;
-            color:var(--verde);
-
-            border-radius:9px;
-
-            padding:7px 9px;
-
-            font-size:10px;
-            font-weight:800;
-        }
-
-        .connect-small:hover{
-            background:var(--verde);
-            color:white;
-        }
-
-        .trend{
-            padding:9px 0;
-
-            border-bottom:1px solid #EEF2F0;
-        }
-
-        .trend:last-child{
-            border-bottom:0;
-        }
-
-        .trend span{
-            display:block;
-            color:var(--gris);
-            font-size:10px;
-        }
-
-        .trend strong{
-            display:block;
-            margin-top:3px;
-            font-size:13px;
-        }
-
-        /* =========================
-           MOBILE NAV
-        ========================= */
-
-        .mobile-nav{
-            display:none;
-
-            position:fixed;
-            z-index:1100;
-
-            bottom:0;
-            left:0;
-            right:0;
-
-            height:67px;
-
-            background:white;
-
-            border-top:1px solid var(--borde);
-
-            padding:
-                5px
-                max(5px, env(safe-area-inset-right))
-                calc(5px + env(safe-area-inset-bottom))
-                max(5px, env(safe-area-inset-left));
-
-            box-shadow:0 -5px 20px rgba(0,0,0,.08);
-        }
-
-        .mobile-item{
-            flex:1;
-
-            border:0;
-            background:transparent;
-
-            color:var(--gris);
-
-            font-size:10px;
-            font-weight:700;
-
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-
-            gap:4px;
-
-            border-radius:10px;
-        }
-
-        .mobile-item.active{
-            color:var(--verde);
-            background:#EDF3F1;
-        }
-
-        .mobile-item span:first-child{
-            font-size:19px;
-        }
-
-        /* =========================
-           SEARCH PANEL
-        ========================= */
-
-        .search-panel{
-            display:none;
-
-            position:fixed;
-            z-index:1200;
-
-            inset:0;
-
-            background:rgba(18,52,59,.5);
-
-            padding:18px;
-        }
-
-        .search-box{
-            background:white;
-            border-radius:20px;
-
-            width:min(650px,100%);
-
-            margin:60px auto 0;
-
-            padding:20px;
-
-            box-shadow:0 20px 60px rgba(0,0,0,.2);
-        }
-
-        .search-box-head{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-
-            margin-bottom:15px;
-        }
-
-        .search-box-head h2{
-            font-size:18px;
-        }
-
-        .close-search{
-            border:0;
-            background:#F1F4F3;
-
-            width:35px;
-            height:35px;
-
-            border-radius:9px;
-        }
-
-        .search-large{
-            width:100%;
-
-            border:1px solid var(--borde);
-            outline:0;
-
-            border-radius:12px;
-
-            padding:13px;
-        }
-
-        .search-filters{
-            display:flex;
-            gap:7px;
-            flex-wrap:wrap;
-
-            margin-top:12px;
-        }
-
-        .filter{
-            border:1px solid var(--borde);
-            background:white;
-
-            border-radius:20px;
-
-            padding:7px 11px;
-
-            color:var(--gris);
-
-            font-size:11px;
-            font-weight:700;
-        }
-
-        .filter.active{
-            background:var(--verde);
-            color:white;
-            border-color:var(--verde);
-        }
-
-        /* =========================
-           TOAST
-        ========================= */
-
-        .toast{
-            position:fixed;
-            z-index:2000;
-
-            left:50%;
-            bottom:90px;
-
-            transform:translate(-50%,20px);
-
-            opacity:0;
-            pointer-events:none;
-
-            background:var(--verde);
-            color:white;
-
-            padding:12px 17px;
-
-            border-radius:12px;
-
-            font-size:13px;
-            font-weight:700;
-
-            transition:.25s;
-        }
-
-        .toast.show{
-            opacity:1;
-            transform:translate(-50%,0);
-        }
-
-        /* =========================
-           RESPONSIVE
-        ========================= */
-
-        @media(max-width:1100px){
-
-            .page{
-                grid-template-columns:
-                    210px
-                    minmax(400px,1fr);
-            }
-
-            .right-sidebar{
-                display:none;
-            }
-
-        }
-
-        @media(max-width:760px){
-
-            .topbar{
-                height:61px;
-                padding:0 12px;
-            }
-
-            .brand{
-                min-width:auto;
-            }
-
-            .brand-name{
-                font-size:19px;
-            }
-
-            .brand-sub{
-                display:none;
-            }
-
-            .brand-logo{
-                width:35px;
-                height:35px;
-            }
-
-            .global-search{
-                display:none;
-            }
-
-            .profile-mini{
-                display:none;
-            }
-
-            .top-actions{
-                margin-left:auto;
-            }
-
-            .page{
-                display:block;
-
-                width:100%;
-
-                margin:0 auto 80px;
-
-                padding:12px;
-            }
-
-            .sidebar{
-                display:none;
-            }
-
-            .main{
-                width:100%;
-            }
-
-            .hero{
-                border-radius:18px;
-                padding:22px;
-            }
-
-            .hero h1{
-                font-size:28px;
-            }
-
-            .composer,
-            .post{
-                border-radius:16px;
-            }
-
-            .post-image{
-                min-height:180px;
-            }
-
-            .mobile-nav{
-                display:flex;
-            }
-
-        }
-
-        @media(max-width:430px){
-
-            .page{
-                padding:8px;
-            }
-
-            .hero{
-                padding:20px 17px;
-            }
-
-            .hero-actions .btn{
-                flex:1;
-            }
-
-            .composer{
-                padding:13px;
-            }
-
-            .composer-actions{
-                gap:2px;
-            }
-
-            .composer-action{
-                font-size:11px;
-                padding:8px 3px;
-            }
-
-            .post{
-                padding:13px;
-            }
-
-            .post-action{
-                font-size:11px;
-            }
-
-            .top-actions{
-                gap:3px;
-            }
-
-            .icon-btn{
-                width:39px;
-                height:39px;
-            }
-
-        }
-
-        /* =========================
-           ACCESIBILIDAD
-        ========================= */
-
-        button:focus-visible,
-        input:focus-visible,
-        textarea:focus-visible{
-            outline:3px solid rgba(233,120,36,.35);
-            outline-offset:2px;
-        }
-
-        @media(prefers-reduced-motion:reduce){
-            *{
-                scroll-behavior:auto!important;
-                transition:none!important;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- =========================
-         HEADER
-    ========================= -->
-
-    <header class="topbar">
-
-        <div class="topbar-inner">
-
-            <div class="brand">
-
-                <div class="brand-logo">
-                    G
-                </div>
-
-                <div>
-                    <div class="brand-name">
-                        GESBASE
-                    </div>
-
-                    <span class="brand-sub">
-                        Red empresarial
-                    </span>
-                </div>
-
-            </div>
-
-            <div class="global-search">
-
-                <span class="search-icon">🔎</span>
-
-                <input
-                    type="search"
-                    id="globalSearch"
-                    placeholder="Buscar personas, empresas, servicios..."
-                    aria-label="Buscar"
-                >
-
-            </div>
-
-            <div class="top-actions">
-
-                <button
-                    class="icon-btn"
-                    type="button"
-                    onclick="openSearch()"
-                    aria-label="Buscar"
-                >
-                    🔎
-                </button>
-
-                <button
-                    class="icon-btn"
-                    type="button"
-                    onclick="showToast('No tenés nuevas notificaciones')"
-                    aria-label="Notificaciones"
-                >
-                    🔔
-                </button>
-
-                <button
-                    class="profile-mini"
-                    type="button"
-                    onclick="showToast('Mi perfil')"
-                >
-
-                    <div class="avatar">
-                        👤
-                    </div>
-
-                    <span>Mi perfil</span>
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </header>
-
-
-    <!-- =========================
-         CONTENIDO
-    ========================= -->
-
-    <div class="page">
-
-
-        <!-- =========================
-             SIDEBAR
-        ========================= -->
-
-        <aside class="sidebar">
-
-            <div class="menu-card">
-
-                <button
-                    class="menu-item active"
-                    onclick="selectMenu(this)"
-                >
-                    <span class="menu-icon">🏠</span>
-                    Inicio
-                </button>
-
-                <button
-                    class="menu-item"
-                    onclick="selectMenu(this); openSearch()"
-                >
-                    <span class="menu-icon">🔎</span>
-                    Buscar
-                </button>
-
-                <button
-                    class="menu-item"
-                    onclick="selectMenu(this); showToast('Conexiones próximamente')"
-                >
-                    <span class="menu-icon">🤝</span>
-                    Conexiones
-                </button>
-
-                <button
-                    class="menu-item"
-                    onclick="selectMenu(this); showToast('Mi perfil próximamente')"
-                >
-                    <span class="menu-icon">👤</span>
-                    Mi perfil
-                </button>
-
-                <button
-                    class="menu-item"
-                    onclick="selectMenu(this); showToast('Notificaciones')"
-                >
-                    <span class="menu-icon">🔔</span>
-                    Notificaciones
-                </button>
-
-            </div>
-
-
-            <div class="sidebar-title">
-                Tu Red
-            </div>
-
-            <div class="card sidebar-info">
-
-                <strong>
-                    Conectá y crecé
-                </strong>
-
-                <p>
-                    Encontrá personas, profesionales,
-                    empresas y comercios.
-                </p>
-
-            </div>
-
-        </aside>
-
-
-        <!-- =========================
-             MAIN
-        ========================= -->
-
-        <main class="main">
-
-
-            <!-- HERO -->
-
-            <section class="hero">
-
-                <h1>
-                    La red donde
-                    <br>
-                    conectás y hacés negocios.
-                </h1>
-
-                <p>
-                    GESBASE conecta personas,
-                    profesionales, trabajadores,
-                    empresas y comercios en una
-                    comunidad empresarial.
-                </p>
-
-                <div class="hero-actions">
-
-                    <button
-                        class="btn btn-primary"
-                        onclick="openSearch()"
-                    >
-                        🔎 Encontrar personas
-                    </button>
-
-                    <button
-                        class="btn btn-light"
-                        onclick="showToast('Crear publicación')"
-                    >
-                        ✚ Publicar
-                    </button>
-
-                </div>
-
-            </section>
-
-
-            <!-- CREAR PUBLICACIÓN -->
-
-            <section class="card composer">
-
-                <div class="composer-top">
-
-                    <div class="avatar">
-                        👤
-                    </div>
-
-                    <button
-                        class="composer-input"
-                        onclick="openPublisher()"
-                    >
-                        ¿Qué querés compartir?
-                    </button>
-
-                </div>
-
-                <div class="composer-actions">
-
-                    <button
-                        class="composer-action"
-                        onclick="showToast('Agregar foto')"
-                    >
-                        📷 Foto
-                    </button>
-
-                    <button
-                        class="composer-action"
-                        onclick="showToast('Publicar servicio')"
-                    >
-                        💼 Servicio
-                    </button>
-
-                    <button
-                        class="composer-action"
-                        onclick="showToast('Publicar búsqueda laboral')"
-                    >
-                        📢 Trabajo
-                    </button>
-
-                </div>
-
-            </section>
-
-
-            <!-- PUBLICACIÓN 1 -->
-
-            <article class="card post">
-
-                <div class="post-header">
-
-                    <div class="avatar">
-                        🏗️
-                    </div>
-
-                    <div class="post-author">
-
-                        <strong>
-                            Construcciones Patagonia
-                        </strong>
-
-                        <div class="post-meta">
-                            Empresa · Neuquén · Hace 2 h
-                        </div>
-
-                    </div>
-
-                    <button
-                        class="more-btn"
-                        aria-label="Más opciones"
-                        onclick="showToast('Opciones de publicación')"
-                    >
-                        ⋯
-                    </button>
-
-                </div>
-
-
-                <div class="post-text">
-
-                    Terminamos una nueva obra y
-                    queremos compartir el resultado
-                    con nuestra comunidad. 🏗️
-
-                    <br><br>
-
-                    ¿Necesitás presupuestar tu próximo
-                    proyecto? Contactanos.
-
-                </div>
-
-
-                <div class="post-image">
-                    📷 Imagen del trabajo
-                </div>
-
-
-                <div class="post-stats">
-
-                    <span>
-                        👍 24 reacciones
-                    </span>
-
-                    <span>
-                        6 comentarios
-                    </span>
-
-                </div>
-
-
-                <div class="post-actions">
-
-                    <button
-                        class="post-action"
-                        onclick="react(this)"
-                    >
-                        👍 Me gusta
-                    </button>
-
-                    <button
-                        class="post-action"
-                        onclick="showToast('Comentarios')"
-                    >
-                        💬 Comentar
-                    </button>
-
-                    <button
-                        class="post-action"
-                        onclick="showToast('Compartir')"
-                    >
-                        🔗 Compartir
-                    </button>
-
-                </div>
-
-            </article>
-
-
-            <!-- PUBLICACIÓN 2 -->
-
-            <article class="card post">
-
-                <div class="post-header">
-
-                    <div class="avatar">
-                        🔧
-                    </div>
-
-                    <div class="post-author">
-
-                        <strong>
-                            Juan Pérez
-                        </strong>
-
-                        <div class="post-meta">
-                            Electricista · Catriel · Hace 5 h
-                        </div>
-
-                    </div>
-
-                    <button
-                        class="more-btn"
-                        onclick="showToast('Opciones de publicación')"
-                    >
-                        ⋯
-                    </button>
-
-                </div>
-
-
-                <div class="post-text">
-
-                    ⚡ Realizo instalaciones eléctricas,
-                    mantenimiento y reparaciones.
-
-                    <br><br>
-
-                    Disponible para trabajos en Catriel
-                    y alrededores.
-
-                </div>
-
-
-                <div class="post-stats">
-
-                    <span>
-                        👍 12 reacciones
-                    </span>
-
-                    <span>
-                        3 comentarios
-                    </span>
-
-                </div>
-
-
-                <div class="post-actions">
-
-                    <button
-                        class="post-action"
-                        onclick="react(this)"
-                    >
-                        👍 Me gusta
-                    </button>
-
-                    <button
-                        class="post-action"
-                        onclick="showToast('Comentarios')"
-                    >
-                        💬 Comentar
-                    </button>
-
-                    <button
-                        class="post-action"
-                        onclick="showToast('Compartir')"
-                    >
-                        🔗 Compartir
-                    </button>
-
-                </div>
-
-            </article>
-
-        </main>
-
-
-        <!-- =========================
-             RIGHT SIDEBAR
-        ========================= -->
-
-        <aside class="right-sidebar">
-
-
-            <section class="card right-card">
-
-                <div class="right-title">
-
-                    <h2>
-                        Personas que quizás conozcas
-                    </h2>
-
-                    <button onclick="openSearch()">
-                        Ver más
-                    </button>
-
-                </div>
-
-
-                <div class="person">
-
-                    <div class="avatar">
-                        👷
-                    </div>
-
-                    <div class="person-info">
-
-                        <strong>
-                            Carlos González
-                        </strong>
-
-                        <span>
-                            Constructor · Neuquén
-                        </span>
-
-                    </div>
-
-                    <button
-                        class="connect-small"
-                        onclick="connect(this)"
-                    >
-                        Conectar
-                    </button>
-
-                </div>
-
-
-                <div class="person">
-
-                    <div class="avatar">
-                        👩‍💼
-                    </div>
-
-                    <div class="person-info">
-
-                        <strong>
-                            María López
-                        </strong>
-
-                        <span>
-                            Comercio · Catriel
-                        </span>
-
-                    </div>
-
-                    <button
-                        class="connect-small"
-                        onclick="connect(this)"
-                    >
-                        Conectar
-                    </button>
-
-                </div>
-
-
-                <div class="person">
-
-                    <div class="avatar">
-                        👨‍🔧
-                    </div>
-
-                    <div class="person-info">
-
-                        <strong>
-                            Roberto Díaz
-                        </strong>
-
-                        <span>
-                            Técnico · Cipolletti
-                        </span>
-
-                    </div>
-
-                    <button
-                        class="connect-small"
-                        onclick="connect(this)"
-                    >
-                        Conectar
-                    </button>
-
-                </div>
-
-            </section>
-
-
-            <section class="card right-card">
-
-                <div class="right-title">
-
-                    <h2>
-                        🔥 Tendencias
-                    </h2>
-
-                </div>
-
-                <div class="trend">
-                    <span>
-                        Servicios
-                    </span>
-
-                    <strong>
-                        #Construcción
-                    </strong>
-                </div>
-
-                <div class="trend">
-                    <span>
-                        Oportunidades
-                    </span>
-
-                    <strong>
-                        #BuscoPersonal
-                    </strong>
-                </div>
-
-                <div class="trend">
-                    <span>
-                        Profesionales
-                    </span>
-
-                    <strong>
-                        #ServiciosProfesionales
-                    </strong>
-                </div>
-
-            </section>
-
-        </aside>
-
-    </div>
-
-
-    <!-- =========================
-         MOBILE NAV
-    ========================= -->
-
-    <nav class="mobile-nav">
-
-        <button
-            class="mobile-item active"
-            onclick="mobileNavigate(this,'Inicio')"
-        >
-            <span>🏠</span>
-            <span>Inicio</span>
-        </button>
-
-        <button
-            class="mobile-item"
-            onclick="openSearch()"
-        >
-            <span>🔎</span>
-            <span>Buscar</span>
-        </button>
-
-        <button
-            class="mobile-item"
-            onclick="mobileNavigate(this,'Conexiones')"
-        >
-            <span>🤝</span>
-            <span>Conexiones</span>
-        </button>
-
-        <button
-            class="mobile-item"
-            onclick="mobileNavigate(this,'Notificaciones')"
-        >
-            <span>🔔</span>
-            <span>Alertas</span>
-        </button>
-
-        <button
-            class="mobile-item"
-            onclick="mobileNavigate(this,'Perfil')"
-        >
-            <span>👤</span>
-            <span>Perfil</span>
-        </button>
-
-    </nav>
-
-
-    <!-- =========================
-         SEARCH
-    ========================= -->
-
-    <div
-        class="search-panel"
-        id="searchPanel"
-        onclick="closeSearchOutside(event)"
-    >
-
-        <div class="search-box">
-
-            <div class="search-box-head">
-
-                <h2>
-                    Buscar en GESBASE
-                </h2>
-
-                <button
-                    class="close-search"
-                    onclick="closeSearch()"
-                >
-                    ✕
-                </button>
-
-            </div>
-
-
-            <input
-                class="search-large"
-                id="searchInput"
-                type="search"
-                placeholder="Persona, empresa, comercio, servicio..."
-                autocomplete="off"
-            >
-
-
-            <div class="search-filters">
-
-                <button
-                    class="filter active"
-                    onclick="setFilter(this)"
-                >
-                    Todos
-                </button>
-
-                <button
-                    class="filter"
-                    onclick="setFilter(this)"
-                >
-                    Personas
-                </button>
-
-                <button
-                    class="filter"
-                    onclick="setFilter(this)"
-                >
-                    Profesionales
-                </button>
-
-                <button
-                    class="filter"
-                    onclick="setFilter(this)"
-                >
-                    Trabajadores
-                </button>
-
-                <button
-                    class="filter"
-                    onclick="setFilter(this)"
-                >
-                    Empresas
-                </button>
-
-                <button
-                    class="filter"
-                    onclick="setFilter(this)"
-                >
-                    Comercios
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- TOAST -->
-
-    <div
-        class="toast"
-        id="toast"
-    ></div>
-
-
-    <script>
-
-        /* =========================
-           TOAST
-        ========================= */
-
-        let toastTimer;
-
-        function showToast(message){
-
-            const toast =
-                document.getElementById("toast");
-
-            toast.textContent = message;
-
-            toast.classList.add("show");
-
-            clearTimeout(toastTimer);
-
-            toastTimer = setTimeout(() => {
-
-                toast.classList.remove("show");
-
-            }, 2200);
-
-        }
-
-
-        /* =========================
-           MENU
-        ========================= */
-
-        function selectMenu(button){
-
-            document
-                .querySelectorAll(".menu-item")
-                .forEach(item => {
-
-                    item.classList.remove("active");
-
-                });
-
-            button.classList.add("active");
-
-        }
-
-
-        /* =========================
-           MOBILE
-        ========================= */
-
-        function mobileNavigate(button,name){
-
-            document
-                .querySelectorAll(".mobile-item")
-                .forEach(item => {
-
-                    item.classList.remove("active");
-
-                });
-
-            button.classList.add("active");
-
-            showToast(name);
-
-        }
-
-
-        /* =========================
-           SEARCH
-        ========================= */
-
-        function openSearch(){
-
-            const panel =
-                document.getElementById("searchPanel");
-
-            panel.style.display = "block";
-
-            document.body.style.overflow = "hidden";
-
-            setTimeout(() => {
-
-                document
-                    .getElementById("searchInput")
-                    .focus();
-
-            },50);
-
-        }
-
-
-        function closeSearch(){
-
-            document
-                .getElementById("searchPanel")
-                .style.display = "none";
-
-            document.body.style.overflow = "";
-
-        }
-
-
-        function closeSearchOutside(event){
-
-            if(event.target.id === "searchPanel"){
-
-                closeSearch();
-
-            }
-
-        }
-
-
-        document
-            .getElementById("globalSearch")
-            .addEventListener("keydown",function(event){
-
-                if(event.key === "Enter"){
-
-                    openSearch();
-
-                    document
-                        .getElementById("searchInput")
-                        .value = this.value;
-
-                }
-
-            });
-
-
-        function setFilter(button){
-
-            document
-                .querySelectorAll(".filter")
-                .forEach(item => {
-
-                    item.classList.remove("active");
-
-                });
-
-            button.classList.add("active");
-
-        }
-
-
-        /* =========================
-           CONEXIONES
-        ========================= */
-
-        function connect(button){
-
-            button.textContent = "Enviada";
-            button.disabled = true;
-
-            button.style.opacity = ".65";
-
-            showToast("Solicitud de conexión enviada");
-
-        }
-
-
-        /* =========================
-           REACCIONES
-        ========================= */
-
-        function react(button){
-
-            button.textContent = "👍 Te gusta";
-
-            button.style.color =
-                "var(--verde)";
-
-            showToast("Reacción agregada");
-
-        }
-
-
-        /* =========================
-           PUBLICAR
-        ========================= */
-
-        function openPublisher(){
+        if (!usuarioActual) {
 
             showToast(
-                "El editor de publicaciones se conectará con Firebase"
+                "Iniciá sesión para conectarte"
             );
 
+            return;
         }
 
 
-        /* =========================
-           ESC
-        ========================= */
+        if (usuarioActual.uid === toUid) {
 
-        document.addEventListener(
-            "keydown",
-            function(event){
+            showToast(
+                "No podés conectarte con vos mismo"
+            );
 
-                if(event.key === "Escape"){
+            return;
+        }
 
-                    closeSearch();
+
+        /*
+         * Comprobar si ya existe una
+         * conexión o solicitud.
+         */
+
+        const q1 = query(
+            collection(db, "connections"),
+            where(
+                "fromUid",
+                "==",
+                usuarioActual.uid
+            ),
+            where(
+                "toUid",
+                "==",
+                toUid
+            )
+        );
+
+
+        const q2 = query(
+            collection(db, "connections"),
+            where(
+                "fromUid",
+                "==",
+                toUid
+            ),
+            where(
+                "toUid",
+                "==",
+                usuarioActual.uid
+            )
+        );
+
+
+        const [resultado1, resultado2] =
+            await Promise.all([
+                getDocs(q1),
+                getDocs(q2)
+            ]);
+
+
+        if (
+            !resultado1.empty ||
+            !resultado2.empty
+        ){
+
+            showToast(
+                "Ya existe una solicitud o conexión"
+            );
+
+            return;
+        }
+
+
+        /*
+         * Crear solicitud
+         */
+
+        const nuevaConexion =
+            await addDoc(
+                collection(db, "connections"),
+                {
+
+                    fromUid:
+                        usuarioActual.uid,
+
+                    toUid:
+                        toUid,
+
+                    status:
+                        "pending",
+
+                    createdAt:
+                        serverTimestamp(),
+
+                    updatedAt:
+                        serverTimestamp()
 
                 }
+            );
+
+
+        /*
+         * Crear notificación
+         */
+
+        await addDoc(
+            collection(db, "notificaciones"),
+            {
+
+                uid:
+                    toUid,
+
+                tipo:
+                    "connection_request",
+
+                titulo:
+                    "Nueva solicitud de conexión",
+
+                mensaje:
+                    `${usuarioActual.displayName || "Un usuario"} quiere conectarse con vos.`,
+
+                connectionId:
+                    nuevaConexion.id,
+
+                deUid:
+                    usuarioActual.uid,
+
+                leida:
+                    false,
+
+                createdAt:
+                    serverTimestamp()
 
             }
         );
 
-    </script>
 
-</body>
-</html>
+        showToast(
+            "Solicitud de conexión enviada"
+        );
+
+
+    } catch(error) {
+
+        console.error(
+            "Error enviando solicitud:",
+            error
+        );
+
+        showToast(
+            "No se pudo enviar la solicitud"
+        );
+
+    }
+
+};
+
+
+/* =====================================
+   ACEPTAR SOLICITUD
+===================================== */
+
+window.aceptarSolicitud = async function(
+    connectionId
+){
+
+    try {
+
+        if (!usuarioActual) {
+
+            showToast(
+                "Iniciá sesión"
+            );
+
+            return;
+        }
+
+
+        const referencia =
+            doc(
+                db,
+                "connections",
+                connectionId
+            );
+
+
+        await updateDoc(
+            referencia,
+            {
+
+                status:
+                    "accepted",
+
+                updatedAt:
+                    serverTimestamp()
+
+            }
+        );
+
+
+        showToast(
+            "¡Ahora están conectados!"
+        );
+
+
+        /*
+         * Más adelante actualizaremos
+         * automáticamente la pantalla.
+         */
+
+    } catch(error) {
+
+        console.error(
+            "Error aceptando solicitud:",
+            error
+        );
+
+        showToast(
+            "No se pudo aceptar la solicitud"
+        );
+
+    }
+
+};
+
+
+/* =====================================
+   RECHAZAR SOLICITUD
+===================================== */
+
+window.rechazarSolicitud = async function(
+    connectionId
+){
+
+    try {
+
+        if (!usuarioActual) {
+
+            showToast(
+                "Iniciá sesión"
+            );
+
+            return;
+        }
+
+
+        const referencia =
+            doc(
+                db,
+                "connections",
+                connectionId
+            );
+
+
+        await updateDoc(
+            referencia,
+            {
+
+                status:
+                    "rejected",
+
+                updatedAt:
+                    serverTimestamp()
+
+            }
+        );
+
+
+        showToast(
+            "Solicitud rechazada"
+        );
+
+
+    } catch(error) {
+
+        console.error(
+            "Error rechazando solicitud:",
+            error
+        );
+
+        showToast(
+            "No se pudo rechazar la solicitud"
+        );
+
+    }
+
+};
+
+</script>
