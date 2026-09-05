@@ -432,7 +432,7 @@ body{
 }
 
 /* =========================
-   BOTÓN TODAS LEÍDAS
+   BOTÓN
 ========================= */
 
 .read-all{
@@ -465,7 +465,7 @@ body{
 }
 
 /* =========================
-   NAVEGACIÓN INFERIOR
+   NAVEGACIÓN
 ========================= */
 
 .bottom-nav{
@@ -586,10 +586,6 @@ body{
         font-size:16px;
     }
 
-    .notification-message{
-        font-size:14px;
-    }
-
 }
 
 /* =========================
@@ -640,6 +636,7 @@ body{
 </head>
 
 <body>
+
 
 <!-- =========================
      HEADER
@@ -813,16 +810,16 @@ import {
     db
 } from "./Js/firebase.js";
 
+
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
 
 import {
     collection,
     query,
     where,
-    orderBy,
-    limit,
     onSnapshot,
     updateDoc,
     doc,
@@ -889,7 +886,7 @@ window.irA = function(ruta){
 
 
 /* =========================
-   AUTH
+   AUTENTICACIÓN
 ========================= */
 
 onAuthStateChanged(
@@ -926,29 +923,29 @@ function escucharNotificaciones(){
     }
 
 
-    const referencia =
-        collection(
-            db,
-            "notificaciones"
-        );
-
+    /*
+     * IMPORTANTE:
+     *
+     * No usamos orderBy("fecha").
+     *
+     * Esto evita el índice compuesto
+     * que Firebase estaba solicitando.
+     */
 
     const consulta =
         query(
-            referencia,
+
+            collection(
+                db,
+                "notificaciones"
+            ),
 
             where(
                 "receptorUid",
                 "==",
                 usuarioActual.uid
-            ),
+            )
 
-            orderBy(
-                "fecha",
-                "desc"
-            ),
-
-            limit(100)
         );
 
 
@@ -970,6 +967,25 @@ function escucharNotificaciones(){
 
                         })
                     );
+
+
+                /*
+                 * Ordenamos localmente por fecha.
+                 */
+
+                notificacionesActuales.sort(
+                    (a,b) => {
+
+                        return obtenerMilisegundos(
+                            b.fecha
+                        )
+                        -
+                        obtenerMilisegundos(
+                            a.fecha
+                        );
+
+                    }
+                );
 
 
                 renderizarNotificaciones();
@@ -1010,7 +1026,7 @@ function escucharNotificaciones(){
 
 
 /* =========================
-   RENDER
+   RENDERIZAR
 ========================= */
 
 function renderizarNotificaciones(){
@@ -1030,7 +1046,9 @@ function renderizarNotificaciones(){
         ).length;
 
 
-    actualizarContadores(noLeidas);
+    actualizarContadores(
+        noLeidas
+    );
 
 
     if(total === 0){
@@ -1038,7 +1056,9 @@ function renderizarNotificaciones(){
         textoResumen.textContent =
             "No tenés notificaciones nuevas.";
 
-        btnLeerTodas.disabled = true;
+
+        btnLeerTodas.disabled =
+            true;
 
 
         lista.innerHTML = `
@@ -1093,7 +1113,7 @@ function renderizarNotificaciones(){
 
 
 /* =========================
-   CREAR TARJETA
+   CREAR NOTIFICACIÓN
 ========================= */
 
 function crearNotificacion(
@@ -1101,7 +1121,9 @@ function crearNotificacion(
 ){
 
     const elemento =
-        document.createElement("article");
+        document.createElement(
+            "article"
+        );
 
 
     const estaLeida =
@@ -1122,7 +1144,8 @@ function crearNotificacion(
 
 
     const tipo =
-        notificacion.tipo || "general";
+        notificacion.tipo ||
+        "general";
 
 
     const icono =
@@ -1190,7 +1213,7 @@ function crearNotificacion(
 
 
 /* =========================
-   ABRIR NOTIFICACIÓN
+   ABRIR
 ========================= */
 
 async function abrirNotificacion(
@@ -1200,8 +1223,10 @@ async function abrirNotificacion(
     try{
 
         /*
-         * Si todavía está sin leer,
-         * se actualiza automáticamente.
+         * AQUÍ ocurre la lectura automática.
+         *
+         * Si estaba sin leer,
+         * inmediatamente pasa a leída.
          */
 
         if(
@@ -1226,8 +1251,8 @@ async function abrirNotificacion(
 
 
         /*
-         * Si tiene una ruta específica,
-         * la abrimos después de marcarla.
+         * Si tiene URL,
+         * vamos al destino.
          */
 
         if(
@@ -1243,13 +1268,13 @@ async function abrirNotificacion(
 
 
         /*
-         * Compatibilidad con referencia
-         * a publicaciones.
+         * Publicación.
          */
 
         if(
             notificacion.tipo ===
-            "publicacion" &&
+            "publicacion"
+            &&
             notificacion.referenciaId
         ){
 
@@ -1265,17 +1290,15 @@ async function abrirNotificacion(
 
 
         /*
-         * Compatibilidad con conexiones.
+         * Conexiones.
          */
 
         if(
-            (
-                notificacion.tipo ===
+            notificacion.tipo ===
                 "solicitud_conexion"
-                ||
-                notificacion.tipo ===
+            ||
+            notificacion.tipo ===
                 "conexion_aceptada"
-            )
         ){
 
             window.location.href =
@@ -1287,8 +1310,8 @@ async function abrirNotificacion(
 
 
         /*
-         * Si no hay destino,
-         * simplemente queda leída.
+         * Si no tiene destino,
+         * permanece en notificaciones.
          */
 
         renderizarNotificaciones();
@@ -1297,9 +1320,10 @@ async function abrirNotificacion(
     catch(error){
 
         console.error(
-            "Error marcando notificación:",
+            "Error al marcar:",
             error
         );
+
 
         mostrarError(
             "No se pudo actualizar la notificación."
@@ -1336,16 +1360,12 @@ btnLeerTodas.addEventListener(
         btnLeerTodas.disabled =
             true;
 
+
         btnLeerTodas.textContent =
             "Marcando...";
 
 
         try{
-
-            /*
-             * Usamos batch para enviar
-             * las actualizaciones juntas.
-             */
 
             const lote =
                 writeBatch(db);
@@ -1374,7 +1394,6 @@ btnLeerTodas.addEventListener(
 
             await lote.commit();
 
-
         }
         catch(error){
 
@@ -1382,6 +1401,7 @@ btnLeerTodas.addEventListener(
                 "Error:",
                 error
             );
+
 
             mostrarError(
                 "No se pudieron marcar todas como leídas."
@@ -1416,6 +1436,7 @@ function actualizarContadores(
         contadorHeader.style.display =
             "flex";
 
+
         contadorHeader.textContent =
             cantidad > 99
                 ? "99+"
@@ -1424,6 +1445,7 @@ function actualizarContadores(
 
         badgeNav.style.display =
             "flex";
+
 
         badgeNav.textContent =
             cantidad > 99
@@ -1435,6 +1457,7 @@ function actualizarContadores(
 
         contadorHeader.style.display =
             "none";
+
 
         badgeNav.style.display =
             "none";
@@ -1519,14 +1542,79 @@ function obtenerTitulo(tipo){
 
 
 /* =========================
-   FECHA
+   FECHA → MILISEGUNDOS
+========================= */
+
+function obtenerMilisegundos(
+    fecha
+){
+
+    if(!fecha){
+
+        return 0;
+
+    }
+
+
+    try{
+
+        if(
+            typeof fecha.toDate ===
+            "function"
+        ){
+
+            return fecha.toDate().getTime();
+
+        }
+
+
+        if(
+            typeof fecha.seconds ===
+            "number"
+        ){
+
+            return fecha.seconds * 1000;
+
+        }
+
+
+        const fechaConvertida =
+            new Date(fecha);
+
+
+        const tiempo =
+            fechaConvertida.getTime();
+
+
+        return Number.isNaN(tiempo)
+            ? 0
+            : tiempo;
+
+    }
+    catch{
+
+        return 0;
+
+    }
+
+}
+
+
+/* =========================
+   FORMATEAR FECHA
 ========================= */
 
 function formatearFecha(
     fecha
 ){
 
-    if(!fecha){
+    const tiempo =
+        obtenerMilisegundos(
+            fecha
+        );
+
+
+    if(!tiempo){
 
         return "Ahora";
 
@@ -1535,48 +1623,9 @@ function formatearFecha(
 
     try{
 
-        let fechaReal;
-
-
-        if(
-            typeof fecha.toDate ===
-            "function"
-        ){
-
-            fechaReal =
-                fecha.toDate();
-
-        }
-        else if(
-            fecha.seconds
-        ){
-
-            fechaReal =
-                new Date(
-                    fecha.seconds * 1000
-                );
-
-        }
-        else{
-
-            fechaReal =
-                new Date(fecha);
-
-        }
-
-
-        if(
-            Number.isNaN(
-                fechaReal.getTime()
-            )
-        ){
-
-            return "Ahora";
-
-        }
-
-
-        return fechaReal.toLocaleString(
+        return new Date(
+            tiempo
+        ).toLocaleString(
             "es-AR",
             {
                 day:"2-digit",
@@ -1598,19 +1647,36 @@ function formatearFecha(
 
 
 /* =========================
-   SEGURIDAD HTML
+   ESCAPAR HTML
 ========================= */
 
 function escaparHTML(
     texto
 ){
 
-    return String(texto ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+    return String(
+        texto ?? ""
+    )
+    .replaceAll(
+        "&",
+        "&amp;"
+    )
+    .replaceAll(
+        "<",
+        "&lt;"
+    )
+    .replaceAll(
+        ">",
+        "&gt;"
+    )
+    .replaceAll(
+        '"',
+        "&quot;"
+    )
+    .replaceAll(
+        "'",
+        "&#039;"
+    );
 
 }
 
