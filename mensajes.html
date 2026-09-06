@@ -910,6 +910,9 @@ let isMuted = false;
 
 const handledIncomingCalls = new Set();
 
+let messagingActual = null;
+let unsubscribeForegroundMessaging = null;
+
 
 /* ============================================================
    ELEMENTOS
@@ -1151,6 +1154,42 @@ async function actualizarPresencia(enLinea){
 
 
 /* ============================================================
+   SERVICE WORKER FCM
+============================================================ */
+
+async function registrarServiceWorker(){
+
+    if(!("serviceWorker" in navigator)){
+        throw new Error(
+            "Este navegador no permite Service Worker."
+        );
+    }
+
+    const registroExistente =
+        await navigator.serviceWorker.getRegistration(
+            "./"
+        );
+
+    if(registroExistente){
+        return registroExistente;
+    }
+
+    const registro =
+        await navigator.serviceWorker.register(
+            "./firebase-messaging-sw.js",
+            {
+                scope:"./"
+            }
+        );
+
+    await navigator.serviceWorker.ready;
+
+    return registro;
+
+}
+
+
+/* ============================================================
    NOTIFICACIONES FCM
 ============================================================ */
 
@@ -1177,18 +1216,9 @@ async function registrarNotificaciones(){
 
 
         if(!("Notification" in window)){
-            return;
-        }
-
-
-        const permiso =
-            await Notification.requestPermission();
-
-
-        if(permiso !== "granted"){
 
             console.log(
-                "Permiso de notificaciones no concedido."
+                "Este navegador no tiene API de notificaciones."
             );
 
             return;
@@ -1197,23 +1227,37 @@ async function registrarNotificaciones(){
 
 
         /*
-         * IMPORTANTE:
-         *
-         * Colocar aquí la clave pública VAPID
-         * de Firebase Cloud Messaging.
+         * CLAVE PÚBLICA VAPID DE FIREBASE
          */
 
         const VAPID_KEY =
-            "REEMPLAZAR_CON_TU_CLAVE_VAPID";
+            "BNZA69HMAMg5SO6SsnkQZuKy9lkPLHnUc525y54u4SuxLUlePyNt9A1pH-NlBGgMZ95taxj7rxJ5h1Vo5w7r9hI";
 
 
-        if(
-            !VAPID_KEY ||
-            VAPID_KEY.includes("REEMPLAZAR")
-        ){
+        const permisoActual =
+            Notification.permission;
 
-            console.warn(
-                "FCM: falta configurar VAPID."
+
+        let permiso =
+            permisoActual;
+
+
+        if(permiso === "default"){
+
+            permiso =
+                await Notification.requestPermission();
+
+        }
+
+
+        if(permiso !== "granted"){
+
+            console.log(
+                "Permiso de notificaciones no concedido."
+            );
+
+            mostrarToast(
+                "Las notificaciones están desactivadas."
             );
 
             return;
@@ -1221,20 +1265,22 @@ async function registrarNotificaciones(){
         }
 
 
-        const messaging =
+        const serviceWorkerRegistration =
+            await registrarServiceWorker();
+
+
+        messagingActual =
             getMessaging();
 
 
         const token =
             await getToken(
-                messaging,
+                messagingActual,
                 {
                     vapidKey:
                         VAPID_KEY,
 
-                    serviceWorkerRegistration:
-                        await navigator.serviceWorker
-                            .getRegistration()
+                    serviceWorkerRegistration
                 }
             );
 
@@ -1253,11 +1299,12 @@ async function registrarNotificaciones(){
         /*
          * IMPORTANTE:
          *
-         * Se guarda el token dentro del mismo
-         * usuarios/{uid}.
+         * El token queda guardado dentro del
+         * mismo perfil usuarios/{uid}.
          *
-         * NO se crea usuariosRed.
-         * NO se crea directorio_red.
+         * No se crea otro usuario.
+         * No se crea usuariosRed.
+         * No se crea directorio_red.
          */
 
         await setDoc(
@@ -1267,6 +1314,7 @@ async function registrarNotificaciones(){
                 usuarioActual.uid
             ),
             {
+
                 fcmTokens:{
                     [token]:true
                 },
@@ -1284,37 +1332,96 @@ async function registrarNotificaciones(){
 
 
         console.log(
-            "FCM registrado."
+            "FCM registrado correctamente:",
+            token
         );
 
 
-        onMessage(
-            messaging,
-            payload => {
+        /*
+         * Evita registrar el listener de
+         * mensajes en primer plano más de una vez.
+         */
 
-                console.log(
-                    "Mensaje FCM:",
-                    payload
-                );
+        if(
+            unsubscribeForegroundMessaging
+        ){
 
+            unsubscribeForegroundMessaging();
 
-                const titulo =
-                    payload?.notification?.title ||
-                    payload?.data?.title ||
-                    "GESBASE";
+            unsubscribeForegroundMessaging =
+                null;
 
-
-                const cuerpo =
-                    payload?.notification?.body ||
-                    payload?.data?.body ||
-                    "Tenés una nueva notificación.";
+        }
 
 
-                mostrarToast(
-                    `${titulo}: ${cuerpo}`
-                );
+        unsubscribeForegroundMessaging =
+            onMessage(
+                messagingActual,
+                payload => {
 
-            }
+                    console.log(
+                        "Mensaje FCM recibido:",
+                        payload
+                    );
+
+
+                    const titulo =
+                        payload?.notification?.title ||
+                        payload?.data?.title ||
+                        "GESBASE";
+
+
+                    const cuerpo =
+                        payload?.notification?.body ||
+                        payload?.data?.body ||
+                        "Tenés una nueva notificación.";
+
+
+                    mostrarToast(
+                        `${titulo}: ${cuerpo}`
+                    );
+
+
+                    /*
+                     * Si llega un mensaje de chat
+                     * mientras GESBASE está abierto,
+                     * actualizamos visualmente el aviso.
+                     */
+
+                    const tipo =
+                        payload?.data?.tipo ||
+                        "";
+
+
+                    if(
+                        tipo === "mensaje" ||
+                        tipo === "chat"
+                    ){
+
+                        console.log(
+                            "Nuevo mensaje de GESBASE."
+                        );
+
+                    }
+
+
+                    if(
+                        tipo === "llamada" ||
+                        tipo === "videollamada"
+                    ){
+
+                        console.log(
+                            "Llamada recibida por FCM."
+                        );
+
+                    }
+
+                }
+            );
+
+
+        mostrarToast(
+            "Notificaciones activadas."
         );
 
 
@@ -1323,6 +1430,15 @@ async function registrarNotificaciones(){
         console.error(
             "Error registrando FCM:",
             error
+        );
+
+        /*
+         * No detenemos Mensajes ni llamadas.
+         * FCM es una función adicional.
+         */
+
+        mostrarToast(
+            "No se pudieron activar las notificaciones."
         );
 
     }
@@ -1371,12 +1487,14 @@ onAuthStateChanged(
 
         await actualizarPresencia(true);
 
+
         /*
-         * Si todavía no está configurado VAPID,
-         * no rompe mensajes ni llamadas.
+         * Activar FCM después de comprobar
+         * que existe el perfil único.
          */
 
         await registrarNotificaciones();
+
 
         await cargarContactos();
 
@@ -3470,6 +3588,7 @@ async function finalizarLlamada(){
                         serverTimestamp()
 
                 }
+
             );
 
         }catch(error){
