@@ -36,6 +36,10 @@ body{
     padding-bottom:85px;
 }
 
+/* =========================
+   HEADER
+========================= */
+
 header{
     position:sticky;
     top:0;
@@ -47,6 +51,7 @@ header{
 }
 
 .header-inner{
+    width:100%;
     max-width:900px;
     margin:auto;
 }
@@ -79,12 +84,20 @@ header{
     background:transparent;
 }
 
+/* =========================
+   CONTENEDOR
+========================= */
+
 .container{
     width:100%;
     max-width:900px;
     margin:0 auto;
     padding:16px;
 }
+
+/* =========================
+   FILTROS
+========================= */
 
 .filters{
     display:flex;
@@ -117,6 +130,10 @@ header{
     border-color:#111827;
 }
 
+/* =========================
+   LOCALIDAD
+========================= */
+
 .localidad-box{
     background:white;
     border-radius:12px;
@@ -133,6 +150,10 @@ header{
     background:transparent;
 }
 
+/* =========================
+   ESTADOS
+========================= */
+
 .estado{
     text-align:center;
     color:#6b7280;
@@ -145,6 +166,10 @@ header{
     flex-direction:column;
     gap:12px;
 }
+
+/* =========================
+   TARJETA
+========================= */
 
 .card{
     background:white;
@@ -245,11 +270,19 @@ header{
     cursor:default;
 }
 
+/* =========================
+   SIN RESULTADOS
+========================= */
+
 .sin-resultados{
     text-align:center;
     padding:35px 15px;
     color:#6b7280;
 }
+
+/* =========================
+   NAVEGACIÓN
+========================= */
 
 .bottom-nav{
     position:fixed;
@@ -295,6 +328,10 @@ header{
     font-weight:700;
 }
 
+/* =========================
+   TABLET / PC
+========================= */
+
 @media(min-width:700px){
 
     .container{
@@ -312,7 +349,9 @@ header{
 
 }
 
-</style></head><body><header><div class="header-inner">
+</style></head><body><!-- =========================
+     HEADER
+========================= --><header><div class="header-inner">
 
     <div class="header-title">
         Red GESBASE
@@ -333,11 +372,14 @@ header{
 
 </div>
 
-</header><main class="container"><div class="filters">
+</header><!-- =========================
+     CONTENIDO
+========================= --><main class="container"><div class="filters">
 
     <button
         class="filter active"
         data-tipo="todos"
+        type="button"
     >
         Todos
     </button>
@@ -345,6 +387,7 @@ header{
     <button
         class="filter"
         data-tipo="persona"
+        type="button"
     >
         Personas
     </button>
@@ -352,6 +395,7 @@ header{
     <button
         class="filter"
         data-tipo="profesional"
+        type="button"
     >
         Profesionales
     </button>
@@ -359,6 +403,7 @@ header{
     <button
         class="filter"
         data-tipo="trabajador"
+        type="button"
     >
         Trabajadores
     </button>
@@ -366,6 +411,7 @@ header{
     <button
         class="filter"
         data-tipo="empresa"
+        type="button"
     >
         Empresas
     </button>
@@ -373,6 +419,7 @@ header{
     <button
         class="filter"
         data-tipo="comercio"
+        type="button"
     >
         Comercios
     </button>
@@ -405,42 +452,53 @@ header{
     class="resultados"
 ></div>
 
-</main><nav class="bottom-nav"><div class="bottom-nav-inner">
+</main><!-- =========================
+     NAVEGACIÓN INFERIOR
+========================= --><nav class="bottom-nav"><div class="bottom-nav-inner">
 
     <button
         class="nav-item"
+        type="button"
         onclick="irA('red.html')"
     >
         <span class="nav-icon">🏠</span>
         Inicio
     </button>
 
+
     <button
         class="nav-item active"
+        type="button"
         onclick="irA('red-buscar.html')"
     >
         <span class="nav-icon">🔎</span>
         Buscar
     </button>
 
+
     <button
         class="nav-item"
+        type="button"
         onclick="irA('conexiones.html')"
     >
         <span class="nav-icon">👥</span>
         Conexiones
     </button>
 
+
     <button
         class="nav-item"
+        type="button"
         onclick="irA('red-notificaciones.html')"
     >
         <span class="nav-icon">🔔</span>
         Avisos
     </button>
 
+
     <button
         class="nav-item"
+        type="button"
         onclick="irA('red-perfil.html')"
     >
         <span class="nav-icon">👤</span>
@@ -449,7 +507,9 @@ header{
 
 </div>
 
-</nav><script type="module">
+</nav><!-- =========================
+     FIREBASE / JAVASCRIPT
+========================= --><script type="module">
 
 import {
     auth,
@@ -472,6 +532,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
+/* =========================
+   ELEMENTOS
+========================= */
+
 const inputBuscar =
     document.getElementById("inputBuscar");
 
@@ -487,6 +551,10 @@ const estado =
 const filtros =
     document.querySelectorAll(".filter");
 
+
+/* =========================
+   VARIABLES
+========================= */
 
 let usuarioActual = null;
 
@@ -507,22 +575,36 @@ let estadosConexion = new Map();
    AUTENTICACIÓN
 ========================= */
 
-onAuthStateChanged(auth, async usuario => {
+onAuthStateChanged(
+    auth,
+    async usuario => {
 
-    if(!usuario){
+        if(!usuario){
 
-        window.location.href = "red-login.html";
+            window.location.href =
+                "red-login.html";
 
-        return;
+            return;
+
+        }
+
+
+        usuarioActual = usuario;
+
+
+        /*
+         * IMPORTANTE:
+         *
+         * NO se cargan usuarios al entrar.
+         *
+         * La pantalla permanece vacía
+         * hasta que el usuario busque.
+         */
+
+        mostrarEstadoInicial();
+
     }
-
-    usuarioActual = usuario;
-
-    // IMPORTANTE:
-    // NO cargamos usuarios al entrar.
-    mostrarEstadoInicial();
-
-});
+);
 
 
 /* =========================
@@ -533,7 +615,8 @@ function mostrarEstadoInicial(){
 
     resultados.innerHTML = "";
 
-    estado.style.display = "block";
+    estado.style.display =
+        "block";
 
     estado.textContent =
         "Escribí algo para comenzar a buscar.";
@@ -542,7 +625,7 @@ function mostrarEstadoInicial(){
 
 
 /* =========================
-   EVENTOS DE BÚSQUEDA
+   EVENTOS
 ========================= */
 
 inputBuscar.addEventListener(
@@ -550,74 +633,96 @@ inputBuscar.addEventListener(
     programarBusqueda
 );
 
+
 inputLocalidad.addEventListener(
     "input",
     programarBusqueda
 );
 
 
-filtros.forEach(filtro => {
+filtros.forEach(
+    filtro => {
 
-    filtro.addEventListener("click", () => {
+        filtro.addEventListener(
+            "click",
+            () => {
 
-        filtros.forEach(f =>
-            f.classList.remove("active")
+                filtros.forEach(
+                    elemento =>
+                        elemento.classList.remove(
+                            "active"
+                        )
+                );
+
+
+                filtro.classList.add(
+                    "active"
+                );
+
+
+                tipoSeleccionado =
+                    filtro.dataset.tipo;
+
+
+                programarBusqueda();
+
+            }
         );
 
-        filtro.classList.add("active");
+    }
+);
 
-        tipoSeleccionado =
-            filtro.dataset.tipo;
 
-        /*
-         * Seleccionar una categoría también
-         * se considera una búsqueda.
-         */
-
-        programarBusqueda();
-
-    });
-
-});
-
+/* =========================
+   DEBOUNCE
+========================= */
 
 function programarBusqueda(){
 
-    clearTimeout(temporizadorBusqueda);
+    clearTimeout(
+        temporizadorBusqueda
+    );
+
 
     temporizadorBusqueda =
-        setTimeout(() => {
-
-            realizarBusqueda();
-
-        }, 300);
+        setTimeout(
+            realizarBusqueda,
+            300
+        );
 
 }
 
 
 /* =========================
-   REALIZAR BÚSQUEDA
+   BUSCAR
 ========================= */
 
 async function realizarBusqueda(){
 
     const texto =
-        normalizar(inputBuscar.value);
+        normalizar(
+            inputBuscar.value
+        );
+
 
     const localidad =
-        normalizar(inputLocalidad.value);
+        normalizar(
+            inputLocalidad.value
+        );
+
 
     const hayTexto =
         texto.length >= 2 ||
         localidad.length >= 2;
+
 
     const hayFiltro =
         tipoSeleccionado !== "todos";
 
 
     /*
-     * NO mostrar usuarios si todavía
-     * no se realizó una búsqueda.
+     * Si todavía no hay búsqueda,
+     * NO mostramos usuarios.
      */
 
     if(!hayTexto && !hayFiltro){
@@ -629,9 +734,11 @@ async function realizarBusqueda(){
     }
 
 
-    estado.style.display = "block";
+    estado.style.display =
+        "block";
 
-    estado.textContent = "Buscando...";
+    estado.textContent =
+        "Buscando...";
 
     resultados.innerHTML = "";
 
@@ -639,17 +746,18 @@ async function realizarBusqueda(){
     try{
 
         /*
-         * Los usuarios se cargan recién
-         * cuando realmente se comienza
-         * una búsqueda.
+         * Recién aquí se consulta
+         * la colección usuarios.
          */
 
         await cargarUsuarios();
+
 
         aplicarFiltros(
             texto,
             localidad
         );
+
 
     }catch(error){
 
@@ -658,9 +766,11 @@ async function realizarBusqueda(){
             error
         );
 
+
         resultados.innerHTML = "";
 
-        estado.style.display = "block";
+        estado.style.display =
+            "block";
 
         estado.textContent =
             "No se pudo realizar la búsqueda.";
@@ -682,13 +792,17 @@ async function cargarUsuarios(){
 
     }
 
+
     if(cargandoUsuarios){
 
         while(cargandoUsuarios){
 
             await new Promise(
                 resolve =>
-                    setTimeout(resolve,100)
+                    setTimeout(
+                        resolve,
+                        100
+                    )
             );
 
         }
@@ -705,44 +819,51 @@ async function cargarUsuarios(){
 
         const snapshot =
             await getDocs(
-                collection(db,"usuarios")
+                collection(
+                    db,
+                    "usuarios"
+                )
             );
 
 
         usuarios = [];
 
 
-        snapshot.forEach(documento => {
+        snapshot.forEach(
+            documento => {
 
-            const uid =
-                documento.id;
+                const uid =
+                    documento.id;
 
-            /*
-             * Nunca mostrar el propio usuario.
-             */
 
-            if(
-                usuarioActual &&
-                uid === usuarioActual.uid
-            ){
+                /*
+                 * Nunca mostrar
+                 * el propio perfil.
+                 */
 
-                return;
+                if(
+                    usuarioActual &&
+                    uid === usuarioActual.uid
+                ){
+
+                    return;
+
+                }
+
+
+                const datos =
+                    documento.data();
+
+
+                usuarios.push(
+                    transformarUsuario(
+                        uid,
+                        datos
+                    )
+                );
 
             }
-
-
-            const datos =
-                documento.data();
-
-
-            usuarios.push(
-                transformarUsuario(
-                    uid,
-                    datos
-                )
-            );
-
-        });
+        );
 
 
         usuariosCargados = true;
@@ -758,7 +879,7 @@ async function cargarUsuarios(){
 
 
 /* =========================
-   TRANSFORMAR PERFIL
+   TRANSFORMAR USUARIO
 ========================= */
 
 function transformarUsuario(
@@ -821,19 +942,12 @@ function transformarUsuario(
     return {
 
         uid,
-
         nombre,
-
         tipo,
-
         rubro,
-
         localidad,
-
         provincia,
-
         empresa,
-
         foto
 
     };
@@ -899,7 +1013,7 @@ function normalizarTipo(valor){
 
 
 /* =========================
-   FILTRAR RESULTADOS
+   FILTROS
 ========================= */
 
 function aplicarFiltros(
@@ -907,78 +1021,62 @@ function aplicarFiltros(
     localidad
 ){
 
-    const resultadosFiltrados =
-        usuarios.filter(usuario => {
+    const lista =
+        usuarios.filter(
+            usuario => {
+
+                const contenido =
+                    normalizar(
+                        [
+                            usuario.nombre,
+                            usuario.rubro,
+                            usuario.localidad,
+                            usuario.provincia,
+                            usuario.empresa
+                        ]
+                        .join(" ")
+                    );
 
 
-            /*
-             * Búsqueda general:
-             * nombre
-             * rubro
-             * localidad
-             * empresa
-             * provincia
-             */
-
-            const contenido = normalizar(
-                [
-                    usuario.nombre,
-                    usuario.rubro,
-                    usuario.localidad,
-                    usuario.provincia,
-                    usuario.empresa
-                ]
-                .join(" ")
-            );
+                const coincideTexto =
+                    !texto ||
+                    contenido.includes(
+                        texto
+                    );
 
 
-            /*
-             * El texto buscado debe aparecer
-             * en alguno de los datos del perfil.
-             */
-
-            const coincideTexto =
-                !texto ||
-                contenido.includes(texto);
-
-
-            /*
-             * Filtro localidad.
-             */
-
-            const coincideLocalidad =
-                !localidad ||
-                normalizar(
-                    [
-                        usuario.localidad,
-                        usuario.provincia
-                    ]
-                    .join(" ")
-                )
-                .includes(localidad);
+                const coincideLocalidad =
+                    !localidad ||
+                    normalizar(
+                        [
+                            usuario.localidad,
+                            usuario.provincia
+                        ]
+                        .join(" ")
+                    )
+                    .includes(
+                        localidad
+                    );
 
 
-            /*
-             * Filtro por categoría.
-             */
-
-            const coincideTipo =
-                tipoSeleccionado === "todos" ||
-                usuario.tipo === tipoSeleccionado;
+                const coincideTipo =
+                    tipoSeleccionado ===
+                        "todos" ||
+                    usuario.tipo ===
+                        tipoSeleccionado;
 
 
-            return (
-                coincideTexto &&
-                coincideLocalidad &&
-                coincideTipo
-            );
+                return (
+                    coincideTexto &&
+                    coincideLocalidad &&
+                    coincideTipo
+                );
 
-        });
+            }
+        );
 
 
-    pintarResultados(
-        resultadosFiltrados
-    );
+    pintarResultados(lista);
 
 }
 
@@ -994,7 +1092,8 @@ async function pintarResultados(lista){
 
     if(lista.length === 0){
 
-        estado.style.display = "block";
+        estado.style.display =
+            "block";
 
         estado.textContent =
             "No encontramos personas o negocios que coincidan con la búsqueda.";
@@ -1004,7 +1103,8 @@ async function pintarResultados(lista){
     }
 
 
-    estado.style.display = "none";
+    estado.style.display =
+        "none";
 
 
     await cargarEstadosConexion(
@@ -1012,13 +1112,15 @@ async function pintarResultados(lista){
     );
 
 
-    lista.forEach(usuario => {
+    lista.forEach(
+        usuario => {
 
-        resultados.appendChild(
-            crearCard(usuario)
-        );
+            resultados.appendChild(
+                crearCard(usuario)
+            );
 
-    });
+        }
+    );
 
 }
 
@@ -1044,7 +1146,10 @@ async function cargarEstadosConexion(lista){
         const enviadosSnapshot =
             await getDocs(
                 query(
-                    collection(db,"conexiones"),
+                    collection(
+                        db,
+                        "conexiones"
+                    ),
                     where(
                         "emisor",
                         "==",
@@ -1054,35 +1159,45 @@ async function cargarEstadosConexion(lista){
             );
 
 
-        enviadosSnapshot.forEach(documento => {
+        enviadosSnapshot.forEach(
+            documento => {
 
-            const datos =
-                documento.data();
+                const datos =
+                    documento.data();
 
 
-            if(datos.receptor){
+                if(datos.receptor){
 
-                estadosConexion.set(
-                    datos.receptor,
-                    {
-                        estado:
-                            datos.estado || "pendiente",
-                        id:
-                            documento.id,
-                        direccion:
-                            "enviada"
-                    }
-                );
+                    estadosConexion.set(
+                        datos.receptor,
+                        {
+
+                            estado:
+                                datos.estado ||
+                                "pendiente",
+
+                            id:
+                                documento.id,
+
+                            direccion:
+                                "enviada"
+
+                        }
+                    );
+
+                }
 
             }
-
-        });
+        );
 
 
         const recibidosSnapshot =
             await getDocs(
                 query(
-                    collection(db,"conexiones"),
+                    collection(
+                        db,
+                        "conexiones"
+                    ),
                     where(
                         "receptor",
                         "==",
@@ -1092,41 +1207,36 @@ async function cargarEstadosConexion(lista){
             );
 
 
-        recibidosSnapshot.forEach(documento => {
+        recibidosSnapshot.forEach(
+            documento => {
 
-            const datos =
-                documento.data();
+                const datos =
+                    documento.data();
 
 
-            if(datos.emisor){
+                if(datos.emisor){
 
-                /*
-                 * Si ya existe una solicitud enviada
-                 * y además recibida, priorizamos aceptada.
-                 */
+                    estadosConexion.set(
+                        datos.emisor,
+                        {
 
-                const anterior =
-                    estadosConexion.get(
-                        datos.emisor
+                            estado:
+                                datos.estado ||
+                                "pendiente",
+
+                            id:
+                                documento.id,
+
+                            direccion:
+                                "recibida"
+
+                        }
                     );
 
-
-                estadosConexion.set(
-                    datos.emisor,
-                    {
-                        estado:
-                            datos.estado || "pendiente",
-                        id:
-                            documento.id,
-                        direccion:
-                            "recibida",
-                        anterior
-                    }
-                );
+                }
 
             }
-
-        });
+        );
 
 
     }catch(error){
@@ -1150,7 +1260,8 @@ function crearCard(usuario){
     const card =
         document.createElement("div");
 
-    card.className = "card";
+    card.className =
+        "card";
 
 
     const perfilArea =
@@ -1162,7 +1273,10 @@ function crearCard(usuario){
 
     perfilArea.addEventListener(
         "click",
-        () => abrirPerfil(usuario.uid)
+        () =>
+            abrirPerfil(
+                usuario.uid
+            )
     );
 
 
@@ -1184,6 +1298,7 @@ function crearCard(usuario){
         imagen.alt =
             usuario.nombre;
 
+
         imagen.onerror = () => {
 
             imagen.remove();
@@ -1195,7 +1310,10 @@ function crearCard(usuario){
 
         };
 
-        avatar.appendChild(imagen);
+
+        avatar.appendChild(
+            imagen
+        );
 
     }else{
 
@@ -1258,7 +1376,8 @@ function crearCard(usuario){
     if(usuario.localidad){
 
         datosDetalle.push(
-            "📍 " + usuario.localidad
+            "📍 " +
+            usuario.localidad
         );
 
     }
@@ -1276,30 +1395,46 @@ function crearCard(usuario){
     if(usuario.empresa){
 
         datosDetalle.push(
-            "🏢 " + usuario.empresa
+            "🏢 " +
+            usuario.empresa
         );
 
     }
 
 
     detalle.textContent =
-        datosDetalle.join(" · ");
+        datosDetalle.join(
+            " · "
+        );
 
 
-    info.appendChild(nombre);
+    info.appendChild(
+        nombre
+    );
 
-    info.appendChild(tipo);
+
+    info.appendChild(
+        tipo
+    );
+
 
     if(detalle.textContent){
 
-        info.appendChild(detalle);
+        info.appendChild(
+            detalle
+        );
 
     }
 
 
-    perfilArea.appendChild(avatar);
+    perfilArea.appendChild(
+        avatar
+    );
 
-    perfilArea.appendChild(info);
+
+    perfilArea.appendChild(
+        info
+    );
 
 
     const acciones =
@@ -1312,6 +1447,9 @@ function crearCard(usuario){
     const botonPerfil =
         document.createElement("button");
 
+    botonPerfil.type =
+        "button";
+
     botonPerfil.className =
         "btn btn-perfil";
 
@@ -1321,12 +1459,18 @@ function crearCard(usuario){
 
     botonPerfil.addEventListener(
         "click",
-        () => abrirPerfil(usuario.uid)
+        () =>
+            abrirPerfil(
+                usuario.uid
+            )
     );
 
 
     const botonConectar =
         document.createElement("button");
+
+    botonConectar.type =
+        "button";
 
     botonConectar.className =
         "btn btn-conectar";
@@ -1340,7 +1484,8 @@ function crearCard(usuario){
 
     if(
         estadoConexion &&
-        estadoConexion.estado === "aceptada"
+        estadoConexion.estado ===
+            "aceptada"
     ){
 
         botonConectar.textContent =
@@ -1351,8 +1496,10 @@ function crearCard(usuario){
 
     }else if(
         estadoConexion &&
-        estadoConexion.direccion === "enviada" &&
-        estadoConexion.estado === "pendiente"
+        estadoConexion.direccion ===
+            "enviada" &&
+        estadoConexion.estado ===
+            "pendiente"
     ){
 
         botonConectar.textContent =
@@ -1363,8 +1510,10 @@ function crearCard(usuario){
 
     }else if(
         estadoConexion &&
-        estadoConexion.direccion === "recibida" &&
-        estadoConexion.estado === "pendiente"
+        estadoConexion.direccion ===
+            "recibida" &&
+        estadoConexion.estado ===
+            "pendiente"
     ){
 
         botonConectar.textContent =
@@ -1378,12 +1527,14 @@ function crearCard(usuario){
         botonConectar.textContent =
             "Conectar";
 
+
         botonConectar.addEventListener(
             "click",
-            () => gestionarConexion(
-                usuario.uid,
-                botonConectar
-            )
+            () =>
+                gestionarConexion(
+                    usuario.uid,
+                    botonConectar
+                )
         );
 
     }
@@ -1393,6 +1544,7 @@ function crearCard(usuario){
         botonPerfil
     );
 
+
     acciones.appendChild(
         botonConectar
     );
@@ -1401,6 +1553,7 @@ function crearCard(usuario){
     card.appendChild(
         perfilArea
     );
+
 
     card.appendChild(
         acciones
@@ -1413,7 +1566,7 @@ function crearCard(usuario){
 
 
 /* =========================
-   ENVIAR CONEXIÓN
+   CONECTAR
 ========================= */
 
 async function gestionarConexion(
@@ -1438,7 +1591,8 @@ async function gestionarConexion(
     }
 
 
-    boton.disabled = true;
+    boton.disabled =
+        true;
 
     boton.textContent =
         "Enviando...";
@@ -1447,14 +1601,17 @@ async function gestionarConexion(
     try{
 
         /*
-         * Verificamos nuevamente
-         * que no exista una conexión.
+         * Verificar solicitud
+         * existente enviada.
          */
 
         const enviadosSnapshot =
             await getDocs(
                 query(
-                    collection(db,"conexiones"),
+                    collection(
+                        db,
+                        "conexiones"
+                    ),
                     where(
                         "emisor",
                         "==",
@@ -1469,10 +1626,18 @@ async function gestionarConexion(
             );
 
 
+        /*
+         * Verificar solicitud
+         * existente recibida.
+         */
+
         const recibidosSnapshot =
             await getDocs(
                 query(
-                    collection(db,"conexiones"),
+                    collection(
+                        db,
+                        "conexiones"
+                    ),
                     where(
                         "emisor",
                         "==",
@@ -1499,6 +1664,11 @@ async function gestionarConexion(
 
         }
 
+
+        /*
+         * Obtener el perfil real
+         * del usuario actual.
+         */
 
         const perfilActual =
             await getDoc(
@@ -1529,12 +1699,17 @@ async function gestionarConexion(
 
 
         /*
-         * UNA SOLA IDENTIDAD:
-         * emisor y receptor son UIDs.
+         * UNA SOLA IDENTIDAD.
+         *
+         * emisor = UID actual
+         * receptor = UID destino
          */
 
         await addDoc(
-            collection(db,"conexiones"),
+            collection(
+                db,
+                "conexiones"
+            ),
             {
 
                 emisor:
@@ -1557,11 +1732,14 @@ async function gestionarConexion(
 
 
         /*
-         * Notificación para el receptor.
+         * Crear notificación.
          */
 
         await addDoc(
-            collection(db,"notificaciones"),
+            collection(
+                db,
+                "notificaciones"
+            ),
             {
 
                 usuarioId:
@@ -1599,8 +1777,13 @@ async function gestionarConexion(
         estadosConexion.set(
             receptorUid,
             {
-                estado:"pendiente",
-                direccion:"enviada"
+
+                estado:
+                    "pendiente",
+
+                direccion:
+                    "enviada"
+
             }
         );
 
@@ -1616,10 +1799,13 @@ async function gestionarConexion(
             error
         );
 
-        boton.disabled = false;
+
+        boton.disabled =
+            false;
 
         boton.textContent =
             "Conectar";
+
 
         alert(
             "No se pudo enviar la solicitud."
@@ -1631,7 +1817,7 @@ async function gestionarConexion(
 
 
 /* =========================
-   ABRIR PERFIL
+   PERFIL
 ========================= */
 
 function abrirPerfil(uid){
@@ -1641,6 +1827,7 @@ function abrirPerfil(uid){
         return;
 
     }
+
 
     window.location.href =
         "red-perfil.html?uid=" +
@@ -1653,12 +1840,13 @@ function abrirPerfil(uid){
    NAVEGACIÓN
 ========================= */
 
-window.irA = function(pagina){
+window.irA =
+    function(pagina){
 
-    window.location.href =
-        pagina;
+        window.location.href =
+            pagina;
 
-};
+    };
 
 
 /* =========================
@@ -1689,9 +1877,11 @@ function obtenerInicial(nombre){
         )
         .trim();
 
+
     return (
-        texto.charAt(0)
-            .toUpperCase()
+        texto
+        .charAt(0)
+        .toUpperCase()
     );
 
 }
@@ -1719,13 +1909,11 @@ function textoTipo(tipo){
     };
 
 
-    return tipos[tipo] ||
-        "Usuario GESBASE";
+    return (
+        tipos[tipo] ||
+        "Usuario GESBASE"
+    );
 
 }
 
-</script>
-
-</body>
-
-</html>
+</script></body></html>
