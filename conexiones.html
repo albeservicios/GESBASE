@@ -17,7 +17,7 @@
 
 <meta
     name="description"
-    content="Conexiones de Red GESBASE."
+    content="Conexiones de Red GESBASE. Administrá tus solicitudes, conexiones y contactos profesionales."
 >
 
 <title>Conexiones - Red GESBASE</title>
@@ -156,6 +156,16 @@ header{
 }
 
 
+.profile-link{
+    display:flex;
+    align-items:center;
+    gap:13px;
+    flex:1;
+    min-width:0;
+    cursor:pointer;
+}
+
+
 .avatar{
     width:55px;
     height:55px;
@@ -192,6 +202,12 @@ header{
 .type{
     color:#374151;
     font-size:13px;
+    margin-bottom:3px;
+}
+
+.rubro{
+    color:#4b5563;
+    font-size:12px;
     margin-bottom:3px;
 }
 
@@ -238,6 +254,16 @@ header{
 .btn-cancel{
     background:#e5e7eb;
     color:#374151;
+}
+
+.btn-message{
+    background:#111827;
+    color:white;
+}
+
+.btn-profile{
+    background:#e5e7eb;
+    color:#111827;
 }
 
 .btn-remove{
@@ -348,6 +374,10 @@ header{
         padding:13px;
     }
 
+    .profile-link{
+        align-items:flex-start;
+    }
+
     .avatar{
         width:48px;
         height:48px;
@@ -366,6 +396,36 @@ header{
         width:100%;
         padding:8px 7px;
         font-size:11px;
+    }
+
+}
+
+
+/* PANTALLAS MUY CHICAS */
+
+@media(max-width:390px){
+
+    .connection-card{
+        gap:9px;
+    }
+
+    .profile-link{
+        gap:9px;
+    }
+
+    .avatar{
+        width:44px;
+        height:44px;
+        font-size:18px;
+    }
+
+    .actions{
+        min-width:80px;
+    }
+
+    .btn{
+        font-size:10px;
+        padding:7px 5px;
     }
 
 }
@@ -611,7 +671,9 @@ import {
     doc,
     getDoc,
     updateDoc,
-    deleteDoc
+    deleteDoc,
+    addDoc,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
@@ -755,11 +817,6 @@ async function cargarConexiones(){
 
     try{
 
-        /*
-         * Obtenemos todas las conexiones
-         * del usuario como emisor.
-         */
-
         const qEnviadas =
             query(
                 collection(
@@ -773,11 +830,6 @@ async function cargarConexiones(){
                 )
             );
 
-
-        /*
-         * Obtenemos todas las conexiones
-         * del usuario como receptor.
-         */
 
         const qRecibidas =
             query(
@@ -811,19 +863,14 @@ async function cargarConexiones(){
         snapshotRecibidas.forEach(
             documento => {
 
-                const data =
-                    documento.data();
-
-
                 recibidas.push({
 
                     id:
                         documento.id,
 
-                    ...data
+                    ...documento.data()
 
                 });
-
 
             }
         );
@@ -832,16 +879,12 @@ async function cargarConexiones(){
         snapshotEnviadas.forEach(
             documento => {
 
-                const data =
-                    documento.data();
-
-
                 enviadas.push({
 
                     id:
                         documento.id,
 
-                    ...data
+                    ...documento.data()
 
                 });
 
@@ -850,8 +893,7 @@ async function cargarConexiones(){
 
 
         /*
-         * Las aceptadas pueden estar
-         * tanto en enviadas como recibidas.
+         * ACEPTADAS RECIBIDAS
          */
 
         recibidas.forEach(
@@ -876,6 +918,10 @@ async function cargarConexiones(){
             }
         );
 
+
+        /*
+         * ACEPTADAS ENVIADAS
+         */
 
         enviadas.forEach(
             conexion => {
@@ -986,11 +1032,6 @@ async function obtenerPerfil(
 
     try{
 
-        /*
-         * Primero buscamos en
-         * directorio_red.
-         */
-
         const referencia =
             doc(
                 db,
@@ -1021,11 +1062,6 @@ async function obtenerPerfil(
         }
 
 
-        /*
-         * Si no existe,
-         * usamos un perfil básico.
-         */
-
         return {
 
             uid:
@@ -1036,6 +1072,9 @@ async function obtenerPerfil(
 
             tipo:
                 "persona",
+
+            rubro:
+                "",
 
             fotoURL:
                 "",
@@ -1066,7 +1105,10 @@ async function obtenerPerfil(
                 "Usuario GESBASE",
 
             tipo:
-                "persona"
+                "persona",
+
+            rubro:
+                ""
 
         };
 
@@ -1142,20 +1184,6 @@ async function renderSolicitudesRecibidas(
             "Aceptar";
 
 
-        aceptar.addEventListener(
-            "click",
-            () => {
-
-                aceptarSolicitud(
-                    conexion.id,
-                    aceptar,
-                    rechazar
-                );
-
-            }
-        );
-
-
         const rechazar =
             document.createElement(
                 "button"
@@ -1168,6 +1196,20 @@ async function renderSolicitudesRecibidas(
 
         rechazar.textContent =
             "Rechazar";
+
+
+        aceptar.addEventListener(
+            "click",
+            () => {
+
+                aceptarSolicitud(
+                    conexion.id,
+                    aceptar,
+                    rechazar
+                );
+
+            }
+        );
 
 
         rechazar.addEventListener(
@@ -1283,6 +1325,70 @@ async function renderMisConexiones(
             "actions";
 
 
+        /*
+         * BOTON PERFIL
+         */
+
+        const perfilBtn =
+            document.createElement(
+                "button"
+            );
+
+
+        perfilBtn.className =
+            "btn btn-profile";
+
+
+        perfilBtn.textContent =
+            "👤 Perfil";
+
+
+        perfilBtn.addEventListener(
+            "click",
+            () => {
+
+                abrirPerfil(
+                    conexion.otroUsuario
+                );
+
+            }
+        );
+
+
+        /*
+         * BOTON MENSAJE
+         */
+
+        const mensaje =
+            document.createElement(
+                "button"
+            );
+
+
+        mensaje.className =
+            "btn btn-message";
+
+
+        mensaje.textContent =
+            "💬 Mensaje";
+
+
+        mensaje.addEventListener(
+            "click",
+            () => {
+
+                abrirMensaje(
+                    conexion.otroUsuario
+                );
+
+            }
+        );
+
+
+        /*
+         * BOTON ELIMINAR
+         */
+
         const eliminar =
             document.createElement(
                 "button"
@@ -1307,6 +1413,16 @@ async function renderMisConexiones(
                 );
 
             }
+        );
+
+
+        acciones.appendChild(
+            perfilBtn
+        );
+
+
+        acciones.appendChild(
+            mensaje
         );
 
 
@@ -1452,6 +1568,28 @@ function crearTarjetaPerfil(
         "Usuario GESBASE";
 
 
+    /*
+     * ZONA PERFIL
+     */
+
+    const profileLink =
+        document.createElement(
+            "div"
+        );
+
+
+    profileLink.className =
+        "profile-link";
+
+
+    profileLink.title =
+        "Ver perfil";
+
+
+    /*
+     * AVATAR
+     */
+
     const avatar =
         document.createElement(
             "div"
@@ -1511,6 +1649,10 @@ function crearTarjetaPerfil(
     }
 
 
+    /*
+     * INFORMACION
+     */
+
     const info =
         document.createElement(
             "div"
@@ -1561,6 +1703,45 @@ function crearTarjetaPerfil(
     );
 
 
+    /*
+     * RUBRO
+     */
+
+    const rubro =
+        perfil.rubro ||
+        "";
+
+
+    if(rubro){
+
+        const rubroElement =
+            document.createElement(
+                "div"
+            );
+
+
+        rubroElement.className =
+            "rubro";
+
+
+        rubroElement.textContent =
+            "🔧 " +
+            convertirRubro(
+                rubro
+            );
+
+
+        info.appendChild(
+            rubroElement
+        );
+
+    }
+
+
+    /*
+     * UBICACION
+     */
+
     const localidad =
         perfil.localidad ||
         "";
@@ -1605,13 +1786,30 @@ function crearTarjetaPerfil(
     }
 
 
-    tarjeta.appendChild(
+    profileLink.appendChild(
         avatar
     );
 
 
-    tarjeta.appendChild(
+    profileLink.appendChild(
         info
+    );
+
+
+    profileLink.addEventListener(
+        "click",
+        () => {
+
+            abrirPerfil(
+                perfil.uid
+            );
+
+        }
+    );
+
+
+    tarjeta.appendChild(
+        profileLink
     );
 
 
@@ -1650,7 +1848,10 @@ function convertirTipo(
             "Empresa",
 
         comercio:
-            "Comercio"
+            "Comercio",
+
+        distribuidora:
+            "Distribuidora"
 
     };
 
@@ -1658,6 +1859,121 @@ function convertirTipo(
     return tipos[valor] ||
         tipo ||
         "Usuario GESBASE";
+
+}
+
+
+
+/* =========================
+   RUBRO
+========================= */
+
+function convertirRubro(
+    rubro
+){
+
+    const valor =
+        String(
+            rubro || ""
+        ).toLowerCase();
+
+
+    const rubros = {
+
+        construccion:
+            "Construcción",
+
+        electricidad:
+            "Electricidad",
+
+        pintura:
+            "Pintura",
+
+        mantenimiento:
+            "Mantenimiento",
+
+        indumentaria:
+            "Indumentaria",
+
+        calzado:
+            "Calzado",
+
+        accesorios:
+            "Accesorios",
+
+        distribuidora:
+            "Distribuidora",
+
+        almacen:
+            "Almacén",
+
+        comercio:
+            "Comercio",
+
+        ferreteria:
+            "Ferretería",
+
+        gastronomia:
+            "Gastronomía",
+
+        servicios:
+            "Servicios"
+
+    };
+
+
+    return rubros[valor] ||
+        rubro;
+
+}
+
+
+
+/* =========================
+   ABRIR PERFIL
+========================= */
+
+function abrirPerfil(
+    uid
+){
+
+    if(!uid){
+
+        return;
+
+    }
+
+
+    window.location.href =
+        "red-perfil.html?uid=" +
+        encodeURIComponent(
+            uid
+        );
+
+}
+
+
+
+/* =========================
+   ABRIR MENSAJE
+========================= */
+
+function abrirMensaje(
+    uid
+){
+
+    if(!uid){
+
+        return;
+
+    }
+
+
+    window.location.href =
+        "mensajes.html?usuario=" +
+        encodeURIComponent(
+            uid
+        );
 
 }
 
@@ -1694,6 +2010,52 @@ async function aceptarSolicitud(
             );
 
 
+        /*
+         * Verificamos que la solicitud
+         * siga pendiente antes de aceptarla.
+         */
+
+        const actual =
+            await getDoc(
+                referencia
+            );
+
+
+        if(
+            !actual.exists()
+        ){
+
+            mostrarToast(
+                "La solicitud ya no existe."
+            );
+
+            await cargarConexiones();
+
+            return;
+
+        }
+
+
+        const datos =
+            actual.data();
+
+
+        if(
+            datos.estado !==
+            "pendiente"
+        ){
+
+            mostrarToast(
+                "Esta solicitud ya fue procesada."
+            );
+
+            await cargarConexiones();
+
+            return;
+
+        }
+
+
         await updateDoc(
             referencia,
             {
@@ -1701,6 +2063,63 @@ async function aceptarSolicitud(
                     "aceptada"
             }
         );
+
+
+        /*
+         * Creamos notificación
+         * para quien envió la solicitud.
+         */
+
+        try{
+
+            await addDoc(
+                collection(
+                    db,
+                    "notificaciones"
+                ),
+                {
+
+                    receptorUid:
+                        datos.emisor,
+
+                    emisorUid:
+                        usuarioActual.uid,
+
+                    tipo:
+                        "conexion_aceptada",
+
+                    titulo:
+                        "Solicitud de conexión aceptada",
+
+                    mensaje:
+                        `${obtenerNombreActual()} aceptó tu solicitud de conexión.`,
+
+                    leida:
+                        false,
+
+                    fecha:
+                        serverTimestamp(),
+
+                    fechaCliente:
+                        Date.now(),
+
+                    referenciaId:
+                        id,
+
+                    url:
+                        "conexiones.html"
+
+                }
+            );
+
+        }catch(errorNotificacion){
+
+            console.error(
+                "No se pudo crear la notificación:",
+                errorNotificacion
+            );
+
+        }
 
 
         mostrarToast(
@@ -1741,6 +2160,28 @@ async function aceptarSolicitud(
 
 
 /* =========================
+   OBTENER NOMBRE ACTUAL
+========================= */
+
+function obtenerNombreActual(){
+
+    if(
+        usuarioActual &&
+        usuarioActual.displayName
+    ){
+
+        return usuarioActual.displayName;
+
+    }
+
+
+    return "Un usuario de GESBASE";
+
+}
+
+
+
+/* =========================
    RECHAZAR
 ========================= */
 
@@ -1763,12 +2204,37 @@ async function rechazarSolicitud(
 
     try{
 
-        await deleteDoc(
+        const referencia =
             doc(
                 db,
                 "conexiones",
                 id
-            )
+            );
+
+
+        const actual =
+            await getDoc(
+                referencia
+            );
+
+
+        if(
+            !actual.exists()
+        ){
+
+            mostrarToast(
+                "La solicitud ya no existe."
+            );
+
+            await cargarConexiones();
+
+            return;
+
+        }
+
+
+        await deleteDoc(
+            referencia
         );
 
 
