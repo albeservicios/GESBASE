@@ -1422,7 +1422,21 @@ let usuarioActual = null;
 
 let perfilActual = {};
 
-let tipoImagenActual = null;
+let usuarioPerfilUid = null;
+
+
+/* ==========================================
+   OBTENER UID DE LA URL
+========================================== */
+
+const parametros =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const uidSolicitado =
+    parametros.get("uid");
 
 
 /* ==========================================
@@ -1496,7 +1510,8 @@ function mostrarToast(mensaje){
     const toast =
         document.getElementById("toast");
 
-    toast.textContent = mensaje;
+    toast.textContent =
+        mensaje;
 
     toast.classList.add("show");
 
@@ -1504,7 +1519,8 @@ function mostrarToast(mensaje){
 
         toast.classList.remove("show");
 
-    }, 3000);
+    },3000);
+
 }
 
 
@@ -1525,12 +1541,34 @@ function obtenerNombreCompleto(){
     const completo =
         `${nombre} ${apellido}`.trim();
 
+
     return (
         perfilActual.nombreCompleto ||
         completo ||
-        usuarioActual?.displayName ||
         "Usuario GESBASE"
     );
+
+}
+
+
+/* ==========================================
+   CAPITALIZAR
+========================================== */
+
+function capitalizar(texto){
+
+    if(!texto){
+
+        return "";
+
+    }
+
+
+    return (
+        texto.charAt(0).toUpperCase() +
+        texto.slice(1)
+    );
+
 }
 
 
@@ -1540,14 +1578,18 @@ function obtenerNombreCompleto(){
 
 async function sincronizarDirectorio(){
 
-    if(!usuarioActual){
+    if(
+        !usuarioActual ||
+        usuarioPerfilUid !==
+        usuarioActual.uid
+    ){
+
         return;
+
     }
 
-    try{
 
-        const nombreCompleto =
-            obtenerNombreCompleto();
+    try{
 
         await setDoc(
             doc(
@@ -1561,7 +1603,7 @@ async function sincronizarDirectorio(){
                     usuarioActual.uid,
 
                 nombreCompleto:
-                    nombreCompleto,
+                    obtenerNombreCompleto(),
 
                 tipo:
                     perfilActual.tipoPerfil ||
@@ -1596,9 +1638,6 @@ async function sincronizarDirectorio(){
             }
         );
 
-        console.log(
-            "Directorio sincronizado correctamente"
-        );
 
     }catch(error){
 
@@ -1607,8 +1646,8 @@ async function sincronizarDirectorio(){
             error
         );
 
-        throw error;
     }
+
 }
 
 
@@ -1619,20 +1658,43 @@ async function sincronizarDirectorio(){
 async function cargarPerfil(){
 
     if(!usuarioActual){
+
         return;
+
     }
 
+
     try{
+
+        /*
+         * SI EXISTE ?uid=...
+         * MOSTRAR ESE PERFIL.
+         *
+         * SI NO EXISTE,
+         * MOSTRAR EL PROPIO.
+         */
+
+        usuarioPerfilUid =
+            uidSolicitado ||
+            usuarioActual.uid;
+
+
+        /*
+         * CARGAR USUARIOS RED
+         */
 
         const referencia =
             doc(
                 db,
                 "usuariosRed",
-                usuarioActual.uid
+                usuarioPerfilUid
             );
 
+
         const snap =
-            await getDoc(referencia);
+            await getDoc(
+                referencia
+            );
 
 
         if(snap.exists()){
@@ -1642,75 +1704,119 @@ async function cargarPerfil(){
 
         }else{
 
+            /*
+             * BUSCAR EN DIRECTORIO
+             */
+
+            const referenciaDirectorio =
+                doc(
+                    db,
+                    "directorio_red",
+                    usuarioPerfilUid
+                );
+
+
+            const snapDirectorio =
+                await getDoc(
+                    referenciaDirectorio
+                );
+
+
+            if(
+                !snapDirectorio.exists()
+            ){
+
+                loading.innerHTML =
+                    `
+                    <div style="color:#a52828;">
+
+                        No se encontró este perfil.
+
+                    </div>
+                    `;
+
+                return;
+
+            }
+
+
+            const datos =
+                snapDirectorio.data();
+
+
             perfilActual = {
 
                 uid:
-                    usuarioActual.uid,
+                    usuarioPerfilUid,
+
+                nombreCompleto:
+                    datos.nombreCompleto ||
+                    "Usuario GESBASE",
 
                 nombre:
-                    usuarioActual.displayName ||
+                    datos.nombre ||
                     "",
 
                 apellido:
-                    "",
-
-                nombreCompleto:
-                    usuarioActual.displayName ||
+                    datos.apellido ||
                     "",
 
                 tipoPerfil:
+                    datos.tipo ||
                     "persona",
 
                 descripcion:
+                    datos.descripcion ||
                     "",
 
                 rubro:
+                    datos.rubro ||
                     "",
 
                 localidad:
+                    datos.localidad ||
                     "",
 
                 provincia:
+                    datos.provincia ||
                     "",
 
                 fotoPerfil:
+                    datos.fotoURL ||
                     "",
 
                 fotoPortada:
+                    datos.fotoPortada ||
                     "",
 
                 visible:
-                    true
+                    datos.activo !== false
 
             };
 
         }
 
 
-        /* ==========================
-           SINCRONIZAR DIRECTORIO
-        ========================== */
+        /*
+         * SOLO SINCRONIZAR
+         * SI ES MI PERFIL
+         */
 
-        await sincronizarDirectorio();
+        if(
+            usuarioPerfilUid ===
+            usuarioActual.uid
+        ){
 
+            await sincronizarDirectorio();
 
-        /* ==========================
-           MOSTRAR DATOS
-        ========================== */
+        }
+
 
         renderizarPerfil();
 
-
-        /* ==========================
-           ESTADISTICAS
-        ========================== */
+        configurarPerfil();
 
         await cargarEstadisticas();
-
-
-        /* ==========================
-           PUBLICACIONES
-        ========================== */
 
         await cargarPublicaciones();
 
@@ -1729,20 +1835,157 @@ async function cargarPerfil(){
             error
         );
 
+
         loading.innerHTML =
             `
             <div style="color:#a52828;">
+
                 No se pudo cargar el perfil.
+
                 <br><br>
-                ${error.message}
+
+                ${escaparHTML(
+                    error.message ||
+                    ""
+                )}
+
             </div>
             `;
+
     }
+
 }
 
 
 /* ==========================================
-   RENDER PERFIL
+   CONFIGURAR PERFIL
+========================================== */
+
+function configurarPerfil(){
+
+    const esMiPerfil =
+        usuarioPerfilUid ===
+        usuarioActual.uid;
+
+
+    if(esMiPerfil){
+
+        /*
+         * MI PERFIL
+         */
+
+        document.title =
+            "Mi perfil - Red GESBASE";
+
+
+        document
+            .getElementById(
+                "btnEditar"
+            )
+            .style.display =
+            "inline-block";
+
+
+        document
+            .getElementById(
+                "btnEditarHeader"
+            )
+            .style.display =
+            "flex";
+
+
+        document
+            .getElementById(
+                "btnCerrarSesion"
+            )
+            .style.display =
+            "inline-block";
+
+
+        profilePhoto.style.cursor =
+            "pointer";
+
+
+        cover.style.cursor =
+            "pointer";
+
+
+        const camera =
+            document.querySelector(
+                ".photo-camera"
+            );
+
+
+        if(camera){
+
+            camera.style.display =
+                "flex";
+
+        }
+
+    }else{
+
+        /*
+         * PERFIL DE OTRA PERSONA
+         */
+
+        document.title =
+            obtenerNombreCompleto() +
+            " - Red GESBASE";
+
+
+        document
+            .getElementById(
+                "btnEditar"
+            )
+            .style.display =
+            "none";
+
+
+        document
+            .getElementById(
+                "btnEditarHeader"
+            )
+            .style.display =
+            "none";
+
+
+        document
+            .getElementById(
+                "btnCerrarSesion"
+            )
+            .style.display =
+            "none";
+
+
+        profilePhoto.style.cursor =
+            "default";
+
+
+        cover.style.cursor =
+            "default";
+
+
+        const camera =
+            document.querySelector(
+                ".photo-camera"
+            );
+
+
+        if(camera){
+
+            camera.style.display =
+                "none";
+
+        }
+
+    }
+
+}
+
+
+/* ==========================================
+   RENDERIZAR PERFIL
 ========================================== */
 
 function renderizarPerfil(){
@@ -1767,7 +2010,8 @@ function renderizarPerfil(){
         "";
 
 
-    datosPerfil.innerHTML = "";
+    datosPerfil.innerHTML =
+        "";
 
 
     if(perfilActual.rubro){
@@ -1800,22 +2044,36 @@ function renderizarPerfil(){
     }
 
 
-    if(usuarioActual.email){
+    /*
+     * EMAIL SOLO EN MI PERFIL
+     */
 
-        agregarDato(
-            "✉️",
-            usuarioActual.email
-        );
+    if(
+        usuarioPerfilUid ===
+        usuarioActual.uid
+    ){
+
+        if(usuarioActual.email){
+
+            agregarDato(
+                "✉️",
+                usuarioActual.email
+            );
+
+        }
 
     }
 
 
-    /* FOTO PERFIL */
+    /*
+     * FOTO PERFIL
+     */
 
     if(perfilActual.fotoPerfil){
 
         imagenPerfil.src =
             perfilActual.fotoPerfil;
+
 
         profilePhoto.classList.add(
             "has-image"
@@ -1827,6 +2085,7 @@ function renderizarPerfil(){
             "src"
         );
 
+
         profilePhoto.classList.remove(
             "has-image"
         );
@@ -1834,12 +2093,15 @@ function renderizarPerfil(){
     }
 
 
-    /* PORTADA */
+    /*
+     * FOTO PORTADA
+     */
 
     if(perfilActual.fotoPortada){
 
         imagenPortada.src =
             perfilActual.fotoPortada;
+
 
         cover.classList.add(
             "has-image"
@@ -1850,6 +2112,7 @@ function renderizarPerfil(){
         imagenPortada.removeAttribute(
             "src"
         );
+
 
         cover.classList.remove(
             "has-image"
@@ -1864,35 +2127,29 @@ function renderizarPerfil(){
    AGREGAR DATO
 ========================================== */
 
-function agregarDato(icono,texto){
+function agregarDato(
+    icono,
+    texto
+){
 
     const div =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     div.className =
         "data-item";
 
+
     div.textContent =
         `${icono} ${texto}`;
 
-    datosPerfil.appendChild(div);
-}
 
+    datosPerfil.appendChild(
+        div
+    );
 
-/* ==========================================
-   CAPITALIZAR
-========================================== */
-
-function capitalizar(texto){
-
-    if(!texto){
-        return "";
-    }
-
-    return texto
-        .charAt(0)
-        .toUpperCase() +
-        texto.slice(1);
 }
 
 
@@ -1904,7 +2161,8 @@ async function cargarEstadisticas(){
 
     try{
 
-        let totalConexiones = 0;
+        let totalConexiones =
+            0;
 
 
         const enviados =
@@ -1917,7 +2175,7 @@ async function cargarEstadisticas(){
                     where(
                         "emisor",
                         "==",
-                        usuarioActual.uid
+                        usuarioPerfilUid
                     )
                 )
             );
@@ -1933,44 +2191,50 @@ async function cargarEstadisticas(){
                     where(
                         "receptor",
                         "==",
-                        usuarioActual.uid
+                        usuarioPerfilUid
                     )
                 )
             );
 
 
-        enviados.forEach((item) => {
+        enviados.forEach(
+            (item) => {
 
-            const data =
-                item.data();
-
-            if(
-                data.estado ===
-                "aceptada"
-            ){
-
-                totalConexiones++;
-
-            }
-
-        });
+                const data =
+                    item.data();
 
 
-        recibidos.forEach((item) => {
+                if(
+                    data.estado ===
+                    "aceptada"
+                ){
 
-            const data =
-                item.data();
+                    totalConexiones++;
 
-            if(
-                data.estado ===
-                "aceptada"
-            ){
-
-                totalConexiones++;
+                }
 
             }
+        );
 
-        });
+
+        recibidos.forEach(
+            (item) => {
+
+                const data =
+                    item.data();
+
+
+                if(
+                    data.estado ===
+                    "aceptada"
+                ){
+
+                    totalConexiones++;
+
+                }
+
+            }
+        );
 
 
         cantidadConexiones.textContent =
@@ -1984,8 +2248,10 @@ async function cargarEstadisticas(){
             error
         );
 
+
         cantidadConexiones.textContent =
             "0";
+
     }
 
 }
@@ -2016,44 +2282,62 @@ async function cargarPublicaciones(){
                 where(
                     "uid",
                     "==",
-                    usuarioActual.uid
+                    usuarioPerfilUid
                 )
             );
 
 
         const snap =
-            await getDocs(consulta);
+            await getDocs(
+                consulta
+            );
 
 
         const lista =
             [];
 
 
-        snap.forEach((item) => {
+        snap.forEach(
+            (item) => {
 
-            lista.push({
-                id:item.id,
-                ...item.data()
-            });
+                lista.push({
 
-        });
+                    id:
+                        item.id,
+
+                    ...item.data()
+
+                });
+
+            }
+        );
 
 
-        lista.sort((a,b) => {
+        lista.sort(
+            (a,b) => {
 
-            const fechaA =
-                a.fecha?.toMillis
-                    ? a.fecha.toMillis()
-                    : 0;
+                const fechaA =
+                    a.fecha?.toMillis
+                        ? a.fecha.toMillis()
+                        : (
+                            a.fechaCliente ||
+                            0
+                        );
 
-            const fechaB =
-                b.fecha?.toMillis
-                    ? b.fecha.toMillis()
-                    : 0;
 
-            return fechaB - fechaA;
+                const fechaB =
+                    b.fecha?.toMillis
+                        ? b.fecha.toMillis()
+                        : (
+                            b.fechaCliente ||
+                            0
+                        );
 
-        });
+
+                return fechaB - fechaA;
+
+            }
+        );
 
 
         cantidadPublicaciones.textContent =
@@ -2069,96 +2353,120 @@ async function cargarPublicaciones(){
             publicaciones.innerHTML =
                 `
                 <div class="empty">
-                    Todavía no tenés publicaciones.
+
+                    ${
+                        usuarioPerfilUid ===
+                        usuarioActual.uid
+
+                        ?
+
+                        "Todavía no tenés publicaciones."
+
+                        :
+
+                        "Este usuario todavía no tiene publicaciones."
+
+                    }
+
                 </div>
                 `;
 
             return;
+
         }
 
 
-        lista.forEach((publicacion) => {
+        lista.forEach(
+            (publicacion) => {
 
-            const elemento =
-                document.createElement("article");
+                const elemento =
+                    document.createElement(
+                        "article"
+                    );
 
-            elemento.className =
-                "publication";
+
+                elemento.className =
+                    "publication";
 
 
-            const fecha =
-                formatearFecha(
-                    publicacion.fecha
+                const fecha =
+                    formatearFecha(
+                        publicacion.fecha
+                    );
+
+
+                elemento.innerHTML =
+                    `
+
+                    <div class="publication-header">
+
+                        <div class="publication-avatar">
+
+                            ${
+                                perfilActual.fotoPerfil
+
+                                ?
+
+                                `<img
+                                    src="${escaparHTML(
+                                        perfilActual.fotoPerfil
+                                    )}"
+                                    alt=""
+                                >`
+
+                                :
+
+                                iniciales(
+                                    obtenerNombreCompleto()
+                                )
+
+                            }
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="publication-name">
+
+                                ${escaparHTML(
+                                    obtenerNombreCompleto()
+                                )}
+
+                            </div>
+
+
+                            <div class="publication-date">
+
+                                ${escaparHTML(
+                                    fecha
+                                )}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="publication-text">
+
+                        ${escaparHTML(
+                            publicacion.texto ||
+                            ""
+                        )}
+
+                    </div>
+
+                    `;
+
+
+                publicaciones.appendChild(
+                    elemento
                 );
 
-
-            elemento.innerHTML =
-                `
-
-                <div class="publication-header">
-
-                    <div class="publication-avatar">
-
-                        ${
-                            perfilActual.fotoPerfil
-
-                            ?
-
-                            `<img
-                                src="${escaparHTML(
-                                    perfilActual.fotoPerfil
-                                )}"
-                                alt=""
-                            >`
-
-                            :
-
-                            iniciales(
-                                obtenerNombreCompleto()
-                            )
-                        }
-
-                    </div>
-
-
-                    <div>
-
-                        <div class="publication-name">
-
-                            ${escaparHTML(
-                                obtenerNombreCompleto()
-                            )}
-
-                        </div>
-
-                        <div class="publication-date">
-
-                            ${fecha}
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="publication-text">
-
-                    ${escaparHTML(
-                        publicacion.texto ||
-                        ""
-                    )}
-
-                </div>
-
-                `;
-
-
-            publicaciones.appendChild(
-                elemento
-            );
-
-        });
+            }
+        );
 
 
     }catch(error){
@@ -2168,10 +2476,13 @@ async function cargarPublicaciones(){
             error
         );
 
+
         publicaciones.innerHTML =
             `
             <div class="empty">
+
                 No se pudieron cargar las publicaciones.
+
             </div>
             `;
 
@@ -2187,12 +2498,17 @@ async function cargarPublicaciones(){
 function escaparHTML(valor){
 
     const div =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     div.textContent =
         valor ?? "";
 
+
     return div.innerHTML;
+
 }
 
 
@@ -2210,7 +2526,9 @@ function iniciales(nombre){
 
 
     if(partes.length === 0){
+
         return "U";
+
     }
 
 
@@ -2238,7 +2556,9 @@ function iniciales(nombre){
 function formatearFecha(timestamp){
 
     if(!timestamp){
+
         return "";
+
     }
 
 
@@ -2276,6 +2596,21 @@ function formatearFecha(timestamp){
 ========================================== */
 
 function abrirEditar(){
+
+    /*
+     * NO SE PUEDE EDITAR EL PERFIL
+     * DE OTRA PERSONA.
+     */
+
+    if(
+        usuarioPerfilUid !==
+        usuarioActual.uid
+    ){
+
+        return;
+
+    }
+
 
     document.getElementById(
         "editNombre"
@@ -2346,8 +2681,14 @@ function cerrarEditar(){
 
 async function guardarPerfil(){
 
-    if(!usuarioActual){
+    if(
+        !usuarioActual ||
+        usuarioPerfilUid !==
+        usuarioActual.uid
+    ){
+
         return;
+
     }
 
 
@@ -2406,6 +2747,7 @@ async function guardarPerfil(){
     btn.disabled =
         true;
 
+
     btn.textContent =
         "Guardando...";
 
@@ -2441,9 +2783,9 @@ async function guardarPerfil(){
         };
 
 
-        /* ==========================
-           USUARIOS RED
-        ========================== */
+        /*
+         * USUARIOS RED
+         */
 
         await setDoc(
             doc(
@@ -2458,9 +2800,9 @@ async function guardarPerfil(){
         );
 
 
-        /* ==========================
-           ACTUALIZAR AUTH
-        ========================== */
+        /*
+         * AUTH
+         */
 
         await updateProfile(
             usuarioActual,
@@ -2471,9 +2813,9 @@ async function guardarPerfil(){
         );
 
 
-        /* ==========================
-           ACTUALIZAR VARIABLE LOCAL
-        ========================== */
+        /*
+         * ACTUALIZAR PERFIL LOCAL
+         */
 
         perfilActual = {
 
@@ -2484,9 +2826,9 @@ async function guardarPerfil(){
         };
 
 
-        /* ==========================
-           DIRECTORIO RED
-        ========================== */
+        /*
+         * DIRECTORIO
+         */
 
         await sincronizarDirectorio();
 
@@ -2509,14 +2851,17 @@ async function guardarPerfil(){
             error
         );
 
+
         mostrarToast(
             "No se pudo guardar el perfil."
         );
+
 
     }finally{
 
         btn.disabled =
             false;
+
 
         btn.textContent =
             "Guardar cambios";
@@ -2533,7 +2878,9 @@ async function guardarPerfil(){
 function validarImagen(file){
 
     if(!file){
+
         return false;
+
     }
 
 
@@ -2547,11 +2894,14 @@ function validarImagen(file){
             "La imagen no puede superar los 5 MB."
         );
 
+
         return false;
+
     }
 
 
     return true;
+
 }
 
 
@@ -2617,13 +2967,25 @@ async function subirImagen(
     tipo
 ){
 
-    if(!usuarioActual){
+    /*
+     * SOLO MI PERFIL
+     */
+
+    if(
+        !usuarioActual ||
+        usuarioPerfilUid !==
+        usuarioActual.uid
+    ){
+
         return;
+
     }
 
 
     if(!validarImagen(file)){
+
         return;
+
     }
 
 
@@ -2640,8 +3002,14 @@ async function subirImagen(
 
         uploadLabel.textContent =
             tipo === "perfil"
-                ? "Subiendo foto de perfil..."
-                : "Subiendo foto de portada...";
+
+                ?
+
+                "Subiendo foto de perfil..."
+
+                :
+
+                "Subiendo foto de portada...";
 
 
         const extension =
@@ -2724,9 +3092,11 @@ async function subirImagen(
                     error
                 );
 
+
                 uploadBox.classList.remove(
                     "show"
                 );
+
 
                 mostrarToast(
                     "No se pudo subir la imagen."
@@ -2745,12 +3115,13 @@ async function subirImagen(
                         );
 
 
-                    /* ==========================
-                       FOTO DE PERFIL
-                    ========================== */
+                    /*
+                     * FOTO PERFIL
+                     */
 
                     if(
-                        tipo === "perfil"
+                        tipo ===
+                        "perfil"
                     ){
 
                         await setDoc(
@@ -2760,8 +3131,10 @@ async function subirImagen(
                                 usuarioActual.uid
                             ),
                             {
+
                                 fotoPerfil:
                                     url
+
                             },
                             {
                                 merge:true
@@ -2775,12 +3148,13 @@ async function subirImagen(
                     }
 
 
-                    /* ==========================
-                       FOTO DE PORTADA
-                    ========================== */
+                    /*
+                     * FOTO PORTADA
+                     */
 
                     if(
-                        tipo === "portada"
+                        tipo ===
+                        "portada"
                     ){
 
                         await setDoc(
@@ -2790,8 +3164,10 @@ async function subirImagen(
                                 usuarioActual.uid
                             ),
                             {
+
                                 fotoPortada:
                                     url
+
                             },
                             {
                                 merge:true
@@ -2805,9 +3181,9 @@ async function subirImagen(
                     }
 
 
-                    /* ==========================
-                       SINCRONIZAR DIRECTORIO
-                    ========================== */
+                    /*
+                     * DIRECTORIO
+                     */
 
                     await sincronizarDirectorio();
 
@@ -2821,9 +3197,18 @@ async function subirImagen(
 
 
                     mostrarToast(
-                        tipo === "perfil"
-                            ? "Foto de perfil actualizada."
-                            : "Foto de portada actualizada."
+
+                        tipo ===
+                        "perfil"
+
+                            ?
+
+                            "Foto de perfil actualizada."
+
+                            :
+
+                            "Foto de portada actualizada."
+
                     );
 
 
@@ -2874,12 +3259,27 @@ async function subirImagen(
 
 
 /* ==========================================
-   CAMBIAR FOTO PERFIL
+   FOTO PERFIL
 ========================================== */
 
 profilePhoto.addEventListener(
     "click",
     () => {
+
+        /*
+         * Solo mi propia foto
+         * abre el selector.
+         */
+
+        if(
+            usuarioPerfilUid !==
+            usuarioActual.uid
+        ){
+
+            return;
+
+        }
+
 
         inputFotoPerfil.click();
 
@@ -2896,7 +3296,9 @@ inputFotoPerfil.addEventListener(
 
 
         if(!file){
+
             return;
+
         }
 
 
@@ -2914,12 +3316,22 @@ inputFotoPerfil.addEventListener(
 
 
 /* ==========================================
-   CAMBIAR PORTADA
+   PORTADA
 ========================================== */
 
 cover.addEventListener(
     "click",
     () => {
+
+        if(
+            usuarioPerfilUid !==
+            usuarioActual.uid
+        ){
+
+            return;
+
+        }
+
 
         inputFotoPortada.click();
 
@@ -2936,7 +3348,9 @@ inputFotoPortada.addEventListener(
 
 
         if(!file){
+
             return;
+
         }
 
 
@@ -2997,10 +3411,14 @@ document
 
             try{
 
-                await signOut(auth);
+                await signOut(
+                    auth
+                );
+
 
                 location.href =
                     "red-login.html";
+
 
             }catch(error){
 
@@ -3015,7 +3433,7 @@ document
 
 
 /* ==========================================
-   CERRAR MODAL TOCANDO AFUERA
+   CERRAR MODAL
 ========================================== */
 
 modalEditar.addEventListener(
@@ -3049,6 +3467,7 @@ onAuthStateChanged(
                 "red-login.html";
 
             return;
+
         }
 
 
