@@ -1,1982 +1,1181 @@
 <!DOCTYPE html>
 <html lang="es-AR">
+
 <head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    >
-
-    <meta name="theme-color" content="#12343B">
-
-    <meta
-        name="description"
-        content="Mensajes de Red GESBASE"
-    >
-
-    <title>Mensajes - Red GESBASE</title>
-
-    <style>
-        *{
-            box-sizing:border-box;
-            margin:0;
-            padding:0;
-        }
-
-        html,
-        body{
-            width:100%;
-            min-height:100%;
-            font-family:Arial,Helvetica,sans-serif;
-            background:#f3f6f7;
-            color:#172126;
-        }
-
-        body{
-            min-height:100vh;
-        }
-
-        button,
-        input,
-        textarea{
-            font:inherit;
-        }
-
-        button{
-            cursor:pointer;
-        }
-
-        .app{
-            min-height:100vh;
-            display:flex;
-            flex-direction:column;
-        }
-
-        /* HEADER */
-
-        .header{
-            height:64px;
-            background:#12343B;
-            color:white;
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            padding:0 18px;
-            position:sticky;
-            top:0;
-            z-index:50;
-            box-shadow:0 2px 10px rgba(0,0,0,.15);
-        }
-
-        .header-left{
-            display:flex;
-            align-items:center;
-            gap:12px;
-            min-width:0;
-        }
-
-        .back-btn{
-            width:40px;
-            height:40px;
-            border:0;
-            border-radius:50%;
-            background:rgba(255,255,255,.12);
-            color:white;
-            font-size:23px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-        }
-
-        .back-btn:hover{
-            background:rgba(255,255,255,.2);
-        }
-
-        .brand{
-            display:flex;
-            flex-direction:column;
-            min-width:0;
-        }
-
-        .brand-title{
-            font-size:19px;
-            font-weight:800;
-            white-space:nowrap;
-        }
-
-        .brand-subtitle{
-            font-size:11px;
-            opacity:.75;
-            margin-top:2px;
-        }
-
-        .header-actions{
-            display:flex;
-            align-items:center;
-            gap:7px;
-        }
-
-        .header-btn{
-            width:40px;
-            height:40px;
-            border:0;
-            border-radius:50%;
-            background:rgba(255,255,255,.12);
-            color:white;
-            font-size:19px;
-        }
-
-        /* CONTENIDO */
-
-        .main{
-            width:100%;
-            max-width:1250px;
-            margin:0 auto;
-            flex:1;
-            display:flex;
-            min-height:calc(100vh - 64px);
-            padding-bottom:72px;
-        }
-
-        /* LISTA */
-
-        .conversations{
-            width:360px;
-            background:white;
-            border-right:1px solid #dfe5e7;
-            display:flex;
-            flex-direction:column;
-        }
-
-        .conversations-header{
-            padding:18px;
-            border-bottom:1px solid #e5eaec;
-        }
-
-        .conversations-title{
-            font-size:21px;
-            font-weight:800;
-            margin-bottom:14px;
-        }
-
-        .search-box{
-            position:relative;
-        }
-
-        .search-box input{
-            width:100%;
-            height:44px;
-            border:1px solid #d8e0e2;
-            border-radius:12px;
-            outline:none;
-            padding:0 14px 0 42px;
-            background:#f6f8f9;
-            color:#172126;
-        }
-
-        .search-box input:focus{
-            border-color:#12343B;
-            background:white;
-        }
-
-        .search-icon{
-            position:absolute;
-            left:14px;
-            top:50%;
-            transform:translateY(-50%);
-            color:#68777c;
-            pointer-events:none;
-        }
-
-        .conversation-list{
-            flex:1;
-            overflow-y:auto;
-        }
-
-        .conversation{
-            display:flex;
-            align-items:center;
-            gap:12px;
-            padding:13px 15px;
-            border-bottom:1px solid #f0f3f4;
-            transition:.15s;
-            cursor:pointer;
-        }
-
-        .conversation:hover{
-            background:#f5f8f9;
-        }
-
-        .conversation.active{
-            background:#eaf1f2;
-        }
-
-        .avatar{
-            width:50px;
-            height:50px;
-            border-radius:50%;
-            background:#dce7e9;
-            color:#12343B;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-size:20px;
-            font-weight:800;
-            overflow:hidden;
-            flex-shrink:0;
-        }
-
-        .avatar img{
-            width:100%;
-            height:100%;
-            object-fit:cover;
-        }
-
-        .conversation-info{
-            flex:1;
-            min-width:0;
-        }
-
-        .conversation-top{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:8px;
-        }
-
-        .conversation-name{
-            font-weight:700;
-            white-space:nowrap;
-            overflow:hidden;
-            text-overflow:ellipsis;
-        }
-
-        .conversation-date{
-            color:#7c898d;
-            font-size:11px;
-            white-space:nowrap;
-        }
-
-        .conversation-preview{
-            margin-top:5px;
-            color:#6d7b80;
-            font-size:13px;
-            white-space:nowrap;
-            overflow:hidden;
-            text-overflow:ellipsis;
-        }
-
-        .empty-conversations{
-            padding:30px 20px;
-            text-align:center;
-            color:#718086;
-            font-size:14px;
-            line-height:1.5;
-        }
-
-        /* CHAT */
-
-        .chat{
-            flex:1;
-            min-width:0;
-            background:#eef3f4;
-            display:flex;
-            flex-direction:column;
-        }
-
-        .chat-empty{
-            flex:1;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            text-align:center;
-            padding:30px;
-            color:#6e7d82;
-        }
-
-        .chat-empty-box{
-            max-width:420px;
-        }
-
-        .chat-empty-icon{
-            width:78px;
-            height:78px;
-            border-radius:50%;
-            background:#dce7e9;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            margin:0 auto 16px;
-            font-size:36px;
-        }
-
-        .chat-empty h2{
-            color:#12343B;
-            margin-bottom:8px;
-            font-size:22px;
-        }
-
-        .chat-empty p{
-            line-height:1.5;
-        }
-
-        .chat-header{
-            min-height:70px;
-            background:white;
-            border-bottom:1px solid #dfe5e7;
-            display:flex;
-            align-items:center;
-            gap:12px;
-            padding:10px 16px;
-        }
-
-        .chat-user-info{
-            min-width:0;
-            flex:1;
-        }
-
-        .chat-user-name{
-            font-weight:800;
-            font-size:16px;
-            white-space:nowrap;
-            overflow:hidden;
-            text-overflow:ellipsis;
-        }
-
-        .chat-user-status{
-            margin-top:3px;
-            font-size:12px;
-            color:#718086;
-        }
-
-        .messages{
-            flex:1;
-            overflow-y:auto;
-            padding:20px;
-            display:flex;
-            flex-direction:column;
-            gap:8px;
-        }
-
-        .message-row{
-            display:flex;
-            width:100%;
-        }
-
-        .message-row.mine{
-            justify-content:flex-end;
-        }
-
-        .message-row.theirs{
-            justify-content:flex-start;
-        }
-
-        .message-bubble{
-            max-width:min(75%,520px);
-            padding:10px 13px;
-            border-radius:16px;
-            font-size:14px;
-            line-height:1.45;
-            word-break:break-word;
-            box-shadow:0 1px 2px rgba(0,0,0,.05);
-        }
-
-        .message-row.mine .message-bubble{
-            background:#12343B;
-            color:white;
-            border-bottom-right-radius:5px;
-        }
-
-        .message-row.theirs .message-bubble{
-            background:white;
-            color:#172126;
-            border-bottom-left-radius:5px;
-        }
-
-        .message-time{
-            font-size:10px;
-            opacity:.65;
-            margin-top:5px;
-            text-align:right;
-        }
-
-        .message-form{
-            background:white;
-            border-top:1px solid #dfe5e7;
-            padding:10px 12px;
-            display:flex;
-            align-items:flex-end;
-            gap:8px;
-        }
-
-        .message-input{
-            flex:1;
-            min-height:44px;
-            max-height:120px;
-            resize:none;
-            border:1px solid #d7dfe1;
-            border-radius:14px;
-            padding:11px 13px;
-            outline:none;
-            background:#f7f9fa;
-            color:#172126;
-        }
-
-        .message-input:focus{
-            border-color:#12343B;
-            background:white;
-        }
-
-        .send-btn{
-            width:46px;
-            height:46px;
-            border:0;
-            border-radius:50%;
-            background:#12343B;
-            color:white;
-            font-size:20px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            flex-shrink:0;
-        }
-
-        .send-btn:disabled{
-            opacity:.45;
-            cursor:not-allowed;
-        }
-
-        /* BUSCADOR DE PERSONAS */
-
-        .search-results{
-            background:white;
-            border-top:1px solid #e5eaec;
-            display:none;
-            max-height:300px;
-            overflow-y:auto;
-        }
-
-        .search-results.show{
-            display:block;
-        }
-
-        .person-result{
-            display:flex;
-            align-items:center;
-            gap:10px;
-            padding:11px 15px;
-            border-bottom:1px solid #eef1f2;
-            cursor:pointer;
-        }
-
-        .person-result:hover{
-            background:#f4f7f8;
-        }
-
-        .person-result .avatar{
-            width:42px;
-            height:42px;
-            font-size:16px;
-        }
-
-        .person-info{
-            min-width:0;
-        }
-
-        .person-name{
-            font-weight:700;
-            font-size:14px;
-        }
-
-        .person-meta{
-            color:#738187;
-            font-size:12px;
-            margin-top:3px;
-        }
-
-        .search-loading,
-        .search-empty{
-            padding:18px;
-            text-align:center;
-            color:#718086;
-            font-size:13px;
-        }
-
-        /* NAVEGACIÓN INFERIOR */
-
-        .bottom-nav{
-            position:fixed;
-            left:0;
-            right:0;
-            bottom:0;
-            height:68px;
-            background:white;
-            border-top:1px solid #dce3e5;
-            display:flex;
-            justify-content:center;
-            z-index:100;
-            box-shadow:0 -2px 10px rgba(0,0,0,.06);
-        }
-
-        .bottom-nav-inner{
-            width:100%;
-            max-width:700px;
-            display:flex;
-            justify-content:space-around;
-        }
-
-        .nav-item{
-            flex:1;
-            max-width:140px;
-            border:0;
-            background:transparent;
-            color:#647277;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            gap:3px;
-            font-size:11px;
-        }
-
-        .nav-item span:first-child{
-            font-size:20px;
-        }
-
-        .nav-item.active{
-            color:#12343B;
-            font-weight:700;
-        }
-
-        /* CARGA */
-
-        .loading{
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            padding:30px;
-            color:#718086;
-        }
-
-        .hidden{
-            display:none !important;
-        }
-
-        /* RESPONSIVE */
-
-        @media(max-width:760px){
-
-            .header{
-                height:60px;
-                padding:0 12px;
-            }
-
-            .brand-title{
-                font-size:17px;
-            }
-
-            .brand-subtitle{
-                font-size:10px;
-            }
-
-            .header-actions{
-                display:none;
-            }
-
-            .main{
-                min-height:calc(100vh - 60px);
-                padding-bottom:68px;
-            }
-
-            .conversations{
-                width:100%;
-                border-right:0;
-            }
-
-            .chat{
-                display:none;
-                width:100%;
-            }
-
-            .main.chat-open .conversations{
-                display:none;
-            }
-
-            .main.chat-open .chat{
-                display:flex;
-            }
-
-            .conversations-header{
-                padding:15px;
-            }
-
-            .conversations-title{
-                font-size:20px;
-                margin-bottom:12px;
-            }
-
-            .chat-header{
-                min-height:64px;
-                padding:9px 12px;
-            }
-
-            .chat-header .back-chat{
-                display:flex;
-            }
-
-            .messages{
-                padding:15px 12px;
-            }
-
-            .message-bubble{
-                max-width:82%;
-            }
-
-            .bottom-nav{
-                height:68px;
-            }
-        }
-
-        @media(min-width:761px){
-
-            .back-chat{
-                display:none;
-            }
-
-            .conversations{
-                border-radius:0;
-            }
-
-            .chat{
-                border-radius:0;
-            }
-        }
-
-        @media(max-width:420px){
-
-            .conversation{
-                padding:12px;
-            }
-
-            .avatar{
-                width:46px;
-                height:46px;
-            }
-
-            .message-form{
-                padding:8px;
-            }
-
-            .send-btn{
-                width:44px;
-                height:44px;
-            }
-        }
-    </style>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<meta
+    name="description"
+    content="Mensajes de Red GESBASE. Comunicate con tus conexiones profesionales."
+>
+
+<title>Mensajes - Red GESBASE</title>
+
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+    overflow:hidden;
+}
+
+
+/* =========================
+   APP
+========================= */
+
+.app{
+    width:100%;
+    height:100vh;
+    height:100dvh;
+    display:flex;
+    flex-direction:column;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+header{
+    flex-shrink:0;
+    background:#111827;
+    color:white;
+    padding:
+        max(10px, env(safe-area-inset-top))
+        14px
+        12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.18);
+    z-index:20;
+}
+
+.header-inner{
+    width:100%;
+    max-width:1000px;
+    margin:auto;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.btn-volver{
+    width:40px;
+    height:40px;
+    border:0;
+    border-radius:50%;
+    background:#374151;
+    color:white;
+    font-size:27px;
+    line-height:1;
+    cursor:pointer;
+    flex-shrink:0;
+}
+
+.header-contact{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+    flex:1;
+}
+
+.header-avatar{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:#e5e7eb;
+    color:#111827;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    font-weight:bold;
+    overflow:hidden;
+    flex-shrink:0;
+}
+
+.header-avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.header-info{
+    min-width:0;
+}
+
+.header-name{
+    font-size:16px;
+    font-weight:700;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.header-status{
+    font-size:12px;
+    color:#d1d5db;
+    margin-top:2px;
+}
+
+
+/* =========================
+   CONTADOR MENSAJES
+========================= */
+
+.header-unread{
+    min-width:24px;
+    height:24px;
+    padding:0 7px;
+    border-radius:20px;
+    background:#ef4444;
+    color:white;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:bold;
+    flex-shrink:0;
+}
+
+.header-unread.visible{
+    display:flex;
+}
+
+
+/* =========================
+   CHAT
+========================= */
+
+.chat{
+    flex:1;
+    min-height:0;
+    width:100%;
+    display:flex;
+    justify-content:center;
+}
+
+.chat-inner{
+    width:100%;
+    max-width:1000px;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+}
+
+
+/* =========================
+   MENSAJES
+========================= */
+
+.messages{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    padding:18px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    scroll-behavior:smooth;
+}
+
+.message-row{
+    width:100%;
+    display:flex;
+}
+
+.message-row.mine{
+    justify-content:flex-end;
+}
+
+.message-row.theirs{
+    justify-content:flex-start;
+}
+
+.message{
+    max-width:min(78%, 600px);
+    padding:10px 13px;
+    border-radius:16px;
+    font-size:14px;
+    line-height:1.4;
+    word-break:break-word;
+    white-space:pre-wrap;
+    box-shadow:0 1px 3px rgba(0,0,0,.08);
+}
+
+.message.mine{
+    background:#111827;
+    color:white;
+    border-bottom-right-radius:5px;
+}
+
+.message.theirs{
+    background:white;
+    color:#111827;
+    border-bottom-left-radius:5px;
+}
+
+.message-time{
+    display:block;
+    font-size:10px;
+    margin-top:5px;
+    opacity:.65;
+    text-align:right;
+}
+
+
+/* =========================
+   ESTADO VACIO
+========================= */
+
+.chat-empty{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:30px;
+    color:#6b7280;
+}
+
+.chat-empty-box{
+    max-width:350px;
+}
+
+.chat-empty-icon{
+    font-size:45px;
+    margin-bottom:12px;
+}
+
+.chat-empty-title{
+    font-size:18px;
+    font-weight:700;
+    color:#111827;
+    margin-bottom:7px;
+}
+
+.chat-empty-text{
+    font-size:14px;
+    line-height:1.5;
+}
+
+
+/* =========================
+   LOADING
+========================= */
+
+.loading{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#6b7280;
+    font-size:14px;
+}
+
+
+/* =========================
+   COMPOSER
+========================= */
+
+.composer{
+    flex-shrink:0;
+    background:white;
+    border-top:1px solid #e5e7eb;
+    padding:10px;
+    padding-bottom:
+        max(10px, env(safe-area-inset-bottom));
+}
+
+.composer-inner{
+    width:100%;
+    display:flex;
+    align-items:flex-end;
+    gap:8px;
+}
+
+.message-input{
+    flex:1;
+    min-width:0;
+    resize:none;
+    min-height:42px;
+    max-height:120px;
+    border:1px solid #d1d5db;
+    border-radius:21px;
+    padding:11px 15px;
+    outline:none;
+    font-family:inherit;
+    font-size:14px;
+    line-height:1.35;
+    background:#f9fafb;
+}
+
+.message-input:focus{
+    border-color:#6b7280;
+    background:white;
+}
+
+.btn-enviar{
+    width:44px;
+    height:44px;
+    border:0;
+    border-radius:50%;
+    background:#111827;
+    color:white;
+    font-size:19px;
+    cursor:pointer;
+    flex-shrink:0;
+}
+
+.btn-enviar:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+
+/* =========================
+   TOAST
+========================= */
+
+.toast{
+    position:fixed;
+    left:50%;
+    bottom:90px;
+    transform:translateX(-50%);
+    background:#111827;
+    color:white;
+    padding:11px 16px;
+    border-radius:10px;
+    font-size:13px;
+    display:none;
+    z-index:1000;
+    max-width:90%;
+    text-align:center;
+}
+
+.toast.show{
+    display:block;
+}
+
+
+/* =========================
+   TABLET / PC
+========================= */
+
+@media(min-width:700px){
+
+    .messages{
+        padding:22px;
+    }
+
+    .composer{
+        padding:12px 22px;
+    }
+
+}
+
+
+/* =========================
+   CELULAR
+========================= */
+
+@media(max-width:600px){
+
+    .header-name{
+        font-size:15px;
+    }
+
+    .message{
+        max-width:84%;
+    }
+
+    .messages{
+        padding:14px 10px;
+    }
+
+}
+
+
+/* =========================
+   CELULAR PEQUEÑO
+========================= */
+
+@media(max-width:390px){
+
+    .btn-volver{
+        width:36px;
+        height:36px;
+        font-size:24px;
+    }
+
+    .header-avatar{
+        width:38px;
+        height:38px;
+    }
+
+    .message{
+        max-width:88%;
+    }
+
+}
+
+</style>
+
 </head>
+
 
 <body>
 
+
 <div class="app">
 
-    <!-- HEADER -->
 
-    <header class="header">
+<header>
 
-        <div class="header-left">
+    <div class="header-inner">
 
-            <button
-                class="back-btn"
-                id="backHomeBtn"
-                title="Volver"
-                type="button"
-            >
-                ←
-            </button>
 
-            <div class="brand">
-                <div class="brand-title">GESBASE</div>
-                <div class="brand-subtitle">Red profesional</div>
-            </div>
+        <button
+            type="button"
+            class="btn-volver"
+            id="btnVolver"
+            aria-label="Volver"
+        >
+            ‹
+        </button>
 
-        </div>
 
-        <div class="header-actions">
+        <div class="header-contact">
 
-            <button
-                class="header-btn"
-                id="notificationsBtn"
-                title="Notificaciones"
-                type="button"
-            >
-                🔔
-            </button>
 
-            <button
-                class="header-btn"
-                id="profileBtn"
-                title="Mi perfil"
-                type="button"
+            <div
+                class="header-avatar"
+                id="headerAvatar"
             >
                 👤
-            </button>
-
-        </div>
-
-    </header>
+            </div>
 
 
-    <!-- MAIN -->
+            <div class="header-info">
 
-    <main class="main" id="main">
-
-        <!-- CONVERSACIONES -->
-
-        <section class="conversations">
-
-            <div class="conversations-header">
-
-                <div class="conversations-title">
+                <div
+                    class="header-name"
+                    id="headerName"
+                >
                     Mensajes
                 </div>
 
-                <div class="search-box">
-
-                    <span class="search-icon">🔎</span>
-
-                    <input
-                        type="text"
-                        id="searchInput"
-                        placeholder="Buscar personas..."
-                        autocomplete="off"
-                    >
-
-                </div>
-
-            </div>
-
-            <div
-                class="search-results"
-                id="searchResults"
-            ></div>
-
-            <div
-                class="conversation-list"
-                id="conversationList"
-            >
-
-                <div class="loading">
-                    Cargando conversaciones...
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- CHAT -->
-
-        <section class="chat">
-
-            <div
-                class="chat-empty"
-                id="chatEmpty"
-            >
-
-                <div class="chat-empty-box">
-
-                    <div class="chat-empty-icon">
-                        💬
-                    </div>
-
-                    <h2>
-                        Tus mensajes
-                    </h2>
-
-                    <p>
-                        Seleccioná una persona para comenzar una conversación.
-                        Podés buscar profesionales, trabajadores, empresas y comercios de Red GESBASE.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div
-                class="chat-header hidden"
-                id="chatHeader"
-            >
-
-                <button
-                    class="back-btn back-chat"
-                    id="backChatBtn"
-                    type="button"
-                >
-                    ←
-                </button>
-
                 <div
-                    class="avatar"
-                    id="chatAvatar"
+                    class="header-status"
+                    id="headerStatus"
                 >
-                    👤
-                </div>
-
-                <div class="chat-user-info">
-
-                    <div
-                        class="chat-user-name"
-                        id="chatUserName"
-                    >
-                        Usuario
-                    </div>
-
-                    <div
-                        class="chat-user-status"
-                        id="chatUserStatus"
-                    >
-                        Red GESBASE
-                    </div>
-
+                    Red GESBASE
                 </div>
 
             </div>
 
 
-            <div
-                class="messages hidden"
-                id="messages"
-            ></div>
+        </div>
 
 
-            <form
-                class="message-form hidden"
-                id="messageForm"
-            >
+        <div
+            id="headerUnread"
+            class="header-unread"
+        >
+            0
+        </div>
+
+
+    </div>
+
+</header>
+
+
+
+<main class="chat">
+
+    <div class="chat-inner">
+
+
+        <div
+            id="messages"
+            class="messages"
+        >
+
+            <div class="loading">
+                Cargando conversación...
+            </div>
+
+        </div>
+
+
+
+        <div
+            id="composer"
+            class="composer"
+        >
+
+            <div class="composer-inner">
+
 
                 <textarea
-                    class="message-input"
                     id="messageInput"
-                    rows="1"
+                    class="message-input"
                     placeholder="Escribí un mensaje..."
-                    maxlength="2000"
+                    rows="1"
+                    maxlength="5000"
+                    autocomplete="off"
                 ></textarea>
 
+
                 <button
-                    class="send-btn"
-                    id="sendBtn"
-                    type="submit"
-                    title="Enviar"
+                    type="button"
+                    id="btnEnviar"
+                    class="btn-enviar"
+                    aria-label="Enviar mensaje"
+                    title="Enviar mensaje"
                 >
                     ➤
                 </button>
 
-            </form>
 
-        </section>
-
-    </main>
-
-
-    <!-- NAVEGACIÓN -->
-
-    <nav class="bottom-nav">
-
-        <div class="bottom-nav-inner">
-
-            <button
-                class="nav-item"
-                type="button"
-                data-url="red.html"
-            >
-                <span>🏠</span>
-                <span>Inicio</span>
-            </button>
-
-            <button
-                class="nav-item active"
-                type="button"
-            >
-                <span>💬</span>
-                <span>Mensajes</span>
-            </button>
-
-            <button
-                class="nav-item"
-                type="button"
-                data-url="red-empleo.html"
-            >
-                <span>💼</span>
-                <span>Empleo</span>
-            </button>
-
-            <button
-                class="nav-item"
-                type="button"
-                data-url="red-buscar.html"
-            >
-                <span>🔎</span>
-                <span>Buscar</span>
-            </button>
-
-            <button
-                class="nav-item"
-                type="button"
-                data-url="conexiones.html"
-            >
-                <span>👥</span>
-                <span>Conexiones</span>
-            </button>
-
-            <button
-                class="nav-item"
-                type="button"
-                data-url="red-perfil.html"
-            >
-                <span>👤</span>
-                <span>Perfil</span>
-            </button>
+            </div>
 
         </div>
 
-    </nav>
+
+    </div>
+
+</main>
+
+
+
+<div
+    id="toast"
+    class="toast"
+></div>
+
 
 </div>
 
 
+
 <script type="module">
 
-    import {
-        auth,
-        db
-    } from "./Js/firebase.js";
 
-    import {
-        onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+/* =========================
+   FIREBASE
+========================= */
 
-    import {
-        collection,
-        doc,
-        getDoc,
-        getDocs,
-        addDoc,
-        query,
-        where,
-        onSnapshot,
-        serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
 
 
-    /* =========================================
-       VARIABLES
-    ========================================= */
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
-    let usuarioActual = null;
 
-    let perfilActual = null;
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    getDoc,
+    doc,
+    addDoc,
+    updateDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-    let conversaciones = [];
 
-    let perfilesCache = {};
 
-    let chatActualUid = null;
+/* =========================
+   ELEMENTOS
+========================= */
 
-    let unsubscribeMensajes = null;
-
-    let unsubscribeEmisor = null;
-
-    let unsubscribeReceptor = null;
-
-
-    /* =========================================
-       ELEMENTOS
-    ========================================= */
-
-    const main = document.getElementById("main");
-
-    const conversationList =
-        document.getElementById("conversationList");
-
-    const searchInput =
-        document.getElementById("searchInput");
-
-    const searchResults =
-        document.getElementById("searchResults");
-
-    const chatEmpty =
-        document.getElementById("chatEmpty");
-
-    const chatHeader =
-        document.getElementById("chatHeader");
-
-    const chatAvatar =
-        document.getElementById("chatAvatar");
-
-    const chatUserName =
-        document.getElementById("chatUserName");
-
-    const chatUserStatus =
-        document.getElementById("chatUserStatus");
-
-    const messagesContainer =
-        document.getElementById("messages");
-
-    const messageForm =
-        document.getElementById("messageForm");
-
-    const messageInput =
-        document.getElementById("messageInput");
-
-    const sendBtn =
-        document.getElementById("sendBtn");
-
-    const backChatBtn =
-        document.getElementById("backChatBtn");
-
-
-    /* =========================================
-       UTILIDADES
-    ========================================= */
-
-    function escaparHTML(texto){
-
-        return String(texto || "")
-            .replaceAll("&","&amp;")
-            .replaceAll("<","&lt;")
-            .replaceAll(">","&gt;")
-            .replaceAll('"',"&quot;")
-            .replaceAll("'","&#039;");
-    }
-
-
-    function obtenerNombrePerfil(perfil){
-
-        if(!perfil){
-            return "Usuario";
-        }
-
-        return (
-            perfil.nombreCompleto ||
-            perfil.nombre ||
-            perfil.displayName ||
-            perfil.email ||
-            "Usuario"
-        );
-    }
-
-
-    function iniciales(nombre){
-
-        const partes =
-            String(nombre || "U")
-            .trim()
-            .split(/\s+/)
-            .filter(Boolean);
-
-        if(partes.length === 1){
-
-            return partes[0]
-                .substring(0,2)
-                .toUpperCase();
-
-        }
-
-        return (
-            partes[0][0] +
-            partes[partes.length - 1][0]
-        ).toUpperCase();
-    }
-
-
-    function fechaMensaje(fecha){
-
-        if(!fecha){
-            return "";
-        }
-
-        let fechaReal;
-
-        try{
-
-            if(
-                typeof fecha.toDate === "function"
-            ){
-                fechaReal = fecha.toDate();
-            }else{
-                fechaReal = new Date(fecha);
-            }
-
-        }catch(error){
-
-            return "";
-
-        }
-
-        if(
-            !fechaReal ||
-            Number.isNaN(fechaReal.getTime())
-        ){
-            return "";
-        }
-
-        return fechaReal.toLocaleTimeString(
-            "es-AR",
-            {
-                hour:"2-digit",
-                minute:"2-digit"
-            }
-        );
-    }
-
-
-    function fechaConversacion(fecha){
-
-        if(!fecha){
-            return "";
-        }
-
-        let fechaReal;
-
-        try{
-
-            if(
-                typeof fecha.toDate === "function"
-            ){
-                fechaReal = fecha.toDate();
-            }else{
-                fechaReal = new Date(fecha);
-            }
-
-        }catch(error){
-
-            return "";
-        }
-
-        if(
-            !fechaReal ||
-            Number.isNaN(fechaReal.getTime())
-        ){
-            return "";
-        }
-
-        const ahora = new Date();
-
-        const mismoDia =
-            fechaReal.toDateString() ===
-            ahora.toDateString();
-
-        if(mismoDia){
-
-            return fechaReal.toLocaleTimeString(
-                "es-AR",
-                {
-                    hour:"2-digit",
-                    minute:"2-digit"
-                }
-            );
-        }
-
-        return fechaReal.toLocaleDateString(
-            "es-AR",
-            {
-                day:"2-digit",
-                month:"2-digit"
-            }
-        );
-    }
-
-
-    function obtenerFechaOrden(mensaje){
-
-        if(
-            mensaje &&
-            mensaje.fechaCliente
-        ){
-            return Number(mensaje.fechaCliente);
-        }
-
-        if(
-            mensaje &&
-            mensaje.fecha &&
-            typeof mensaje.fecha.toMillis === "function"
-        ){
-            return mensaje.fecha.toMillis();
-        }
-
-        return 0;
-    }
-
-
-    /* =========================================
-       PERFIL PÚBLICO
-    ========================================= */
-
-    async function obtenerPerfil(uid){
-
-        if(!uid){
-            return null;
-        }
-
-        if(perfilesCache[uid]){
-            return perfilesCache[uid];
-        }
-
-        try{
-
-            const referencia =
-                doc(db,"directorio_red",uid);
-
-            const snap =
-                await getDoc(referencia);
-
-            if(snap.exists()){
-
-                const perfil = {
-                    uid,
-                    ...snap.data()
-                };
-
-                perfilesCache[uid] = perfil;
-
-                return perfil;
-            }
-
-        }catch(error){
-
-            console.error(
-                "Error obteniendo perfil:",
-                error
-            );
-
-        }
-
-        return {
-            uid,
-            nombreCompleto:"Usuario",
-            tipo:"",
-            rubro:"",
-            localidad:"",
-            provincia:"",
-            fotoURL:""
-        };
-    }
-
-
-    /* =========================================
-       AVATAR
-    ========================================= */
-
-    function htmlAvatar(perfil){
-
-        if(
-            perfil &&
-            perfil.fotoURL
-        ){
-
-            return `
-                <img
-                    src="${escaparHTML(perfil.fotoURL)}"
-                    alt=""
-                >
-            `;
-        }
-
-        return escaparHTML(
-            iniciales(
-                obtenerNombrePerfil(perfil)
-            )
-        );
-    }
-
-
-    /* =========================================
-       CARGAR PERFIL ACTUAL
-    ========================================= */
-
-    async function cargarPerfilActual(){
-
-        if(!usuarioActual){
-            return;
-        }
-
-        perfilActual =
-            await obtenerPerfil(
-                usuarioActual.uid
-            );
-    }
-
-
-    /* =========================================
-       CARGAR CONVERSACIONES
-    ========================================= */
-
-    async function cargarConversaciones(){
-
-        if(!usuarioActual){
-            return;
-        }
-
-        conversationList.innerHTML = `
-            <div class="loading">
-                Cargando conversaciones...
-            </div>
-        `;
-
-        try{
-
-            const enviadosQuery =
-                query(
-                    collection(db,"mensajes"),
-                    where(
-                        "emisorUid",
-                        "==",
-                        usuarioActual.uid
-                    )
-                );
-
-            const recibidosQuery =
-                query(
-                    collection(db,"mensajes"),
-                    where(
-                        "receptorUid",
-                        "==",
-                        usuarioActual.uid
-                    )
-                );
-
-            const [
-                enviadosSnap,
-                recibidosSnap
-            ] = await Promise.all([
-                getDocs(enviadosQuery),
-                getDocs(recibidosQuery)
-            ]);
-
-
-            const mapa = new Map();
-
-
-            enviadosSnap.forEach(item => {
-
-                const mensaje = {
-                    id:item.id,
-                    ...item.data()
-                };
-
-                const otroUid =
-                    mensaje.receptorUid;
-
-                if(
-                    otroUid &&
-                    otroUid !== usuarioActual.uid
-                ){
-
-                    const anterior =
-                        mapa.get(otroUid);
-
-                    if(
-                        !anterior ||
-                        obtenerFechaOrden(mensaje) >
-                        obtenerFechaOrden(anterior)
-                    ){
-                        mapa.set(
-                            otroUid,
-                            mensaje
-                        );
-                    }
-                }
-
-            });
-
-
-            recibidosSnap.forEach(item => {
-
-                const mensaje = {
-                    id:item.id,
-                    ...item.data()
-                };
-
-                const otroUid =
-                    mensaje.emisorUid;
-
-                if(
-                    otroUid &&
-                    otroUid !== usuarioActual.uid
-                ){
-
-                    const anterior =
-                        mapa.get(otroUid);
-
-                    if(
-                        !anterior ||
-                        obtenerFechaOrden(mensaje) >
-                        obtenerFechaOrden(anterior)
-                    ){
-                        mapa.set(
-                            otroUid,
-                            mensaje
-                        );
-                    }
-                }
-
-            });
-
-
-            const lista = [];
-
-            for(
-                const [uid,mensaje] of mapa.entries()
-            ){
-
-                const perfil =
-                    await obtenerPerfil(uid);
-
-                lista.push({
-                    uid,
-                    perfil,
-                    ultimoMensaje:mensaje
-                });
-
-            }
-
-
-            lista.sort(
-                (a,b) =>
-                    obtenerFechaOrden(
-                        b.ultimoMensaje
-                    ) -
-                    obtenerFechaOrden(
-                        a.ultimoMensaje
-                    )
-            );
-
-
-            conversaciones = lista;
-
-            renderConversaciones();
-
-        }catch(error){
-
-            console.error(
-                "Error cargando conversaciones:",
-                error
-            );
-
-            conversationList.innerHTML = `
-                <div class="empty-conversations">
-                    No se pudieron cargar los mensajes.
-                    <br><br>
-                    ${escaparHTML(error.message)}
-                </div>
-            `;
-        }
-    }
-
-
-    /* =========================================
-       MOSTRAR CONVERSACIONES
-    ========================================= */
-
-    function renderConversaciones(){
-
-        if(!conversaciones.length){
-
-            conversationList.innerHTML = `
-                <div class="empty-conversations">
-                    Todavía no tenés conversaciones.
-                    <br><br>
-                    Usá el buscador para encontrar una persona de Red GESBASE y comenzar a escribirle.
-                </div>
-            `;
-
-            return;
-        }
-
-
-        const texto =
-            searchInput.value
-            .trim()
-            .toLowerCase();
-
-
-        const filtradas =
-            conversaciones.filter(item => {
-
-                if(!texto){
-                    return true;
-                }
-
-                const nombre =
-                    obtenerNombrePerfil(
-                        item.perfil
-                    ).toLowerCase();
-
-                return nombre.includes(texto);
-            });
-
-
-        if(!filtradas.length){
-
-            conversationList.innerHTML = `
-                <div class="empty-conversations">
-                    No se encontraron conversaciones.
-                </div>
-            `;
-
-            return;
-        }
-
-
-        conversationList.innerHTML =
-            filtradas.map(item => {
-
-                const perfil = item.perfil;
-
-                const nombre =
-                    obtenerNombrePerfil(perfil);
-
-                const mensaje =
-                    item.ultimoMensaje &&
-                    item.ultimoMensaje.contenido
-                    ? item.ultimoMensaje.contenido
-                    : "";
-
-                const mio =
-                    item.ultimoMensaje &&
-                    item.ultimoMensaje.emisorUid ===
-                    usuarioActual.uid;
-
-                return `
-                    <div
-                        class="conversation ${
-                            chatActualUid === item.uid
-                            ? "active"
-                            : ""
-                        }"
-                        data-uid="${escaparHTML(item.uid)}"
-                    >
-
-                        <div class="avatar">
-                            ${htmlAvatar(perfil)}
-                        </div>
-
-                        <div class="conversation-info">
-
-                            <div class="conversation-top">
-
-                                <div class="conversation-name">
-                                    ${escaparHTML(nombre)}
-                                </div>
-
-                                <div class="conversation-date">
-                                    ${fechaConversacion(
-                                        item.ultimoMensaje.fecha
-                                    )}
-                                </div>
-
-                            </div>
-
-                            <div class="conversation-preview">
-                                ${
-                                    mio
-                                    ? "Vos: "
-                                    : ""
-                                }${escaparHTML(mensaje)}
-                            </div>
-
-                        </div>
-
-                    </div>
-                `;
-            }).join("");
-
-
-        document
-            .querySelectorAll(".conversation")
-            .forEach(elemento => {
-
-                elemento.addEventListener(
-                    "click",
-                    () => {
-
-                        abrirChat(
-                            elemento.dataset.uid
-                        );
-
-                    }
-                );
-
-            });
-    }
-
-
-    /* =========================================
-       BUSCAR PERSONAS
-    ========================================= */
-
-    let busquedaTimer = null;
-
-
-    searchInput.addEventListener(
-        "input",
-        () => {
-
-            renderConversaciones();
-
-            clearTimeout(
-                busquedaTimer
-            );
-
-            const texto =
-                searchInput.value
-                .trim();
-
-            if(texto.length < 2){
-
-                searchResults.classList.remove(
-                    "show"
-                );
-
-                searchResults.innerHTML = "";
-
-                return;
-            }
-
-            busquedaTimer =
-                setTimeout(
-                    () => buscarPersonas(texto),
-                    350
-                );
-
-        }
+const messagesContainer =
+    document.getElementById(
+        "messages"
     );
 
 
-    async function buscarPersonas(texto){
-
-        searchResults.classList.add(
-            "show"
-        );
-
-        searchResults.innerHTML = `
-            <div class="search-loading">
-                Buscando personas...
-            </div>
-        `;
-
-        try{
-
-            /*
-             * Se utiliza directorio_red porque
-             * usuarios/{uid} es privado y no permite
-             * consultas globales.
-             */
-
-            const snapshot =
-                await getDocs(
-                    collection(
-                        db,
-                        "directorio_red"
-                    )
-                );
+const messageInput =
+    document.getElementById(
+        "messageInput"
+    );
 
 
-            const resultados = [];
-
-            const textoMinuscula =
-                texto.toLowerCase();
-
-
-            snapshot.forEach(item => {
-
-                const perfil = {
-                    uid:item.id,
-                    ...item.data()
-                };
-
-                if(
-                    perfil.uid ===
-                    usuarioActual.uid
-                ){
-                    return;
-                }
-
-                if(
-                    perfil.activo === false
-                ){
-                    return;
-                }
+const btnEnviar =
+    document.getElementById(
+        "btnEnviar"
+    );
 
 
-                const nombre =
-                    obtenerNombrePerfil(
-                        perfil
-                    ).toLowerCase();
-
-                const rubro =
-                    String(
-                        perfil.rubro || ""
-                    ).toLowerCase();
-
-                const localidad =
-                    String(
-                        perfil.localidad || ""
-                    ).toLowerCase();
-
-                const provincia =
-                    String(
-                        perfil.provincia || ""
-                    ).toLowerCase();
-
-                const tipo =
-                    String(
-                        perfil.tipo || ""
-                    ).toLowerCase();
+const btnVolver =
+    document.getElementById(
+        "btnVolver"
+    );
 
 
-                if(
-                    nombre.includes(textoMinuscula) ||
-                    rubro.includes(textoMinuscula) ||
-                    localidad.includes(textoMinuscula) ||
-                    provincia.includes(textoMinuscula) ||
-                    tipo.includes(textoMinuscula)
-                ){
-
-                    perfilesCache[
-                        perfil.uid
-                    ] = perfil;
-
-                    resultados.push(
-                        perfil
-                    );
-                }
-
-            });
+const headerName =
+    document.getElementById(
+        "headerName"
+    );
 
 
-            resultados.sort(
-                (a,b) =>
-                    obtenerNombrePerfil(a)
-                    .localeCompare(
-                        obtenerNombrePerfil(b),
-                        "es"
-                    )
+const headerStatus =
+    document.getElementById(
+        "headerStatus"
+    );
+
+
+const headerAvatar =
+    document.getElementById(
+        "headerAvatar"
+    );
+
+
+const headerUnread =
+    document.getElementById(
+        "headerUnread"
+    );
+
+
+const toast =
+    document.getElementById(
+        "toast"
+    );
+
+
+
+/* =========================
+   VARIABLES
+========================= */
+
+let usuarioActual = null;
+
+let usuarioConversacion = null;
+
+let perfilConversacion = null;
+
+let cargandoMensajes = false;
+
+
+/*
+ * Guardamos los mensajes ya mostrados
+ * para evitar duplicados.
+ */
+
+const mensajesMostrados =
+    new Set();
+
+
+
+/* =========================
+   UID DE LA URL
+========================= */
+
+const parametros =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const uidConversacion =
+    parametros.get(
+        "usuario"
+    );
+
+
+
+/* =========================
+   TOAST
+========================= */
+
+function mostrarToast(
+    mensaje
+){
+
+    toast.textContent =
+        mensaje;
+
+    toast.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        () => {
+
+            toast.classList.remove(
+                "show"
             );
 
+        },
+        2500
+    );
 
-            renderResultadosBusqueda(
-                resultados.slice(0,30)
-            );
-
-        }catch(error){
-
-            console.error(
-                "Error buscando personas:",
-                error
-            );
-
-            searchResults.innerHTML = `
-                <div class="search-empty">
-                    No se pudo realizar la búsqueda.
-                </div>
-            `;
-        }
-    }
+}
 
 
-    function renderResultadosBusqueda(
-        resultados
-    ){
 
-        if(!resultados.length){
+/* =========================
+   AUTENTICACION
+========================= */
 
-            searchResults.innerHTML = `
-                <div class="search-empty">
-                    No encontramos personas con esa búsqueda.
-                </div>
-            `;
+onAuthStateChanged(
+    auth,
+    async (user) => {
+
+        if(!user){
+
+            window.location.href =
+                "red-login.html";
 
             return;
+
         }
 
 
-        searchResults.innerHTML =
-            resultados.map(perfil => {
-
-                const nombre =
-                    obtenerNombrePerfil(
-                        perfil
-                    );
-
-                const detalle = [
-                    perfil.rubro,
-                    perfil.localidad,
-                    perfil.provincia
-                ]
-                .filter(Boolean)
-                .join(" · ");
-
-
-                return `
-                    <div
-                        class="person-result"
-                        data-uid="${escaparHTML(
-                            perfil.uid
-                        )}"
-                    >
-
-                        <div class="avatar">
-                            ${htmlAvatar(perfil)}
-                        </div>
-
-                        <div class="person-info">
-
-                            <div class="person-name">
-                                ${escaparHTML(nombre)}
-                            </div>
-
-                            <div class="person-meta">
-                                ${
-                                    escaparHTML(
-                                        detalle ||
-                                        "Perfil de Red GESBASE"
-                                    )
-                                }
-                            </div>
-
-                        </div>
-
-                    </div>
-                `;
-
-            }).join("");
-
-
-        document
-            .querySelectorAll(".person-result")
-            .forEach(elemento => {
-
-                elemento.addEventListener(
-                    "click",
-                    () => {
-
-                        const uid =
-                            elemento.dataset.uid;
-
-                        searchResults.classList.remove(
-                            "show"
-                        );
-
-                        searchInput.value = "";
-
-                        renderConversaciones();
-
-                        abrirChat(uid);
-
-                    }
-                );
-
-            });
-    }
-
-
-    /* =========================================
-       ABRIR CHAT
-    ========================================= */
-
-    async function abrirChat(uid){
-
-        if(!uid || !usuarioActual){
-            return;
-        }
-
-        chatActualUid = uid;
-
-        const perfil =
-            await obtenerPerfil(uid);
-
-
-        chatEmpty.classList.add(
-            "hidden"
-        );
-
-        chatHeader.classList.remove(
-            "hidden"
-        );
-
-        messagesContainer.classList.remove(
-            "hidden"
-        );
-
-        messageForm.classList.remove(
-            "hidden"
-        );
-
-
-        chatAvatar.innerHTML =
-            htmlAvatar(perfil);
-
-
-        chatUserName.textContent =
-            obtenerNombrePerfil(perfil);
-
-
-        const detalle = [
-            perfil.rubro,
-            perfil.localidad,
-            perfil.provincia
-        ]
-        .filter(Boolean)
-        .join(" · ");
-
-
-        chatUserStatus.textContent =
-            detalle ||
-            "Red GESBASE";
-
-
-        main.classList.add(
-            "chat-open"
-        );
-
-
-        if(
-            unsubscribeMensajes
-        ){
-            unsubscribeMensajes();
-
-            unsubscribeMensajes = null;
-        }
+        usuarioActual =
+            user;
 
 
         /*
-         * Dos consultas simples:
+         * Si se abrió:
          *
-         * emisorUid = usuario actual
-         * receptorUid = persona seleccionada
+         * mensajes.html?usuario=UID
          *
-         * y al revés.
-         *
-         * No usamos orderBy para evitar índices
-         * compuestos.
+         * cargamos directamente
+         * esa conversación.
          */
 
-        const enviadosQuery =
+        if(uidConversacion){
+
+            if(
+                uidConversacion ===
+                usuarioActual.uid
+            ){
+
+                mostrarError(
+                    "No podés abrir una conversación con vos mismo."
+                );
+
+                return;
+
+            }
+
+
+            usuarioConversacion =
+                uidConversacion;
+
+
+            await cargarPerfilConversacion();
+
+
+            await cargarMensajes();
+
+
+            await marcarMensajesComoLeidos();
+
+
+            /*
+             * Actualizamos el contador
+             * después de abrir la conversación.
+             */
+
+            await actualizarContadorNoLeidos();
+
+        }else{
+
+            mostrarSinConversacion();
+
+            /*
+             * En mensajes sin conversación
+             * también mostramos si existen
+             * mensajes pendientes.
+             */
+
+            await actualizarContadorNoLeidos();
+
+        }
+
+    }
+);
+
+
+
+/* =========================
+   PERFIL CONTACTO
+========================= */
+
+async function cargarPerfilConversacion(){
+
+    if(!usuarioConversacion){
+
+        return;
+
+    }
+
+
+    try{
+
+        /*
+         * Primero buscamos en directorio_red,
+         * que es la información pública
+         * utilizada por Red GESBASE.
+         */
+
+        const referencia =
+            doc(
+                db,
+                "directorio_red",
+                usuarioConversacion
+            );
+
+
+        const snapshot =
+            await getDoc(
+                referencia
+            );
+
+
+        if(
+            snapshot.exists()
+        ){
+
+            perfilConversacion =
+                {
+                    uid:
+                        usuarioConversacion,
+
+                    ...snapshot.data()
+                };
+
+        }else{
+
+            /*
+             * Fallback a usuariosRed.
+             */
+
+            const referenciaRed =
+                doc(
+                    db,
+                    "usuariosRed",
+                    usuarioConversacion
+                );
+
+
+            const snapshotRed =
+                await getDoc(
+                    referenciaRed
+                );
+
+
+            if(
+                snapshotRed.exists()
+            ){
+
+                perfilConversacion =
+                    {
+                        uid:
+                            usuarioConversacion,
+
+                        ...snapshotRed.data()
+                    };
+
+            }else{
+
+                perfilConversacion =
+                    {
+                        uid:
+                            usuarioConversacion,
+
+                        nombreCompleto:
+                            "Usuario GESBASE",
+
+                        fotoURL:
+                            "",
+
+                        tipo:
+                            "Usuario GESBASE"
+
+                    };
+
+            }
+
+        }
+
+
+        mostrarPerfilHeader();
+
+
+    }catch(error){
+
+        console.error(
+            "Error cargando perfil:",
+            error
+        );
+
+
+        perfilConversacion =
+            {
+                uid:
+                    usuarioConversacion,
+
+                nombreCompleto:
+                    "Usuario GESBASE",
+
+                fotoURL:
+                    ""
+
+            };
+
+
+        mostrarPerfilHeader();
+
+    }
+
+}
+
+
+
+/* =========================
+   HEADER PERFIL
+========================= */
+
+function mostrarPerfilHeader(){
+
+    const nombre =
+        perfilConversacion?.nombreCompleto ||
+        perfilConversacion?.nombre ||
+        "Usuario GESBASE";
+
+
+    headerName.textContent =
+        nombre;
+
+
+    const tipo =
+        perfilConversacion?.tipo ||
+        perfilConversacion?.rubro ||
+        "Conexión de Red GESBASE";
+
+
+    headerStatus.textContent =
+        tipo;
+
+
+    const foto =
+        perfilConversacion?.fotoURL ||
+        perfilConversacion?.fotoPerfil ||
+        "";
+
+
+    headerAvatar.innerHTML =
+        "";
+
+
+    if(foto){
+
+        const img =
+            document.createElement(
+                "img"
+            );
+
+
+        img.src =
+            foto;
+
+
+        img.alt =
+            "";
+
+
+        img.onerror =
+            () => {
+
+                headerAvatar.innerHTML =
+                    "";
+
+                headerAvatar.textContent =
+                    nombre
+                        .charAt(0)
+                        .toUpperCase();
+
+            };
+
+
+        headerAvatar.appendChild(
+            img
+        );
+
+    }else{
+
+        headerAvatar.textContent =
+            nombre
+                .charAt(0)
+                .toUpperCase();
+
+    }
+
+
+    /*
+     * Al tocar la foto/nombre del
+     * contacto abrimos su perfil.
+     */
+
+    headerAvatar.style.cursor =
+        "pointer";
+
+
+    headerAvatar.onclick =
+        () => {
+
+            abrirPerfil(
+                usuarioConversacion
+            );
+
+        };
+
+
+    headerName.style.cursor =
+        "pointer";
+
+
+    headerName.onclick =
+        () => {
+
+            abrirPerfil(
+                usuarioConversacion
+            );
+
+        };
+
+}
+
+
+
+/* =========================
+   ABRIR PERFIL
+========================= */
+
+function abrirPerfil(
+    uid
+){
+
+    if(!uid){
+
+        return;
+
+    }
+
+
+    window.location.href =
+        "red-perfil.html?uid=" +
+        encodeURIComponent(
+            uid
+        );
+
+}
+
+
+
+/* =========================
+   CARGAR MENSAJES
+========================= */
+
+async function cargarMensajes(){
+
+    if(
+        !usuarioActual ||
+        !usuarioConversacion ||
+        cargandoMensajes
+    ){
+
+        return;
+
+    }
+
+
+    cargandoMensajes =
+        true;
+
+
+    messagesContainer.innerHTML =
+        `<div class="loading">
+            Cargando conversación...
+        </div>`;
+
+
+    try{
+
+        /*
+         * Mensajes enviados por mí.
+         */
+
+        const qEnviados =
             query(
-                collection(db,"mensajes"),
+                collection(
+                    db,
+                    "mensajes"
+                ),
                 where(
                     "emisorUid",
                     "==",
                     usuarioActual.uid
+                ),
+                where(
+                    "receptorUid",
+                    "==",
+                    usuarioConversacion
                 )
             );
 
-        const recibidosQuery =
+
+        /*
+         * Mensajes recibidos.
+         */
+
+        const qRecibidos =
             query(
-                collection(db,"mensajes"),
+                collection(
+                    db,
+                    "mensajes"
+                ),
+                where(
+                    "emisorUid",
+                    "==",
+                    usuarioConversacion
+                ),
                 where(
                     "receptorUid",
                     "==",
@@ -1985,589 +1184,949 @@
             );
 
 
-        let enviados = [];
+        /*
+         * Hacemos las dos consultas
+         * por separado para evitar
+         * consultas compuestas.
+         */
 
-        let recibidos = [];
-
-
-        const render = () => {
-
-            const todos = [
-                ...enviados
-                    .filter(
-                        m =>
-                            m.receptorUid ===
-                            chatActualUid
-                    ),
-
-                ...recibidos
-                    .filter(
-                        m =>
-                            m.emisorUid ===
-                            chatActualUid
-                    )
-            ];
+        const [
+            snapshotEnviados,
+            snapshotRecibidos
+        ] =
+            await Promise.all([
+                getDocs(qEnviados),
+                getDocs(qRecibidos)
+            ]);
 
 
-            const mapa = new Map();
-
-            todos.forEach(mensaje => {
-
-                mapa.set(
-                    mensaje.id,
-                    mensaje
-                );
-
-            });
+        const mensajes =
+            [];
 
 
-            const ordenados =
-                Array.from(
-                    mapa.values()
-                ).sort(
-                    (a,b) =>
-                        obtenerFechaOrden(a) -
-                        obtenerFechaOrden(b)
-                );
+        snapshotEnviados.forEach(
+            documento => {
+
+                mensajes.push({
+
+                    id:
+                        documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
 
 
-            renderMensajes(
-                ordenados
+        snapshotRecibidos.forEach(
+            documento => {
+
+                mensajes.push({
+
+                    id:
+                        documento.id,
+
+                    ...documento.data()
+
+                });
+
+            }
+        );
+
+
+        /*
+         * Orden local por fecha.
+         */
+
+        mensajes.sort(
+            (a,b) => {
+
+                const fechaA =
+                    obtenerFechaMensaje(
+                        a
+                    );
+
+
+                const fechaB =
+                    obtenerFechaMensaje(
+                        b
+                    );
+
+
+                return fechaA -
+                    fechaB;
+
+            }
+        );
+
+
+        messagesContainer.innerHTML =
+            "";
+
+
+        mensajesMostrados.clear();
+
+
+        if(
+            mensajes.length === 0
+        ){
+
+            mostrarVacio();
+
+        }else{
+
+            mensajes.forEach(
+                mensaje => {
+
+                    renderMensaje(
+                        mensaje
+                    );
+
+                }
             );
+
+        }
+
+
+        desplazarAlFinal();
+
+
+    }catch(error){
+
+        console.error(
+            "Error cargando mensajes:",
+            error
+        );
+
+
+        messagesContainer.innerHTML =
+            `<div class="chat-empty">
+
+                <div class="chat-empty-box">
+
+                    <div class="chat-empty-icon">
+                        ⚠️
+                    </div>
+
+                    <div class="chat-empty-title">
+                        No se pudieron cargar los mensajes
+                    </div>
+
+                    <div class="chat-empty-text">
+                        Intentá nuevamente.
+                    </div>
+
+                </div>
+
+            </div>`;
+
+    }finally{
+
+        cargandoMensajes =
+            false;
+
+    }
+
+}
+
+
+
+/* =========================
+   FECHA MENSAJE
+========================= */
+
+function obtenerFechaMensaje(
+    mensaje
+){
+
+    if(
+        typeof mensaje.fechaCliente ===
+        "number"
+    ){
+
+        return mensaje.fechaCliente;
+
+    }
+
+
+    if(
+        mensaje.fecha &&
+        typeof mensaje.fecha.toMillis ===
+        "function"
+    ){
+
+        return mensaje.fecha.toMillis();
+
+    }
+
+
+    if(
+        mensaje.fecha &&
+        mensaje.fecha.seconds
+    ){
+
+        return mensaje.fecha.seconds *
+            1000;
+
+    }
+
+
+    return 0;
+
+}
+
+
+
+/* =========================
+   RENDER MENSAJE
+========================= */
+
+function renderMensaje(
+    mensaje
+){
+
+    if(
+        mensajesMostrados.has(
+            mensaje.id
+        )
+    ){
+
+        return;
+
+    }
+
+
+    mensajesMostrados.add(
+        mensaje.id
+    );
+
+
+    const esMio =
+        mensaje.emisorUid ===
+        usuarioActual.uid;
+
+
+    const fila =
+        document.createElement(
+            "div"
+        );
+
+
+    fila.className =
+        "message-row " +
+        (
+            esMio
+                ? "mine"
+                : "theirs"
+        );
+
+
+    const burbuja =
+        document.createElement(
+            "div"
+        );
+
+
+    burbuja.className =
+        "message " +
+        (
+            esMio
+                ? "mine"
+                : "theirs"
+        );
+
+
+    const contenido =
+        document.createElement(
+            "span"
+        );
+
+
+    contenido.textContent =
+        mensaje.contenido ||
+        "";
+
+
+    burbuja.appendChild(
+        contenido
+    );
+
+
+    const hora =
+        document.createElement(
+            "span"
+        );
+
+
+    hora.className =
+        "message-time";
+
+
+    hora.textContent =
+        formatearHora(
+            mensaje
+        );
+
+
+    burbuja.appendChild(
+        hora
+    );
+
+
+    fila.appendChild(
+        burbuja
+    );
+
+
+    messagesContainer.appendChild(
+        fila
+    );
+
+}
+
+
+
+/* =========================
+   HORA
+========================= */
+
+function formatearHora(
+    mensaje
+){
+
+    const timestamp =
+        obtenerFechaMensaje(
+            mensaje
+        );
+
+
+    if(!timestamp){
+
+        return "";
+
+    }
+
+
+    try{
+
+        return new Intl.DateTimeFormat(
+            "es-AR",
+            {
+                hour:
+                    "2-digit",
+
+                minute:
+                    "2-digit"
+            }
+        ).format(
+            new Date(
+                timestamp
+            )
+        );
+
+    }catch(error){
+
+        return "";
+
+    }
+
+}
+
+
+
+/* =========================
+   MENSAJE VACIO
+========================= */
+
+function mostrarVacio(){
+
+    messagesContainer.innerHTML =
+        `<div class="chat-empty">
+
+            <div class="chat-empty-box">
+
+                <div class="chat-empty-icon">
+                    💬
+                </div>
+
+                <div class="chat-empty-title">
+                    Iniciá la conversación
+                </div>
+
+                <div class="chat-empty-text">
+                    Enviá un mensaje para comenzar a hablar.
+                </div>
+
+            </div>
+
+        </div>`;
+
+}
+
+
+
+/* =========================
+   SIN CONVERSACION
+========================= */
+
+function mostrarSinConversacion(){
+
+    headerName.textContent =
+        "Mensajes";
+
+
+    headerStatus.textContent =
+        "Red GESBASE";
+
+
+    messagesContainer.innerHTML =
+        `<div class="chat-empty">
+
+            <div class="chat-empty-box">
+
+                <div class="chat-empty-icon">
+                    💬
+                </div>
+
+                <div class="chat-empty-title">
+                    Tus mensajes
+                </div>
+
+                <div class="chat-empty-text">
+                    Abrí una conversación desde
+                    tus conexiones para comenzar a chatear.
+                </div>
+
+            </div>
+
+        </div>`;
+
+}
+
+
+
+/* =========================
+   ENVIAR
+========================= */
+
+async function enviarMensaje(){
+
+    if(
+        !usuarioActual ||
+        !usuarioConversacion
+    ){
+
+        mostrarToast(
+            "Seleccioná una conversación."
+        );
+
+        return;
+
+    }
+
+
+    const contenido =
+        messageInput.value.trim();
+
+
+    if(!contenido){
+
+        return;
+
+    }
+
+
+    if(
+        contenido.length >
+        5000
+    ){
+
+        mostrarToast(
+            "El mensaje es demasiado largo."
+        );
+
+        return;
+
+    }
+
+
+    btnEnviar.disabled =
+        true;
+
+
+    try{
+
+        /*
+         * IMPORTANTE:
+         *
+         * El mensaje se guarda solamente
+         * en "mensajes".
+         *
+         * NO se crea una notificación
+         * en "notificaciones".
+         */
+
+        const referencia =
+            await addDoc(
+                collection(
+                    db,
+                    "mensajes"
+                ),
+                {
+
+                    emisorUid:
+                        usuarioActual.uid,
+
+                    receptorUid:
+                        usuarioConversacion,
+
+                    contenido:
+                        contenido,
+
+                    fecha:
+                        serverTimestamp(),
+
+                    fechaCliente:
+                        Date.now(),
+
+                    leido:
+                        false
+
+                }
+            );
+
+
+        /*
+         * Limpiamos el campo.
+         */
+
+        messageInput.value =
+            "";
+
+
+        ajustarTextarea();
+
+
+        /*
+         * Renderizamos inmediatamente
+         * sin esperar una recarga.
+         */
+
+        const mensajeNuevo = {
+
+            id:
+                referencia.id,
+
+            emisorUid:
+                usuarioActual.uid,
+
+            receptorUid:
+                usuarioConversacion,
+
+            contenido:
+                contenido,
+
+            fechaCliente:
+                Date.now(),
+
+            leido:
+                false
 
         };
 
 
-        if(unsubscribeEmisor){
-            unsubscribeEmisor();
-        }
+        /*
+         * Si estaba mostrando
+         * el estado vacío, lo quitamos.
+         */
 
-        if(unsubscribeReceptor){
-            unsubscribeReceptor();
-        }
-
-
-        unsubscribeEmisor =
-            onSnapshot(
-                enviadosQuery,
-                snapshot => {
-
-                    enviados =
-                        snapshot.docs.map(
-                            item => ({
-                                id:item.id,
-                                ...item.data()
-                            })
-                        );
-
-                    render();
-
-                },
-                error => {
-
-                    console.error(
-                        "Error mensajes enviados:",
-                        error
-                    );
-
-                }
+        const estadoVacio =
+            messagesContainer.querySelector(
+                ".chat-empty"
             );
 
 
-        unsubscribeReceptor =
-            onSnapshot(
-                recibidosQuery,
-                snapshot => {
+        if(estadoVacio){
 
-                    recibidos =
-                        snapshot.docs.map(
-                            item => ({
-                                id:item.id,
-                                ...item.data()
-                            })
-                        );
+            messagesContainer.innerHTML =
+                "";
 
-                    render();
+            mensajesMostrados.clear();
 
-                },
-                error => {
+        }
 
-                    console.error(
-                        "Error mensajes recibidos:",
-                        error
-                    );
 
-                }
-            );
+        renderMensaje(
+            mensajeNuevo
+        );
 
+
+        desplazarAlFinal();
+
+
+    }catch(error){
+
+        console.error(
+            "Error enviando mensaje:",
+            error
+        );
+
+
+        mostrarToast(
+            "No se pudo enviar el mensaje."
+        );
+
+    }finally{
+
+        btnEnviar.disabled =
+            false;
 
         messageInput.focus();
 
-        renderConversaciones();
+    }
+
+}
+
+
+
+/* =========================
+   MARCAR LEIDOS
+========================= */
+
+async function marcarMensajesComoLeidos(){
+
+    if(
+        !usuarioActual ||
+        !usuarioConversacion
+    ){
+
+        return;
+
     }
 
 
-    /* =========================================
-       MOSTRAR MENSAJES
-    ========================================= */
+    try{
 
-    function renderMensajes(lista){
-
-        if(!lista.length){
-
-            messagesContainer.innerHTML = `
-                <div
-                    style="
-                        text-align:center;
-                        color:#718086;
-                        padding:40px 20px;
-                        font-size:14px;
-                    "
-                >
-                    Todavía no hay mensajes.
-                    <br>
-                    Escribí el primero.
-                </div>
-            `;
-
-            return;
-        }
-
-
-        messagesContainer.innerHTML =
-            lista.map(mensaje => {
-
-                const mio =
-                    mensaje.emisorUid ===
-                    usuarioActual.uid;
+        const consulta =
+            query(
+                collection(
+                    db,
+                    "mensajes"
+                ),
+                where(
+                    "emisorUid",
+                    "==",
+                    usuarioConversacion
+                ),
+                where(
+                    "receptorUid",
+                    "==",
+                    usuarioActual.uid
+                ),
+                where(
+                    "leido",
+                    "==",
+                    false
+                )
+            );
 
 
-                return `
-                    <div
-                        class="message-row ${
-                            mio
-                            ? "mine"
-                            : "theirs"
-                        }"
-                    >
-
-                        <div class="message-bubble">
-
-                            <div>
-                                ${escaparHTML(
-                                    mensaje.contenido
-                                )}
-                            </div>
-
-                            <div class="message-time">
-                                ${fechaMensaje(
-                                    mensaje.fecha
-                                )}
-                                ${
-                                    mio
-                                    ? (
-                                        mensaje.leido === true
-                                        ? " · ✓✓"
-                                        : " · ✓"
-                                    )
-                                    : ""
-                                }
-                            </div>
-
-                        </div>
-
-                    </div>
-                `;
-
-            }).join("");
+        const snapshot =
+            await getDocs(
+                consulta
+            );
 
 
-        requestAnimationFrame(
-            () => {
+        /*
+         * Actualizamos uno por uno.
+         * Así evitamos necesitar un índice
+         * compuesto adicional.
+         */
 
-                messagesContainer.scrollTop =
-                    messagesContainer.scrollHeight;
-
-            }
-        );
-    }
-
-
-    /* =========================================
-       ENVIAR MENSAJE
-    ========================================= */
-
-    messageForm.addEventListener(
-        "submit",
-        async event => {
-
-            event.preventDefault();
-
-            if(
-                !usuarioActual ||
-                !chatActualUid
-            ){
-                return;
-            }
-
-
-            const contenido =
-                messageInput.value
-                .trim();
-
-
-            if(!contenido){
-                return;
-            }
-
-
-            if(contenido.length > 2000){
-
-                alert(
-                    "El mensaje no puede superar los 2000 caracteres."
-                );
-
-                return;
-            }
-
-
-            sendBtn.disabled = true;
-
+        for(
+            const documento of
+            snapshot.docs
+        ){
 
             try{
 
-                await addDoc(
-                    collection(db,"mensajes"),
+                await updateDoc(
+                    doc(
+                        db,
+                        "mensajes",
+                        documento.id
+                    ),
                     {
-                        emisorUid:
-                            usuarioActual.uid,
-
-                        receptorUid:
-                            chatActualUid,
-
-                        contenido:
-                            contenido,
-
-                        leido:false,
-
-                        fecha:
-                            serverTimestamp(),
-
-                        fechaCliente:
-                            Date.now()
+                        leido:
+                            true
                     }
                 );
 
-
-                /*
-                 * Crear notificación para el receptor.
-                 *
-                 * No es obligatorio para que el chat funcione,
-                 * pero permite integrar la campanita.
-                 */
-
-                try{
-
-                    await addDoc(
-                        collection(
-                            db,
-                            "notificaciones"
-                        ),
-                        {
-                            receptorUid:
-                                chatActualUid,
-
-                            emisorUid:
-                                usuarioActual.uid,
-
-                            tipo:
-                                "mensaje",
-
-                            titulo:
-                                "Nuevo mensaje",
-
-                            mensaje:
-                                `${obtenerNombrePerfil(
-                                    perfilActual
-                                )} te envió un mensaje.`,
-
-                            leida:false,
-
-                            fecha:
-                                serverTimestamp(),
-
-                            fechaCliente:
-                                Date.now(),
-
-                            referenciaId:
-                                usuarioActual.uid,
-
-                            url:
-                                "mensajes.html"
-                        }
-                    );
-
-                }catch(errorNotificacion){
-
-                    console.warn(
-                        "No se pudo crear la notificación:",
-                        errorNotificacion
-                    );
-
-                }
-
-
-                messageInput.value = "";
-
-                messageInput.style.height =
-                    "44px";
-
-                messageInput.focus();
-
-
-            }catch(error){
+            }catch(errorUpdate){
 
                 console.error(
-                    "Error enviando mensaje:",
-                    error
+                    "Error marcando mensaje:",
+                    documento.id,
+                    errorUpdate
                 );
 
-                alert(
-                    "No se pudo enviar el mensaje.\n\n" +
-                    error.message
-                );
-
-            }finally{
-
-                sendBtn.disabled = false;
-
             }
 
         }
-    );
 
 
-    /* =========================================
-       TEXTAREA AUTOMÁTICO
-    ========================================= */
+    }catch(error){
 
-    messageInput.addEventListener(
-        "input",
-        () => {
-
-            messageInput.style.height =
-                "44px";
-
-            messageInput.style.height =
-                Math.min(
-                    messageInput.scrollHeight,
-                    120
-                ) + "px";
-
-        }
-    );
-
-
-    messageInput.addEventListener(
-        "keydown",
-        event => {
-
-            if(
-                event.key === "Enter" &&
-                !event.shiftKey
-            ){
-
-                event.preventDefault();
-
-                messageForm.requestSubmit();
-
-            }
-
-        }
-    );
-
-
-    /* =========================================
-       VOLVER AL LISTADO EN CELULAR
-    ========================================= */
-
-    backChatBtn.addEventListener(
-        "click",
-        () => {
-
-            main.classList.remove(
-                "chat-open"
-            );
-
-            chatActualUid = null;
-
-            if(unsubscribeEmisor){
-                unsubscribeEmisor();
-                unsubscribeEmisor = null;
-            }
-
-            if(unsubscribeReceptor){
-                unsubscribeReceptor();
-                unsubscribeReceptor = null;
-            }
-
-            if(unsubscribeMensajes){
-                unsubscribeMensajes();
-                unsubscribeMensajes = null;
-            }
-
-        }
-    );
-
-
-    /* =========================================
-       NAVEGACIÓN
-    ========================================= */
-
-    document
-        .querySelectorAll("[data-url]")
-        .forEach(boton => {
-
-            boton.addEventListener(
-                "click",
-                () => {
-
-                    const url =
-                        boton.dataset.url;
-
-                    if(url){
-                        window.location.href =
-                            url;
-                    }
-
-                }
-            );
-
-        });
-
-
-    document
-        .getElementById("backHomeBtn")
-        .addEventListener(
-            "click",
-            () => {
-
-                window.location.href =
-                    "red.html";
-
-            }
+        console.error(
+            "Error buscando mensajes no leídos:",
+            error
         );
 
+    }
 
-    document
-        .getElementById("notificationsBtn")
-        .addEventListener(
-            "click",
-            () => {
-
-                window.location.href =
-                    "red-notificaciones.html";
-
-            }
-        );
+}
 
 
-    document
-        .getElementById("profileBtn")
-        .addEventListener(
-            "click",
-            () => {
 
-                window.location.href =
-                    "red-perfil.html";
+/* =========================
+   CONTADOR NO LEIDOS
+========================= */
 
-            }
-        );
+async function actualizarContadorNoLeidos(){
+
+    if(!usuarioActual){
+
+        return;
+
+    }
 
 
-    /* =========================================
-       CERRAR RESULTADOS
-    ========================================= */
+    try{
 
-    document.addEventListener(
-        "click",
-        event => {
+        /*
+         * Buscamos mensajes recibidos.
+         */
 
-            if(
-                !event.target.closest(
-                    ".search-box"
-                ) &&
-                !event.target.closest(
-                    ".search-results"
+        const consulta =
+            query(
+                collection(
+                    db,
+                    "mensajes"
+                ),
+                where(
+                    "receptorUid",
+                    "==",
+                    usuarioActual.uid
+                ),
+                where(
+                    "leido",
+                    "==",
+                    false
                 )
-            ){
+            );
 
-                searchResults.classList.remove(
-                    "show"
-                );
 
-            }
+        const snapshot =
+            await getDocs(
+                consulta
+            );
+
+
+        const cantidad =
+            snapshot.size;
+
+
+        if(cantidad > 0){
+
+            headerUnread.textContent =
+                cantidad > 99
+                    ? "99+"
+                    : cantidad;
+
+
+            headerUnread.classList.add(
+                "visible"
+            );
+
+        }else{
+
+            headerUnread.textContent =
+                "0";
+
+
+            headerUnread.classList.remove(
+                "visible"
+            );
+
+        }
+
+
+    }catch(error){
+
+        console.error(
+            "Error contador mensajes:",
+            error
+        );
+
+        headerUnread.textContent =
+            "0";
+
+        headerUnread.classList.remove(
+            "visible"
+        );
+
+    }
+
+}
+
+
+
+/* =========================
+   SCROLL
+========================= */
+
+function desplazarAlFinal(){
+
+    requestAnimationFrame(
+        () => {
+
+            messagesContainer.scrollTop =
+                messagesContainer.scrollHeight;
 
         }
     );
 
-
-    /* =========================================
-       AUTENTICACIÓN
-    ========================================= */
-
-    onAuthStateChanged(
-        auth,
-        async usuario => {
-
-            if(!usuario){
-
-                window.location.href =
-                    "red-login.html";
-
-                return;
-            }
+}
 
 
-            usuarioActual =
-                usuario;
+
+/* =========================
+   TEXTAREA
+========================= */
+
+function ajustarTextarea(){
+
+    messageInput.style.height =
+        "auto";
 
 
-            await cargarPerfilActual();
-
-            await cargarConversaciones();
-
-
-            /*
-             * Si se entra con:
-             *
-             * mensajes.html?usuario=UID
-             *
-             * abre directamente ese chat.
-             */
-
-            const parametros =
-                new URLSearchParams(
-                    window.location.search
-                );
-
-            const uidInicial =
-                parametros.get(
-                    "usuario"
-                );
+    const altura =
+        Math.min(
+            messageInput.scrollHeight,
+            120
+        );
 
 
-            if(
-                uidInicial &&
-                uidInicial !== usuarioActual.uid
-            ){
+    messageInput.style.height =
+        altura + "px";
 
-                abrirChat(uidInicial);
+}
 
-            }
+
+
+/* =========================
+   BOTON ENVIAR
+========================= */
+
+btnEnviar.addEventListener(
+    "click",
+    enviarMensaje
+);
+
+
+
+/* =========================
+   ENTER
+========================= */
+
+messageInput.addEventListener(
+    "keydown",
+    evento => {
+
+        if(
+            evento.key ===
+            "Enter" &&
+            !evento.shiftKey
+        ){
+
+            evento.preventDefault();
+
+            enviarMensaje();
 
         }
-    );
+
+    }
+);
+
+
+
+/* =========================
+   TEXTAREA INPUT
+========================= */
+
+messageInput.addEventListener(
+    "input",
+    ajustarTextarea
+);
+
+
+
+/* =========================
+   VOLVER
+========================= */
+
+btnVolver.addEventListener(
+    "click",
+    () => {
+
+        /*
+         * Si venimos desde conexiones,
+         * volvemos a conexiones.
+         */
+
+        window.location.href =
+            "conexiones.html";
+
+    }
+);
+
+
+function mostrarError(
+    mensaje
+){
+
+    messagesContainer.innerHTML =
+        `<div class="chat-empty">
+
+            <div class="chat-empty-box">
+
+                <div class="chat-empty-icon">
+                    ⚠️
+                </div>
+
+                <div class="chat-empty-title">
+                    No se puede abrir esta conversación
+                </div>
+
+                <div class="chat-empty-text">
+                    ${mensaje}
+                </div>
+
+            </div>
+
+        </div>`;
+
+
+    document.getElementById(
+        "composer"
+    ).style.display =
+        "none";
+
+}
+
+
 
 </script>
 
