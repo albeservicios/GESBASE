@@ -22,7 +22,6 @@
 
 <title>Mensajes - Red GESBASE</title>
 
-
 <style>
 
 *{
@@ -568,6 +567,50 @@ body{
 }
 
 
+/* =========================
+   ESPERA OFERTA
+========================= */
+
+.waiting-call{
+    position:fixed;
+    inset:0;
+    z-index:1200;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.75);
+    padding:20px;
+}
+
+.waiting-call.visible{
+    display:flex;
+}
+
+.waiting-box{
+    width:min(92%,380px);
+    background:white;
+    border-radius:18px;
+    padding:25px;
+    text-align:center;
+}
+
+.spinner{
+    width:40px;
+    height:40px;
+    margin:0 auto 15px;
+    border:4px solid #e5e7eb;
+    border-top-color:#2563eb;
+    border-radius:50%;
+    animation:girar 1s linear infinite;
+}
+
+@keyframes girar{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+
 @media(max-width:600px){
 
     .page{
@@ -793,6 +836,7 @@ body{
             <button
                 id="btnMute"
                 class="call-control"
+                title="Micrófono"
             >
                 🎙️
             </button>
@@ -801,6 +845,7 @@ body{
             <button
                 id="btnCamera"
                 class="call-control"
+                title="Cámara"
             >
                 📷
             </button>
@@ -809,6 +854,7 @@ body{
             <button
                 id="btnEndCall"
                 class="call-control end"
+                title="Finalizar"
             >
                 ☎
             </button>
@@ -866,6 +912,32 @@ body{
         >
             ✅ Aceptar
         </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     ESPERAR OFERTA
+========================= -->
+
+<div
+    id="waitingCall"
+    class="waiting-call"
+>
+
+    <div class="waiting-box">
+
+        <div class="spinner"></div>
+
+        <strong>
+            Preparando videollamada...
+        </strong>
+
+        <p>
+            Esperá unos segundos.
+        </p>
 
     </div>
 
@@ -998,6 +1070,9 @@ const btnAccept =
 const btnReject =
     document.getElementById("btnReject");
 
+const waitingCall =
+    document.getElementById("waitingCall");
+
 
 /* =========================================================
    VARIABLES
@@ -1010,8 +1085,11 @@ let contactos = [];
 let contactoSeleccionado = null;
 
 let unsubscribeUnread = null;
+
 let unsubscribeIncoming = null;
+
 let unsubscribeCall = null;
+
 let unsubscribeRemoteIce = null;
 
 let peerConnection = null;
@@ -1031,6 +1109,10 @@ let muted = false;
 let cameraOff = false;
 
 
+/* =========================================================
+   URL
+========================================================= */
+
 const params =
     new URLSearchParams(
         window.location.search
@@ -1042,7 +1124,7 @@ const uidSolicitado =
 
 
 /* =========================================================
-   CONFIG WEBRTC
+   WEBRTC
 ========================================================= */
 
 const rtcConfig = {
@@ -1103,13 +1185,17 @@ function nombrePerfil(perfil){
         return "Usuario";
     }
 
+
     return (
         perfil.nombreCompleto ||
-        perfil.nombre ||
-        [
-            perfil.nombre,
-            perfil.apellido
-        ].filter(Boolean).join(" ") ||
+        (
+            [
+                perfil.nombre,
+                perfil.apellido
+            ]
+            .filter(Boolean)
+            .join(" ")
+        ) ||
         perfil.empresa ||
         "Usuario"
     );
@@ -1122,6 +1208,7 @@ function tipoPerfil(perfil){
     if(!perfil){
         return "Usuario";
     }
+
 
     return (
         perfil.rubro ||
@@ -1140,6 +1227,7 @@ function fotoPerfil(perfil){
         return "";
     }
 
+
     return (
         perfil.fotoURL ||
         perfil.foto ||
@@ -1157,11 +1245,14 @@ function estaActivo(perfil){
         return false;
     }
 
+
     if(perfil.enLinea === true){
         return true;
     }
 
+
     let fecha = 0;
+
 
     if(
         perfil.ultimaConexion &&
@@ -1174,6 +1265,7 @@ function estaActivo(perfil){
 
     }
 
+
     if(
         typeof perfil.ultimaConexion ===
         "number"
@@ -1184,9 +1276,11 @@ function estaActivo(perfil){
 
     }
 
+
     if(!fecha){
         return false;
     }
+
 
     return (
         Date.now() - fecha
@@ -1199,6 +1293,7 @@ function horaMensaje(data){
 
     let fecha = null;
 
+
     if(
         data.fecha &&
         typeof data.fecha.toDate ===
@@ -1209,6 +1304,7 @@ function horaMensaje(data){
             data.fecha.toDate();
 
     }
+
 
     if(
         !fecha &&
@@ -1222,9 +1318,11 @@ function horaMensaje(data){
 
     }
 
+
     if(!fecha){
         return "";
     }
+
 
     return fecha.toLocaleTimeString(
         "es-AR",
@@ -1260,8 +1358,9 @@ onAuthStateChanged(
 
 
         /*
-         * LA ESCUCHA DE LLAMADAS SE INICIA
-         * APENAS SE AUTENTICA EL USUARIO.
+         * IMPORTANTE:
+         * ESTA ESCUCHA SE ACTIVA PARA
+         * CUALQUIER USUARIO AUTENTICADO.
          */
 
         iniciarEscuchaLlamadas();
@@ -1316,6 +1415,7 @@ async function actualizarPresencia(){
         return;
     }
 
+
     try{
 
         await setDoc(
@@ -1325,9 +1425,12 @@ async function actualizarPresencia(){
                 usuarioActual.uid
             ),
             {
+
                 enLinea:true,
+
                 ultimaConexion:
                     serverTimestamp()
+
             },
             {
                 merge:true
@@ -1363,16 +1466,27 @@ async function obtenerPerfil(uid){
                 )
             );
 
+
         if(snap.exists()){
 
             return {
+
                 uid,
+
                 ...snap.data()
+
             };
 
         }
 
-    }catch(error){}
+    }catch(error){
+
+        console.warn(
+            "Directorio:",
+            error
+        );
+
+    }
 
 
     try{
@@ -1386,21 +1500,35 @@ async function obtenerPerfil(uid){
                 )
             );
 
+
         if(snap.exists()){
 
             return {
+
                 uid,
+
                 ...snap.data()
+
             };
 
         }
 
-    }catch(error){}
+    }catch(error){
+
+        console.warn(
+            "UsuariosRed:",
+            error
+        );
+
+    }
 
 
     return {
+
         uid,
+
         nombre:"Usuario"
+
     };
 
 }
@@ -1462,19 +1590,20 @@ async function cargarContactos(){
                 const d =
                     snap.data();
 
+
                 if(
-                    (
-                        d.estado ===
-                        "aceptada"
-                    ) ||
-                    (
-                        d.estado ===
-                        "aceptado"
-                    )
+                    d.estado ===
+                    "aceptada" ||
+                    d.estado ===
+                    "aceptado"
                 ){
 
                     if(d.receptor){
-                        ids.add(d.receptor);
+
+                        ids.add(
+                            d.receptor
+                        );
+
                     }
 
                 }
@@ -1489,19 +1618,20 @@ async function cargarContactos(){
                 const d =
                     snap.data();
 
+
                 if(
-                    (
-                        d.estado ===
-                        "aceptada"
-                    ) ||
-                    (
-                        d.estado ===
-                        "aceptado"
-                    )
+                    d.estado ===
+                    "aceptada" ||
+                    d.estado ===
+                    "aceptado"
                 ){
 
                     if(d.emisor){
-                        ids.add(d.emisor);
+
+                        ids.add(
+                            d.emisor
+                        );
+
                     }
 
                 }
@@ -1523,7 +1653,9 @@ async function cargarContactos(){
                 uid,
 
                 perfil:
-                    await obtenerPerfil(uid)
+                    await obtenerPerfil(
+                        uid
+                    )
 
             });
 
@@ -1537,11 +1669,17 @@ async function cargarContactos(){
 
         console.error(error);
 
+
         contactList.innerHTML =
             `<div class="error">
-                No se pudieron cargar los contactos.
+
+                No se pudieron cargar
+                los contactos.
+
                 <br><br>
+
                 ${error.message}
+
             </div>`;
 
     }
@@ -1553,14 +1691,12 @@ async function cargarContactos(){
    NO LEÍDOS
 ========================================================= */
 
-let unreadMap =
-    new Map();
-
-
 function iniciarEscuchaNoLeidos(){
 
     if(unsubscribeUnread){
+
         unsubscribeUnread();
+
     }
 
 
@@ -1583,7 +1719,7 @@ function iniciarEscuchaNoLeidos(){
             q,
             snapshot => {
 
-                unreadMap =
+                const mapa =
                     new Map();
 
 
@@ -1599,10 +1735,10 @@ function iniciarEscuchaNoLeidos(){
                             d.emisorUid
                         ){
 
-                            unreadMap.set(
+                            mapa.set(
                                 d.emisorUid,
                                 (
-                                    unreadMap.get(
+                                    mapa.get(
                                         d.emisorUid
                                     ) || 0
                                 ) + 1
@@ -1614,7 +1750,19 @@ function iniciarEscuchaNoLeidos(){
                 );
 
 
+                window.unreadMap =
+                    mapa;
+
+
                 renderizarContactos();
+
+            },
+            error => {
+
+                console.warn(
+                    "No leídos:",
+                    error
+                );
 
             }
         );
@@ -1623,7 +1771,7 @@ function iniciarEscuchaNoLeidos(){
 
 
 /* =========================================================
-   RENDER CONTACTOS
+   CONTACTOS UI
 ========================================================= */
 
 function renderizarContactos(){
@@ -1632,13 +1780,23 @@ function renderizarContactos(){
 
         contactList.innerHTML =
             `<div class="empty">
-                👥<br><br>
+
+                👥
+
+                <br><br>
+
                 Todavía no tenés conexiones.
+
             </div>`;
 
         return;
 
     }
+
+
+    const mapa =
+        window.unreadMap ||
+        new Map();
 
 
     contactList.innerHTML = "";
@@ -1652,11 +1810,13 @@ function renderizarContactos(){
 
 
             const activo =
-                estaActivo(perfil);
+                estaActivo(
+                    perfil
+                );
 
 
             const cantidad =
-                unreadMap.get(
+                mapa.get(
                     contacto.uid
                 ) || 0;
 
@@ -1672,7 +1832,9 @@ function renderizarContactos(){
 
 
             const imagen =
-                fotoPerfil(perfil) ||
+                fotoPerfil(
+                    perfil
+                ) ||
                 fotoPredeterminada();
 
 
@@ -1732,7 +1894,11 @@ function renderizarContactos(){
                     }
                 </span>
 
-                <span>›</span>
+
+                <span>
+                    ›
+                </span>
+
             `;
 
 
@@ -1808,6 +1974,7 @@ async function seleccionarContacto(
 
 
     await cargarMensajes();
+
 
     await marcarLeidos();
 
@@ -1921,14 +2088,19 @@ async function cargarMensajes(){
                 const d =
                     snap.data();
 
+
                 if(
                     d.receptorUid ===
                     contactoSeleccionado.uid
                 ){
 
                     lista.push({
-                        id:snap.id,
+
+                        id:
+                            snap.id,
+
                         ...d
+
                     });
 
                 }
@@ -1943,14 +2115,19 @@ async function cargarMensajes(){
                 const d =
                     snap.data();
 
+
                 if(
                     d.emisorUid ===
                     contactoSeleccionado.uid
                 ){
 
                     lista.push({
-                        id:snap.id,
+
+                        id:
+                            snap.id,
+
                         ...d
+
                     });
 
                 }
@@ -1970,16 +2147,21 @@ async function cargarMensajes(){
         );
 
 
-        messages.innerHTML = "";
+        messages.innerHTML =
+            "";
 
 
         if(!lista.length){
 
             messages.innerHTML =
                 `<div class="empty">
+
                     Todavía no hay mensajes.
+
                     <br>
+
                     Comenzá la conversación.
+
                 </div>`;
 
             return;
@@ -2000,11 +2182,16 @@ async function cargarMensajes(){
 
         console.error(error);
 
+
         messages.innerHTML =
             `<div class="error">
+
                 Error cargando mensajes:
+
                 <br><br>
+
                 ${error.message}
+
             </div>`;
 
     }
@@ -2154,7 +2341,9 @@ function renderMensaje(data){
 
 
     hora.textContent =
-        horaMensaje(data);
+        horaMensaje(
+            data
+        );
 
 
     burbuja.appendChild(
@@ -2210,7 +2399,9 @@ async function enviarMensaje(){
         !usuarioActual ||
         !contactoSeleccionado
     ){
+
         return;
+
     }
 
 
@@ -2353,10 +2544,11 @@ async function marcarLeidos(){
             cambios
         );
 
+
     }catch(error){
 
         console.warn(
-            "No se pudieron marcar como leídos:",
+            "Marcar leídos:",
             error
         );
 
@@ -2567,6 +2759,7 @@ async function enviarArchivo(
 
         console.error(error);
 
+
         alert(
             "Error enviando archivo:\n" +
             error.message
@@ -2606,7 +2799,7 @@ contactHeader.addEventListener(
 
 
 /* =========================================================
-   WEBRTC
+   PREPARAR CÁMARA
 ========================================================= */
 
 async function prepararCamara(){
@@ -2617,7 +2810,7 @@ async function prepararCamara(){
     ){
 
         throw new Error(
-            "El navegador no permite acceder a la cámara y micrófono."
+            "El navegador no permite acceder a cámara y micrófono."
         );
 
     }
@@ -2659,7 +2852,9 @@ function crearPeer(){
         );
 
 
-    pendingRemoteCandidates = [];
+    pendingRemoteCandidates =
+        [];
+
 
     remoteDescriptionReady =
         false;
@@ -2700,10 +2895,21 @@ function crearPeer(){
                     evento.streams[0];
 
 
+                remoteVideo.muted =
+                    false;
+
+
                 remoteVideo
                     .play()
                     .catch(
-                        () => {}
+                        error => {
+
+                            console.warn(
+                                "Play remoto:",
+                                error
+                            );
+
+                        }
                     );
 
             }
@@ -2714,6 +2920,11 @@ function crearPeer(){
     peerConnection.onconnectionstatechange =
         () => {
 
+            if(!peerConnection){
+                return;
+            }
+
+
             console.log(
                 "WebRTC:",
                 peerConnection.connectionState
@@ -2722,12 +2933,22 @@ function crearPeer(){
 
             if(
                 peerConnection.connectionState ===
+                "connected"
+            ){
+
+                callInfo.textContent =
+                    "🟢 Llamada conectada";
+
+            }
+
+
+            if(
+                peerConnection.connectionState ===
                 "failed"
             ){
 
-                console.error(
-                    "La conexión WebRTC falló."
-                );
+                callInfo.textContent =
+                    "❌ Error de conexión";
 
             }
 
@@ -2736,6 +2957,11 @@ function crearPeer(){
 
     peerConnection.oniceconnectionstatechange =
         () => {
+
+            if(!peerConnection){
+                return;
+            }
+
 
             console.log(
                 "ICE:",
@@ -2748,7 +2974,7 @@ function crearPeer(){
 
 
 /* =========================================================
-   AGREGAR ICE SEGURO
+   ICE SEGURO
 ========================================================= */
 
 async function agregarCandidatoRemoto(
@@ -2796,7 +3022,7 @@ async function agregarCandidatoRemoto(
 
 
 /* =========================================================
-   VACIAR ICE PENDIENTES
+   APLICAR ICE PENDIENTES
 ========================================================= */
 
 async function agregarCandidatosPendientes(){
@@ -2812,7 +3038,9 @@ async function agregarCandidatosPendientes(){
 
 
     const pendientes =
-        [...pendingRemoteCandidates];
+        [
+            ...pendingRemoteCandidates
+        ];
 
 
     pendingRemoteCandidates =
@@ -2847,7 +3075,7 @@ async function agregarCandidatosPendientes(){
 
 
 /* =========================================================
-   ESCUCHAR CANDIDATOS
+   ESCUCHAR ICE
 ========================================================= */
 
 function escucharICE(
@@ -2894,7 +3122,7 @@ function escucharICE(
             error => {
 
                 console.error(
-                    "Error ICE:",
+                    "Error escuchando ICE:",
                     error
                 );
 
@@ -2905,7 +3133,7 @@ function escucharICE(
 
 
 /* =========================================================
-   ESCUCHAR LLAMADA ACTUAL
+   ESTADO DE LLAMADA
 ========================================================= */
 
 function escucharEstadoLlamada(
@@ -2942,7 +3170,8 @@ function escucharEstadoLlamada(
 
 
                 /*
-                 * CALLER RECIBE ANSWER
+                 * CALLER:
+                 * ESPERAR ANSWER
                  */
 
                 if(
@@ -3018,7 +3247,7 @@ function escucharEstadoLlamada(
 
 
 /* =========================================================
-   INICIAR LLAMADA
+   INICIAR VIDEOLLAMADA
 ========================================================= */
 
 btnVideoCall.addEventListener(
@@ -3058,6 +3287,11 @@ async function iniciarVideollamada(){
         crearPeer();
 
 
+        /*
+         * IMPORTANTE:
+         * CREAMOS EL DOCUMENTO DE LLAMADA.
+         */
+
         const llamada =
             await addDoc(
                 collection(
@@ -3074,9 +3308,7 @@ async function iniciarVideollamada(){
 
                     callerName:
                         usuarioActual.displayName ||
-                        nombrePerfil(
-                            contactoSeleccionado.perfil
-                        ),
+                        "Usuario",
 
                     status:
                         "ringing",
@@ -3104,7 +3336,7 @@ async function iniciarVideollamada(){
 
 
         /*
-         * ICE DEL CALLER
+         * ICE CALLER
          */
 
         peerConnection.onicecandidate =
@@ -3120,15 +3352,26 @@ async function iniciarVideollamada(){
                 }
 
 
-                await addDoc(
-                    collection(
-                        db,
-                        "llamadas",
-                        currentCallId,
-                        "callerCandidates"
-                    ),
-                    evento.candidate.toJSON()
-                );
+                try{
+
+                    await addDoc(
+                        collection(
+                            db,
+                            "llamadas",
+                            currentCallId,
+                            "callerCandidates"
+                        ),
+                        evento.candidate.toJSON()
+                    );
+
+                }catch(error){
+
+                    console.warn(
+                        "ICE caller:",
+                        error
+                    );
+
+                }
 
             };
 
@@ -3144,25 +3387,51 @@ async function iniciarVideollamada(){
         );
 
 
-        const offer =
-            await peerConnection.createOffer();
+        /*
+         * CREAR OFERTA
+         */
 
+        const offer =
+            await peerConnection.createOffer(
+                {
+                    offerToReceiveAudio:true,
+                    offerToReceiveVideo:true
+                }
+            );
+
+
+        /*
+         * GUARDAR LOCAL
+         */
 
         await peerConnection.setLocalDescription(
             offer
         );
 
 
+        /*
+         * AHORA GUARDAMOS LA OFERTA.
+         *
+         * EL RECEPTOR NO PODRÁ ACEPTAR
+         * SIN ESPERAR ESTA OFERTA.
+         */
+
         await updateDoc(
-            llamada,
+            doc(
+                db,
+                "llamadas",
+                currentCallId
+            ),
             {
 
                 offer:{
+
                     type:
                         offer.type,
 
                     sdp:
                         offer.sdp
+
                 }
 
             }
@@ -3173,10 +3442,12 @@ async function iniciarVideollamada(){
 
         console.error(error);
 
+
         alert(
             "No se pudo iniciar la videollamada:\n" +
             error.message
         );
+
 
         finalizarLlamadaLocal();
 
@@ -3247,6 +3518,10 @@ function iniciarEscuchaLlamadas(){
 
                     }
 
+
+                    /*
+                     * EVITAR MOSTRAR DOS VECES
+                     */
 
                     if(
                         incomingCallData &&
@@ -3328,7 +3603,93 @@ function iniciarEscuchaLlamadas(){
 
 
 /* =========================================================
-   ACEPTAR
+   ESPERAR OFFER
+========================================================= */
+
+async function esperarOferta(
+    callId,
+    tiempoMaximo = 15000
+){
+
+    const inicio =
+        Date.now();
+
+
+    while(
+        Date.now() - inicio <
+        tiempoMaximo
+    ){
+
+        try{
+
+            const snap =
+                await getDoc(
+                    doc(
+                        db,
+                        "llamadas",
+                        callId
+                    )
+                );
+
+
+            if(snap.exists()){
+
+                const data =
+                    snap.data();
+
+
+                if(
+                    data.offer &&
+                    data.offer.sdp &&
+                    data.offer.type
+                ){
+
+                    return data;
+
+                }
+
+
+                if(
+                    data.status ===
+                    "ended" ||
+                    data.status ===
+                    "rejected"
+                ){
+
+                    return null;
+
+                }
+
+            }
+
+        }catch(error){
+
+            console.warn(
+                "Esperando oferta:",
+                error
+            );
+
+        }
+
+
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    400
+                )
+        );
+
+    }
+
+
+    return null;
+
+}
+
+
+/* =========================================================
+   ACEPTAR LLAMADA
 ========================================================= */
 
 btnAccept.addEventListener(
@@ -3347,7 +3708,9 @@ async function aceptarLlamada(){
 
 
     const llamada =
-        incomingCallData;
+        {
+            ...incomingCallData
+        };
 
 
     incoming.classList.remove(
@@ -3359,14 +3722,28 @@ async function aceptarLlamada(){
         null;
 
 
+    waitingCall.classList.add(
+        "visible"
+    );
+
+
     try{
+
+        /*
+         * BUSCAR CONTACTO
+         */
 
         contactoSeleccionado =
             contactos.find(
                 c =>
                     c.uid ===
                     llamada.callerId
-            ) || {
+            );
+
+
+        if(!contactoSeleccionado){
+
+            contactoSeleccionado = {
 
                 uid:
                     llamada.callerId,
@@ -3377,6 +3754,34 @@ async function aceptarLlamada(){
                     )
 
             };
+
+        }
+
+
+        /*
+         * ESPERAR OFERTA.
+         *
+         * ESTA ES LA CORRECCIÓN
+         * PRINCIPAL DEL ERROR.
+         */
+
+        const datosActualizados =
+            await esperarOferta(
+                llamada.id,
+                15000
+            );
+
+
+        if(
+            !datosActualizados ||
+            !datosActualizados.offer
+        ){
+
+            throw new Error(
+                "No se recibió la oferta WebRTC del llamante."
+            );
+
+        }
 
 
         currentCallId =
@@ -3390,7 +3795,7 @@ async function aceptarLlamada(){
 
 
         mostrarLlamada(
-            "Videollamada con " +
+            "Conectando con " +
             nombrePerfil(
                 contactoSeleccionado.perfil
             )
@@ -3398,7 +3803,7 @@ async function aceptarLlamada(){
 
 
         /*
-         * ICE DEL CALLEE
+         * ICE CALLEE
          */
 
         peerConnection.onicecandidate =
@@ -3414,15 +3819,26 @@ async function aceptarLlamada(){
                 }
 
 
-                await addDoc(
-                    collection(
-                        db,
-                        "llamadas",
-                        currentCallId,
-                        "calleeCandidates"
-                    ),
-                    evento.candidate.toJSON()
-                );
+                try{
+
+                    await addDoc(
+                        collection(
+                            db,
+                            "llamadas",
+                            currentCallId,
+                            "calleeCandidates"
+                        ),
+                        evento.candidate.toJSON()
+                    );
+
+                }catch(error){
+
+                    console.warn(
+                        "ICE callee:",
+                        error
+                    );
+
+                }
 
             };
 
@@ -3439,22 +3855,12 @@ async function aceptarLlamada(){
 
 
         /*
-         * PRIMERO:
-         * remote description
+         * REMOTE OFFER
          */
-
-        if(!llamada.offer){
-
-            throw new Error(
-                "La llamada no tiene una oferta WebRTC."
-            );
-
-        }
-
 
         await peerConnection.setRemoteDescription(
             new RTCSessionDescription(
-                llamada.offer
+                datosActualizados.offer
             )
         );
 
@@ -3462,11 +3868,6 @@ async function aceptarLlamada(){
         remoteDescriptionReady =
             true;
 
-
-        /*
-         * Ahora sí se agregan
-         * los ICE que pudieron llegar antes.
-         */
 
         await agregarCandidatosPendientes();
 
@@ -3476,13 +3877,22 @@ async function aceptarLlamada(){
          */
 
         const answer =
-            await peerConnection.createAnswer();
+            await peerConnection.createAnswer(
+                {
+                    offerToReceiveAudio:true,
+                    offerToReceiveVideo:true
+                }
+            );
 
 
         await peerConnection.setLocalDescription(
             answer
         );
 
+
+        /*
+         * GUARDAR ANSWER
+         */
 
         await updateDoc(
             doc(
@@ -3493,11 +3903,13 @@ async function aceptarLlamada(){
             {
 
                 answer:{
+
                     type:
                         answer.type,
 
                     sdp:
                         answer.sdp
+
                 },
 
                 status:
@@ -3509,15 +3921,25 @@ async function aceptarLlamada(){
 
     }catch(error){
 
-        console.error(error);
+        console.error(
+            "Aceptar llamada:",
+            error
+        );
+
 
         alert(
-            "No se pudo aceptar la llamada:\n" +
+            "No se pudo conectar la llamada:\n" +
             error.message
         );
 
 
         finalizarLlamadaLocal();
+
+    }finally{
+
+        waitingCall.classList.remove(
+            "visible"
+        );
 
     }
 
@@ -3539,25 +3961,8 @@ btnReject.addEventListener(
         }
 
 
-        try{
-
-            await updateDoc(
-                doc(
-                    db,
-                    "llamadas",
-                    incomingCallData.id
-                ),
-                {
-                    status:
-                        "rejected"
-                }
-            );
-
-        }catch(error){
-
-            console.error(error);
-
-        }
+        const id =
+            incomingCallData.id;
 
 
         incoming.classList.remove(
@@ -3567,6 +3972,30 @@ btnReject.addEventListener(
 
         incomingCallData =
             null;
+
+
+        try{
+
+            await updateDoc(
+                doc(
+                    db,
+                    "llamadas",
+                    id
+                ),
+                {
+                    status:
+                        "rejected"
+                }
+            );
+
+        }catch(error){
+
+            console.error(
+                "Rechazo:",
+                error
+            );
+
+        }
 
     }
 );
@@ -3592,7 +4021,7 @@ function mostrarLlamada(
 
 
 /* =========================================================
-   FINALIZAR
+   FINALIZAR LLAMADA
 ========================================================= */
 
 btnEndCall.addEventListener(
@@ -3619,7 +4048,14 @@ async function finalizarLlamada(){
                 }
             );
 
-        }catch(error){}
+        }catch(error){
+
+            console.warn(
+                "Finalizar llamada:",
+                error
+            );
+
+        }
 
     }
 
@@ -3654,6 +4090,12 @@ function finalizarLlamadaLocal(){
     if(peerConnection){
 
         try{
+
+            peerConnection.onicecandidate =
+                null;
+
+            peerConnection.ontrack =
+                null;
 
             peerConnection.close();
 
@@ -3700,11 +4142,6 @@ function finalizarLlamadaLocal(){
         false;
 
 
-    callOverlay.classList.remove(
-        "visible"
-    );
-
-
     muted =
         false;
 
@@ -3719,6 +4156,16 @@ function finalizarLlamadaLocal(){
 
     btnCamera.textContent =
         "📷";
+
+
+    callOverlay.classList.remove(
+        "visible"
+    );
+
+
+    waitingCall.classList.remove(
+        "visible"
+    );
 
 }
 
@@ -3815,9 +4262,12 @@ window.addEventListener(
                     usuarioActual.uid
                 ),
                 {
+
                     enLinea:false,
+
                     ultimaConexion:
                         serverTimestamp()
+
                 },
                 {
                     merge:true
@@ -3832,4 +4282,5 @@ window.addEventListener(
 </script>
 
 </body>
+
 </html>
