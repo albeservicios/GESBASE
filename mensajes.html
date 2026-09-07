@@ -1196,17 +1196,41 @@ async function registrarServiceWorker(){
 async function registrarNotificaciones(){
 
     if(!usuarioActual){
+
+        console.warn(
+            "[GESBASE FCM] No existe usuarioActual."
+        );
+
         return;
+
     }
 
     try{
 
+        mostrarToast(
+            "Activando notificaciones..."
+        );
+
+
+        /* =====================================================
+           1. COMPROBAR SOPORTE FCM
+        ===================================================== */
+
         const soportado =
             await isSupported();
 
+        console.log(
+            "[GESBASE FCM] Navegador compatible:",
+            soportado
+        );
+
         if(!soportado){
 
-            console.log(
+            console.warn(
+                "[GESBASE FCM] FCM no es compatible con este navegador."
+            );
+
+            mostrarToast(
                 "FCM no es compatible con este navegador."
             );
 
@@ -1215,10 +1239,18 @@ async function registrarNotificaciones(){
         }
 
 
+        /* =====================================================
+           2. COMPROBAR API DE NOTIFICACIONES
+        ===================================================== */
+
         if(!("Notification" in window)){
 
-            console.log(
-                "Este navegador no tiene API de notificaciones."
+            console.warn(
+                "[GESBASE FCM] Notification API no disponible."
+            );
+
+            mostrarToast(
+                "Este navegador no permite notificaciones."
             );
 
             return;
@@ -1226,34 +1258,42 @@ async function registrarNotificaciones(){
         }
 
 
-        /*
-         * CLAVE PÚBLICA VAPID DE FIREBASE
-         */
+        /* =====================================================
+           3. CLAVE VAPID
+        ===================================================== */
 
         const VAPID_KEY =
             "BNZA69HMAMg5SO6SsnkQZuKy9lkPLHnUc525y54u4SuxLUlePyNt9A1pH-NlBGgMZ95taxj7rxJ5h1Vo5w7r9hI";
 
 
-        const permisoActual =
-            Notification.permission;
-
+        /* =====================================================
+           4. PERMISO
+        ===================================================== */
 
         let permiso =
-            permisoActual;
+            Notification.permission;
 
+        console.log(
+            "[GESBASE FCM] Permiso actual:",
+            permiso
+        );
 
         if(permiso === "default"){
 
             permiso =
                 await Notification.requestPermission();
 
-        }
+            console.log(
+                "[GESBASE FCM] Permiso solicitado:",
+                permiso
+            );
 
+        }
 
         if(permiso !== "granted"){
 
-            console.log(
-                "Permiso de notificaciones no concedido."
+            console.warn(
+                "[GESBASE FCM] Permiso no concedido."
             );
 
             mostrarToast(
@@ -1265,13 +1305,57 @@ async function registrarNotificaciones(){
         }
 
 
+        /* =====================================================
+           5. SERVICE WORKER
+        ===================================================== */
+
+        console.log(
+            "[GESBASE FCM] Registrando Service Worker..."
+        );
+
         const serviceWorkerRegistration =
             await registrarServiceWorker();
 
+        if(!serviceWorkerRegistration){
+
+            throw new Error(
+                "No se pudo obtener el Service Worker de Firebase."
+            );
+
+        }
+
+        console.log(
+            "[GESBASE FCM] Service Worker OK."
+        );
+
+
+        /* =====================================================
+           6. FIREBASE MESSAGING
+        ===================================================== */
 
         messagingActual =
             getMessaging();
 
+        if(!messagingActual){
+
+            throw new Error(
+                "No se pudo inicializar Firebase Messaging."
+            );
+
+        }
+
+        console.log(
+            "[GESBASE FCM] Firebase Messaging inicializado."
+        );
+
+
+        /* =====================================================
+           7. OBTENER TOKEN FCM
+        ===================================================== */
+
+        console.log(
+            "[GESBASE FCM] Solicitando token..."
+        );
 
         const token =
             await getToken(
@@ -1280,41 +1364,46 @@ async function registrarNotificaciones(){
                     vapidKey:
                         VAPID_KEY,
 
-                    serviceWorkerRegistration
+                    serviceWorkerRegistration:
+                        serviceWorkerRegistration
                 }
             );
 
+        console.log(
+            "[GESBASE FCM] Resultado getToken():",
+            token
+                ? "TOKEN OBTENIDO"
+                : "SIN TOKEN"
+        );
 
         if(!token){
 
-            console.warn(
-                "FCM: no se obtuvo token."
+            throw new Error(
+                "Firebase Messaging no devolvió ningún token FCM."
             );
-
-            return;
 
         }
 
 
-        /*
-         * IMPORTANTE:
-         *
-         * El token queda guardado dentro del
-         * mismo perfil usuarios/{uid}.
-         *
-         * No se crea otro usuario.
-         * No se crea usuariosRed.
-         * No se crea directorio_red.
-         */
+        /* =====================================================
+           8. GUARDAR TOKEN EN usuarios/{uid}
+        ===================================================== */
 
-        await setDoc(
+        const usuarioRef =
             doc(
                 db,
                 "usuarios",
                 usuarioActual.uid
-            ),
-            {
+            );
 
+        console.log(
+            "[GESBASE FCM] Guardando token en:",
+            `usuarios/${usuarioActual.uid}`
+        );
+
+        await setDoc(
+            usuarioRef,
+            {
                 fcmTokens:{
                     [token]:true
                 },
@@ -1323,28 +1412,22 @@ async function registrarNotificaciones(){
 
                 fechaActualizacionNotificaciones:
                     serverTimestamp()
-
             },
             {
                 merge:true
             }
         );
 
-
         console.log(
-            "FCM registrado correctamente:",
-            token
+            "[GESBASE FCM] TOKEN GUARDADO CORRECTAMENTE."
         );
 
 
-        /*
-         * Evita registrar el listener de
-         * mensajes en primer plano más de una vez.
-         */
+        /* =====================================================
+           9. MENSAJES CON GESBASE ABIERTA
+        ===================================================== */
 
-        if(
-            unsubscribeForegroundMessaging
-        ){
+        if(unsubscribeForegroundMessaging){
 
             unsubscribeForegroundMessaging();
 
@@ -1353,45 +1436,33 @@ async function registrarNotificaciones(){
 
         }
 
-
         unsubscribeForegroundMessaging =
             onMessage(
                 messagingActual,
                 payload => {
 
                     console.log(
-                        "Mensaje FCM recibido:",
+                        "[GESBASE FCM] Mensaje recibido:",
                         payload
                     );
-
 
                     const titulo =
                         payload?.notification?.title ||
                         payload?.data?.title ||
                         "GESBASE";
 
-
                     const cuerpo =
                         payload?.notification?.body ||
                         payload?.data?.body ||
                         "Tenés una nueva notificación.";
 
-
                     mostrarToast(
                         `${titulo}: ${cuerpo}`
                     );
 
-
-                    /*
-                     * Si llega un mensaje de chat
-                     * mientras GESBASE está abierto,
-                     * actualizamos visualmente el aviso.
-                     */
-
                     const tipo =
                         payload?.data?.tipo ||
                         "";
-
 
                     if(
                         tipo === "mensaje" ||
@@ -1399,11 +1470,10 @@ async function registrarNotificaciones(){
                     ){
 
                         console.log(
-                            "Nuevo mensaje de GESBASE."
+                            "[GESBASE FCM] Nuevo mensaje."
                         );
 
                     }
-
 
                     if(
                         tipo === "llamada" ||
@@ -1411,7 +1481,7 @@ async function registrarNotificaciones(){
                     ){
 
                         console.log(
-                            "Llamada recibida por FCM."
+                            "[GESBASE FCM] Llamada recibida por FCM."
                         );
 
                     }
@@ -1420,35 +1490,38 @@ async function registrarNotificaciones(){
             );
 
 
+        /* =====================================================
+           10. CONFIRMACIÓN
+        ===================================================== */
+
         mostrarToast(
             "Notificaciones activadas."
         );
 
-
     }catch(error){
 
         console.error(
-            "Error registrando FCM:",
+            "[GESBASE FCM] ERROR:",
             error
         );
 
-        /*
-         * No detenemos Mensajes ni llamadas.
-         * FCM es una función adicional.
-         */
+        const mensaje =
+            error?.message ||
+            String(error);
+
+        console.error(
+            "[GESBASE FCM] Detalle:",
+            mensaje
+        );
 
         mostrarToast(
-            "No se pudieron activar las notificaciones."
+            "ERROR FCM: " + mensaje
         );
 
     }
 
 }
 
-
-/* ============================================================
-   AUTENTICACIÓN
-============================================================ */
 
 onAuthStateChanged(
     auth,
