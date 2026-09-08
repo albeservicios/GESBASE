@@ -659,6 +659,83 @@ button{
 
 
 /* =========================================================
+   FORMULARIO DE REPORTE
+========================================================= */
+
+.report-label{
+    display:block;
+
+    margin-bottom:6px;
+
+    font-size:13px;
+    font-weight:800;
+
+    color:#1c1e21;
+}
+
+.report-select,
+.report-textarea{
+    width:100%;
+
+    border:1px solid #d8dce1;
+
+    border-radius:10px;
+
+    padding:11px 12px;
+
+    outline:none;
+
+    background:#fff;
+
+    color:#1c1e21;
+
+    font-size:14px;
+}
+
+.report-select:focus,
+.report-textarea:focus{
+    border-color:#12343B;
+
+    box-shadow:
+        0 0 0 3px rgba(18,52,59,.10);
+}
+
+.report-textarea{
+    min-height:120px;
+
+    resize:vertical;
+
+    line-height:1.45;
+
+    margin-top:14px;
+}
+
+.report-info{
+    background:#f0f2f5;
+
+    border-radius:10px;
+
+    padding:10px 12px;
+
+    margin-bottom:14px;
+
+    color:#65676b;
+
+    font-size:12px;
+
+    line-height:1.45;
+}
+
+.report-warning{
+    margin-top:7px;
+
+    color:#7f1d1d;
+
+    font-size:11px;
+}
+
+
+/* =========================================================
    FEED
 ========================================================= */
 
@@ -1532,6 +1609,10 @@ button{
 
 
 
+<!-- =========================================================
+     MODAL CREAR PUBLICACIÓN
+========================================================= -->
+
 <div
     id="postModal"
     class="modal-overlay"
@@ -1595,6 +1676,132 @@ button{
 
 
 
+<!-- =========================================================
+     MODAL REPORTAR PUBLICACIÓN
+========================================================= -->
+
+<div
+    id="reportModal"
+    class="modal-overlay"
+>
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <div class="modal-title">
+                ⚠️ Reportar publicación
+            </div>
+
+            <button
+                type="button"
+                class="close-btn"
+                id="closeReportModal"
+                aria-label="Cerrar"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <div class="report-info">
+
+                Estás reportando una publicación a GESBASE.
+                Los reportes son revisados por el equipo de
+                seguridad de la plataforma.
+
+            </div>
+
+
+            <label
+                class="report-label"
+                for="reportReason"
+            >
+                Motivo del reporte
+            </label>
+
+
+            <select
+                id="reportReason"
+                class="report-select"
+            >
+
+                <option value="">
+                    Seleccioná un motivo
+                </option>
+
+                <option value="Contenido inapropiado">
+                    Contenido inapropiado
+                </option>
+
+                <option value="Acoso o amenazas">
+                    Acoso o amenazas
+                </option>
+
+                <option value="Spam">
+                    Spam
+                </option>
+
+                <option value="Estafa o fraude">
+                    Estafa o fraude
+                </option>
+
+                <option value="Contenido falso">
+                    Contenido falso
+                </option>
+
+                <option value="Otro">
+                    Otro
+                </option>
+
+            </select>
+
+
+            <textarea
+                id="reportDescription"
+                class="report-textarea"
+                maxlength="1000"
+                placeholder="Contanos qué ocurrió o por qué considerás que esta publicación debe ser revisada..."
+            ></textarea>
+
+
+            <div class="report-warning">
+                No incluyas contraseñas ni información personal sensible.
+            </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button
+                type="button"
+                class="btn btn-secondary"
+                id="cancelReport"
+            >
+                Cancelar
+            </button>
+
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="submitReport"
+            >
+                Enviar reporte
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
 <div
     id="toast"
     class="toast"
@@ -1643,6 +1850,18 @@ const postModal =
 const postText =
     document.getElementById("postText");
 
+const reportModal =
+    document.getElementById("reportModal");
+
+const reportReason =
+    document.getElementById("reportReason");
+
+const reportDescription =
+    document.getElementById("reportDescription");
+
+const submitReport =
+    document.getElementById("submitReport");
+
 const toast =
     document.getElementById("toast");
 
@@ -1682,6 +1901,8 @@ let unsubscribeNotifications = null;
 let unsubscribeMessages = null;
 
 let toastTimer = null;
+
+let publicacionAReportar = null;
 
 
 /* =========================================================
@@ -2451,6 +2672,10 @@ function crearPublicacion(
 
     }else{
 
+        /* =====================================================
+           REPORTAR PUBLICACIÓN
+        ===================================================== */
+
         const reportar =
             document.createElement("button");
 
@@ -2473,9 +2698,8 @@ function crearPublicacion(
 
                 cerrarTodosLosMenus();
 
-
-                mostrarToast(
-                    "La opción de reportar se incorporará próximamente."
+                abrirModalReportePublicacion(
+                    publicacion
                 );
 
             }
@@ -3045,6 +3269,353 @@ function crearPublicacion(
 
 
     return article;
+
+}
+
+
+/* =========================================================
+   ABRIR MODAL DE REPORTE
+========================================================= */
+
+function abrirModalReportePublicacion(
+    publicacion
+){
+
+    if(
+        !usuarioActual
+    ){
+
+        mostrarToast(
+            "Tenés que iniciar sesión para reportar."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        !publicacion ||
+        !publicacion.id
+    ){
+
+        mostrarToast(
+            "No se pudo identificar la publicación."
+        );
+
+        return;
+
+    }
+
+
+    publicacionAReportar =
+        publicacion;
+
+
+    reportReason.value =
+        "";
+
+
+    reportDescription.value =
+        "";
+
+
+    submitReport.disabled =
+        false;
+
+
+    submitReport.textContent =
+        "Enviar reporte";
+
+
+    reportModal.classList.add(
+        "open"
+    );
+
+
+    setTimeout(
+        () => {
+
+            reportReason.focus();
+
+        },
+        100
+    );
+
+}
+
+
+/* =========================================================
+   CERRAR MODAL DE REPORTE
+========================================================= */
+
+function cerrarModalReporte(){
+
+    reportModal.classList.remove(
+        "open"
+    );
+
+
+    publicacionAReportar =
+        null;
+
+
+    reportReason.value =
+        "";
+
+
+    reportDescription.value =
+        "";
+
+}
+
+
+/* =========================================================
+   ENVIAR REPORTE
+========================================================= */
+
+async function enviarReporte(){
+
+    if(
+        !usuarioActual
+    ){
+
+        mostrarToast(
+            "Tenés que iniciar sesión."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        !publicacionAReportar
+    ){
+
+        mostrarToast(
+            "No se encontró la publicación."
+        );
+
+        return;
+
+    }
+
+
+    const motivo =
+        reportReason.value.trim();
+
+
+    const descripcion =
+        reportDescription.value.trim();
+
+
+    if(
+        !motivo
+    ){
+
+        mostrarToast(
+            "Seleccioná un motivo."
+        );
+
+        reportReason.focus();
+
+        return;
+
+    }
+
+
+    if(
+        !descripcion
+    ){
+
+        mostrarToast(
+            "Contanos brevemente qué ocurrió."
+        );
+
+        reportDescription.focus();
+
+        return;
+
+    }
+
+
+    if(
+        descripcion.length < 5
+    ){
+
+        mostrarToast(
+            "La descripción es demasiado corta."
+        );
+
+        reportDescription.focus();
+
+        return;
+
+    }
+
+
+    submitReport.disabled =
+        true;
+
+
+    submitReport.textContent =
+        "Enviando...";
+
+
+    try{
+
+        const reporte = {
+
+            tipo:
+                "publicacion",
+
+            publicacionId:
+                publicacionAReportar.id,
+
+            publicacionTexto:
+                String(
+                    publicacionAReportar.texto ||
+                    publicacionAReportar.contenido ||
+                    ""
+                ).substring(
+                    0,
+                    500
+                ),
+
+            reportadoUid:
+                publicacionAReportar.uid ||
+                "",
+
+            reportadoNombre:
+                publicacionAReportar.nombreAutor ||
+                publicacionAReportar.nombreCompleto ||
+                publicacionAReportar.autorNombre ||
+                "Usuario GESBASE",
+
+            reportanteUid:
+                usuarioActual.uid,
+
+            reportanteNombre:
+                obtenerNombre(),
+
+            reportanteEmail:
+                usuarioActual.email ||
+                "",
+
+            motivo:
+                motivo,
+
+            descripcion:
+                descripcion,
+
+            estado:
+                "pendiente",
+
+            fecha:
+                serverTimestamp(),
+
+            fechaCliente:
+                Date.now()
+
+        };
+
+
+        const referencia =
+            await addDoc(
+                collection(
+                    db,
+                    "reportes"
+                ),
+                reporte
+            );
+
+
+        /* =================================================
+           NOTIFICACIÓN PARA QUIEN REALIZÓ EL REPORTE
+        ================================================= */
+
+        try{
+
+            await addDoc(
+                collection(
+                    db,
+                    "notificaciones"
+                ),
+                {
+
+                    receptorUid:
+                        usuarioActual.uid,
+
+                    emisorUid:
+                        usuarioActual.uid,
+
+                    tipo:
+                        "reporte_creado",
+
+                    titulo:
+                        "Reporte enviado",
+
+                    mensaje:
+                        "Recibimos tu reporte. El equipo de seguridad de GESBASE lo revisará.",
+
+                    leida:
+                        false,
+
+                    referenciaId:
+                        referencia.id,
+
+                    url:
+                        "red-notificaciones.html",
+
+                    fecha:
+                        serverTimestamp(),
+
+                    fechaCliente:
+                        Date.now()
+
+                }
+            );
+
+        }catch(errorNotificacion){
+
+            console.warn(
+                "No se pudo crear la notificación del reporte:",
+                errorNotificacion
+            );
+
+        }
+
+
+        cerrarModalReporte();
+
+
+        mostrarToast(
+            "Reporte enviado correctamente."
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "Error enviando reporte:",
+            error
+        );
+
+
+        mostrarToast(
+            "No se pudo enviar el reporte. Intentá nuevamente."
+        );
+
+
+        submitReport.disabled =
+            false;
+
+
+        submitReport.textContent =
+            "Enviar reporte";
+
+    }
 
 }
 
@@ -3844,7 +4415,7 @@ function formatearFecha(
 
 
 /* =========================================================
-   MODAL
+   MODAL PUBLICACIÓN
 ========================================================= */
 
 function abrirModal(){
@@ -4184,7 +4755,37 @@ document
 
 
 /* =========================================================
-   CERRAR MODAL
+   EVENTOS REPORTE
+========================================================= */
+
+document
+    .getElementById(
+        "closeReportModal"
+    )
+    .addEventListener(
+        "click",
+        cerrarModalReporte
+    );
+
+
+document
+    .getElementById(
+        "cancelReport"
+    )
+    .addEventListener(
+        "click",
+        cerrarModalReporte
+    );
+
+
+submitReport.addEventListener(
+    "click",
+    enviarReporte
+);
+
+
+/* =========================================================
+   CERRAR MODAL PUBLICACIÓN
 ========================================================= */
 
 postModal.addEventListener(
@@ -4197,6 +4798,27 @@ postModal.addEventListener(
         ){
 
             cerrarModal();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   CERRAR MODAL REPORTE
+========================================================= */
+
+reportModal.addEventListener(
+    "click",
+    evento => {
+
+        if(
+            evento.target ===
+            reportModal
+        ){
+
+            cerrarModalReporte();
 
         }
 
@@ -4218,6 +4840,8 @@ document.addEventListener(
         ){
 
             cerrarModal();
+
+            cerrarModalReporte();
 
             cerrarTodosLosMenus();
 
@@ -4265,7 +4889,7 @@ if (
         }
     );
 
-    }
+}
 
 </script>
 
