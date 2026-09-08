@@ -767,6 +767,7 @@ playsinline
 <button
 class="call-action call-muted"
 id="muteBtn"
+title="Silenciar micrófono"
 >
 🎙️
 </button>
@@ -774,6 +775,7 @@ id="muteBtn"
 <button
 class="call-action call-end"
 id="endCallBtn"
+title="Cortar llamada"
 >
 📵
 </button>
@@ -819,7 +821,7 @@ Rechazar
 class="accept"
 id="acceptCallBtn"
 >
-Aceptar
+Atender
 </button>
 
 </div>
@@ -912,6 +914,206 @@ const handledIncomingCalls = new Set();
 
 let messagingActual = null;
 let unsubscribeForegroundMessaging = null;
+
+
+/* ============================================================
+   TONO DE LLAMADA
+============================================================ */
+
+let contextoTono = null;
+let osciladorTono = null;
+let gananciaTono = null;
+let intervaloTono = null;
+
+
+function iniciarTonoLlamada(){
+
+    try{
+
+        detenerTonoLlamada();
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        if(!AudioContext){
+            return;
+        }
+
+        contextoTono =
+            new AudioContext();
+
+
+        const reproducirTono =
+            () => {
+
+                if(!contextoTono){
+                    return;
+                }
+
+                if(
+                    contextoTono.state ===
+                    "suspended"
+                ){
+
+                    contextoTono.resume()
+                        .catch(
+                            console.error
+                        );
+
+                }
+
+
+                osciladorTono =
+                    contextoTono.createOscillator();
+
+                gananciaTono =
+                    contextoTono.createGain();
+
+
+                osciladorTono.type =
+                    "sine";
+
+                osciladorTono.frequency.value =
+                    880;
+
+
+                gananciaTono.gain.setValueAtTime(
+                    0.0001,
+                    contextoTono.currentTime
+                );
+
+                gananciaTono.gain.exponentialRampToValueAtTime(
+                    0.10,
+                    contextoTono.currentTime + 0.03
+                );
+
+                gananciaTono.gain.exponentialRampToValueAtTime(
+                    0.0001,
+                    contextoTono.currentTime + 0.8
+                );
+
+
+                osciladorTono.connect(
+                    gananciaTono
+                );
+
+                gananciaTono.connect(
+                    contextoTono.destination
+                );
+
+
+                osciladorTono.start();
+
+                osciladorTono.stop(
+                    contextoTono.currentTime + 0.85
+                );
+
+
+                osciladorTono.onended =
+                    () => {
+
+                        try{
+                            osciladorTono.disconnect();
+                            gananciaTono.disconnect();
+                        }catch(e){}
+
+                        osciladorTono = null;
+                        gananciaTono = null;
+
+                    };
+
+            };
+
+
+        reproducirTono();
+
+
+        intervaloTono =
+            setInterval(
+                reproducirTono,
+                1500
+            );
+
+    }catch(error){
+
+        console.error(
+            "No se pudo iniciar el tono:",
+            error
+        );
+
+    }
+
+}
+
+
+function detenerTonoLlamada(){
+
+    if(intervaloTono){
+
+        clearInterval(
+            intervaloTono
+        );
+
+        intervaloTono =
+            null;
+
+    }
+
+
+    try{
+
+        if(osciladorTono){
+
+            osciladorTono.stop();
+
+        }
+
+    }catch(error){}
+
+
+    try{
+
+        if(osciladorTono){
+
+            osciladorTono.disconnect();
+
+        }
+
+    }catch(error){}
+
+
+    try{
+
+        if(gananciaTono){
+
+            gananciaTono.disconnect();
+
+        }
+
+    }catch(error){}
+
+
+    osciladorTono =
+        null;
+
+    gananciaTono =
+        null;
+
+
+    if(contextoTono){
+
+        contextoTono.close()
+            .catch(
+                () => {}
+            );
+
+        contextoTono =
+            null;
+
+    }
+
+}
 
 
 /* ============================================================
@@ -1074,7 +1276,6 @@ function tipoPerfil(perfil){
 
 /* ============================================================
    PERFIL ÚNICO
-   SIEMPRE usuarios/{uid}
 ============================================================ */
 
 async function obtenerPerfil(uid){
@@ -1196,198 +1397,57 @@ async function registrarServiceWorker(){
 async function registrarNotificaciones(){
 
     if(!usuarioActual){
-
-        console.warn(
-            "[GESBASE FCM] No existe usuarioActual."
-        );
-
         return;
-
     }
 
     try{
 
-        mostrarToast(
-            "Activando notificaciones..."
-        );
-
-
-        /* =====================================================
-           1. COMPROBAR SOPORTE FCM
-        ===================================================== */
-
         const soportado =
             await isSupported();
 
-        console.log(
-            "[GESBASE FCM] Navegador compatible:",
-            soportado
-        );
-
         if(!soportado){
-
-            console.warn(
-                "[GESBASE FCM] FCM no es compatible con este navegador."
-            );
-
-            mostrarToast(
-                "FCM no es compatible con este navegador."
-            );
-
             return;
-
         }
-
-
-        /* =====================================================
-           2. COMPROBAR API DE NOTIFICACIONES
-        ===================================================== */
 
         if(!("Notification" in window)){
-
-            console.warn(
-                "[GESBASE FCM] Notification API no disponible."
-            );
-
-            mostrarToast(
-                "Este navegador no permite notificaciones."
-            );
-
             return;
-
         }
-
-
-        /* =====================================================
-           3. CLAVE VAPID
-        ===================================================== */
 
         const VAPID_KEY =
             "BNZA69HMAMg5SO6SsnkQZuKy9lkPLHnUc525y54u4SuxLUlePyNt9A1pH-NlBGgMZ95taxj7rxJ5h1Vo5w7r9hI";
 
-
-        /* =====================================================
-           4. PERMISO
-        ===================================================== */
-
         let permiso =
             Notification.permission;
-
-        console.log(
-            "[GESBASE FCM] Permiso actual:",
-            permiso
-        );
 
         if(permiso === "default"){
 
             permiso =
                 await Notification.requestPermission();
 
-            console.log(
-                "[GESBASE FCM] Permiso solicitado:",
-                permiso
-            );
-
         }
 
         if(permiso !== "granted"){
-
-            console.warn(
-                "[GESBASE FCM] Permiso no concedido."
-            );
-
-            mostrarToast(
-                "Las notificaciones están desactivadas."
-            );
-
             return;
-
         }
-
-
-        /* =====================================================
-           5. SERVICE WORKER
-        ===================================================== */
-
-        console.log(
-            "[GESBASE FCM] Registrando Service Worker..."
-        );
 
         const serviceWorkerRegistration =
             await registrarServiceWorker();
 
-        if(!serviceWorkerRegistration){
-
-            throw new Error(
-                "No se pudo obtener el Service Worker de Firebase."
-            );
-
-        }
-
-        console.log(
-            "[GESBASE FCM] Service Worker OK."
-        );
-
-
-        /* =====================================================
-           6. FIREBASE MESSAGING
-        ===================================================== */
-
         messagingActual =
             getMessaging();
-
-        if(!messagingActual){
-
-            throw new Error(
-                "No se pudo inicializar Firebase Messaging."
-            );
-
-        }
-
-        console.log(
-            "[GESBASE FCM] Firebase Messaging inicializado."
-        );
-
-
-        /* =====================================================
-           7. OBTENER TOKEN FCM
-        ===================================================== */
-
-        console.log(
-            "[GESBASE FCM] Solicitando token..."
-        );
 
         const token =
             await getToken(
                 messagingActual,
                 {
-                    vapidKey:
-                        VAPID_KEY,
-
-                    serviceWorkerRegistration:
-                        serviceWorkerRegistration
+                    vapidKey:VAPID_KEY,
+                    serviceWorkerRegistration
                 }
             );
 
-        console.log(
-            "[GESBASE FCM] Resultado getToken():",
-            token
-                ? "TOKEN OBTENIDO"
-                : "SIN TOKEN"
-        );
-
         if(!token){
-
-            throw new Error(
-                "Firebase Messaging no devolvió ningún token FCM."
-            );
-
+            return;
         }
-
-
-        /* =====================================================
-           8. GUARDAR TOKEN EN usuarios/{uid}
-        ===================================================== */
 
         const usuarioRef =
             doc(
@@ -1395,11 +1455,6 @@ async function registrarNotificaciones(){
                 "usuarios",
                 usuarioActual.uid
             );
-
-        console.log(
-            "[GESBASE FCM] Guardando token en:",
-            `usuarios/${usuarioActual.uid}`
-        );
 
         await setDoc(
             usuarioRef,
@@ -1418,33 +1473,15 @@ async function registrarNotificaciones(){
             }
         );
 
-        console.log(
-            "[GESBASE FCM] TOKEN GUARDADO CORRECTAMENTE."
-        );
-
-
-        /* =====================================================
-           9. MENSAJES CON GESBASE ABIERTA
-        ===================================================== */
-
         if(unsubscribeForegroundMessaging){
-
             unsubscribeForegroundMessaging();
-
-            unsubscribeForegroundMessaging =
-                null;
-
+            unsubscribeForegroundMessaging = null;
         }
 
         unsubscribeForegroundMessaging =
             onMessage(
                 messagingActual,
                 payload => {
-
-                    console.log(
-                        "[GESBASE FCM] Mensaje recibido:",
-                        payload
-                    );
 
                     const titulo =
                         payload?.notification?.title ||
@@ -1460,62 +1497,14 @@ async function registrarNotificaciones(){
                         `${titulo}: ${cuerpo}`
                     );
 
-                    const tipo =
-                        payload?.data?.tipo ||
-                        "";
-
-                    if(
-                        tipo === "mensaje" ||
-                        tipo === "chat"
-                    ){
-
-                        console.log(
-                            "[GESBASE FCM] Nuevo mensaje."
-                        );
-
-                    }
-
-                    if(
-                        tipo === "llamada" ||
-                        tipo === "videollamada"
-                    ){
-
-                        console.log(
-                            "[GESBASE FCM] Llamada recibida por FCM."
-                        );
-
-                    }
-
                 }
             );
-
-
-        /* =====================================================
-           10. CONFIRMACIÓN
-        ===================================================== */
-
-        mostrarToast(
-            "Notificaciones activadas."
-        );
 
     }catch(error){
 
         console.error(
             "[GESBASE FCM] ERROR:",
             error
-        );
-
-        const mensaje =
-            error?.message ||
-            String(error);
-
-        console.error(
-            "[GESBASE FCM] Detalle:",
-            mensaje
-        );
-
-        mostrarToast(
-            "ERROR FCM: " + mensaje
         );
 
     }
@@ -1536,16 +1525,13 @@ onAuthStateChanged(
 
         }
 
-
         usuarioActual =
             usuario;
-
 
         perfilActual =
             await obtenerPerfil(
                 usuario.uid
             );
-
 
         if(!perfilActual){
 
@@ -1557,17 +1543,9 @@ onAuthStateChanged(
 
         }
 
-
         await actualizarPresencia(true);
 
-
-        /*
-         * Activar FCM después de comprobar
-         * que existe el perfil único.
-         */
-
         await registrarNotificaciones();
-
 
         await cargarContactos();
 
@@ -1592,7 +1570,6 @@ async function cargarContactos(){
         const lista =
             new Map();
 
-
         const enviadasSnap =
             await getDocs(
                 query(
@@ -1613,7 +1590,6 @@ async function cargarContactos(){
                 )
             );
 
-
         enviadasSnap.forEach(
             item => {
 
@@ -1631,7 +1607,6 @@ async function cargarContactos(){
 
             }
         );
-
 
         const recibidasSnap =
             await getDocs(
@@ -1653,7 +1628,6 @@ async function cargarContactos(){
                 )
             );
 
-
         recibidasSnap.forEach(
             item => {
 
@@ -1672,9 +1646,7 @@ async function cargarContactos(){
             }
         );
 
-
         contactos = [];
-
 
         for(
             const uid of lista.values()
@@ -1687,25 +1659,19 @@ async function cargarContactos(){
                 continue;
             }
 
-
             const perfil =
                 await obtenerPerfil(uid);
 
-
             if(perfil){
-
                 contactos.push(
                     perfil
                 );
-
             }
 
         }
 
-
         contactosOriginales =
             [...contactos];
-
 
         renderizarContactos();
 
@@ -1733,7 +1699,6 @@ function renderizarContactos(){
 
     contactsList.innerHTML = "";
 
-
     if(!contactos.length){
 
         contactsList.innerHTML = `
@@ -1750,7 +1715,6 @@ function renderizarContactos(){
 
     }
 
-
     contactos.forEach(
         perfil => {
 
@@ -1763,10 +1727,8 @@ function renderizarContactos(){
             const activo =
                 perfil.enLinea === true;
 
-
             const boton =
                 document.createElement("button");
-
 
             boton.className =
                 "contact" +
@@ -1777,10 +1739,8 @@ function renderizarContactos(){
                     : ""
                 );
 
-
             boton.dataset.uid =
                 perfil.uid;
-
 
             boton.innerHTML = `
 
@@ -1825,12 +1785,10 @@ function renderizarContactos(){
 
             `;
 
-
             boton.addEventListener(
                 "click",
                 () => seleccionarContacto(perfil)
             );
-
 
             contactsList.appendChild(
                 boton
@@ -1855,7 +1813,6 @@ contactSearch.addEventListener(
                 .trim()
                 .toLowerCase();
 
-
         if(!texto){
 
             contactos =
@@ -1866,7 +1823,6 @@ contactSearch.addEventListener(
             return;
 
         }
-
 
         contactos =
             contactosOriginales.filter(
@@ -1886,14 +1842,12 @@ contactSearch.addEventListener(
                     .join(" ")
                     .toLowerCase();
 
-
                     return textoPerfil.includes(
                         texto
                     );
 
                 }
             );
-
 
         renderizarContactos();
 
@@ -1913,23 +1867,19 @@ async function seleccionarContacto(perfil){
     contactoPerfil =
         perfil;
 
-
     headerName.textContent =
         nombrePerfil(perfil);
-
 
     headerStatus.textContent =
         perfil.enLinea === true
         ? "● En línea"
         : tipoPerfil(perfil);
 
-
     voiceCallBtn.style.display =
         "block";
 
     videoCallBtn.style.display =
         "block";
-
 
     emptyChat.style.display =
         "none";
@@ -1940,11 +1890,9 @@ async function seleccionarContacto(perfil){
     composer.style.display =
         "flex";
 
-
     main.classList.add(
         "chat-open"
     );
-
 
     renderizarContactos();
 
@@ -1966,7 +1914,6 @@ async function cargarMensajes(){
         return;
     }
 
-
     if(unsubscribeMensajes){
 
         unsubscribeMensajes();
@@ -1975,7 +1922,6 @@ async function cargarMensajes(){
             null;
 
     }
-
 
     try{
 
@@ -1997,7 +1943,6 @@ async function cargarMensajes(){
                 )
             );
 
-
         const recibidosQuery =
             query(
                 collection(
@@ -2016,10 +1961,8 @@ async function cargarMensajes(){
                 )
             );
 
-
         let enviados = [];
         let recibidos = [];
-
 
         const render =
             () => {
@@ -2029,7 +1972,6 @@ async function cargarMensajes(){
                     ...recibidos
                 ];
 
-
                 todos.sort(
                     (a,b) => {
 
@@ -2038,27 +1980,22 @@ async function cargarMensajes(){
                             a.fecha?.seconds * 1000 ||
                             0;
 
-
                         const tb =
                             b.fechaCliente ||
                             b.fecha?.seconds * 1000 ||
                             0;
-
 
                         return ta - tb;
 
                     }
                 );
 
-
                 mensajesActuales =
                     todos;
-
 
                 renderizarMensajes();
 
             };
-
 
         const unsub1 =
             onSnapshot(
@@ -2073,12 +2010,10 @@ async function cargarMensajes(){
                             })
                         );
 
-
                     render();
 
                 }
             );
-
 
         const unsub2 =
             onSnapshot(
@@ -2093,17 +2028,14 @@ async function cargarMensajes(){
                             })
                         );
 
-
                     marcarRecibidosComoLeidos(
                         snapshot
                     );
-
 
                     render();
 
                 }
             );
-
 
         unsubscribeMensajes =
             () => {
@@ -2112,7 +2044,6 @@ async function cargarMensajes(){
                 unsub2();
 
             };
-
 
     }catch(error){
 
@@ -2138,7 +2069,6 @@ function renderizarMensajes(){
 
     messagesBox.innerHTML = "";
 
-
     mensajesActuales.forEach(
         mensaje => {
 
@@ -2146,10 +2076,8 @@ function renderizarMensajes(){
                 mensaje.emisorUid ===
                 usuarioActual.uid;
 
-
             const div =
                 document.createElement("div");
-
 
             div.className =
                 "message " +
@@ -2158,7 +2086,6 @@ function renderizarMensajes(){
                     ? "mine"
                     : "theirs"
                 );
-
 
             if(
                 mensaje.tipo === "imagen" &&
@@ -2190,7 +2117,6 @@ function renderizarMensajes(){
                     </span>
 
                 `;
-
 
             }else if(
                 mensaje.tipo === "video" &&
@@ -2224,7 +2150,6 @@ function renderizarMensajes(){
 
                 `;
 
-
             }else{
 
                 div.innerHTML = `
@@ -2243,14 +2168,12 @@ function renderizarMensajes(){
 
             }
 
-
             messagesBox.appendChild(
                 div
             );
 
         }
     );
-
 
     messagesBox.scrollTop =
         messagesBox.scrollHeight;
@@ -2265,7 +2188,6 @@ function renderizarMensajes(){
 function formatearHora(mensaje){
 
     let fecha = null;
-
 
     if(mensaje.fechaCliente){
 
@@ -2286,11 +2208,9 @@ function formatearHora(mensaje){
 
     }
 
-
     if(!fecha){
         return "";
     }
-
 
     return fecha.toLocaleTimeString(
         "es-AR",
@@ -2313,16 +2233,13 @@ async function marcarRecibidosComoLeidos(snapshot){
         return;
     }
 
-
     const operaciones = [];
-
 
     snapshot.docs.forEach(
         item => {
 
             const data =
                 item.data();
-
 
             if(
                 data.leido === false &&
@@ -2350,7 +2267,6 @@ async function marcarRecibidosComoLeidos(snapshot){
         }
     );
 
-
     if(operaciones.length){
 
         await Promise.allSettled(
@@ -2371,7 +2287,6 @@ async function enviarMensaje(){
     const contenido =
         messageInput.value.trim();
 
-
     if(
         !contenido ||
         !contactoSeleccionado ||
@@ -2379,7 +2294,6 @@ async function enviarMensaje(){
     ){
         return;
     }
-
 
     try{
 
@@ -2411,12 +2325,10 @@ async function enviarMensaje(){
             }
         );
 
-
         messageInput.value = "";
 
         messageInput.style.height =
             "42px";
-
 
     }catch(error){
 
@@ -2466,7 +2378,6 @@ messageInput.addEventListener(
         messageInput.style.height =
             "auto";
 
-
         messageInput.style.height =
             Math.min(
                 messageInput.scrollHeight,
@@ -2488,7 +2399,6 @@ mediaInput.addEventListener(
         const archivo =
             mediaInput.files?.[0];
 
-
         if(
             !archivo ||
             !contactoSeleccionado ||
@@ -2497,32 +2407,27 @@ mediaInput.addEventListener(
             return;
         }
 
-
         try{
 
             mostrarToast(
                 "Subiendo archivo..."
             );
 
-
             const esVideo =
                 archivo.type.startsWith(
                     "video/"
                 );
-
 
             const tipo =
                 esVideo
                 ? "video"
                 : "imagen";
 
-
             const nombreSeguro =
                 archivo.name.replace(
                     /[^a-zA-Z0-9._-]/g,
                     "_"
                 );
-
 
             const ruta =
                 `mensajes-media/${
@@ -2533,25 +2438,21 @@ mediaInput.addEventListener(
                     nombreSeguro
                 }`;
 
-
             const storageRef =
                 ref(
                     almacenamiento,
                     ruta
                 );
 
-
             await uploadBytes(
                 storageRef,
                 archivo
             );
 
-
             const url =
                 await getDownloadURL(
                     storageRef
                 );
-
 
             await addDoc(
                 collection(
@@ -2586,11 +2487,9 @@ mediaInput.addEventListener(
                 }
             );
 
-
             mostrarToast(
                 "Archivo enviado."
             );
-
 
         }catch(error){
 
@@ -2604,7 +2503,6 @@ mediaInput.addEventListener(
             );
 
         }
-
 
         mediaInput.value = "";
 
@@ -2639,14 +2537,11 @@ function crearPeerConnection(){
             rtcConfig
         );
 
-
     remoteStream =
         new MediaStream();
 
-
     remoteVideo.srcObject =
         remoteStream;
-
 
     pc.ontrack =
         event => {
@@ -2665,13 +2560,11 @@ function crearPeerConnection(){
 
         };
 
-
     pc.onconnectionstatechange =
         () => {
 
             const estado =
                 pc.connectionState;
-
 
             if(
                 estado === "connected"
@@ -2682,7 +2575,6 @@ function crearPeerConnection(){
 
             }
 
-
             if(
                 estado === "failed"
             ){
@@ -2691,7 +2583,6 @@ function crearPeerConnection(){
                     "Conexión fallida";
 
             }
-
 
             if(
                 estado === "disconnected"
@@ -2703,7 +2594,6 @@ function crearPeerConnection(){
             }
 
         };
-
 
     return pc;
 
@@ -2729,7 +2619,6 @@ async function iniciarLlamada(video){
 
     }
 
-
     if(!navigator.mediaDevices){
 
         mostrarToast(
@@ -2740,14 +2629,12 @@ async function iniciarLlamada(video){
 
     }
 
-
     try{
 
         const tipo =
             video
             ? "videollamada"
             : "llamada";
-
 
         localStream =
             await navigator.mediaDevices
@@ -2758,26 +2645,21 @@ async function iniciarLlamada(video){
 
                 });
 
-
         localVideo.srcObject =
             localStream;
-
 
         localVideo.style.display =
             video
             ? "block"
             : "none";
 
-
         remoteVideo.style.display =
             video
             ? "block"
             : "none";
 
-
         peerConnection =
             crearPeerConnection();
-
 
         localStream
             .getTracks()
@@ -2791,7 +2673,6 @@ async function iniciarLlamada(video){
 
                 }
             );
-
 
         const llamadaRef =
             await addDoc(
@@ -2825,10 +2706,8 @@ async function iniciarLlamada(video){
                 }
             );
 
-
         llamadaActualId =
             llamadaRef.id;
-
 
         peerConnection.onicecandidate =
             async event => {
@@ -2839,7 +2718,6 @@ async function iniciarLlamada(video){
                 ){
                     return;
                 }
-
 
                 try{
 
@@ -2864,17 +2742,14 @@ async function iniciarLlamada(video){
 
             };
 
-
         const offer =
             await peerConnection
                 .createOffer();
-
 
         await peerConnection
             .setLocalDescription(
                 offer
             );
-
 
         await updateDoc(
             llamadaRef,
@@ -2888,28 +2763,23 @@ async function iniciarLlamada(video){
             }
         );
 
-
         callName.textContent =
             nombrePerfil(
                 contactoPerfil
             );
-
 
         callStatus.textContent =
             video
             ? "Videollamando..."
             : "Llamando...";
 
-
         callOverlay.classList.add(
             "show"
         );
 
-
         escucharRespuesta(
             llamadaActualId
         );
-
 
     }catch(error){
 
@@ -2918,9 +2788,7 @@ async function iniciarLlamada(video){
             error
         );
 
-
         cerrarLlamadaLocal();
-
 
         mostrarToast(
             "No se pudo iniciar la llamada."
@@ -2946,14 +2814,12 @@ function escucharRespuesta(llamadaId){
 
     }
 
-
     const llamadaRef =
         doc(
             db,
             "llamadas",
             llamadaId
         );
-
 
     unsubscribeRespuestaLlamada =
         onSnapshot(
@@ -2963,11 +2829,9 @@ function escucharRespuesta(llamadaId){
                 const data =
                     snapshot.data();
 
-
                 if(!data){
                     return;
                 }
-
 
                 if(
                     data.answer &&
@@ -2984,10 +2848,8 @@ function escucharRespuesta(llamadaId){
                                 )
                             );
 
-
                         callStatus.textContent =
                             "Conectando...";
-
 
                         escucharCandidatosCallee(
                             llamadaId
@@ -3004,7 +2866,6 @@ function escucharRespuesta(llamadaId){
 
                 }
 
-
                 if(
                     data.status ===
                     "rejected"
@@ -3014,11 +2875,9 @@ function escucharRespuesta(llamadaId){
                         "La llamada fue rechazada."
                     );
 
-
                     cerrarLlamadaLocal();
 
                 }
-
 
                 if(
                     data.status ===
@@ -3050,7 +2909,6 @@ function escucharCandidatosCallee(llamadaId){
 
     }
 
-
     const candidatosRef =
         collection(
             db,
@@ -3058,7 +2916,6 @@ function escucharCandidatosCallee(llamadaId){
             llamadaId,
             "calleeCandidates"
         );
-
 
     unsubscribeCandidatesCallee =
         onSnapshot(
@@ -3076,11 +2933,9 @@ function escucharCandidatosCallee(llamadaId){
                                 return;
                             }
 
-
                             if(!peerConnection){
                                 return;
                             }
-
 
                             try{
 
@@ -3117,7 +2972,6 @@ function iniciarEscuchaLlamadas(){
         return;
     }
 
-
     if(unsubscribeLlamadas){
 
         unsubscribeLlamadas();
@@ -3126,7 +2980,6 @@ function iniciarEscuchaLlamadas(){
             null;
 
     }
-
 
     const llamadasQuery =
         query(
@@ -3146,7 +2999,6 @@ function iniciarEscuchaLlamadas(){
             )
         );
 
-
     unsubscribeLlamadas =
         onSnapshot(
             llamadasQuery,
@@ -3164,7 +3016,6 @@ function iniciarEscuchaLlamadas(){
                         continue;
                     }
 
-
                     const llamada = {
 
                         id:
@@ -3174,7 +3025,6 @@ function iniciarEscuchaLlamadas(){
 
                     };
 
-
                     if(
                         handledIncomingCalls.has(
                             llamada.id
@@ -3183,17 +3033,14 @@ function iniciarEscuchaLlamadas(){
                         continue;
                     }
 
-
                     handledIncomingCalls.add(
                         llamada.id
                     );
-
 
                     const perfil =
                         await obtenerPerfil(
                             llamada.callerId
                         );
-
 
                     mostrarLlamadaEntrante(
                         llamada,
@@ -3220,16 +3067,13 @@ function mostrarLlamadaEntrante(
     llamadaEntrante =
         llamada;
 
-
     const nombre =
         nombrePerfil(
             perfil
         );
 
-
     incomingName.textContent =
         nombre;
-
 
     incomingType.textContent =
         llamada.tipo ===
@@ -3237,12 +3081,10 @@ function mostrarLlamadaEntrante(
         ? "Videollamada entrante"
         : "Llamada entrante";
 
-
     const foto =
         fotoPerfil(
             perfil
         );
-
 
     if(foto){
 
@@ -3262,10 +3104,12 @@ function mostrarLlamadaEntrante(
 
     }
 
-
     incomingCall.classList.add(
         "show"
     );
+
+    /* INICIAR TONO */
+    iniciarTonoLlamada();
 
 }
 
@@ -3286,22 +3130,20 @@ async function aceptarLlamada(){
         return;
     }
 
+    detenerTonoLlamada();
 
     const llamada =
         llamadaEntrante;
 
-
     incomingCall.classList.remove(
         "show"
     );
-
 
     try{
 
         const esVideo =
             llamada.tipo ===
             "videollamada";
-
 
         localStream =
             await navigator.mediaDevices
@@ -3312,26 +3154,21 @@ async function aceptarLlamada(){
 
                 });
 
-
         localVideo.srcObject =
             localStream;
-
 
         localVideo.style.display =
             esVideo
             ? "block"
             : "none";
 
-
         remoteVideo.style.display =
             esVideo
             ? "block"
             : "none";
 
-
         peerConnection =
             crearPeerConnection();
-
 
         localStream
             .getTracks()
@@ -3346,10 +3183,8 @@ async function aceptarLlamada(){
                 }
             );
 
-
         llamadaActualId =
             llamada.id;
-
 
         peerConnection.onicecandidate =
             async event => {
@@ -3360,7 +3195,6 @@ async function aceptarLlamada(){
                 ){
                     return;
                 }
-
 
                 try{
 
@@ -3385,7 +3219,6 @@ async function aceptarLlamada(){
 
             };
 
-
         await peerConnection
             .setRemoteDescription(
                 new RTCSessionDescription(
@@ -3393,17 +3226,14 @@ async function aceptarLlamada(){
                 )
             );
 
-
         const answer =
             await peerConnection
                 .createAnswer();
-
 
         await peerConnection
             .setLocalDescription(
                 answer
             );
-
 
         await updateDoc(
             doc(
@@ -3426,36 +3256,29 @@ async function aceptarLlamada(){
             }
         );
 
-
         escucharCandidatosCaller(
             llamada.id
         );
-
 
         const perfilCaller =
             await obtenerPerfil(
                 llamada.callerId
             );
 
-
         callName.textContent =
             nombrePerfil(
                 perfilCaller
             );
 
-
         callStatus.textContent =
             "Conectando...";
-
 
         callOverlay.classList.add(
             "show"
         );
 
-
         llamadaEntrante =
             null;
-
 
     }catch(error){
 
@@ -3464,11 +3287,9 @@ async function aceptarLlamada(){
             error
         );
 
-
         mostrarToast(
             "No se pudo aceptar la llamada."
         );
-
 
         try{
 
@@ -3481,7 +3302,6 @@ async function aceptarLlamada(){
             console.error(e);
 
         }
-
 
         llamadaEntrante =
             null;
@@ -3506,7 +3326,6 @@ function escucharCandidatosCaller(llamadaId){
 
     }
 
-
     const candidatosRef =
         collection(
             db,
@@ -3514,7 +3333,6 @@ function escucharCandidatosCaller(llamadaId){
             llamadaId,
             "callerCandidates"
         );
-
 
     unsubscribeCandidatesCaller =
         onSnapshot(
@@ -3532,11 +3350,9 @@ function escucharCandidatosCaller(llamadaId){
                                 return;
                             }
 
-
                             if(!peerConnection){
                                 return;
                             }
-
 
                             try{
 
@@ -3575,17 +3391,15 @@ rejectCallBtn.addEventListener(
             return;
         }
 
+        detenerTonoLlamada();
 
         const id =
             llamadaEntrante.id;
 
-
         await rechazarLlamada(id);
-
 
         llamadaEntrante =
             null;
-
 
         incomingCall.classList.remove(
             "show"
@@ -3642,7 +3456,6 @@ async function finalizarLlamada(){
     const id =
         llamadaActualId;
 
-
     if(id){
 
         try{
@@ -3675,7 +3488,6 @@ async function finalizarLlamada(){
 
     }
 
-
     cerrarLlamadaLocal();
 
 }
@@ -3687,6 +3499,8 @@ async function finalizarLlamada(){
 
 function cerrarLlamadaLocal(){
 
+    detenerTonoLlamada();
+
     if(unsubscribeRespuestaLlamada){
 
         unsubscribeRespuestaLlamada();
@@ -3695,7 +3509,6 @@ function cerrarLlamadaLocal(){
             null;
 
     }
-
 
     if(unsubscribeCandidatesCaller){
 
@@ -3706,7 +3519,6 @@ function cerrarLlamadaLocal(){
 
     }
 
-
     if(unsubscribeCandidatesCallee){
 
         unsubscribeCandidatesCallee();
@@ -3715,7 +3527,6 @@ function cerrarLlamadaLocal(){
             null;
 
     }
-
 
     if(localStream){
 
@@ -3727,7 +3538,6 @@ function cerrarLlamadaLocal(){
 
     }
 
-
     if(remoteStream){
 
         remoteStream
@@ -3738,13 +3548,11 @@ function cerrarLlamadaLocal(){
 
     }
 
-
     if(peerConnection){
 
         peerConnection.close();
 
     }
-
 
     localStream =
         null;
@@ -3761,17 +3569,14 @@ function cerrarLlamadaLocal(){
     isMuted =
         false;
 
-
     remoteVideo.srcObject =
         null;
 
     localVideo.srcObject =
         null;
 
-
     muteBtn.textContent =
         "🎙️";
-
 
     callOverlay.classList.remove(
         "show"
@@ -3792,10 +3597,8 @@ muteBtn.addEventListener(
             return;
         }
 
-
         const pistas =
             localStream.getAudioTracks();
-
 
         pistas.forEach(
             pista => {
@@ -3806,10 +3609,8 @@ muteBtn.addEventListener(
             }
         );
 
-
         isMuted =
             !pistas[0]?.enabled;
-
 
         muteBtn.textContent =
             isMuted
@@ -3864,42 +3665,32 @@ document
                 "chat-open"
             );
 
-
             contactoSeleccionado =
                 null;
-
 
             contactoPerfil =
                 null;
 
-
             headerName.textContent =
                 "Mensajes";
-
 
             headerStatus.textContent =
                 "Seleccioná una conexión";
 
-
             voiceCallBtn.style.display =
                 "none";
-
 
             videoCallBtn.style.display =
                 "none";
 
-
             emptyChat.style.display =
                 "flex";
-
 
             messagesBox.style.display =
                 "none";
 
-
             composer.style.display =
                 "none";
-
 
             if(unsubscribeMensajes){
 
@@ -3910,11 +3701,9 @@ document
 
             }
 
-
             return;
 
         }
-
 
         window.location.href =
             "red.html";
