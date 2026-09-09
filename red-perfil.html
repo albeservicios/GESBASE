@@ -138,11 +138,31 @@ main{
     box-shadow:0 2px 8px rgba(0,0,0,.25);
 }
 
-.profile-name{
+.profile-name-line{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
     margin-top:12px;
+}
+
+.profile-name{
     font-size:27px;
     font-weight:700;
     color:#12343B;
+}
+
+.verificado-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    background:#e7f7ee;
+    color:#167a46;
+    border:1px solid #b9e6cb;
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:700;
 }
 
 .profile-company{
@@ -178,6 +198,11 @@ main{
     cursor:pointer;
 }
 
+.action-btn:disabled{
+    opacity:.65;
+    cursor:not-allowed;
+}
+
 .btn-message{
     background:#12343B;
     color:white;
@@ -197,6 +222,116 @@ main{
     background:#fee2e2;
     color:#991b1b;
 }
+
+
+/* =====================================================
+   VERIFICACIÓN
+===================================================== */
+
+.verificacion-card{
+    background:white;
+    margin-top:12px;
+    padding:20px;
+}
+
+.verificacion-header{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+}
+
+.verificacion-icon{
+    width:44px;
+    height:44px;
+    min-width:44px;
+    border-radius:12px;
+    background:#e7f1f3;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:23px;
+}
+
+.verificacion-title{
+    font-size:19px;
+    font-weight:700;
+    color:#12343B;
+}
+
+.verificacion-description{
+    margin-top:5px;
+    font-size:13px;
+    color:#6b7280;
+    line-height:1.5;
+}
+
+.verificacion-status{
+    margin-top:16px;
+    padding:14px;
+    border-radius:10px;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.verificacion-pendiente{
+    background:#fff7ed;
+    color:#9a3412;
+    border:1px solid #fed7aa;
+}
+
+.verificacion-revision{
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+}
+
+.verificacion-aprobada{
+    background:#ecfdf5;
+    color:#047857;
+    border:1px solid #a7f3d0;
+}
+
+.verificacion-rechazada{
+    background:#fef2f2;
+    color:#b91c1c;
+    border:1px solid #fecaca;
+}
+
+.verificacion-sin{
+    background:#f8fafc;
+    color:#475569;
+    border:1px solid #e2e8f0;
+}
+
+.btn-verificacion{
+    margin-top:14px;
+    width:100%;
+    border:none;
+    border-radius:10px;
+    padding:13px 16px;
+    background:#12343B;
+    color:white;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.btn-verificacion:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+.verificacion-nota{
+    margin-top:10px;
+    font-size:12px;
+    color:#6b7280;
+    line-height:1.5;
+}
+
+
+/* =====================================================
+   INFORMACIÓN
+===================================================== */
 
 .info-card{
     background:white;
@@ -563,12 +698,24 @@ input[type="file"]{
 
 
 
-            <h1
-                id="nombreCompleto"
-                class="profile-name"
-            >
-                Usuario GESBASE
-            </h1>
+            <div class="profile-name-line">
+
+                <h1
+                    id="nombreCompleto"
+                    class="profile-name"
+                >
+                    Usuario GESBASE
+                </h1>
+
+
+                <span
+                    id="badgeVerificado"
+                    class="verificado-badge hidden"
+                >
+                    ✓ Verificado por GESBASE
+                </span>
+
+            </div>
 
 
 
@@ -626,6 +773,62 @@ input[type="file"]{
 
             </div>
 
+
+        </section>
+
+
+
+        <section
+            id="verificacionCard"
+            class="verificacion-card hidden"
+        >
+
+            <div class="verificacion-header">
+
+                <div class="verificacion-icon">
+                    🔐
+                </div>
+
+                <div>
+
+                    <h2 class="verificacion-title">
+                        Verificación GESBASE
+                    </h2>
+
+                    <div class="verificacion-description">
+                        La verificación permite confirmar que la identidad
+                        y los datos del perfil fueron revisados por GESBASE.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="verificacionStatus"
+                class="verificacion-status verificacion-sin"
+            >
+                Tu perfil todavía no tiene una solicitud de verificación.
+            </div>
+
+
+            <button
+                id="btnSolicitarVerificacion"
+                class="btn-verificacion"
+                type="button"
+            >
+                🔐 Solicitar verificación
+            </button>
+
+
+            <div
+                id="verificacionNota"
+                class="verificacion-nota"
+            >
+                La aprobación no es automática. Un administrador de GESBASE
+                revisará la información y decidirá el estado de la solicitud.
+            </div>
 
         </section>
 
@@ -978,6 +1181,7 @@ import {
     where,
     getDocs,
     updateDoc,
+    setDoc,
     addDoc,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
@@ -1023,6 +1227,9 @@ const empresa =
 const rubro =
     document.getElementById("rubro");
 
+const badgeVerificado =
+    document.getElementById("badgeVerificado");
+
 const infoNombre =
     document.getElementById("infoNombre");
 
@@ -1059,6 +1266,22 @@ const btnEditar =
 const btnReportar =
     document.getElementById("btnReportar");
 
+const verificacionCard =
+    document.getElementById("verificacionCard");
+
+const verificacionStatus =
+    document.getElementById("verificacionStatus");
+
+const btnSolicitarVerificacion =
+    document.getElementById(
+        "btnSolicitarVerificacion"
+    );
+
+const verificacionNota =
+    document.getElementById(
+        "verificacionNota"
+    );
+
 const reportModal =
     document.getElementById("reportModal");
 
@@ -1069,10 +1292,14 @@ const reportDescripcion =
     document.getElementById("reportDescripcion");
 
 const btnCancelarReporte =
-    document.getElementById("btnCancelarReporte");
+    document.getElementById(
+        "btnCancelarReporte"
+    );
 
 const btnEnviarReporte =
-    document.getElementById("btnEnviarReporte");
+    document.getElementById(
+        "btnEnviarReporte"
+    );
 
 const reportSuccess =
     document.getElementById("reportSuccess");
@@ -1081,13 +1308,19 @@ const reportError =
     document.getElementById("reportError");
 
 const cantidadConexiones =
-    document.getElementById("cantidadConexiones");
+    document.getElementById(
+        "cantidadConexiones"
+    );
 
 const cantidadPublicaciones =
-    document.getElementById("cantidadPublicaciones");
+    document.getElementById(
+        "cantidadPublicaciones"
+    );
 
 const cantidadEmpleos =
-    document.getElementById("cantidadEmpleos");
+    document.getElementById(
+        "cantidadEmpleos"
+    );
 
 
 
@@ -1100,6 +1333,8 @@ let usuarioActual = null;
 let uidPerfil = null;
 
 let perfilActual = null;
+
+let verificacionActual = null;
 
 
 
@@ -1197,6 +1432,26 @@ function crearAvatar(nombre){
 
 
 /* =====================================================
+   NOMBRE
+===================================================== */
+
+function obtenerNombre(data){
+
+    return (
+        data?.nombreCompleto ||
+        (
+            (data?.nombre || "") +
+            " " +
+            (data?.apellido || "")
+        ).trim() ||
+        "Usuario GESBASE"
+    );
+
+}
+
+
+
+/* =====================================================
    ERROR
 ===================================================== */
 
@@ -1235,11 +1490,7 @@ async function cargarPerfil(uid){
 
 
         /*
-         * EL PERFIL PRINCIPAL ES:
-         *
-         * usuarios/{uid}
-         *
-         * No se crea otro usuario.
+         * PERFIL PRINCIPAL
          */
 
         const referenciaUsuario =
@@ -1256,11 +1507,6 @@ async function cargarPerfil(uid){
             );
 
 
-        /*
-         * Si existe el usuario de GESBASE,
-         * usamos ese perfil.
-         */
-
         if(usuarioSnap.exists()){
 
             perfilActual =
@@ -1270,9 +1516,7 @@ async function cargarPerfil(uid){
 
 
         /*
-         * Solo usamos directorio_red como
-         * respaldo para perfiles que todavía
-         * no estén disponibles en usuarios.
+         * RESPALDO DEL DIRECTORIO DE RED
          */
 
         if(!perfilActual){
@@ -1301,10 +1545,6 @@ async function cargarPerfil(uid){
         }
 
 
-        /*
-         * Si no encontramos ningún perfil.
-         */
-
         if(!perfilActual){
 
             throw new Error(
@@ -1315,6 +1555,8 @@ async function cargarPerfil(uid){
 
 
         pintarPerfil();
+
+        await cargarVerificacion();
 
         await cargarEstadisticas();
 
@@ -1357,6 +1599,10 @@ async function cargarPerfil(uid){
                 "hidden"
             );
 
+            verificacionCard.classList.remove(
+                "hidden"
+            );
+
         }
 
 
@@ -1394,13 +1640,9 @@ async function cargarPerfil(uid){
 function pintarPerfil(){
 
     const nombre =
-        perfilActual.nombreCompleto ||
-        (
-            (perfilActual.nombre || "") +
-            " " +
-            (perfilActual.apellido || "")
-        ).trim() ||
-        "Usuario GESBASE";
+        obtenerNombre(
+            perfilActual
+        );
 
 
     const nombreEmpresa =
@@ -1430,6 +1672,35 @@ function pintarPerfil(){
     infoEmpresa.textContent =
         nombreEmpresa ||
         "Sin empresa informada";
+
+
+    /*
+     * VERIFICACIÓN PÚBLICA
+     *
+     * Solo aparece si el administrador
+     * realmente marcó al usuario como
+     * verificado.
+     */
+
+    const estaVerificado =
+        perfilActual.verificado === true ||
+        perfilActual.estadoVerificacion ===
+            "verificado";
+
+
+    if(estaVerificado){
+
+        badgeVerificado.classList.remove(
+            "hidden"
+        );
+
+    }else{
+
+        badgeVerificado.classList.add(
+            "hidden"
+        );
+
+    }
 
 
     if(rubroTexto){
@@ -1462,8 +1733,9 @@ function pintarPerfil(){
 
 
     /*
-     * Teléfono:
-     * solamente el propietario puede
+     * TELÉFONO
+     *
+     * Solamente el propietario puede
      * verlo en su propio perfil.
      */
 
@@ -1509,6 +1781,557 @@ function pintarPerfil(){
     }
 
 }
+
+
+
+/* =====================================================
+   CARGAR ESTADO DE VERIFICACIÓN
+===================================================== */
+
+async function cargarVerificacion(){
+
+    verificacionActual = null;
+
+
+    /*
+     * La verificación solamente se muestra
+     * en el perfil propio.
+     */
+
+    if(
+        !usuarioActual ||
+        uidPerfil !== usuarioActual.uid
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        const referencia =
+            doc(
+                db,
+                "verificaciones",
+                usuarioActual.uid
+            );
+
+
+        const snapshot =
+            await getDoc(
+                referencia
+            );
+
+
+        if(snapshot.exists()){
+
+            verificacionActual =
+                snapshot.data();
+
+        }
+
+
+        pintarEstadoVerificacion();
+
+
+    }catch(error){
+
+        console.warn(
+            "No se pudo cargar la verificación:",
+            error
+        );
+
+
+        pintarEstadoVerificacion();
+
+    }
+
+}
+
+
+
+/* =====================================================
+   PINTAR ESTADO DE VERIFICACIÓN
+===================================================== */
+
+function pintarEstadoVerificacion(){
+
+    const estadoPerfil =
+        perfilActual?.estadoVerificacion ||
+        "";
+
+
+    const verificado =
+        perfilActual?.verificado === true ||
+        estadoPerfil === "verificado" ||
+        verificacionActual?.estado ===
+            "verificado";
+
+
+    /*
+     * VERIFICADO
+     */
+
+    if(verificado){
+
+        verificacionStatus.className =
+            "verificacion-status verificacion-aprobada";
+
+        verificacionStatus.innerHTML =
+            "<strong>✓ Perfil verificado</strong><br>" +
+            "Tu perfil fue revisado y aprobado por GESBASE.";
+
+
+        btnSolicitarVerificacion.classList.add(
+            "hidden"
+        );
+
+
+        verificacionNota.textContent =
+            "La insignia de verificación aparece públicamente junto a tu nombre en la Red GESBASE.";
+
+
+        return;
+
+    }
+
+
+    const estado =
+        verificacionActual?.estado ||
+        estadoPerfil ||
+        "sin_verificacion";
+
+
+    /*
+     * EN REVISIÓN
+     */
+
+    if(
+        estado === "en_revision"
+    ){
+
+        verificacionStatus.className =
+            "verificacion-status verificacion-revision";
+
+        verificacionStatus.innerHTML =
+            "<strong>🔎 Solicitud en revisión</strong><br>" +
+            "Tu solicitud fue enviada y está siendo revisada por GESBASE.";
+
+
+        btnSolicitarVerificacion.textContent =
+            "Solicitud enviada";
+
+        btnSolicitarVerificacion.disabled =
+            true;
+
+
+        verificacionNota.textContent =
+            "No necesitás realizar otra solicitud mientras la actual esté en revisión.";
+
+
+        return;
+
+    }
+
+
+    /*
+     * PENDIENTE
+     */
+
+    if(
+        estado === "pendiente"
+    ){
+
+        verificacionStatus.className =
+            "verificacion-status verificacion-pendiente";
+
+        verificacionStatus.innerHTML =
+            "<strong>⏳ Solicitud pendiente</strong><br>" +
+            "Tu solicitud está pendiente de revisión.";
+
+
+        btnSolicitarVerificacion.textContent =
+            "Solicitud enviada";
+
+        btnSolicitarVerificacion.disabled =
+            true;
+
+
+        verificacionNota.textContent =
+            "GESBASE revisará los datos de tu perfil antes de aprobar la verificación.";
+
+
+        return;
+
+    }
+
+
+    /*
+     * RECHAZADO
+     */
+
+    if(
+        estado === "rechazado"
+    ){
+
+        const motivo =
+            verificacionActual?.motivoRechazo ||
+            perfilActual?.motivoRechazo ||
+            "";
+
+
+        verificacionStatus.className =
+            "verificacion-status verificacion-rechazada";
+
+
+        verificacionStatus.innerHTML =
+            "<strong>✕ Solicitud rechazada</strong>" +
+            (
+                motivo
+                    ? "<br>Motivo: " +
+                      escaparHTML(motivo)
+                    : ""
+            );
+
+
+        btnSolicitarVerificacion.classList.remove(
+            "hidden"
+        );
+
+        btnSolicitarVerificacion.disabled =
+            false;
+
+        btnSolicitarVerificacion.textContent =
+            "🔐 Solicitar nuevamente";
+
+
+        verificacionNota.textContent =
+            "Podés corregir o completar la información de tu perfil y volver a solicitar la revisión.";
+
+
+        return;
+
+    }
+
+
+    /*
+     * SIN SOLICITUD
+     */
+
+    verificacionStatus.className =
+        "verificacion-status verificacion-sin";
+
+    verificacionStatus.innerHTML =
+        "<strong>Perfil no verificado</strong><br>" +
+        "Todavía no solicitaste la verificación de GESBASE.";
+
+
+    btnSolicitarVerificacion.classList.remove(
+        "hidden"
+    );
+
+    btnSolicitarVerificacion.disabled =
+        false;
+
+    btnSolicitarVerificacion.textContent =
+        "🔐 Solicitar verificación";
+
+
+    verificacionNota.textContent =
+        "La aprobación no es automática. Un administrador de GESBASE revisará la información y decidirá el estado de la solicitud.";
+
+}
+
+
+
+/* =====================================================
+   ESCAPAR HTML
+===================================================== */
+
+function escaparHTML(texto){
+
+    return String(texto || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+
+}
+
+
+
+/* =====================================================
+   SOLICITAR VERIFICACIÓN
+===================================================== */
+
+btnSolicitarVerificacion.addEventListener(
+    "click",
+    async () => {
+
+        if(
+            !usuarioActual ||
+            !uidPerfil ||
+            uidPerfil !==
+            usuarioActual.uid
+        ){
+
+            return;
+
+        }
+
+
+        const confirmar =
+            confirm(
+                "¿Querés solicitar la verificación de tu perfil en GESBASE?"
+            );
+
+
+        if(!confirmar){
+
+            return;
+
+        }
+
+
+        btnSolicitarVerificacion.disabled =
+            true;
+
+        btnSolicitarVerificacion.textContent =
+            "Enviando solicitud...";
+
+
+        try{
+
+            const nombre =
+                obtenerNombre(
+                    perfilActual
+                );
+
+
+            const estadoAnterior =
+                verificacionActual?.estado ||
+                perfilActual?.estadoVerificacion ||
+                "";
+
+
+            /*
+             * NUEVA SOLICITUD
+             *
+             * Se utiliza el UID como ID del documento
+             * para impedir solicitudes duplicadas.
+             */
+
+            await setDoc(
+                doc(
+                    db,
+                    "verificaciones",
+                    usuarioActual.uid
+                ),
+                {
+
+                    uidUsuario:
+                        usuarioActual.uid,
+
+                    nombreUsuario:
+                        nombre,
+
+                    tipoUsuario:
+                        perfilActual.tipoUsuario ||
+                        perfilActual.tipo ||
+                        perfilActual.rol ||
+                        "",
+
+                    emailUsuario:
+                        usuarioActual.email ||
+                        perfilActual.email ||
+                        "",
+
+                    telefonoUsuario:
+                        perfilActual.telefono ||
+                        "",
+
+                    empresaUsuario:
+                        perfilActual.nombreEmpresa ||
+                        perfilActual.empresa ||
+                        "",
+
+                    rubroUsuario:
+                        perfilActual.rubro ||
+                        perfilActual.profesion ||
+                        perfilActual.tipoNegocio ||
+                        "",
+
+                    localidadUsuario:
+                        perfilActual.localidad ||
+                        "",
+
+                    provinciaUsuario:
+                        perfilActual.provincia ||
+                        "",
+
+                    estado:
+                        "en_revision",
+
+                    motivoRechazo:
+                        "",
+
+                    solicitadoPorUid:
+                        usuarioActual.uid,
+
+                    solicitadoPorNombre:
+                        nombre,
+
+                    solicitadoPorEmail:
+                        usuarioActual.email ||
+                        "",
+
+                    fechaSolicitud:
+                        serverTimestamp(),
+
+                    fechaSolicitudCliente:
+                        Date.now(),
+
+                    actualizadoEn:
+                        serverTimestamp(),
+
+                    actualizadoEnCliente:
+                        Date.now()
+
+                }
+            );
+
+
+            /*
+             * Actualizamos el perfil.
+             *
+             * Esto NO lo convierte en verificado.
+             * Solamente indica que está en revisión.
+             */
+
+            try{
+
+                await updateDoc(
+                    doc(
+                        db,
+                        "usuarios",
+                        usuarioActual.uid
+                    ),
+                    {
+
+                        estadoVerificacion:
+                            "en_revision",
+
+                        verificado:
+                            false,
+
+                        fechaSolicitudVerificacion:
+                            serverTimestamp()
+
+                    }
+                );
+
+            }catch(error){
+
+                console.warn(
+                    "No se pudo actualizar usuarios:",
+                    error
+                );
+
+            }
+
+
+            /*
+             * También actualizamos el directorio
+             * si existe.
+             */
+
+            try{
+
+                await updateDoc(
+                    doc(
+                        db,
+                        "directorio_red",
+                        usuarioActual.uid
+                    ),
+                    {
+
+                        estadoVerificacion:
+                            "en_revision",
+
+                        verificado:
+                            false,
+
+                        fechaSolicitudVerificacion:
+                            serverTimestamp()
+
+                    }
+                );
+
+            }catch(error){
+
+                console.warn(
+                    "No se pudo actualizar directorio_red:",
+                    error
+                );
+
+            }
+
+
+            /*
+             * Actualizamos la información local.
+             */
+
+            verificacionActual = {
+
+                estado:
+                    "en_revision",
+
+                motivoRechazo:
+                    ""
+
+            };
+
+
+            perfilActual.estadoVerificacion =
+                "en_revision";
+
+            perfilActual.verificado =
+                false;
+
+
+            pintarEstadoVerificacion();
+
+
+            alert(
+                "Solicitud enviada correctamente. GESBASE revisará tu perfil."
+            );
+
+
+        }catch(error){
+
+            console.error(
+                "Error solicitando verificación:",
+                error
+            );
+
+
+            btnSolicitarVerificacion.disabled =
+                false;
+
+            btnSolicitarVerificacion.textContent =
+                "🔐 Solicitar verificación";
+
+
+            alert(
+                "No se pudo enviar la solicitud. Intentá nuevamente."
+            );
+
+        }
+
+    }
+);
 
 
 
@@ -1788,11 +2611,6 @@ btnConexion.addEventListener(
 
         try{
 
-            /*
-             * Primero comprobamos si ya existe
-             * una solicitud en esa dirección.
-             */
-
             const enviadaQuery =
                 query(
                     collection(
@@ -1828,11 +2646,6 @@ btnConexion.addEventListener(
             }
 
 
-            /*
-             * Comprobamos también la dirección
-             * contraria.
-             */
-
             const recibidaQuery =
                 query(
                     collection(
@@ -1867,10 +2680,6 @@ btnConexion.addEventListener(
 
             }
 
-
-            /*
-             * CREAR SOLICITUD
-             */
 
             await addDoc(
                 collection(
@@ -2080,13 +2889,9 @@ btnEnviarReporte.addEventListener(
         try{
 
             const nombreReportado =
-                perfilActual.nombreCompleto ||
-                (
-                    (perfilActual.nombre || "") +
-                    " " +
-                    (perfilActual.apellido || "")
-                ).trim() ||
-                "Usuario GESBASE";
+                obtenerNombre(
+                    perfilActual
+                );
 
 
             const nombreReportante =
@@ -2094,10 +2899,6 @@ btnEnviarReporte.addEventListener(
                 usuarioActual.email ||
                 "Usuario GESBASE";
 
-
-            /*
-             * GUARDAR REPORTE
-             */
 
             const reporteRef =
                 await addDoc(
@@ -2143,15 +2944,6 @@ btnEnviarReporte.addEventListener(
                     }
                 );
 
-
-            /*
-             * NOTIFICACIÓN PARA QUIEN REALIZÓ
-             * EL REPORTE.
-             *
-             * No notificamos al usuario reportado
-             * para proteger la identidad del
-             * reportante.
-             */
 
             try{
 
@@ -2309,10 +3101,6 @@ fotoInput.addEventListener(
                 );
 
 
-            /*
-             * ACTUALIZAR EL PERFIL PRINCIPAL
-             */
-
             await updateDoc(
                 doc(
                     db,
@@ -2334,13 +3122,6 @@ fotoInput.addEventListener(
             avatar.src =
                 url;
 
-
-            /*
-             * Si existe directorio_red,
-             * actualizamos solamente la foto.
-             *
-             * Sigue siendo el mismo UID.
-             */
 
             try{
 
@@ -2504,18 +3285,6 @@ onAuthStateChanged(
         usuarioActual =
             usuario;
 
-
-        /*
-         * Si viene:
-         *
-         * red-perfil.html?uid=XXXXX
-         *
-         * abrimos ese perfil.
-         *
-         * Si no viene UID,
-         * abrimos el perfil del usuario
-         * que inició sesión.
-         */
 
         const uidObjetivo =
             uidSolicitado ||
