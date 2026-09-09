@@ -221,6 +221,7 @@ main{
 .btn-report{
     background:#fee2e2;
     color:#991b1b;
+}
 
 
 /* =====================================================
@@ -1033,6 +1034,10 @@ input[type="file"]{
 
 
 
+<!-- =====================================================
+     MODAL REPORTAR USUARIO
+===================================================== -->
+
 <div
     id="reportModal"
     class="modal hidden"
@@ -1045,8 +1050,10 @@ input[type="file"]{
         </div>
 
         <div class="modal-description">
+
             El reporte será enviado al equipo de
             seguridad de GESBASE para su revisión.
+
         </div>
 
 
@@ -1432,40 +1439,12 @@ function obtenerNombre(data){
 
     return (
         data?.nombreCompleto ||
-        data?.nombreCompletoUsuario ||
-        data?.displayName ||
-        data?.nombre ||
         (
             (data?.nombre || "") +
             " " +
             (data?.apellido || "")
         ).trim() ||
-        data?.nombreUsuario ||
         "Usuario GESBASE"
-    );
-
-}
-
-
-
-/* =====================================================
-   OBTENER FOTO
-===================================================== */
-
-function obtenerFoto(data){
-
-    return (
-        data?.fotoPerfil ||
-        data?.fotoPerfilUrl ||
-        data?.fotoPerfilURL ||
-        data?.photoURL ||
-        data?.fotoUrl ||
-        data?.fotoURL ||
-        data?.foto ||
-        data?.imagenPerfil ||
-        data?.imagen ||
-        data?.avatar ||
-        ""
     );
 
 }
@@ -1512,8 +1491,6 @@ async function cargarPerfil(uid){
 
         /*
          * PERFIL PRINCIPAL
-         *
-         * Se conserva la carga original.
          */
 
         const referenciaUsuario =
@@ -1540,8 +1517,6 @@ async function cargarPerfil(uid){
 
         /*
          * RESPALDO DEL DIRECTORIO DE RED
-         *
-         * Se conserva la lógica original.
          */
 
         if(!perfilActual){
@@ -1578,185 +1553,6 @@ async function cargarPerfil(uid){
 
         }
 
-
-        /*
-         * =================================================
-         * CORRECCIÓN SOLAMENTE PARA NOMBRE Y FOTO
-         * =================================================
-         *
-         * Si el perfil principal no tiene nombre o foto,
-         * buscamos esos datos en las fuentes de la Red.
-         *
-         * Los demás datos NO se reemplazan.
-         */
-
-        let datosRed = {};
-
-
-        try{
-
-            const redSnap =
-                await getDoc(
-                    doc(
-                        db,
-                        "usuariosRed",
-                        uid
-                    )
-                );
-
-
-            if(redSnap.exists()){
-
-                datosRed =
-                    redSnap.data();
-
-            }
-
-        }catch(error){
-
-            console.warn(
-                "No se pudo consultar usuariosRed:",
-                error
-            );
-
-        }
-
-
-        let datosDirectorio = {};
-
-
-        try{
-
-            const directorioSnap =
-                await getDoc(
-                    doc(
-                        db,
-                        "directorio_red",
-                        uid
-                    )
-                );
-
-
-            if(directorioSnap.exists()){
-
-                datosDirectorio =
-                    directorioSnap.data();
-
-            }
-
-        }catch(error){
-
-            console.warn(
-                "No se pudo consultar directorio_red:",
-                error
-            );
-
-        }
-
-
-        /*
-         * Nombre actual.
-         */
-
-        const nombrePrincipal =
-            obtenerNombre(
-                perfilActual
-            );
-
-
-        const nombreRed =
-            obtenerNombre(
-                datosRed
-            );
-
-
-        const nombreDirectorio =
-            obtenerNombre(
-                datosDirectorio
-            );
-
-
-        /*
-         * Solo usamos otra fuente si el nombre
-         * principal está vacío o es el genérico.
-         */
-
-        if(
-            !nombrePrincipal ||
-            nombrePrincipal ===
-                "Usuario GESBASE"
-        ){
-
-            if(
-                nombreRed &&
-                nombreRed !==
-                    "Usuario GESBASE"
-            ){
-
-                perfilActual.nombreCompleto =
-                    nombreRed;
-
-            }else if(
-                nombreDirectorio &&
-                nombreDirectorio !==
-                    "Usuario GESBASE"
-            ){
-
-                perfilActual.nombreCompleto =
-                    nombreDirectorio;
-
-            }
-
-        }
-
-
-        /*
-         * Foto actual.
-         */
-
-        const fotoPrincipal =
-            obtenerFoto(
-                perfilActual
-            );
-
-
-        const fotoRed =
-            obtenerFoto(
-                datosRed
-            );
-
-
-        const fotoDirectorio =
-            obtenerFoto(
-                datosDirectorio
-            );
-
-
-        /*
-         * Solo usamos otra fuente si el perfil
-         * principal no tiene foto.
-         */
-
-        if(!fotoPrincipal){
-
-            if(fotoRed){
-
-                perfilActual.fotoPerfil =
-                    fotoRed;
-
-            }else if(fotoDirectorio){
-
-                perfilActual.fotoPerfil =
-                    fotoDirectorio;
-
-            }
-
-        }
-
-
-        /*
-         * Continúa exactamente la carga actual.
-         */
 
         pintarPerfil();
 
@@ -1880,6 +1676,10 @@ function pintarPerfil(){
 
     /*
      * VERIFICACIÓN PÚBLICA
+     *
+     * Solo aparece si el administrador
+     * realmente marcó al usuario como
+     * verificado.
      */
 
     const estaVerificado =
@@ -1934,6 +1734,9 @@ function pintarPerfil(){
 
     /*
      * TELÉFONO
+     *
+     * Solamente el propietario puede
+     * verlo en su propio perfil.
      */
 
     if(
@@ -1958,14 +1761,11 @@ function pintarPerfil(){
     }
 
 
-    /*
-     * FOTO
-     */
-
     const foto =
-        obtenerFoto(
-            perfilActual
-        );
+        perfilActual.fotoPerfil ||
+        perfilActual.photoURL ||
+        perfilActual.foto ||
+        "";
 
 
     if(foto){
@@ -1973,25 +1773,10 @@ function pintarPerfil(){
         avatar.src =
             foto;
 
-        avatar.onerror =
-            () => {
-
-                avatar.onerror =
-                    null;
-
-                avatar.src =
-                    crearAvatar(
-                        nombre
-                    );
-
-            };
-
     }else{
 
         avatar.src =
-            crearAvatar(
-                nombre
-            );
+            crearAvatar(nombre);
 
     }
 
@@ -2007,6 +1792,11 @@ async function cargarVerificacion(){
 
     verificacionActual = null;
 
+
+    /*
+     * La verificación solamente se muestra
+     * en el perfil propio.
+     */
 
     if(
         !usuarioActual ||
@@ -2079,6 +1869,10 @@ function pintarEstadoVerificacion(){
             "verificado";
 
 
+    /*
+     * VERIFICADO
+     */
+
     if(verificado){
 
         verificacionStatus.className =
@@ -2088,12 +1882,15 @@ function pintarEstadoVerificacion(){
             "<strong>✓ Perfil verificado</strong><br>" +
             "Tu perfil fue revisado y aprobado por GESBASE.";
 
+
         btnSolicitarVerificacion.classList.add(
             "hidden"
         );
 
+
         verificacionNota.textContent =
             "La insignia de verificación aparece públicamente junto a tu nombre en la Red GESBASE.";
+
 
         return;
 
@@ -2106,6 +1903,10 @@ function pintarEstadoVerificacion(){
         "sin_verificacion";
 
 
+    /*
+     * EN REVISIÓN
+     */
+
     if(
         estado === "en_revision"
     ){
@@ -2117,19 +1918,26 @@ function pintarEstadoVerificacion(){
             "<strong>🔎 Solicitud en revisión</strong><br>" +
             "Tu solicitud fue enviada y está siendo revisada por GESBASE.";
 
+
         btnSolicitarVerificacion.textContent =
             "Solicitud enviada";
 
         btnSolicitarVerificacion.disabled =
             true;
 
+
         verificacionNota.textContent =
             "No necesitás realizar otra solicitud mientras la actual esté en revisión.";
+
 
         return;
 
     }
 
+
+    /*
+     * PENDIENTE
+     */
 
     if(
         estado === "pendiente"
@@ -2142,19 +1950,26 @@ function pintarEstadoVerificacion(){
             "<strong>⏳ Solicitud pendiente</strong><br>" +
             "Tu solicitud está pendiente de revisión.";
 
+
         btnSolicitarVerificacion.textContent =
             "Solicitud enviada";
 
         btnSolicitarVerificacion.disabled =
             true;
 
+
         verificacionNota.textContent =
             "GESBASE revisará los datos de tu perfil antes de aprobar la verificación.";
+
 
         return;
 
     }
 
+
+    /*
+     * RECHAZADO
+     */
 
     if(
         estado === "rechazado"
@@ -2165,8 +1980,10 @@ function pintarEstadoVerificacion(){
             perfilActual?.motivoRechazo ||
             "";
 
+
         verificacionStatus.className =
             "verificacion-status verificacion-rechazada";
+
 
         verificacionStatus.innerHTML =
             "<strong>✕ Solicitud rechazada</strong>" +
@@ -2176,6 +1993,7 @@ function pintarEstadoVerificacion(){
                       escaparHTML(motivo)
                     : ""
             );
+
 
         btnSolicitarVerificacion.classList.remove(
             "hidden"
@@ -2187,13 +2005,19 @@ function pintarEstadoVerificacion(){
         btnSolicitarVerificacion.textContent =
             "🔐 Solicitar nuevamente";
 
+
         verificacionNota.textContent =
             "Podés corregir o completar la información de tu perfil y volver a solicitar la revisión.";
+
 
         return;
 
     }
 
+
+    /*
+     * SIN SOLICITUD
+     */
 
     verificacionStatus.className =
         "verificacion-status verificacion-sin";
@@ -2201,6 +2025,7 @@ function pintarEstadoVerificacion(){
     verificacionStatus.innerHTML =
         "<strong>Perfil no verificado</strong><br>" +
         "Todavía no solicitaste la verificación de GESBASE.";
+
 
     btnSolicitarVerificacion.classList.remove(
         "hidden"
@@ -2211,6 +2036,7 @@ function pintarEstadoVerificacion(){
 
     btnSolicitarVerificacion.textContent =
         "🔐 Solicitar verificación";
+
 
     verificacionNota.textContent =
         "La aprobación no es automática. Un administrador de GESBASE revisará la información y decidirá el estado de la solicitud.";
@@ -2283,6 +2109,19 @@ btnSolicitarVerificacion.addEventListener(
                     perfilActual
                 );
 
+
+            const estadoAnterior =
+                verificacionActual?.estado ||
+                perfilActual?.estadoVerificacion ||
+                "";
+
+
+            /*
+             * NUEVA SOLICITUD
+             *
+             * Se utiliza el UID como ID del documento
+             * para impedir solicitudes duplicadas.
+             */
 
             await setDoc(
                 doc(
@@ -2364,6 +2203,13 @@ btnSolicitarVerificacion.addEventListener(
             );
 
 
+            /*
+             * Actualizamos el perfil.
+             *
+             * Esto NO lo convierte en verificado.
+             * Solamente indica que está en revisión.
+             */
+
             try{
 
                 await updateDoc(
@@ -2396,6 +2242,11 @@ btnSolicitarVerificacion.addEventListener(
             }
 
 
+            /*
+             * También actualizamos el directorio
+             * si existe.
+             */
+
             try{
 
                 await updateDoc(
@@ -2427,6 +2278,10 @@ btnSolicitarVerificacion.addEventListener(
 
             }
 
+
+            /*
+             * Actualizamos la información local.
+             */
 
             verificacionActual = {
 
@@ -2488,6 +2343,10 @@ async function cargarEstadisticas(){
 
     try{
 
+        /*
+         * CONEXIONES ENVIADAS
+         */
+
         const enviadasQuery =
             query(
                 collection(
@@ -2501,6 +2360,10 @@ async function cargarEstadisticas(){
                 )
             );
 
+
+        /*
+         * CONEXIONES RECIBIDAS
+         */
 
         const recibidasQuery =
             query(
@@ -2582,6 +2445,11 @@ async function cargarEstadisticas(){
             conexiones.size;
 
 
+
+        /*
+         * PUBLICACIONES
+         */
+
         try{
 
             const publicacionesQuery =
@@ -2614,6 +2482,11 @@ async function cargarEstadisticas(){
 
         }
 
+
+
+        /*
+         * EMPLEOS
+         */
 
         try{
 
@@ -2927,6 +2800,7 @@ btnCancelarReporte.addEventListener(
 
     }
 );
+
 
 
 reportModal.addEventListener(
@@ -3428,4 +3302,4 @@ onAuthStateChanged(
 
 
 </body>
-</html>
+    </html>
