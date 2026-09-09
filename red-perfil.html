@@ -193,6 +193,11 @@ main{
     color:#374151;
 }
 
+.btn-report{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
 .info-card{
     background:white;
     margin-top:12px;
@@ -309,6 +314,133 @@ input[type="file"]{
     color:#12343B;
     font-weight:700;
 }
+
+
+/* =====================================================
+   MODAL REPORTAR
+===================================================== */
+
+.modal{
+    position:fixed;
+    inset:0;
+    z-index:500;
+    background:rgba(0,0,0,.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.modal.hidden{
+    display:none;
+}
+
+.modal-card{
+    width:100%;
+    max-width:500px;
+    background:white;
+    border-radius:16px;
+    padding:22px;
+    box-shadow:0 10px 35px rgba(0,0,0,.25);
+}
+
+.modal-title{
+    font-size:21px;
+    font-weight:700;
+    color:#12343B;
+    margin-bottom:8px;
+}
+
+.modal-description{
+    font-size:14px;
+    color:#6b7280;
+    margin-bottom:18px;
+    line-height:1.5;
+}
+
+.form-label{
+    display:block;
+    font-size:13px;
+    font-weight:700;
+    color:#374151;
+    margin-bottom:6px;
+}
+
+.form-select,
+.form-textarea{
+    width:100%;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    padding:12px;
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:14px;
+    outline:none;
+}
+
+.form-select:focus,
+.form-textarea:focus{
+    border-color:#12343B;
+}
+
+.form-textarea{
+    min-height:120px;
+    resize:vertical;
+}
+
+.form-group{
+    margin-bottom:16px;
+}
+
+.modal-actions{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+}
+
+.modal-btn{
+    border:none;
+    border-radius:9px;
+    padding:11px 16px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.btn-cancel{
+    background:#eef2f7;
+    color:#374151;
+}
+
+.btn-send-report{
+    background:#991b1b;
+    color:white;
+}
+
+.btn-send-report:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+.report-success{
+    margin-top:12px;
+    padding:10px;
+    border-radius:8px;
+    background:#dcfce7;
+    color:#166534;
+    font-size:13px;
+    display:none;
+}
+
+.report-error{
+    margin-top:12px;
+    padding:10px;
+    border-radius:8px;
+    background:#fee2e2;
+    color:#991b1b;
+    font-size:13px;
+    display:none;
+}
+
 
 @media(min-width:768px){
 
@@ -481,6 +613,14 @@ input[type="file"]{
                     class="action-btn btn-edit hidden"
                 >
                     ✏️ Editar perfil
+                </button>
+
+
+                <button
+                    id="btnReportar"
+                    class="action-btn btn-report hidden"
+                >
+                    ⚠️ Reportar usuario
                 </button>
 
 
@@ -691,6 +831,136 @@ input[type="file"]{
 
 
 
+<!-- =====================================================
+     MODAL REPORTAR USUARIO
+===================================================== -->
+
+<div
+    id="reportModal"
+    class="modal hidden"
+>
+
+    <div class="modal-card">
+
+        <div class="modal-title">
+            ⚠️ Reportar usuario
+        </div>
+
+        <div class="modal-description">
+
+            El reporte será enviado al equipo de
+            seguridad de GESBASE para su revisión.
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label
+                class="form-label"
+                for="reportMotivo"
+            >
+                Motivo
+            </label>
+
+            <select
+                id="reportMotivo"
+                class="form-select"
+            >
+
+                <option value="">
+                    Seleccioná un motivo
+                </option>
+
+                <option value="Contenido inapropiado">
+                    Contenido inapropiado
+                </option>
+
+                <option value="Acoso o amenazas">
+                    Acoso o amenazas
+                </option>
+
+                <option value="Spam">
+                    Spam
+                </option>
+
+                <option value="Estafa o fraude">
+                    Estafa o fraude
+                </option>
+
+                <option value="Contenido falso">
+                    Contenido falso
+                </option>
+
+                <option value="Otro">
+                    Otro
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label
+                class="form-label"
+                for="reportDescripcion"
+            >
+                Descripción
+            </label>
+
+            <textarea
+                id="reportDescripcion"
+                class="form-textarea"
+                placeholder="Explicá brevemente el motivo del reporte..."
+                maxlength="1000"
+            ></textarea>
+
+        </div>
+
+
+        <div
+            id="reportSuccess"
+            class="report-success"
+        >
+            Reporte enviado correctamente.
+        </div>
+
+
+        <div
+            id="reportError"
+            class="report-error"
+        ></div>
+
+
+        <div class="modal-actions">
+
+            <button
+                id="btnCancelarReporte"
+                class="modal-btn btn-cancel"
+                type="button"
+            >
+                Cancelar
+            </button>
+
+
+            <button
+                id="btnEnviarReporte"
+                class="modal-btn btn-send-report"
+                type="button"
+            >
+                Enviar reporte
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
 <script type="module">
 
 
@@ -785,6 +1055,30 @@ const btnConexion =
 
 const btnEditar =
     document.getElementById("btnEditar");
+
+const btnReportar =
+    document.getElementById("btnReportar");
+
+const reportModal =
+    document.getElementById("reportModal");
+
+const reportMotivo =
+    document.getElementById("reportMotivo");
+
+const reportDescripcion =
+    document.getElementById("reportDescripcion");
+
+const btnCancelarReporte =
+    document.getElementById("btnCancelarReporte");
+
+const btnEnviarReporte =
+    document.getElementById("btnEnviarReporte");
+
+const reportSuccess =
+    document.getElementById("reportSuccess");
+
+const reportError =
+    document.getElementById("reportError");
 
 const cantidadConexiones =
     document.getElementById("cantidadConexiones");
@@ -937,6 +1231,8 @@ async function cargarPerfil(uid){
 
         uidPerfil = uid;
 
+        perfilActual = null;
+
 
         /*
          * EL PERFIL PRINCIPAL ES:
@@ -1040,6 +1336,10 @@ async function cargarPerfil(uid){
                 "hidden"
             );
 
+            btnReportar.classList.remove(
+                "hidden"
+            );
+
         }
 
 
@@ -1138,6 +1438,10 @@ function pintarPerfil(){
             rubroTexto;
 
         rubro.classList.remove(
+            "hidden"
+        );
+
+        filaRubro.classList.remove(
             "hidden"
         );
 
@@ -1625,6 +1929,336 @@ btnConexion.addEventListener(
 
 
 /* =====================================================
+   REPORTAR USUARIO
+===================================================== */
+
+btnReportar.addEventListener(
+    "click",
+    () => {
+
+        if(
+            !usuarioActual ||
+            !uidPerfil ||
+            uidPerfil ===
+            usuarioActual.uid
+        ){
+
+            return;
+
+        }
+
+
+        reportMotivo.value = "";
+
+        reportDescripcion.value = "";
+
+        reportSuccess.style.display =
+            "none";
+
+        reportError.style.display =
+            "none";
+
+        reportError.textContent =
+            "";
+
+        btnEnviarReporte.disabled =
+            false;
+
+        btnEnviarReporte.textContent =
+            "Enviar reporte";
+
+
+        reportModal.classList.remove(
+            "hidden"
+        );
+
+    }
+);
+
+
+
+/* =====================================================
+   CERRAR MODAL
+===================================================== */
+
+btnCancelarReporte.addEventListener(
+    "click",
+    () => {
+
+        reportModal.classList.add(
+            "hidden"
+        );
+
+    }
+);
+
+
+
+reportModal.addEventListener(
+    "click",
+    event => {
+
+        if(
+            event.target ===
+            reportModal
+        ){
+
+            reportModal.classList.add(
+                "hidden"
+            );
+
+        }
+
+    }
+);
+
+
+
+/* =====================================================
+   ENVIAR REPORTE
+===================================================== */
+
+btnEnviarReporte.addEventListener(
+    "click",
+    async () => {
+
+        if(
+            !usuarioActual ||
+            !uidPerfil ||
+            uidPerfil ===
+            usuarioActual.uid
+        ){
+
+            return;
+
+        }
+
+
+        const motivo =
+            reportMotivo.value.trim();
+
+        const descripcion =
+            reportDescripcion.value.trim();
+
+
+        if(!motivo){
+
+            reportError.textContent =
+                "Seleccioná un motivo para el reporte.";
+
+            reportError.style.display =
+                "block";
+
+            return;
+
+        }
+
+
+        if(!descripcion){
+
+            reportError.textContent =
+                "Escribí una descripción del problema.";
+
+            reportError.style.display =
+                "block";
+
+            return;
+
+        }
+
+
+        btnEnviarReporte.disabled =
+            true;
+
+        btnEnviarReporte.textContent =
+            "Enviando...";
+
+        reportError.style.display =
+            "none";
+
+
+        try{
+
+            const nombreReportado =
+                perfilActual.nombreCompleto ||
+                (
+                    (perfilActual.nombre || "") +
+                    " " +
+                    (perfilActual.apellido || "")
+                ).trim() ||
+                "Usuario GESBASE";
+
+
+            const nombreReportante =
+                usuarioActual.displayName ||
+                usuarioActual.email ||
+                "Usuario GESBASE";
+
+
+            /*
+             * GUARDAR REPORTE
+             */
+
+            const reporteRef =
+                await addDoc(
+                    collection(
+                        db,
+                        "reportes"
+                    ),
+                    {
+
+                        tipo:
+                            "usuario",
+
+                        reportadoUid:
+                            uidPerfil,
+
+                        reportadoNombre:
+                            nombreReportado,
+
+                        publicacionId:
+                            null,
+
+                        reportanteUid:
+                            usuarioActual.uid,
+
+                        reportanteNombre:
+                            nombreReportante,
+
+                        motivo:
+                            motivo,
+
+                        descripcion:
+                            descripcion,
+
+                        estado:
+                            "pendiente",
+
+                        fecha:
+                            serverTimestamp(),
+
+                        fechaCliente:
+                            Date.now()
+
+                    }
+                );
+
+
+            /*
+             * NOTIFICACIÓN PARA QUIEN REALIZÓ
+             * EL REPORTE.
+             *
+             * No notificamos al usuario reportado
+             * para proteger la identidad del
+             * reportante.
+             */
+
+            try{
+
+                await addDoc(
+                    collection(
+                        db,
+                        "notificaciones"
+                    ),
+                    {
+
+                        receptorUid:
+                            usuarioActual.uid,
+
+                        emisorUid:
+                            usuarioActual.uid,
+
+                        tipo:
+                            "reporte_creado",
+
+                        titulo:
+                            "Reporte enviado",
+
+                        mensaje:
+                            "Tu reporte fue recibido por el equipo de seguridad de GESBASE.",
+
+                        leida:
+                            false,
+
+                        referenciaId:
+                            reporteRef.id,
+
+                        url:
+                            "red-notificaciones.html",
+
+                        fecha:
+                            serverTimestamp(),
+
+                        fechaCliente:
+                            Date.now()
+
+                    }
+                );
+
+            }catch(error){
+
+                console.warn(
+                    "No se pudo crear la notificación del reporte:",
+                    error
+                );
+
+            }
+
+
+            reportSuccess.textContent =
+                "Reporte enviado correctamente. El equipo de seguridad de GESBASE lo revisará.";
+
+            reportSuccess.style.display =
+                "block";
+
+            btnEnviarReporte.disabled =
+                true;
+
+            btnEnviarReporte.textContent =
+                "Reporte enviado";
+
+
+            setTimeout(
+                () => {
+
+                    reportModal.classList.add(
+                        "hidden"
+                    );
+
+                },
+                1800
+            );
+
+
+        }catch(error){
+
+            console.error(
+                "Error enviando reporte:",
+                error
+            );
+
+
+            reportError.textContent =
+                "No se pudo enviar el reporte. Intentá nuevamente.";
+
+            reportError.style.display =
+                "block";
+
+
+            btnEnviarReporte.disabled =
+                false;
+
+            btnEnviarReporte.textContent =
+                "Enviar reporte";
+
+        }
+
+    }
+);
+
+
+
+/* =====================================================
    CAMBIAR FOTO
 ===================================================== */
 
@@ -1816,14 +2450,10 @@ document
                     auth
                 );
 
-                /*
-                 * La salida de la RED debe llevar
-                 * al inicio de sesión exclusivo
-                 * de la Red GESBASE.
-                 */
 
                 window.location.href =
                     "red-login.html";
+
 
             }catch(error){
 
@@ -1862,11 +2492,6 @@ onAuthStateChanged(
     async usuario => {
 
         if(!usuario){
-
-            /*
-             * Si no hay sesión,
-             * volvemos al login de la Red.
-             */
 
             window.location.href =
                 "red-login.html";
