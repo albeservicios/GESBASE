@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reportes | GESBASE</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#f4f6f8}
+header{background:#12343B;color:#fff;padding:15px;font-size:20px;font-weight:bold}
+.lista{padding:15px}
+.card{
+background:#fff;
+border-radius:12px;
+padding:14px;
+margin-bottom:12px;
+box-shadow:0 2px 8px rgba(0,0,0,.08)
+}
+.estado{
+display:inline-block;
+padding:4px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:bold;
+background:#ffe8a3;
+color:#8a5a00
+}
+small{color:#666}
+button{
+margin-top:10px;
+width:100%;
+padding:10px;
+border:none;
+border-radius:8px;
+background:#12343B;
+color:#fff;
+font-weight:bold
+}
+</style>
+</head>
+
+<body>
+
+<header>⚠ Reportes recibidos</header>
+
+<div class="lista" id="lista"></div>
+
+<script type="module">
+import {db} from "./Js/firebase.js";
+import {
+collection,
+query,
+orderBy,
+onSnapshot,
+doc,
+updateDoc
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+const contenedor=document.getElementById("lista");
+
+const q=query(
+collection(db,"reportes"),
+orderBy("fecha","desc")
+);
+
+onSnapshot(q,(snap)=>{
+contenedor.innerHTML="";
+
+if(snap.empty){
+contenedor.innerHTML="<p>No hay reportes.</p>";
+return;
+}
+
+snap.forEach((d)=>{
+const r=d.data();
+
+const card=document.createElement("div");
+card.className="card";
+
+card.innerHTML=`
+<div class="estado">${r.estado||"pendiente"}</div>
+<h3>${r.motivo}</h3>
+<p>${r.descripcion}</p>
+<small>Reportó: ${r.reportanteNombre}</small><br>
+<small>Contra: ${r.reportadoNombre}</small>
+<button>Marcar como revisado</button>
+`;
+
+card.querySelector("button").onclick=async()=>{
+await updateDoc(doc(db,"reportes",d.id),{
+estado:"revisado"
+});
+};
+
+contenedor.appendChild(card);
+});
+});
+</script>
+
+</body>
+</html>
