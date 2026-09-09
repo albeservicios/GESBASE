@@ -18,10 +18,7 @@
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
-<meta
-    name="apple-mobile-web-app-status-bar-style"
-    content="default"
->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 
 <meta name="apple-mobile-web-app-title" content="Red GESBASE">
 
@@ -67,9 +64,7 @@ Red GESBASE | Red profesional de personas, trabajadores y empresas
 >
 
 <meta property="og:locale" content="es_AR">
-
 <meta property="og:site_name" content="GESBASE">
-
 <meta property="og:type" content="website">
 
 <meta
@@ -159,10 +154,6 @@ button{
     cursor:pointer;
 }
 
-/* =========================================================
-   BARRA SUPERIOR
-========================================================= */
-
 .topbar{
     position:sticky;
     top:0;
@@ -244,20 +235,12 @@ button{
     border:2px solid #12343B;
 }
 
-/* =========================================================
-   CONTENEDOR
-========================================================= */
-
 .page{
     width:100%;
     max-width:1100px;
     margin:auto;
     padding:14px 10px 25px;
 }
-
-/* =========================================================
-   PERFIL
-========================================================= */
 
 .profile-mini{
     background:#fff;
@@ -318,10 +301,6 @@ button{
     font-weight:800;
 }
 
-/* =========================================================
-   CREAR PUBLICACIÓN
-========================================================= */
-
 .create-post{
     background:#fff;
     border-radius:14px;
@@ -370,10 +349,6 @@ button{
 .create-option:hover{
     background:#f0f2f5;
 }
-
-/* =========================================================
-   MODALES
-========================================================= */
 
 .modal-overlay{
     position:fixed;
@@ -468,10 +443,6 @@ button{
     color:#1c1e21;
 }
 
-/* =========================================================
-   FEED
-========================================================= */
-
 .feed-title{
     font-size:18px;
     font-weight:900;
@@ -482,10 +453,6 @@ button{
     display:grid;
     gap:12px;
 }
-
-/* =========================================================
-   PUBLICACIÓN
-========================================================= */
 
 .post{
     background:#fff;
@@ -593,10 +560,6 @@ button{
     color:#b91c1c;
 }
 
-/* =========================================================
-   CONTENIDO
-========================================================= */
-
 .post-content{
     padding:5px 14px 12px;
 }
@@ -607,10 +570,6 @@ button{
     line-height:1.5;
     font-size:15px;
 }
-
-/* =========================================================
-   ESTADÍSTICAS
-========================================================= */
 
 .post-stats{
     display:flex;
@@ -644,10 +603,6 @@ button{
 .post-action.liked{
     color:#e11d48;
 }
-
-/* =========================================================
-   COMENTARIOS
-========================================================= */
 
 .comments{
     display:none;
@@ -729,10 +684,6 @@ button{
     font-size:15px;
 }
 
-/* =========================================================
-   ESTADOS
-========================================================= */
-
 .state{
     background:#fff;
     border-radius:14px;
@@ -758,10 +709,6 @@ button{
     line-height:1.5;
 }
 
-/* =========================================================
-   TOAST
-========================================================= */
-
 .toast{
     position:fixed;
     left:50%;
@@ -786,10 +733,6 @@ button{
     opacity:1;
     transform:translateX(-50%) translateY(0);
 }
-
-/* =========================================================
-   NAVEGACIÓN
-========================================================= */
 
 .bottom-nav{
     position:fixed;
@@ -832,10 +775,6 @@ button{
     color:#12343B;
     background:#eef3f4;
 }
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
 
 @media(min-width:800px){
 
@@ -929,11 +868,6 @@ Red profesional
 </div>
 
 <div class="top-actions">
-
-<!-- =====================================================
-     SEGURIDAD
-     SOLO ADMINISTRADOR
-===================================================== -->
 
 <button
     type="button"
@@ -1163,10 +1097,6 @@ Perfil
 
 </nav>
 
-<!-- =====================================================
-     MODAL CREAR PUBLICACIÓN
-===================================================== -->
-
 <div
     id="postModal"
     class="modal-overlay"
@@ -1224,10 +1154,6 @@ Publicar
 </div>
 
 </div>
-
-<!-- =====================================================
-     MODAL REPORTAR
-===================================================== -->
 
 <div
     id="reportModal"
@@ -1547,20 +1473,9 @@ onAuthStateChanged(
         usuarioActual =
             usuario;
 
-        /*
-        Primero comprobamos el email.
-        Así el administrador puede ver
-        Seguridad aunque Firestore tarde.
-        */
-
         actualizarAccesoSeguridad();
 
         await cargarPerfil();
-
-        /*
-        Segunda comprobación después
-        de cargar los datos del usuario.
-        */
 
         actualizarAccesoSeguridad();
 
@@ -1582,7 +1497,8 @@ async function cargarPerfil(){
     try{
 
         /*
-        Primero buscamos en usuariosRed.
+        Primero buscamos en usuariosRed,
+        que es la fuente principal de la Red.
         */
 
         let resultado =
@@ -1595,7 +1511,7 @@ async function cargarPerfil(){
             );
 
         /*
-        Si no existe allí, buscamos en usuarios.
+        Si no existe, buscamos en usuarios.
         */
 
         if(!resultado.exists()){
@@ -1633,23 +1549,31 @@ async function cargarPerfil(){
         profileType.textContent =
             perfilActual.tipoPerfil ||
             perfilActual.tipo ||
+            perfilActual.tipoUsuario ||
+            perfilActual.rubro ||
             "Usuario de Red GESBASE";
 
-        colocarAvatar(
-            profileAvatar,
+        /*
+        Conservamos la carga actual de foto.
+        */
+
+        const foto =
             perfilActual.fotoPerfil ||
             perfilActual.fotoURL ||
             perfilActual.avatar ||
-            "",
+            perfilActual.foto ||
+            perfilActual.photoURL ||
+            "";
+
+        colocarAvatar(
+            profileAvatar,
+            foto,
             nombre
         );
 
         colocarAvatar(
             createAvatar,
-            perfilActual.fotoPerfil ||
-            perfilActual.fotoURL ||
-            perfilActual.avatar ||
-            "",
+            foto,
             nombre
         );
 
@@ -1660,19 +1584,12 @@ async function cargarPerfil(){
             error
         );
 
-        /*
-        El administrador mantiene el acceso
-        por su correo aunque falle Firestore.
-        */
-
         perfilActual = {};
 
         actualizarAccesoSeguridad();
 
         const nombre =
-            usuarioActual.displayName ||
-            usuarioActual.email ||
-            "Usuario GESBASE";
+            obtenerNombre();
 
         profileName.textContent =
             nombre;
@@ -1697,62 +1614,140 @@ async function cargarPerfil(){
 }
 
 /* =========================================================
-   OBTENER NOMBRE
+   OBTENER NOMBRE REAL DEL USUARIO
 ========================================================= */
 
 function obtenerNombre(){
 
-    if(
-        perfilActual &&
-        perfilActual.nombreCompleto
-    ){
+    /*
+    1. Nombre completo guardado directamente.
+    */
 
-        return perfilActual.nombreCompleto;
+    const nombreCompleto =
+        String(
+            perfilActual?.nombreCompleto || ""
+        ).trim();
 
-    }
+    if(nombreCompleto){
 
-    if(
-        perfilActual &&
-        perfilActual.nombre
-    ){
-
-        const nombre =
-            perfilActual.nombre || "";
-
-        const apellido =
-            perfilActual.apellido || "";
-
-        const completo =
-            (
-                nombre +
-                " " +
-                apellido
-            ).trim();
-
-        if(completo){
-
-            return completo;
-
-        }
+        return nombreCompleto;
 
     }
 
-    if(
-        usuarioActual &&
-        usuarioActual.displayName
-    ){
+    /*
+    2. nombre + apellido
+    */
 
-        return usuarioActual.displayName;
+    const nombre =
+        String(
+            perfilActual?.nombre || ""
+        ).trim();
+
+    const apellido =
+        String(
+            perfilActual?.apellido || ""
+        ).trim();
+
+    if(nombre || apellido){
+
+        return (
+            nombre +
+            " " +
+            apellido
+        ).trim();
 
     }
 
-    if(
-        usuarioActual &&
-        usuarioActual.email
-    ){
+    /*
+    3. nombre + apellidos
+    */
 
-        return usuarioActual.email
-            .split("@")[0];
+    const apellidos =
+        String(
+            perfilActual?.apellidos || ""
+        ).trim();
+
+    if(nombre || apellidos){
+
+        return (
+            nombre +
+            " " +
+            apellidos
+        ).trim();
+
+    }
+
+    /*
+    4. Otros campos habituales utilizados
+    para el nombre real.
+    */
+
+    const nombreUsuario =
+        String(
+            perfilActual?.nombreUsuario || ""
+        ).trim();
+
+    if(nombreUsuario){
+
+        return nombreUsuario;
+
+    }
+
+    const titular =
+        String(
+            perfilActual?.titular || ""
+        ).trim();
+
+    if(titular){
+
+        return titular;
+
+    }
+
+    const razonSocial =
+        String(
+            perfilActual?.razonSocial || ""
+        ).trim();
+
+    /*
+    Para perfiles empresariales,
+    si no existe nombre personal,
+    mostramos razón social.
+    */
+
+    if(razonSocial){
+
+        return razonSocial;
+
+    }
+
+    /*
+    5. Firebase Authentication.
+    */
+
+    const displayName =
+        String(
+            usuarioActual?.displayName || ""
+        ).trim();
+
+    if(displayName){
+
+        return displayName;
+
+    }
+
+    /*
+    6. Último recurso.
+    */
+
+    const email =
+        String(
+            usuarioActual?.email || ""
+        ).trim();
+
+    if(email){
+
+        return email.split("@")[0];
 
     }
 
@@ -1783,8 +1778,13 @@ function colocarAvatar(
         img.alt =
             nombre;
 
+        img.loading =
+            "lazy";
+
         img.onerror =
             () => {
+
+                elemento.innerHTML = "";
 
                 elemento.textContent =
                     obtenerInicial(nombre);
@@ -2233,11 +2233,6 @@ function crearPublicacion(
         );
 
     }else{
-
-        /*
-        REPORTAR ESTÁ DISPONIBLE
-        PARA TODOS LOS USUARIOS.
-        */
 
         const reportar =
             document.createElement("button");
@@ -2900,11 +2895,6 @@ async function enviarReporte(){
                 }
             );
 
-        /*
-        Confirmación para quien realizó
-        el reporte.
-        */
-
         await addDoc(
             collection(
                 db,
@@ -3359,6 +3349,7 @@ async function publicar(){
                 fotoAutor:
                     perfilActual.fotoPerfil ||
                     perfilActual.fotoURL ||
+                    perfilActual.avatar ||
                     "",
 
                 texto:
