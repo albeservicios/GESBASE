@@ -1,496 +1,632 @@
 <!DOCTYPE html>
 <html lang="es-AR">
+
 <head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    >
-
-    <meta name="theme-color" content="#12343B">
-
-    <meta
-        name="description"
-        content="Mis empleos - Red GESBASE"
-    >
-
-    <title>Mis empleos - Red GESBASE</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html,
-        body {
-            width: 100%;
-            min-height: 100%;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f3f5f7;
-            color: #1f2937;
-        }
-
-        body {
-            padding-bottom: 82px;
-        }
-
-        button,
-        input,
-        textarea,
-        select {
-            font: inherit;
-        }
-
-        button {
-            cursor: pointer;
-        }
-
-        .topbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: #12343B;
-            color: white;
-            padding:
-                calc(12px + env(safe-area-inset-top))
-                16px
-                12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,.15);
-        }
-
-        .topbar-inner {
-            width: 100%;
-            max-width: 1100px;
-            margin: auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .brand {
-            font-size: 20px;
-            font-weight: 800;
-        }
-
-        .brand span {
-            display: block;
-            font-size: 12px;
-            font-weight: 500;
-            opacity: .8;
-            margin-top: 2px;
-        }
-
-        .back-btn {
-            border: 0;
-            background: rgba(255,255,255,.12);
-            color: white;
-            border-radius: 10px;
-            padding: 9px 12px;
-            font-weight: 700;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1100px;
-            margin: auto;
-            padding: 18px 14px 30px;
-        }
-
-        .hero {
-            background: white;
-            border-radius: 18px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 10px rgba(0,0,0,.07);
-        }
-
-        .hero h1 {
-            font-size: 24px;
-            margin-bottom: 7px;
-        }
-
-        .hero p {
-            color: #64748b;
-            line-height: 1.5;
-        }
-
-        .actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 16px;
-        }
-
-        .btn {
-            border: 0;
-            border-radius: 11px;
-            padding: 11px 15px;
-            font-weight: 700;
-            transition: .2s;
-        }
-
-        .btn:active {
-            transform: scale(.98);
-        }
-
-        .btn-primary {
-            background: #12343B;
-            color: white;
-        }
-
-        .btn-secondary {
-            background: #e8eef0;
-            color: #12343B;
-        }
-
-        .btn-danger {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
-        .btn-success {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .stat {
-            background: white;
-            border-radius: 15px;
-            padding: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.06);
-            text-align: center;
-        }
-
-        .stat-number {
-            display: block;
-            font-size: 24px;
-            font-weight: 800;
-            color: #12343B;
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #64748b;
-        }
-
-        .message {
-            background: white;
-            border-radius: 15px;
-            padding: 22px;
-            text-align: center;
-            color: #64748b;
-            box-shadow: 0 2px 8px rgba(0,0,0,.06);
-        }
-
-        .message.error {
-            color: #b91c1c;
-            background: #fff1f2;
-        }
-
-        .loading {
-            padding: 20px;
-            text-align: center;
-            color: #64748b;
-        }
-
-        .jobs {
-            display: grid;
-            gap: 15px;
-        }
-
-        .job-card {
-            background: white;
-            border-radius: 18px;
-            padding: 18px;
-            box-shadow: 0 2px 10px rgba(0,0,0,.07);
-            border: 1px solid #e5e7eb;
-        }
-
-        .job-card.inactive {
-            opacity: .72;
-        }
-
-        .job-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .job-title {
-            font-size: 20px;
-            font-weight: 800;
-            color: #111827;
-            line-height: 1.25;
-        }
-
-        .job-company {
-            color: #475569;
-            margin-top: 5px;
-            font-weight: 600;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            border-radius: 999px;
-            padding: 6px 10px;
-            font-size: 11px;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        .badge-featured {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge-active {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .badge-inactive {
-            background: #e5e7eb;
-            color: #475569;
-        }
-
-        .job-info {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 14px 0;
-        }
-
-        .info-item {
-            background: #f1f5f9;
-            border-radius: 9px;
-            padding: 7px 10px;
-            font-size: 13px;
-            color: #475569;
-        }
-
-        .description {
-            color: #475569;
-            line-height: 1.55;
-            white-space: pre-wrap;
-            margin-bottom: 14px;
-        }
-
-        .job-date {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-bottom: 15px;
-        }
-
-        .job-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            border-top: 1px solid #e5e7eb;
-            padding-top: 15px;
-        }
-
-        .job-actions .btn {
-            flex: 1;
-            min-width: 130px;
-        }
-
-        .applicants {
-            margin-top: 15px;
-            border-top: 1px solid #e5e7eb;
-            padding-top: 15px;
-        }
-
-        .applicants h3 {
-            font-size: 16px;
-            margin-bottom: 12px;
-        }
-
-        .applicant-list {
-            display: grid;
-            gap: 10px;
-        }
-
-        .applicant {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 13px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .applicant-name {
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
-
-        .applicant-data {
-            font-size: 13px;
-            color: #475569;
-            line-height: 1.5;
-        }
-
-        .applicant-message {
-            margin-top: 8px;
-            background: white;
-            border-radius: 8px;
-            padding: 9px;
-            color: #475569;
-            white-space: pre-wrap;
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 500;
-            background: rgba(15,23,42,.65);
-            padding: 15px;
-            overflow-y: auto;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal {
-            width: 100%;
-            max-width: 650px;
-            background: white;
-            border-radius: 18px;
-            padding: 20px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .modal-header h2 {
-            font-size: 20px;
-        }
-
-        .close-btn {
-            border: 0;
-            background: #f1f5f9;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            font-size: 20px;
-        }
-
-        .empty-applicants {
-            color: #64748b;
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 200;
-            background: white;
-            border-top: 1px solid #e5e7eb;
-            box-shadow: 0 -3px 12px rgba(0,0,0,.08);
-            padding:
-                7px
-                6px
-                calc(7px + env(safe-area-inset-bottom));
-        }
-
-        .bottom-nav-inner {
-            max-width: 700px;
-            margin: auto;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-        }
-
-        .nav-item {
-            text-decoration: none;
-            color: #64748b;
-            text-align: center;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 6px 2px;
-            border-radius: 10px;
-        }
-
-        .nav-item .icon {
-            display: block;
-            font-size: 21px;
-            margin-bottom: 2px;
-        }
-
-        .nav-item.active {
-            color: #12343B;
-            background: #eef3f4;
-        }
-
-        @media (min-width: 700px) {
-            .container {
-                padding: 24px 20px 35px;
-            }
-
-            .jobs {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .hero h1 {
-                font-size: 28px;
-            }
-        }
-
-        @media (max-width: 520px) {
-            .stats {
-                grid-template-columns: 1fr;
-            }
-
-            .job-header {
-                flex-direction: column;
-            }
-
-            .job-actions {
-                flex-direction: column;
-            }
-
-            .job-actions .btn {
-                width: 100%;
-            }
-        }
-    </style>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<meta
+    name="theme-color"
+    content="#12343B"
+>
+
+<meta
+    name="description"
+    content="Mis empleos - Red Laboral GESBASE"
+>
+
+<title>Mis empleos - Red Laboral GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html,
+body{
+    width:100%;
+    min-height:100%;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f3f5f7;
+    color:#1f2937;
+}
+
+body{
+    padding-bottom:82px;
+}
+
+button,
+input,
+select,
+textarea{
+    font:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+.topbar{
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:#12343B;
+    color:white;
+    padding:
+        calc(12px + env(safe-area-inset-top))
+        16px
+        12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+}
+
+.topbar-inner{
+    width:100%;
+    max-width:1100px;
+    margin:auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+}
+
+.brand{
+    font-size:20px;
+    font-weight:800;
+}
+
+.brand span{
+    display:block;
+    font-size:12px;
+    font-weight:500;
+    opacity:.8;
+    margin-top:2px;
+}
+
+.back-btn{
+    border:0;
+    background:rgba(255,255,255,.12);
+    color:white;
+    border-radius:10px;
+    padding:9px 12px;
+    font-weight:700;
+}
+
+.container{
+    width:100%;
+    max-width:1100px;
+    margin:auto;
+    padding:18px 14px 30px;
+}
+
+.hero{
+    background:white;
+    border-radius:18px;
+    padding:20px;
+    margin-bottom:16px;
+    box-shadow:0 2px 10px rgba(0,0,0,.07);
+}
+
+.hero h1{
+    font-size:24px;
+    margin-bottom:7px;
+}
+
+.hero p{
+    color:#64748b;
+    line-height:1.5;
+}
+
+.actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:16px;
+}
+
+.btn{
+    border:0;
+    border-radius:11px;
+    padding:11px 15px;
+    font-weight:700;
+    transition:.2s;
+}
+
+.btn:active{
+    transform:scale(.98);
+}
+
+.btn-primary{
+    background:#12343B;
+    color:white;
+}
+
+.btn-secondary{
+    background:#e8eef0;
+    color:#12343B;
+}
+
+.btn-danger{
+    background:#fee2e2;
+    color:#b91c1c;
+}
+
+.btn-success{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.btn-warning{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.btn-dark{
+    background:#1f2937;
+    color:white;
+}
+
+.btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin-bottom:16px;
+}
+
+.stat{
+    background:white;
+    border-radius:15px;
+    padding:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+    text-align:center;
+}
+
+.stat-number{
+    display:block;
+    font-size:24px;
+    font-weight:800;
+    color:#12343B;
+    margin-bottom:4px;
+}
+
+.stat-label{
+    font-size:12px;
+    color:#64748b;
+}
+
+.toolbar{
+    background:white;
+    border-radius:15px;
+    padding:14px;
+    margin-bottom:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+
+.toolbar-grid{
+    display:grid;
+    grid-template-columns:1fr 220px;
+    gap:10px;
+}
+
+.toolbar input,
+.toolbar select{
+    width:100%;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    padding:11px 12px;
+    background:white;
+    outline:none;
+}
+
+.toolbar input:focus,
+.toolbar select:focus{
+    border-color:#12343B;
+    box-shadow:0 0 0 3px rgba(18,52,59,.10);
+}
+
+.message{
+    background:white;
+    border-radius:15px;
+    padding:22px;
+    text-align:center;
+    color:#64748b;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+    margin-bottom:15px;
+}
+
+.message.error{
+    color:#b91c1c;
+    background:#fff1f2;
+}
+
+.jobs{
+    display:grid;
+    gap:15px;
+}
+
+.job-card{
+    background:white;
+    border-radius:18px;
+    padding:18px;
+    box-shadow:0 2px 10px rgba(0,0,0,.07);
+    border:1px solid #e5e7eb;
+}
+
+.job-card.inactive{
+    opacity:.76;
+}
+
+.job-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+}
+
+.job-title{
+    font-size:20px;
+    font-weight:800;
+    color:#111827;
+    line-height:1.25;
+}
+
+.job-company{
+    color:#475569;
+    margin-top:5px;
+    font-weight:600;
+}
+
+.badges{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    gap:6px;
+}
+
+.badge{
+    display:inline-flex;
+    align-items:center;
+    border-radius:999px;
+    padding:6px 10px;
+    font-size:11px;
+    font-weight:800;
+    white-space:nowrap;
+}
+
+.badge-featured{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.badge-active{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.badge-inactive{
+    background:#e5e7eb;
+    color:#475569;
+}
+
+.badge-pending{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.job-info{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:14px 0;
+}
+
+.info-item{
+    background:#f1f5f9;
+    border-radius:9px;
+    padding:7px 10px;
+    font-size:13px;
+    color:#475569;
+}
+
+.description{
+    color:#475569;
+    line-height:1.55;
+    white-space:pre-wrap;
+    margin-bottom:14px;
+}
+
+.job-date{
+    font-size:12px;
+    color:#94a3b8;
+    margin-bottom:15px;
+}
+
+.job-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    border-top:1px solid #e5e7eb;
+    padding-top:15px;
+}
+
+.job-actions .btn{
+    flex:1;
+    min-width:130px;
+}
+
+.application-summary{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:15px;
+}
+
+.application-count{
+    background:#eef3f4;
+    color:#12343B;
+    border-radius:10px;
+    padding:8px 11px;
+    font-size:13px;
+    font-weight:800;
+}
+
+.modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:500;
+    background:rgba(15,23,42,.68);
+    padding:15px;
+    overflow-y:auto;
+}
+
+.modal-overlay.show{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.modal{
+    width:100%;
+    max-width:720px;
+    background:white;
+    border-radius:18px;
+    padding:20px;
+    max-height:90vh;
+    overflow-y:auto;
+}
+
+.modal-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:16px;
+}
+
+.modal-header h2{
+    font-size:20px;
+}
+
+.close-btn{
+    border:0;
+    background:#f1f5f9;
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    font-size:20px;
+}
+
+.applicant-list{
+    display:grid;
+    gap:12px;
+}
+
+.applicant{
+    background:#f8fafc;
+    border-radius:14px;
+    padding:15px;
+    border:1px solid #e2e8f0;
+}
+
+.applicant-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.applicant-name{
+    font-weight:800;
+    font-size:16px;
+    margin-bottom:5px;
+}
+
+.applicant-data{
+    font-size:13px;
+    color:#475569;
+    line-height:1.55;
+}
+
+.applicant-message{
+    margin-top:10px;
+    background:white;
+    border-radius:9px;
+    padding:10px;
+    color:#475569;
+    white-space:pre-wrap;
+}
+
+.applicant-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-top:12px;
+}
+
+.applicant-actions .btn{
+    flex:1;
+    min-width:110px;
+}
+
+.empty{
+    color:#64748b;
+    background:#f8fafc;
+    padding:18px;
+    border-radius:11px;
+    text-align:center;
+}
+
+.status-select{
+    width:100%;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    padding:9px;
+    background:white;
+    margin-top:10px;
+}
+
+.bottom-nav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    z-index:200;
+    background:white;
+    border-top:1px solid #e5e7eb;
+    box-shadow:0 -3px 12px rgba(0,0,0,.08);
+    padding:
+        7px
+        6px
+        calc(7px + env(safe-area-inset-bottom));
+}
+
+.bottom-nav-inner{
+    max-width:700px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+}
+
+.nav-item{
+    text-decoration:none;
+    color:#64748b;
+    text-align:center;
+    font-size:11px;
+    font-weight:700;
+    padding:6px 2px;
+    border-radius:10px;
+}
+
+.nav-item .icon{
+    display:block;
+    font-size:21px;
+    margin-bottom:2px;
+}
+
+.nav-item.active{
+    color:#12343B;
+    background:#eef3f4;
+}
+
+.toast{
+    position:fixed;
+    left:50%;
+    bottom:95px;
+    transform:translateX(-50%) translateY(20px);
+    z-index:1000;
+    background:#12343B;
+    color:white;
+    padding:12px 17px;
+    border-radius:12px;
+    box-shadow:0 4px 18px rgba(0,0,0,.2);
+    opacity:0;
+    pointer-events:none;
+    transition:.25s;
+    max-width:90%;
+    text-align:center;
+    font-size:14px;
+}
+
+.toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+}
+
+@media(max-width:760px){
+
+    .stats{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .toolbar-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+@media(max-width:520px){
+
+    .stats{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .job-header{
+        flex-direction:column;
+    }
+
+    .badges{
+        justify-content:flex-start;
+    }
+
+    .job-actions{
+        flex-direction:column;
+    }
+
+    .job-actions .btn{
+        width:100%;
+    }
+
+    .applicant-header{
+        flex-direction:column;
+    }
+
+    .applicant-actions{
+        flex-direction:column;
+    }
+
+    .applicant-actions .btn{
+        width:100%;
+    }
+
+}
+
+</style>
+
 </head>
+
 
 <body>
 
 <header class="topbar">
+
     <div class="topbar-inner">
 
         <div class="brand">
             GESBASE
-            <span>Red Empleo</span>
+            <span>Red Laboral</span>
         </div>
 
         <button
@@ -502,6 +638,7 @@
         </button>
 
     </div>
+
 </header>
 
 
@@ -512,8 +649,8 @@
         <h1>💼 Mis empleos</h1>
 
         <p>
-            Administrá tus publicaciones de empleo y revisá las postulaciones
-            recibidas.
+            Administrá tus publicaciones, controlá su estado y gestioná
+            las postulaciones recibidas.
         </p>
 
         <div class="actions">
@@ -542,6 +679,7 @@
     <section class="stats">
 
         <div class="stat">
+
             <span
                 class="stat-number"
                 id="totalEmpleos"
@@ -552,10 +690,12 @@
             <span class="stat-label">
                 Publicaciones
             </span>
+
         </div>
 
 
         <div class="stat">
+
             <span
                 class="stat-number"
                 id="empleosActivos"
@@ -566,10 +706,12 @@
             <span class="stat-label">
                 Activos
             </span>
+
         </div>
 
 
         <div class="stat">
+
             <span
                 class="stat-number"
                 id="totalPostulaciones"
@@ -580,12 +722,63 @@
             <span class="stat-label">
                 Postulaciones
             </span>
+
+        </div>
+
+
+        <div class="stat">
+
+            <span
+                class="stat-number"
+                id="postulacionesPendientes"
+            >
+                0
+            </span>
+
+            <span class="stat-label">
+                Pendientes
+            </span>
+
         </div>
 
     </section>
 
 
-    <div id="estado" class="loading">
+    <section class="toolbar">
+
+        <div class="toolbar-grid">
+
+            <input
+                type="search"
+                id="buscar"
+                placeholder="🔎 Buscar entre mis empleos..."
+            >
+
+            <select id="filtroEstado">
+
+                <option value="todos">
+                    Todos los estados
+                </option>
+
+                <option value="activo">
+                    🟢 Activos
+                </option>
+
+                <option value="inactivo">
+                    ⚪ Inactivos
+                </option>
+
+            </select>
+
+        </div>
+
+    </section>
+
+
+    <div
+        id="estado"
+        class="message"
+    >
         Cargando tus empleos...
     </div>
 
@@ -647,6 +840,8 @@
 </nav>
 
 
+<!-- MODAL POSTULACIONES -->
+
 <div
     id="modalPostulaciones"
     class="modal-overlay"
@@ -679,1213 +874,2185 @@
 </div>
 
 
+<div
+    id="toast"
+    class="toast"
+></div>
+
+
 <script type="module">
 
-    import {
-        auth,
-        db
-    } from "./Js/firebase.js";
-
-    import {
-        onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-
-    import {
-        collection,
-        query,
-        where,
-        onSnapshot,
-        getDocs,
-        doc,
-        updateDoc,
-        deleteDoc
-    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
 
 
-    const listaEmpleos =
-        document.getElementById("listaEmpleos");
-
-    const estado =
-        document.getElementById("estado");
-
-    const totalEmpleos =
-        document.getElementById("totalEmpleos");
-
-    const empleosActivos =
-        document.getElementById("empleosActivos");
-
-    const totalPostulaciones =
-        document.getElementById("totalPostulaciones");
-
-    const btnPublicar =
-        document.getElementById("btnPublicar");
-
-    const btnActualizar =
-        document.getElementById("btnActualizar");
-
-    const btnVolver =
-        document.getElementById("btnVolver");
-
-    const modal =
-        document.getElementById("modalPostulaciones");
-
-    const modalTitulo =
-        document.getElementById("modalTitulo");
-
-    const modalContenido =
-        document.getElementById("modalContenido");
-
-    const btnCerrarModal =
-        document.getElementById("btnCerrarModal");
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 
-    let usuarioActual = null;
-    let empleosActuales = [];
-    let unsubscribeEmpleos = null;
+import {
+    collection,
+    query,
+    where,
+    onSnapshot,
+    getDocs,
+    doc,
+    getDoc,
+    updateDoc,
+    deleteDoc,
+    addDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-    /*
-     * ---------------------------------------------------------
-     * UTILIDADES
-     * ---------------------------------------------------------
-     */
+/* =========================================================
+   ELEMENTOS
+========================================================= */
 
-    function escaparTexto(valor) {
+const listaEmpleos =
+    document.getElementById("listaEmpleos");
 
-        if (valor === null || valor === undefined) {
-            return "";
-        }
+const estado =
+    document.getElementById("estado");
 
-        return String(valor);
-    }
+const totalEmpleos =
+    document.getElementById("totalEmpleos");
+
+const empleosActivos =
+    document.getElementById("empleosActivos");
+
+const totalPostulaciones =
+    document.getElementById("totalPostulaciones");
+
+const postulacionesPendientes =
+    document.getElementById("postulacionesPendientes");
+
+const buscar =
+    document.getElementById("buscar");
+
+const filtroEstado =
+    document.getElementById("filtroEstado");
+
+const btnPublicar =
+    document.getElementById("btnPublicar");
+
+const btnActualizar =
+    document.getElementById("btnActualizar");
+
+const btnVolver =
+    document.getElementById("btnVolver");
+
+const modal =
+    document.getElementById("modalPostulaciones");
+
+const modalTitulo =
+    document.getElementById("modalTitulo");
+
+const modalContenido =
+    document.getElementById("modalContenido");
+
+const btnCerrarModal =
+    document.getElementById("btnCerrarModal");
+
+const toast =
+    document.getElementById("toast");
 
 
-    function obtenerFecha(valor) {
+/* =========================================================
+   VARIABLES
+========================================================= */
 
-        if (!valor) {
-            return null;
-        }
+let usuarioActual = null;
+let empleosActuales = [];
+let unsubscribeEmpleos = null;
 
-        try {
 
-            if (
-                typeof valor.toDate === "function"
-            ) {
-                return valor.toDate();
-            }
+/* =========================================================
+   TOAST
+========================================================= */
 
-            if (
-                typeof valor === "object"
-                && typeof valor.seconds === "number"
-            ) {
-                return new Date(
-                    valor.seconds * 1000
-                );
-            }
+function mostrarToast(texto){
 
-            if (
-                valor instanceof Date
-            ) {
-                return valor;
-            }
+    toast.textContent =
+        texto;
 
-            if (
-                typeof valor === "number"
-            ) {
-                return new Date(valor);
-            }
+    toast.classList.add("show");
 
-            const fecha =
-                new Date(valor);
+    clearTimeout(
+        mostrarToast.timer
+    );
 
-            if (!isNaN(fecha.getTime())) {
-                return fecha;
-            }
+    mostrarToast.timer =
+        setTimeout(
+            () => {
+                toast.classList.remove("show");
+            },
+            2800
+        );
+}
 
-        } catch (error) {
-            console.warn(
-                "No se pudo convertir la fecha:",
-                error
-            );
-        }
 
+/* =========================================================
+   FECHAS
+========================================================= */
+
+function obtenerFecha(valor){
+
+    if(!valor){
         return null;
     }
 
+    try{
 
-    function obtenerFechaEmpleo(empleo) {
-
-        if (empleo.fechaCliente) {
-            return empleo.fechaCliente;
+        if(
+            typeof valor.toDate ===
+            "function"
+        ){
+            return valor.toDate();
         }
 
-        if (empleo.fecha) {
-            const fecha =
-                obtenerFecha(empleo.fecha);
-
-            if (fecha) {
-                return fecha.getTime();
-            }
+        if(
+            typeof valor === "object" &&
+            typeof valor.seconds === "number"
+        ){
+            return new Date(
+                valor.seconds * 1000
+            );
         }
 
-        return 0;
-    }
+        if(
+            valor instanceof Date
+        ){
+            return valor;
+        }
 
-
-    function formatearFecha(empleo) {
-
-        const timestamp =
-            obtenerFechaEmpleo(empleo);
-
-        if (!timestamp) {
-            return "Fecha no disponible";
+        if(
+            typeof valor === "number"
+        ){
+            return new Date(valor);
         }
 
         const fecha =
-            new Date(timestamp);
+            new Date(valor);
 
-        if (isNaN(fecha.getTime())) {
-            return "Fecha no disponible";
+        if(
+            !isNaN(
+                fecha.getTime()
+            )
+        ){
+            return fecha;
         }
 
-        return fecha.toLocaleDateString(
-            "es-AR",
-            {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric"
-            }
+    }catch(error){
+
+        console.warn(
+            "Error convirtiendo fecha:",
+            error
         );
     }
 
+    return null;
+}
 
-    function obtenerTextoEstado(empleo) {
 
-        return empleo.estado === "activo"
-            ? "Activo"
-            : "Inactivo";
+function obtenerFechaEmpleo(empleo){
+
+    if(
+        empleo.fechaCliente
+    ){
+        return Number(
+            empleo.fechaCliente
+        ) || 0;
     }
 
+    const fecha =
+        obtenerFecha(
+            empleo.fecha
+        );
 
-    function actualizarEstadisticas() {
-
-        const total =
-            empleosActuales.length;
-
-        const activos =
-            empleosActuales.filter(
-                empleo =>
-                    empleo.estado === "activo"
-            ).length;
-
-        totalEmpleos.textContent =
-            total;
-
-        empleosActivos.textContent =
-            activos;
+    if(fecha){
+        return fecha.getTime();
     }
 
+    return 0;
+}
 
-    /*
-     * ---------------------------------------------------------
-     * AUTENTICACIÓN
-     * ---------------------------------------------------------
-     */
 
-    onAuthStateChanged(
-        auth,
-        usuario => {
+function formatearFecha(empleo){
 
-            if (!usuario) {
+    const timestamp =
+        obtenerFechaEmpleo(
+            empleo
+        );
 
-                window.location.href =
-                    "red-login.html";
+    if(!timestamp){
+        return "Fecha no disponible";
+    }
 
-                return;
-            }
+    const fecha =
+        new Date(timestamp);
 
-            usuarioActual = usuario;
+    if(
+        isNaN(
+            fecha.getTime()
+        )
+    ){
+        return "Fecha no disponible";
+    }
 
-            cargarEmpleos();
+    return fecha.toLocaleDateString(
+        "es-AR",
+        {
+            day:"2-digit",
+            month:"2-digit",
+            year:"numeric"
         }
     );
+}
 
 
-    /*
-     * ---------------------------------------------------------
-     * CARGAR EMPLEOS
-     * ---------------------------------------------------------
-     */
+/* =========================================================
+   AUTENTICACIÓN
+========================================================= */
 
-    function cargarEmpleos() {
+onAuthStateChanged(
+    auth,
+    usuario => {
 
-        if (!usuarioActual) {
+        if(!usuario){
+
+            window.location.href =
+                "red-login.html";
+
             return;
         }
 
-        if (unsubscribeEmpleos) {
-            unsubscribeEmpleos();
-        }
+        usuarioActual =
+            usuario;
 
-        estado.className =
-            "loading";
+        cargarEmpleos();
 
-        estado.textContent =
-            "Cargando tus empleos...";
-
-        listaEmpleos.innerHTML = "";
-
-        /*
-         * IMPORTANTE:
-         *
-         * Solamente usamos where("uid", "==", uid).
-         *
-         * No usamos orderBy.
-         * Esto evita necesitar un índice compuesto.
-         */
-
-        const consulta =
-            query(
-                collection(db, "empleos"),
-                where(
-                    "uid",
-                    "==",
-                    usuarioActual.uid
-                )
-            );
+    }
+);
 
 
-        unsubscribeEmpleos =
-            onSnapshot(
-                consulta,
+/* =========================================================
+   CARGAR EMPLEOS
+========================================================= */
 
-                snapshot => {
+function cargarEmpleos(){
 
-                    empleosActuales =
-                        snapshot.docs.map(
-                            documento => ({
-                                id: documento.id,
-                                ...documento.data()
-                            })
-                        );
-
-
-                    empleosActuales.sort(
-                        (a, b) =>
-                            obtenerFechaEmpleo(b)
-                            -
-                            obtenerFechaEmpleo(a)
-                    );
-
-
-                    actualizarEstadisticas();
-
-                    renderizarEmpleos();
-
-                    cargarTotalPostulaciones();
-
-                },
-
-                error => {
-
-                    console.error(
-                        "Error cargando empleos:",
-                        error
-                    );
-
-                    estado.className =
-                        "message error";
-
-                    estado.textContent =
-                        "No se pudieron cargar tus empleos.";
-                }
-            );
+    if(
+        !usuarioActual
+    ){
+        return;
     }
 
+    if(
+        unsubscribeEmpleos
+    ){
+        unsubscribeEmpleos();
+    }
+
+    estado.style.display =
+        "block";
+
+    estado.className =
+        "message";
+
+    estado.textContent =
+        "Cargando tus empleos...";
 
     /*
-     * ---------------------------------------------------------
-     * RENDERIZAR
-     * ---------------------------------------------------------
+     * Compatibilidad con tu estructura actual:
+     *
+     * La publicación original usa:
+     * uid
+     *
+     * Por eso mantenemos esta consulta.
      */
 
-    function renderizarEmpleos() {
+    const consulta =
+        query(
+            collection(
+                db,
+                "empleos"
+            ),
+            where(
+                "uid",
+                "==",
+                usuarioActual.uid
+            )
+        );
 
-        listaEmpleos.innerHTML = "";
 
-        if (empleosActuales.length === 0) {
+    unsubscribeEmpleos =
+        onSnapshot(
+            consulta,
 
-            estado.className =
-                "message";
+            snapshot => {
 
-            estado.textContent =
-                "Todavía no publicaste ningún empleo.";
+                empleosActuales =
+                    snapshot.docs.map(
+                        documento => ({
+                            id:documento.id,
+                            ...documento.data()
+                        })
+                    );
 
-            return;
+
+                empleosActuales.sort(
+                    (a,b) =>
+                        obtenerFechaEmpleo(b)
+                        -
+                        obtenerFechaEmpleo(a)
+                );
+
+
+                actualizarEstadisticas();
+
+                renderizarEmpleos();
+
+                cargarEstadisticasPostulaciones();
+
+            },
+
+            error => {
+
+                console.error(
+                    "Error cargando empleos:",
+                    error
+                );
+
+                estado.style.display =
+                    "block";
+
+                estado.className =
+                    "message error";
+
+                estado.textContent =
+                    "No se pudieron cargar tus empleos.";
+
+            }
+        );
+}
+
+
+/* =========================================================
+   ESTADÍSTICAS
+========================================================= */
+
+function actualizarEstadisticas(){
+
+    totalEmpleos.textContent =
+        empleosActuales.length;
+
+    empleosActivos.textContent =
+        empleosActuales.filter(
+            empleo =>
+                empleo.estado ===
+                "activo"
+        ).length;
+}
+
+
+/* =========================================================
+   FILTROS
+========================================================= */
+
+function obtenerEmpleosFiltrados(){
+
+    const texto =
+        buscar.value
+            .trim()
+            .toLowerCase();
+
+    const filtro =
+        filtroEstado.value;
+
+
+    return empleosActuales.filter(
+        empleo => {
+
+            const contenido = [
+
+                empleo.puesto,
+
+                empleo.empresa,
+
+                empleo.ciudad,
+
+                empleo.provincia,
+
+                empleo.modalidad,
+
+                empleo.descripcion
+
+            ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+
+
+            const coincideTexto =
+                !texto ||
+                contenido.includes(
+                    texto
+                );
+
+
+            const coincideEstado =
+                filtro === "todos" ||
+                empleo.estado === filtro;
+
+
+            return (
+                coincideTexto &&
+                coincideEstado
+            );
         }
+    );
+}
+
+
+buscar.addEventListener(
+    "input",
+    renderizarEmpleos
+);
+
+
+filtroEstado.addEventListener(
+    "change",
+    renderizarEmpleos
+);
+
+
+/* =========================================================
+   RENDERIZAR EMPLEOS
+========================================================= */
+
+function renderizarEmpleos(){
+
+    listaEmpleos.innerHTML = "";
+
+    const empleos =
+        obtenerEmpleosFiltrados();
+
+
+    if(
+        empleosActuales.length === 0
+    ){
 
         estado.style.display =
-            "none";
+            "block";
+
+        estado.className =
+            "message";
+
+        estado.textContent =
+            "Todavía no publicaste ningún empleo.";
+
+        return;
+    }
 
 
-        empleosActuales.forEach(
-            empleo => {
+    if(
+        empleos.length === 0
+    ){
 
-                const card =
-                    document.createElement("article");
+        estado.style.display =
+            "block";
 
-                card.className =
-                    "job-card";
+        estado.className =
+            "message";
 
+        estado.textContent =
+            "No encontramos empleos con ese filtro.";
 
-                if (
-                    empleo.estado !== "activo"
-                ) {
-                    card.classList.add(
-                        "inactive"
-                    );
-                }
+        return;
+    }
 
 
-                const header =
-                    document.createElement("div");
-
-                header.className =
-                    "job-header";
+    estado.style.display =
+        "none";
 
 
-                const headerLeft =
-                    document.createElement("div");
+    empleos.forEach(
+        empleo => {
 
-
-                const titulo =
-                    document.createElement("div");
-
-                titulo.className =
-                    "job-title";
-
-                titulo.textContent =
-                    escaparTexto(
-                        empleo.puesto ||
-                        "Empleo sin título"
-                    );
-
-
-                const empresa =
-                    document.createElement("div");
-
-                empresa.className =
-                    "job-company";
-
-                empresa.textContent =
-                    escaparTexto(
-                        empleo.empresa ||
-                        "Empresa"
-                    );
-
-
-                headerLeft.appendChild(
-                    titulo
+            const card =
+                document.createElement(
+                    "article"
                 );
 
-                headerLeft.appendChild(
-                    empresa
+            card.className =
+                "job-card";
+
+
+            if(
+                empleo.estado !==
+                "activo"
+            ){
+                card.classList.add(
+                    "inactive"
+                );
+            }
+
+
+            /* HEADER */
+
+            const header =
+                document.createElement(
+                    "div"
+                );
+
+            header.className =
+                "job-header";
+
+
+            const left =
+                document.createElement(
+                    "div"
                 );
 
 
-                const badges =
-                    document.createElement("div");
+            const titulo =
+                document.createElement(
+                    "div"
+                );
+
+            titulo.className =
+                "job-title";
+
+            titulo.textContent =
+                empleo.puesto ||
+                "Empleo sin título";
 
 
-                if (
-                    empleo.tipo === "destacado"
-                ) {
+            const empresa =
+                document.createElement(
+                    "div"
+                );
 
-                    const destacado =
-                        document.createElement("span");
+            empresa.className =
+                "job-company";
 
-                    destacado.className =
-                        "badge badge-featured";
+            empresa.textContent =
+                empleo.empresa ||
+                "Empresa";
 
-                    destacado.textContent =
-                        "⭐ Destacado";
 
-                    badges.appendChild(
-                        destacado
+            left.appendChild(
+                titulo
+            );
+
+            left.appendChild(
+                empresa
+            );
+
+
+            const badges =
+                document.createElement(
+                    "div"
+                );
+
+            badges.className =
+                "badges";
+
+
+            if(
+                empleo.tipo ===
+                "destacado"
+            ){
+
+                const destacado =
+                    document.createElement(
+                        "span"
                     );
-                }
 
+                destacado.className =
+                    "badge badge-featured";
 
-                const estadoBadge =
-                    document.createElement("span");
-
-                estadoBadge.className =
-                    "badge " +
-                    (
-                        empleo.estado === "activo"
-                            ? "badge-active"
-                            : "badge-inactive"
-                    );
-
-                estadoBadge.textContent =
-                    obtenerTextoEstado(
-                        empleo
-                    );
-
-                estadoBadge.style.marginLeft =
-                    "6px";
+                destacado.textContent =
+                    "⭐ Destacado";
 
                 badges.appendChild(
-                    estadoBadge
-                );
-
-
-                header.appendChild(
-                    headerLeft
-                );
-
-                header.appendChild(
-                    badges
-                );
-
-
-                card.appendChild(
-                    header
-                );
-
-
-                /*
-                 * INFORMACIÓN
-                 */
-
-                const info =
-                    document.createElement("div");
-
-                info.className =
-                    "job-info";
-
-
-                agregarInfo(
-                    info,
-                    "📍",
-                    [
-                        empleo.ciudad,
-                        empleo.provincia
-                    ]
-                    .filter(Boolean)
-                    .join(", ")
-                );
-
-
-                agregarInfo(
-                    info,
-                    "💼",
-                    empleo.modalidad
-                );
-
-
-                if (empleo.sueldo) {
-
-                    agregarInfo(
-                        info,
-                        "💰",
-                        empleo.sueldo
-                    );
-                }
-
-
-                card.appendChild(
-                    info
-                );
-
-
-                /*
-                 * DESCRIPCIÓN
-                 */
-
-                if (empleo.descripcion) {
-
-                    const descripcion =
-                        document.createElement("div");
-
-                    descripcion.className =
-                        "description";
-
-                    descripcion.textContent =
-                        empleo.descripcion;
-
-                    card.appendChild(
-                        descripcion
-                    );
-                }
-
-
-                /*
-                 * FECHA
-                 */
-
-                const fecha =
-                    document.createElement("div");
-
-                fecha.className =
-                    "job-date";
-
-                fecha.textContent =
-                    "Publicado: " +
-                    formatearFecha(empleo);
-
-                card.appendChild(
-                    fecha
-                );
-
-
-                /*
-                 * BOTONES
-                 */
-
-                const acciones =
-                    document.createElement("div");
-
-                acciones.className =
-                    "job-actions";
-
-
-                const btnPostulaciones =
-                    document.createElement("button");
-
-                btnPostulaciones.type =
-                    "button";
-
-                btnPostulaciones.className =
-                    "btn btn-secondary";
-
-                btnPostulaciones.textContent =
-                    "👥 Postulaciones";
-
-                btnPostulaciones.addEventListener(
-                    "click",
-                    () =>
-                        abrirPostulaciones(
-                            empleo
-                        )
-                );
-
-
-                const btnEstado =
-                    document.createElement("button");
-
-                btnEstado.type =
-                    "button";
-
-                btnEstado.className =
-                    empleo.estado === "activo"
-                        ? "btn btn-success"
-                        : "btn btn-secondary";
-
-                btnEstado.textContent =
-                    empleo.estado === "activo"
-                        ? "⏸ Desactivar"
-                        : "▶ Activar";
-
-                btnEstado.addEventListener(
-                    "click",
-                    () =>
-                        cambiarEstado(
-                            empleo
-                        )
-                );
-
-
-                const btnEliminar =
-                    document.createElement("button");
-
-                btnEliminar.type =
-                    "button";
-
-                btnEliminar.className =
-                    "btn btn-danger";
-
-                btnEliminar.textContent =
-                    "🗑 Eliminar";
-
-                btnEliminar.addEventListener(
-                    "click",
-                    () =>
-                        eliminarEmpleo(
-                            empleo
-                        )
-                );
-
-
-                acciones.appendChild(
-                    btnPostulaciones
-                );
-
-                acciones.appendChild(
-                    btnEstado
-                );
-
-                acciones.appendChild(
-                    btnEliminar
-                );
-
-
-                card.appendChild(
-                    acciones
-                );
-
-
-                listaEmpleos.appendChild(
-                    card
+                    destacado
                 );
             }
-        );
-    }
 
 
-    function agregarInfo(
-        contenedor,
-        icono,
-        texto
-    ) {
+            const estadoBadge =
+                document.createElement(
+                    "span"
+                );
 
-        if (!texto) {
-            return;
-        }
+            estadoBadge.className =
+                "badge " +
+                (
+                    empleo.estado ===
+                    "activo"
+                        ? "badge-active"
+                        : "badge-inactive"
+                );
 
-        const elemento =
-            document.createElement("span");
-
-        elemento.className =
-            "info-item";
-
-        elemento.textContent =
-            icono + " " + escaparTexto(texto);
-
-        contenedor.appendChild(
-            elemento
-        );
-    }
+            estadoBadge.textContent =
+                empleo.estado ===
+                "activo"
+                    ? "🟢 Activo"
+                    : "⚪ Inactivo";
 
 
-    /*
-     * ---------------------------------------------------------
-     * CAMBIAR ESTADO
-     * ---------------------------------------------------------
-     */
-
-    async function cambiarEstado(
-        empleo
-    ) {
-
-        if (!usuarioActual) {
-            return;
-        }
-
-        const nuevoEstado =
-            empleo.estado === "activo"
-                ? "inactivo"
-                : "activo";
+            badges.appendChild(
+                estadoBadge
+            );
 
 
-        try {
+            header.appendChild(
+                left
+            );
 
-            await updateDoc(
-                doc(
-                    db,
-                    "empleos",
-                    empleo.id
-                ),
-                {
-                    estado: nuevoEstado
+            header.appendChild(
+                badges
+            );
+
+            card.appendChild(
+                header
+            );
+
+
+            /* INFO */
+
+            const info =
+                document.createElement(
+                    "div"
+                );
+
+            info.className =
+                "job-info";
+
+
+            agregarInfo(
+                info,
+                "📍",
+                [
+                    empleo.ciudad,
+                    empleo.provincia
+                ]
+                .filter(Boolean)
+                .join(", ")
+            );
+
+
+            agregarInfo(
+                info,
+                "💼",
+                empleo.modalidad
+            );
+
+
+            if(
+                empleo.sueldo
+            ){
+
+                agregarInfo(
+                    info,
+                    "💰",
+                    empleo.sueldo
+                );
+            }
+
+
+            card.appendChild(
+                info
+            );
+
+
+            /* DESCRIPCIÓN */
+
+            if(
+                empleo.descripcion
+            ){
+
+                const descripcion =
+                    document.createElement(
+                        "div"
+                    );
+
+                descripcion.className =
+                    "description";
+
+                descripcion.textContent =
+                    empleo.descripcion;
+
+                card.appendChild(
+                    descripcion
+                );
+            }
+
+
+            /* FECHA */
+
+            const fecha =
+                document.createElement(
+                    "div"
+                );
+
+            fecha.className =
+                "job-date";
+
+            fecha.textContent =
+                "Publicado: " +
+                formatearFecha(
+                    empleo
+                );
+
+            card.appendChild(
+                fecha
+            );
+
+
+            /* RESUMEN POSTULACIONES */
+
+            const resumen =
+                document.createElement(
+                    "div"
+                );
+
+            resumen.className =
+                "application-summary";
+
+
+            const cantidad =
+                document.createElement(
+                    "span"
+                );
+
+            cantidad.className =
+                "application-count";
+
+            cantidad.id =
+                "postulaciones-" +
+                empleo.id;
+
+            cantidad.textContent =
+                "👥 Postulaciones: ...";
+
+
+            resumen.appendChild(
+                cantidad
+            );
+
+
+            card.appendChild(
+                resumen
+            );
+
+
+            /* ACCIONES */
+
+            const acciones =
+                document.createElement(
+                    "div"
+                );
+
+            acciones.className =
+                "job-actions";
+
+
+            const btnVer =
+                document.createElement(
+                    "button"
+                );
+
+            btnVer.type =
+                "button";
+
+            btnVer.className =
+                "btn btn-secondary";
+
+            btnVer.textContent =
+                "👁 Ver";
+
+            btnVer.addEventListener(
+                "click",
+                () => {
+
+                    window.location.href =
+                        "ver-empleo.html?id=" +
+                        encodeURIComponent(
+                            empleo.id
+                        );
+
                 }
             );
 
-        } catch (error) {
 
-            console.error(
-                error
+            const btnEditar =
+                document.createElement(
+                    "button"
+                );
+
+            btnEditar.type =
+                "button";
+
+            btnEditar.className =
+                "btn btn-primary";
+
+            btnEditar.textContent =
+                "✏️ Editar";
+
+            btnEditar.addEventListener(
+                "click",
+                () => {
+
+                    window.location.href =
+                        "publicar-empleo.html?id=" +
+                        encodeURIComponent(
+                            empleo.id
+                        );
+
+                }
             );
 
-            alert(
-                "No se pudo cambiar el estado del empleo."
+
+            const btnPostulaciones =
+                document.createElement(
+                    "button"
+                );
+
+            btnPostulaciones.type =
+                "button";
+
+            btnPostulaciones.className =
+                "btn btn-secondary";
+
+            btnPostulaciones.textContent =
+                "👥 Postulaciones";
+
+            btnPostulaciones.addEventListener(
+                "click",
+                () =>
+                    abrirPostulaciones(
+                        empleo
+                    )
+            );
+
+
+            const btnEstado =
+                document.createElement(
+                    "button"
+                );
+
+            btnEstado.type =
+                "button";
+
+            btnEstado.className =
+                empleo.estado ===
+                "activo"
+                    ? "btn btn-warning"
+                    : "btn btn-success";
+
+            btnEstado.textContent =
+                empleo.estado ===
+                "activo"
+                    ? "⏸ Pausar"
+                    : "▶ Activar";
+
+            btnEstado.addEventListener(
+                "click",
+                () =>
+                    cambiarEstado(
+                        empleo
+                    )
+            );
+
+
+            const btnEliminar =
+                document.createElement(
+                    "button"
+                );
+
+            btnEliminar.type =
+                "button";
+
+            btnEliminar.className =
+                "btn btn-danger";
+
+            btnEliminar.textContent =
+                "🗑 Dar de baja";
+
+            btnEliminar.addEventListener(
+                "click",
+                () =>
+                    eliminarEmpleo(
+                        empleo
+                    )
+            );
+
+
+            acciones.appendChild(
+                btnVer
+            );
+
+            acciones.appendChild(
+                btnEditar
+            );
+
+            acciones.appendChild(
+                btnPostulaciones
+            );
+
+            acciones.appendChild(
+                btnEstado
+            );
+
+            acciones.appendChild(
+                btnEliminar
+            );
+
+
+            card.appendChild(
+                acciones
+            );
+
+
+            listaEmpleos.appendChild(
+                card
             );
         }
+    );
+}
+
+
+/* =========================================================
+   AGREGAR INFO
+========================================================= */
+
+function agregarInfo(
+    contenedor,
+    icono,
+    texto
+){
+
+    if(!texto){
+        return;
+    }
+
+    const elemento =
+        document.createElement(
+            "span"
+        );
+
+    elemento.className =
+        "info-item";
+
+    elemento.textContent =
+        icono +
+        " " +
+        String(texto);
+
+    contenedor.appendChild(
+        elemento
+    );
+}
+
+
+/* =========================================================
+   VERIFICAR PROPIETARIO
+========================================================= */
+
+function esPropietario(
+    empleo
+){
+
+    if(
+        !usuarioActual ||
+        !empleo
+    ){
+        return false;
+    }
+
+    return (
+        empleo.uid ===
+        usuarioActual.uid
+    );
+}
+
+
+/* =========================================================
+   CAMBIAR ESTADO
+========================================================= */
+
+async function cambiarEstado(
+    empleo
+){
+
+    if(
+        !esPropietario(
+            empleo
+        )
+    ){
+
+        alert(
+            "No tenés permiso para modificar este empleo."
+        );
+
+        return;
     }
 
 
-    /*
-     * ---------------------------------------------------------
-     * ELIMINAR EMPLEO
-     * ---------------------------------------------------------
-     */
-
-    async function eliminarEmpleo(
-        empleo
-    ) {
-
-        if (!usuarioActual) {
-            return;
-        }
+    const nuevoEstado =
+        empleo.estado ===
+        "activo"
+            ? "inactivo"
+            : "activo";
 
 
-        const confirmado =
-            confirm(
-                "¿Querés eliminar este empleo?\n\n" +
-                "Esta acción no se puede deshacer."
-            );
+    try{
 
+        await updateDoc(
+            doc(
+                db,
+                "empleos",
+                empleo.id
+            ),
+            {
+                estado:
+                    nuevoEstado,
 
-        if (!confirmado) {
-            return;
-        }
-
-
-        try {
-
-            await deleteDoc(
-                doc(
-                    db,
-                    "empleos",
-                    empleo.id
-                )
-            );
-
-        } catch (error) {
-
-            console.error(
-                error
-            );
-
-            alert(
-                "No se pudo eliminar el empleo."
-            );
-        }
-    }
-
-
-    /*
-     * ---------------------------------------------------------
-     * POSTULACIONES
-     * ---------------------------------------------------------
-     */
-
-    async function abrirPostulaciones(
-        empleo
-    ) {
-
-        modalTitulo.textContent =
-            "Postulaciones: " +
-            escaparTexto(
-                empleo.puesto
-            );
-
-        modalContenido.textContent =
-            "Cargando postulaciones...";
-
-        modal.classList.add(
-            "show"
+                fechaActualizacion:
+                    serverTimestamp()
+            }
         );
 
 
-        try {
-
-            /*
-             * Una sola condición:
-             * no necesita índice compuesto.
-             */
-
-            const consulta =
-                query(
-                    collection(
-                        db,
-                        "postulaciones"
-                    ),
-                    where(
-                        "empleoId",
-                        "==",
-                        empleo.id
-                    )
-                );
+        mostrarToast(
+            nuevoEstado ===
+            "activo"
+                ? "Empleo activado."
+                : "Empleo pausado."
+        );
 
 
-            const snapshot =
-                await getDocs(
-                    consulta
-                );
+    }catch(error){
 
+        console.error(
+            "Error cambiando estado:",
+            error
+        );
+
+        alert(
+            "No se pudo cambiar el estado del empleo."
+        );
+    }
+}
+
+
+/* =========================================================
+   BAJA LÓGICA
+========================================================= */
+
+async function eliminarEmpleo(
+    empleo
+){
+
+    if(
+        !esPropietario(
+            empleo
+        )
+    ){
+
+        alert(
+            "No tenés permiso para eliminar este empleo."
+        );
+
+        return;
+    }
+
+
+    const confirmado =
+        confirm(
+            "¿Querés dar de baja esta publicación?\n\n" +
+            "La oferta dejará de mostrarse entre los empleos activos."
+        );
+
+
+    if(!confirmado){
+        return;
+    }
+
+
+    try{
+
+        await updateDoc(
+            doc(
+                db,
+                "empleos",
+                empleo.id
+            ),
+            {
+                estado:
+                    "inactivo",
+
+                baja:
+                    true,
+
+                fechaBaja:
+                    serverTimestamp(),
+
+                fechaActualizacion:
+                    serverTimestamp()
+            }
+        );
+
+
+        mostrarToast(
+            "La publicación fue dada de baja."
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "Error dando de baja:",
+            error
+        );
+
+        alert(
+            "No se pudo dar de baja la publicación."
+        );
+    }
+}
+
+
+/* =========================================================
+   POSTULACIONES
+========================================================= */
+
+async function obtenerPostulaciones(
+    empleoId
+){
+
+    const consulta =
+        query(
+            collection(
+                db,
+                "postulaciones"
+            ),
+            where(
+                "empleoId",
+                "==",
+                empleoId
+            )
+        );
+
+
+    const snapshot =
+        await getDocs(
+            consulta
+        );
+
+
+    return snapshot.docs.map(
+        documento => ({
+            id:
+                documento.id,
+
+            ...documento.data()
+        })
+    );
+}
+
+
+/* =========================================================
+   ESTADÍSTICAS POSTULACIONES
+========================================================= */
+
+async function cargarEstadisticasPostulaciones(){
+
+    if(
+        empleosActuales.length ===
+        0
+    ){
+
+        totalPostulaciones.textContent =
+            "0";
+
+        postulacionesPendientes.textContent =
+            "0";
+
+        return;
+    }
+
+
+    try{
+
+        let total = 0;
+        let pendientes = 0;
+
+
+        for(
+            const empleo
+            of empleosActuales
+        ){
 
             const postulaciones =
-                snapshot.docs.map(
-                    documento => ({
-                        id: documento.id,
-                        ...documento.data()
-                    })
+                await obtenerPostulaciones(
+                    empleo.id
                 );
 
 
-            postulaciones.sort(
-                (a, b) =>
-                    obtenerFechaEmpleo(b)
-                    -
-                    obtenerFechaEmpleo(a)
-            );
+            total +=
+                postulaciones.length;
 
 
-            renderizarPostulaciones(
-                postulaciones
-            );
+            pendientes +=
+                postulaciones.filter(
+                    postulacion =>
+                        (
+                            postulacion.estado ||
+                            "pendiente"
+                        ) ===
+                        "pendiente"
+                ).length;
 
 
-        } catch (error) {
+            const contador =
+                document.getElementById(
+                    "postulaciones-" +
+                    empleo.id
+                );
 
-            console.error(
-                "Error cargando postulaciones:",
-                error
-            );
 
-            modalContenido.textContent =
-                "No se pudieron cargar las postulaciones.";
+            if(contador){
+
+                contador.textContent =
+                    "👥 Postulaciones: " +
+                    postulaciones.length;
+            }
         }
+
+
+        totalPostulaciones.textContent =
+            total;
+
+        postulacionesPendientes.textContent =
+            pendientes;
+
+
+    }catch(error){
+
+        console.error(
+            "Error cargando estadísticas:",
+            error
+        );
+
+        totalPostulaciones.textContent =
+            "—";
+
+        postulacionesPendientes.textContent =
+            "—";
+    }
+}
+
+
+/* =========================================================
+   ABRIR POSTULACIONES
+========================================================= */
+
+async function abrirPostulaciones(
+    empleo
+){
+
+    if(
+        !esPropietario(
+            empleo
+        )
+    ){
+
+        alert(
+            "No tenés permiso para ver estas postulaciones."
+        );
+
+        return;
     }
 
 
-    function renderizarPostulaciones(
-        postulaciones
-    ) {
-
-        modalContenido.innerHTML = "";
-
-
-        if (
-            postulaciones.length === 0
-        ) {
-
-            const vacio =
-                document.createElement("div");
-
-            vacio.className =
-                "empty-applicants";
-
-            vacio.textContent =
-                "Todavía no recibiste postulaciones para este empleo.";
-
-            modalContenido.appendChild(
-                vacio
-            );
-
-            return;
-        }
-
-
-        const lista =
-            document.createElement("div");
-
-        lista.className =
-            "applicant-list";
-
-
-        postulaciones.forEach(
-            postulacion => {
-
-                const item =
-                    document.createElement("div");
-
-                item.className =
-                    "applicant";
-
-
-                const nombre =
-                    document.createElement("div");
-
-                nombre.className =
-                    "applicant-name";
-
-                nombre.textContent =
-                    obtenerNombrePostulante(
-                        postulacion
-                    );
-
-
-                item.appendChild(
-                    nombre
-                );
-
-
-                const datos =
-                    document.createElement("div");
-
-                datos.className =
-                    "applicant-data";
-
-
-                const email =
-                    postulacion.postulanteEmail ||
-                    "Email no disponible";
-
-                datos.textContent =
-                    "📧 " +
-                    email;
-
-
-                if (
-                    postulacion.telefono
-                ) {
-
-                    datos.textContent +=
-                        "\n📱 " +
-                        postulacion.telefono;
-                }
-
-
-                if (
-                    postulacion.estado
-                ) {
-
-                    datos.textContent +=
-                        "\n📌 Estado: " +
-                        postulacion.estado;
-                }
-
-
-                const fecha =
-                    obtenerFecha(
-                        postulacion.fecha
-                    );
-
-
-                if (fecha) {
-
-                    datos.textContent +=
-                        "\n📅 " +
-                        fecha.toLocaleDateString(
-                            "es-AR"
-                        );
-                }
-
-
-                item.appendChild(
-                    datos
-                );
-
-
-                if (
-                    postulacion.mensaje
-                ) {
-
-                    const mensaje =
-                        document.createElement("div");
-
-                    mensaje.className =
-                        "applicant-message";
-
-                    mensaje.textContent =
-                        postulacion.mensaje;
-
-                    item.appendChild(
-                        mensaje
-                    );
-                }
-
-
-                lista.appendChild(
-                    item
-                );
-            }
+    modalTitulo.textContent =
+        "Postulaciones: " +
+        (
+            empleo.puesto ||
+            "Empleo"
         );
 
+
+    modalContenido.textContent =
+        "Cargando postulaciones...";
+
+
+    modal.classList.add(
+        "show"
+    );
+
+
+    try{
+
+        const postulaciones =
+            await obtenerPostulaciones(
+                empleo.id
+            );
+
+
+        postulaciones.sort(
+            (a,b) =>
+                obtenerFechaPostulacion(b)
+                -
+                obtenerFechaPostulacion(a)
+        );
+
+
+        renderizarPostulaciones(
+            postulaciones
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "Error cargando postulaciones:",
+            error
+        );
+
+        modalContenido.innerHTML =
+            '<div class="empty">No se pudieron cargar las postulaciones.</div>';
+    }
+}
+
+
+/* =========================================================
+   FECHA POSTULACIÓN
+========================================================= */
+
+function obtenerFechaPostulacion(
+    postulacion
+){
+
+    if(
+        postulacion.fechaCliente
+    ){
+
+        return Number(
+            postulacion.fechaCliente
+        ) || 0;
+    }
+
+
+    const fecha =
+        obtenerFecha(
+            postulacion.fecha
+        );
+
+
+    return fecha
+        ? fecha.getTime()
+        : 0;
+}
+
+
+/* =========================================================
+   RENDERIZAR POSTULACIONES
+========================================================= */
+
+function renderizarPostulaciones(
+    postulaciones
+){
+
+    modalContenido.innerHTML =
+        "";
+
+
+    if(
+        postulaciones.length ===
+        0
+    ){
+
+        const vacio =
+            document.createElement(
+                "div"
+            );
+
+        vacio.className =
+            "empty";
+
+        vacio.textContent =
+            "Todavía no recibiste postulaciones para este empleo.";
 
         modalContenido.appendChild(
-            lista
+            vacio
         );
+
+        return;
     }
 
 
-    function obtenerNombrePostulante(
-        postulacion
-    ) {
+    const lista =
+        document.createElement(
+            "div"
+        );
 
-        if (
-            postulacion.postulanteNombre
-        ) {
-            return postulacion.postulanteNombre;
+    lista.className =
+        "applicant-list";
+
+
+    postulaciones.forEach(
+        postulacion => {
+
+            const item =
+                document.createElement(
+                    "article"
+                );
+
+            item.className =
+                "applicant";
+
+
+            const header =
+                document.createElement(
+                    "div"
+                );
+
+            header.className =
+                "applicant-header";
+
+
+            const izquierda =
+                document.createElement(
+                    "div"
+                );
+
+
+            const nombre =
+                document.createElement(
+                    "div"
+                );
+
+            nombre.className =
+                "applicant-name";
+
+            nombre.textContent =
+                obtenerNombrePostulante(
+                    postulacion
+                );
+
+
+            izquierda.appendChild(
+                nombre
+            );
+
+
+            const datos =
+                document.createElement(
+                    "div"
+                );
+
+            datos.className =
+                "applicant-data";
+
+
+            datos.textContent =
+                "📧 " +
+                (
+                    postulacion.postulanteEmail ||
+                    "Email no disponible"
+                );
+
+
+            if(
+                postulacion.telefono
+            ){
+
+                datos.textContent +=
+                    "\n📱 " +
+                    postulacion.telefono;
+            }
+
+
+            const fecha =
+                obtenerFecha(
+                    postulacion.fecha
+                );
+
+
+            if(fecha){
+
+                datos.textContent +=
+                    "\n📅 " +
+                    fecha.toLocaleDateString(
+                        "es-AR"
+                    );
+            }
+
+
+            izquierda.appendChild(
+                datos
+            );
+
+
+            const estadoActual =
+                postulacion.estado ||
+                "pendiente";
+
+
+            const badge =
+                document.createElement(
+                    "span"
+                );
+
+            badge.className =
+                "badge " +
+                obtenerClaseEstadoPostulacion(
+                    estadoActual
+                );
+
+            badge.textContent =
+                obtenerTextoEstadoPostulacion(
+                    estadoActual
+                );
+
+
+            header.appendChild(
+                izquierda
+            );
+
+            header.appendChild(
+                badge
+            );
+
+
+            item.appendChild(
+                header
+            );
+
+
+            if(
+                postulacion.mensaje
+            ){
+
+                const mensaje =
+                    document.createElement(
+                        "div"
+                    );
+
+                mensaje.className =
+                    "applicant-message";
+
+                mensaje.textContent =
+                    postulacion.mensaje;
+
+                item.appendChild(
+                    mensaje
+                );
+            }
+
+
+            /* ACCIONES */
+
+            const acciones =
+                document.createElement(
+                    "div"
+                );
+
+            acciones.className =
+                "applicant-actions";
+
+
+            if(
+                postulacion.telefono
+            ){
+
+                const btnWhatsapp =
+                    document.createElement(
+                        "button"
+                    );
+
+                btnWhatsapp.type =
+                    "button";
+
+                btnWhatsapp.className =
+                    "btn btn-success";
+
+                btnWhatsapp.textContent =
+                    "📱 WhatsApp";
+
+                btnWhatsapp.addEventListener(
+                    "click",
+                    () => {
+
+                        const numero =
+                            String(
+                                postulacion.telefono
+                            )
+                            .replace(
+                                /[^0-9]/g,
+                                ""
+                            );
+
+
+                        if(!numero){
+                            return;
+                        }
+
+
+                        window.open(
+                            "https://wa.me/" +
+                            numero,
+                            "_blank"
+                        );
+                    }
+                );
+
+
+                acciones.appendChild(
+                    btnWhatsapp
+                );
+            }
+
+
+            if(
+                postulacion.telefono
+            ){
+
+                const btnLlamar =
+                    document.createElement(
+                        "button"
+                    );
+
+                btnLlamar.type =
+                    "button";
+
+                btnLlamar.className =
+                    "btn btn-secondary";
+
+                btnLlamar.textContent =
+                    "📞 Llamar";
+
+                btnLlamar.addEventListener(
+                    "click",
+                    () => {
+
+                        window.location.href =
+                            "tel:" +
+                            postulacion.telefono;
+                    }
+                );
+
+
+                acciones.appendChild(
+                    btnLlamar
+                );
+            }
+
+
+            if(
+                postulacion.postulanteEmail
+            ){
+
+                const btnEmail =
+                    document.createElement(
+                        "button"
+                    );
+
+                btnEmail.type =
+                    "button";
+
+                btnEmail.className =
+                    "btn btn-secondary";
+
+                btnEmail.textContent =
+                    "📧 Email";
+
+                btnEmail.addEventListener(
+                    "click",
+                    () => {
+
+                        window.location.href =
+                            "mailto:" +
+                            postulacion.postulanteEmail;
+                    }
+                );
+
+
+                acciones.appendChild(
+                    btnEmail
+                );
+            }
+
+
+            /* PERFIL */
+
+            if(
+                postulacion.postulanteUid
+            ){
+
+                const btnPerfil =
+                    document.createElement(
+                        "button"
+                    );
+
+                btnPerfil.type =
+                    "button";
+
+                btnPerfil.className =
+                    "btn btn-dark";
+
+                btnPerfil.textContent =
+                    "👤 Perfil";
+
+                btnPerfil.addEventListener(
+                    "click",
+                    () => {
+
+                        window.location.href =
+                            "red-perfil.html?uid=" +
+                            encodeURIComponent(
+                                postulacion.postulanteUid
+                            );
+                    }
+                );
+
+
+                acciones.appendChild(
+                    btnPerfil
+                );
+            }
+
+
+            item.appendChild(
+                acciones
+            );
+
+
+            /* ESTADO */
+
+            const selector =
+                document.createElement(
+                    "select"
+                );
+
+            selector.className =
+                "status-select";
+
+
+            const opciones = [
+                ["pendiente","⏳ Pendiente"],
+                ["en_revision","👀 En revisión"],
+                ["aceptado","✅ Aceptado"],
+                ["rechazado","❌ Rechazado"]
+            ];
+
+
+            opciones.forEach(
+                opcion => {
+
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
+
+                    option.value =
+                        opcion[0];
+
+                    option.textContent =
+                        opcion[1];
+
+                    if(
+                        estadoActual ===
+                        opcion[0]
+                    ){
+
+                        option.selected =
+                            true;
+                    }
+
+                    selector.appendChild(
+                        option
+                    );
+                }
+            );
+
+
+            selector.addEventListener(
+                "change",
+                () =>
+                    cambiarEstadoPostulacion(
+                        postulacion,
+                        selector.value
+                    )
+            );
+
+
+            item.appendChild(
+                selector
+            );
+
+
+            lista.appendChild(
+                item
+            );
+
         }
+    );
 
-        if (
-            postulacion.nombreCompleto
-        ) {
-            return postulacion.nombreCompleto;
-        }
 
-        if (
-            postulacion.nombre
-        ) {
-            return postulacion.nombre;
-        }
+    modalContenido.appendChild(
+        lista
+    );
+}
 
-        return "Postulante";
+
+/* =========================================================
+   NOMBRE POSTULANTE
+========================================================= */
+
+function obtenerNombrePostulante(
+    postulacion
+){
+
+    return (
+        postulacion.postulanteNombre ||
+        postulacion.nombreCompleto ||
+        postulacion.nombre ||
+        "Postulante"
+    );
+}
+
+
+/* =========================================================
+   ESTADO POSTULACIÓN
+========================================================= */
+
+function obtenerTextoEstadoPostulacion(
+    estado
+){
+
+    const estados = {
+
+        pendiente:
+            "⏳ Pendiente",
+
+        en_revision:
+            "👀 En revisión",
+
+        aceptado:
+            "✅ Aceptado",
+
+        rechazado:
+            "❌ Rechazado"
+
+    };
+
+    return (
+        estados[estado] ||
+        "⏳ Pendiente"
+    );
+}
+
+
+function obtenerClaseEstadoPostulacion(
+    estado
+){
+
+    if(
+        estado ===
+        "aceptado"
+    ){
+
+        return "badge-active";
     }
 
 
-    /*
-     * ---------------------------------------------------------
-     * TOTAL DE POSTULACIONES
-     * ---------------------------------------------------------
-     */
+    if(
+        estado ===
+        "rechazado"
+    ){
 
-    async function cargarTotalPostulaciones() {
+        return "badge-inactive";
+    }
 
-        if (
-            empleosActuales.length === 0
-        ) {
 
-            totalPostulaciones.textContent =
-                "0";
+    return "badge-pending";
+}
+
+
+/* =========================================================
+   CAMBIAR ESTADO POSTULACIÓN
+========================================================= */
+
+async function cambiarEstadoPostulacion(
+    postulacion,
+    nuevoEstado
+){
+
+    if(
+        !usuarioActual
+    ){
+        return;
+    }
+
+
+    try{
+
+        /*
+         * Primero comprobamos que el empleo
+         * realmente pertenece al usuario.
+         */
+
+        const empleoRef =
+            doc(
+                db,
+                "empleos",
+                postulacion.empleoId
+            );
+
+
+        const empleoSnapshot =
+            await getDoc(
+                empleoRef
+            );
+
+
+        if(
+            !empleoSnapshot.exists()
+        ){
+
+            alert(
+                "El empleo ya no existe."
+            );
 
             return;
         }
 
 
-        try {
-
-            let total = 0;
-
-
-            /*
-             * Se consulta cada empleo por separado.
-             * No usamos consultas compuestas.
-             */
-
-            for (
-                const empleo
-                of empleosActuales
-            ) {
-
-                const consulta =
-                    query(
-                        collection(
-                            db,
-                            "postulaciones"
-                        ),
-                        where(
-                            "empleoId",
-                            "==",
-                            empleo.id
-                        )
-                    );
+        const empleo =
+            empleoSnapshot.data();
 
 
-                const snapshot =
-                    await getDocs(
-                        consulta
-                    );
+        if(
+            empleo.uid !==
+            usuarioActual.uid
+        ){
 
-
-                total +=
-                    snapshot.size;
-            }
-
-
-            totalPostulaciones.textContent =
-                total;
-
-
-        } catch (error) {
-
-            console.error(
-                "Error calculando postulaciones:",
-                error
+            alert(
+                "No tenés permiso para modificar esta postulación."
             );
 
-            totalPostulaciones.textContent =
-                "—";
+            return;
         }
-    }
 
 
-    /*
-     * ---------------------------------------------------------
-     * CERRAR MODAL
-     * ---------------------------------------------------------
-     */
+        await updateDoc(
+            doc(
+                db,
+                "postulaciones",
+                postulacion.id
+            ),
+            {
+                estado:
+                    nuevoEstado,
 
-    function cerrarModal() {
+                fechaActualizacion:
+                    serverTimestamp()
+            }
+        );
 
-        modal.classList.remove(
-            "show"
+
+        /*
+         * Avisamos al postulante.
+         */
+
+        if(
+            postulacion.postulanteUid &&
+            postulacion.postulanteUid !==
+            usuarioActual.uid
+        ){
+
+            await addDoc(
+                collection(
+                    db,
+                    "notificaciones"
+                ),
+                {
+
+                    receptorUid:
+                        postulacion.postulanteUid,
+
+                    emisorUid:
+                        usuarioActual.uid,
+
+                    tipo:
+                        "estado_postulacion",
+
+                    titulo:
+                        "Actualización de postulación",
+
+                    mensaje:
+                        "La empresa actualizó el estado de tu postulación.",
+
+                    leida:
+                        false,
+
+                    referenciaId:
+                        postulacion.empleoId,
+
+                    url:
+                        "ver-empleo.html?id=" +
+                        encodeURIComponent(
+                            postulacion.empleoId
+                        ),
+
+                    fecha:
+                        serverTimestamp(),
+
+                    fechaCliente:
+                        Date.now()
+
+                }
+            );
+        }
+
+
+        mostrarToast(
+            "Estado de la postulación actualizado."
+        );
+
+
+        /*
+         * Recargamos el modal para reflejar
+         * inmediatamente el nuevo estado.
+         */
+
+        const empleoActual =
+            empleosActuales.find(
+                empleo =>
+                    empleo.id ===
+                    postulacion.empleoId
+            );
+
+
+        if(
+            empleoActual
+        ){
+
+            await abrirPostulaciones(
+                empleoActual
+            );
+        }
+
+
+        cargarEstadisticasPostulaciones();
+
+
+    }catch(error){
+
+        console.error(
+            "Error actualizando postulación:",
+            error
+        );
+
+        alert(
+            "No se pudo actualizar el estado."
         );
     }
+}
 
 
-    btnCerrarModal.addEventListener(
-        "click",
-        cerrarModal
+/* =========================================================
+   CERRAR MODAL
+========================================================= */
+
+function cerrarModal(){
+
+    modal.classList.remove(
+        "show"
     );
+}
 
 
-    modal.addEventListener(
-        "click",
-        event => {
+btnCerrarModal.addEventListener(
+    "click",
+    cerrarModal
+);
 
-            if (
-                event.target === modal
-            ) {
-                cerrarModal();
-            }
+
+modal.addEventListener(
+    "click",
+    event => {
+
+        if(
+            event.target ===
+            modal
+        ){
+
+            cerrarModal();
         }
-    );
+    }
+);
 
 
-    /*
-     * ---------------------------------------------------------
-     * NAVEGACIÓN
-     * ---------------------------------------------------------
-     */
+/* =========================================================
+   NAVEGACIÓN
+========================================================= */
 
-    btnPublicar.addEventListener(
-        "click",
-        () => {
+btnPublicar.addEventListener(
+    "click",
+    () => {
 
-            window.location.href =
-                "publicar-empleo.html";
+        window.location.href =
+            "publicar-empleo.html";
+    }
+);
+
+
+btnActualizar.addEventListener(
+    "click",
+    () => {
+
+        cargarEmpleos();
+    }
+);
+
+
+btnVolver.addEventListener(
+    "click",
+    () => {
+
+        window.location.href =
+            "red-empleo.html";
+    }
+);
+
+
+/* =========================================================
+   ESC
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if(
+            event.key ===
+            "Escape"
+        ){
+
+            cerrarModal();
         }
-    );
-
-
-    btnActualizar.addEventListener(
-        "click",
-        () => {
-
-            cargarEmpleos();
-        }
-    );
-
-
-    btnVolver.addEventListener(
-        "click",
-        () => {
-
-            window.location.href =
-                "red-empleo.html";
-        }
-    );
-
-
-    /*
-     * ESC
-     */
-
-    document.addEventListener(
-        "keydown",
-        event => {
-
-            if (
-                event.key === "Escape"
-            ) {
-                cerrarModal();
-            }
-        }
-    );
+    }
+);
 
 </script>
 
