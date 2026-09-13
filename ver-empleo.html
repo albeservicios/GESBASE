@@ -731,9 +731,6 @@
         doc,
         getDoc,
         collection,
-        query,
-        where,
-        getDocs,
         setDoc,
         serverTimestamp,
         addDoc
@@ -741,9 +738,9 @@
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * ELEMENTOS
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     const cargando =
@@ -814,9 +811,9 @@
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * VARIABLES
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     let usuarioActual = null;
@@ -824,9 +821,9 @@
 
 
     /*
-     * ---------------------------------------------------------
-     * OBTENER ID DE URL
-     * ---------------------------------------------------------
+     * =========================================================
+     * ID DEL EMPLEO
+     * =========================================================
      */
 
     const parametros =
@@ -839,9 +836,9 @@
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * AUTENTICACIÓN
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     onAuthStateChanged(
@@ -859,6 +856,7 @@
             usuarioActual =
                 usuario;
 
+
             if (!empleoId) {
 
                 mostrarError(
@@ -868,15 +866,17 @@
                 return;
             }
 
+
             await cargarEmpleo();
+
         }
     );
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * CARGAR EMPLEO
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     async function cargarEmpleo() {
@@ -926,14 +926,15 @@
             mostrarError(
                 "No se pudo cargar el empleo."
             );
+
         }
     }
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * MOSTRAR EMPLEO
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     function mostrarEmpleo() {
@@ -959,12 +960,19 @@
             "";
 
 
+        /*
+         * EMPLEO DESTACADO
+         */
+
         if (
-            empleoActual.tipo === "destacado"
+            empleoActual.tipo ===
+            "destacado"
         ) {
 
             const destacado =
-                document.createElement("span");
+                document.createElement(
+                    "span"
+                );
 
             destacado.className =
                 "featured";
@@ -978,14 +986,21 @@
         }
 
 
+        /*
+         * ESTADO
+         */
+
         const estado =
-            document.createElement("span");
+            document.createElement(
+                "span"
+            );
 
         estado.className =
             "status";
 
         estado.textContent =
-            empleoActual.estado === "activo"
+            empleoActual.estado ===
+            "activo"
                 ? "● Activo"
                 : "● Inactivo";
 
@@ -993,6 +1008,10 @@
             estado
         );
 
+
+        /*
+         * UBICACIÓN
+         */
 
         const localidad =
             empleoActual.ciudad ||
@@ -1003,9 +1022,12 @@
             "";
 
         const ubicacionTexto =
-            [localidad, provincia]
-                .filter(Boolean)
-                .join(", ");
+            [
+                localidad,
+                provincia
+            ]
+            .filter(Boolean)
+            .join(", ");
 
 
         ubicacion.textContent =
@@ -1013,12 +1035,22 @@
             "No especificada";
 
 
+        /*
+         * MODALIDAD
+         */
+
         modalidad.textContent =
             empleoActual.modalidad ||
             "No especificada";
 
 
-        if (empleoActual.sueldo) {
+        /*
+         * SUELDO
+         */
+
+        if (
+            empleoActual.sueldo
+        ) {
 
             sueldo.textContent =
                 empleoActual.sueldo;
@@ -1033,16 +1065,29 @@
         }
 
 
+        /*
+         * ESTADO
+         */
+
         estadoEmpleo.textContent =
-            empleoActual.estado === "activo"
+            empleoActual.estado ===
+            "activo"
                 ? "Activo"
                 : "Inactivo";
 
+
+        /*
+         * DESCRIPCIÓN
+         */
 
         descripcion.textContent =
             empleoActual.descripcion ||
             "No se agregó una descripción para este empleo.";
 
+
+        /*
+         * FECHA
+         */
 
         fecha.textContent =
             "Publicado: " +
@@ -1052,8 +1097,7 @@
 
 
         /*
-         * Si el empleo pertenece al usuario actual,
-         * no tiene sentido mostrarle "Postularme".
+         * BOTÓN DE POSTULACIÓN
          */
 
         if (
@@ -1075,7 +1119,8 @@
                 "default";
 
         } else if (
-            empleoActual.estado !== "activo"
+            empleoActual.estado !==
+            "activo"
         ) {
 
             btnPostular.textContent =
@@ -1097,14 +1142,114 @@
 
             btnPostular.disabled =
                 false;
+
+            btnPostular.style.opacity =
+                "1";
+
+            btnPostular.style.cursor =
+                "pointer";
         }
     }
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
+     * OBTENER NOMBRE DEL USUARIO
+     * =========================================================
+     */
+
+    async function obtenerNombreUsuario() {
+
+        /*
+         * Primero intentamos obtenerlo desde
+         * usuariosRed/{uid}
+         */
+
+        try {
+
+            const referencia =
+                doc(
+                    db,
+                    "usuariosRed",
+                    usuarioActual.uid
+                );
+
+
+            const snapshot =
+                await getDoc(
+                    referencia
+                );
+
+
+            if (
+                snapshot.exists()
+            ) {
+
+                const datos =
+                    snapshot.data();
+
+
+                const nombre =
+                    datos.nombreCompleto ||
+                    datos.nombre ||
+                    datos.displayName ||
+                    "";
+
+
+                if (
+                    nombre.trim()
+                ) {
+
+                    return nombre.trim();
+                }
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "No se pudo obtener nombre desde usuariosRed:",
+                error
+            );
+        }
+
+
+        /*
+         * Después usamos displayName
+         */
+
+        if (
+            usuarioActual.displayName
+        ) {
+
+            return usuarioActual
+                .displayName
+                .trim();
+        }
+
+
+        /*
+         * Último recurso:
+         * parte anterior al @ del email
+         */
+
+        if (
+            usuarioActual.email
+        ) {
+
+            return usuarioActual
+                .email
+                .split("@")[0];
+        }
+
+
+        return "Postulante";
+    }
+
+
+    /*
+     * =========================================================
      * FECHA
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     function formatearFecha(
@@ -1145,7 +1290,8 @@
 
                 fechaReal =
                     new Date(
-                        empleo.fecha.seconds * 1000
+                        empleo.fecha.seconds *
+                        1000
                     );
             }
         }
@@ -1174,9 +1320,9 @@
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * ERROR
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     function mostrarError(
@@ -1198,9 +1344,9 @@
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * ABRIR MODAL
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     btnPostular.addEventListener(
@@ -1214,12 +1360,14 @@
                 return;
             }
 
+
             if (
                 empleoActual.uid ===
                 usuarioActual.uid
             ) {
                 return;
             }
+
 
             if (
                 empleoActual.estado !==
@@ -1228,19 +1376,22 @@
                 return;
             }
 
+
             modal.classList.add(
                 "show"
             );
 
+
             telefono.focus();
+
         }
     );
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * CERRAR MODAL
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     function cerrarModal() {
@@ -1270,6 +1421,7 @@
             if (
                 event.target === modal
             ) {
+
                 cerrarModal();
             }
         }
@@ -1277,9 +1429,9 @@
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * ENVIAR POSTULACIÓN
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     formPostulacion.addEventListener(
@@ -1297,14 +1449,47 @@
             }
 
 
+            /*
+             * SEGURIDAD BÁSICA
+             */
+
+            if (
+                empleoActual.uid ===
+                usuarioActual.uid
+            ) {
+
+                alert(
+                    "No podés postularte a tu propia publicación."
+                );
+
+                return;
+            }
+
+
+            if (
+                empleoActual.estado !==
+                "activo"
+            ) {
+
+                alert(
+                    "Esta publicación ya no acepta postulaciones."
+                );
+
+                return;
+            }
+
+
             const telefonoValor =
                 telefono.value.trim();
+
 
             const mensajeValor =
                 mensaje.value.trim();
 
 
-            if (!telefonoValor) {
+            if (
+                !telefonoValor
+            ) {
 
                 alert(
                     "Ingresá tu teléfono o WhatsApp."
@@ -1326,13 +1511,22 @@
             try {
 
                 /*
-                 * Usamos un ID determinístico:
+                 * =================================================
+                 * NOMBRE DEL POSTULANTE
+                 * =================================================
+                 */
+
+                const postulanteNombre =
+                    await obtenerNombreUsuario();
+
+
+                /*
+                 * =================================================
+                 * ID DETERMINÍSTICO
                  *
-                 * empleoId + uid
-                 *
-                 * De esta manera no necesitamos
-                 * una consulta compuesta para saber
-                 * si ya se postuló.
+                 * Un usuario solo puede tener una postulación
+                 * por empleo.
+                 * =================================================
                  */
 
                 const postulacionId =
@@ -1348,6 +1542,10 @@
                         postulacionId
                     );
 
+
+                /*
+                 * Verificar si ya existe
+                 */
 
                 const existente =
                     await getDoc(
@@ -1369,9 +1567,20 @@
                 }
 
 
+                /*
+                 * =================================================
+                 * CREAR POSTULACIÓN
+                 * =================================================
+                 */
+
                 await setDoc(
                     postulacionRef,
                     {
+
+                        /*
+                         * Empleo
+                         */
+
                         empleoId:
                             empleoActual.id,
 
@@ -1383,33 +1592,79 @@
                             empleoActual.empresa ||
                             "",
 
+
+                        /*
+                         * Responsable del empleo
+                         */
+
+                        empleadorUid:
+                            empleoActual.uid ||
+                            "",
+
+
+                        /*
+                         * Postulante
+                         */
+
                         postulanteUid:
                             usuarioActual.uid,
+
+                        postulanteNombre:
+                            postulanteNombre,
 
                         postulanteEmail:
                             usuarioActual.email ||
                             "",
 
+
+                        /*
+                         * Contacto
+                         */
+
                         telefono:
                             telefonoValor,
+
+
+                        /*
+                         * Mensaje
+                         */
 
                         mensaje:
                             mensajeValor,
 
+
+                        /*
+                         * Estado
+                         */
+
                         estado:
                             "pendiente",
+
+
+                        /*
+                         * Fechas
+                         */
 
                         fecha:
                             serverTimestamp(),
 
                         fechaCliente:
+                            Date.now(),
+
+                        fechaActualizacion:
+                            serverTimestamp(),
+
+                        fechaActualizacionCliente:
                             Date.now()
+
                     }
                 );
 
 
                 /*
-                 * Crear notificación para el responsable
+                 * =================================================
+                 * NOTIFICACIÓN AL EMPLEADOR
+                 * =================================================
                  */
 
                 if (
@@ -1424,6 +1679,7 @@
                             "notificaciones"
                         ),
                         {
+
                             receptorUid:
                                 empleoActual.uid,
 
@@ -1437,10 +1693,11 @@
                                 "Nueva postulación",
 
                             mensaje:
-                                "Recibiste una nueva postulación para " +
+                                postulanteNombre +
+                                " se postuló a tu empleo: " +
                                 (
                                     empleoActual.puesto ||
-                                    "tu empleo"
+                                    "Nueva oferta laboral"
                                 ),
 
                             leida:
@@ -1448,6 +1705,9 @@
 
                             referenciaId:
                                 empleoActual.id,
+
+                            postulacionId:
+                                postulacionId,
 
                             url:
                                 "mis-empleos.html",
@@ -1457,10 +1717,15 @@
 
                             fechaCliente:
                                 Date.now()
+
                         }
                     );
                 }
 
+
+                /*
+                 * ÉXITO
+                 */
 
                 alert(
                     "¡Postulación enviada correctamente!"
@@ -1479,6 +1744,7 @@
                     error
                 );
 
+
                 alert(
                     "No se pudo enviar la postulación. Intentá nuevamente."
                 );
@@ -1491,14 +1757,15 @@
                 btnEnviar.textContent =
                     "Enviar postulación";
             }
+
         }
     );
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * NAVEGACIÓN
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     btnVolver.addEventListener(
@@ -1522,9 +1789,9 @@
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * ESC PARA CERRAR
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     document.addEventListener(
@@ -1534,6 +1801,7 @@
             if (
                 event.key === "Escape"
             ) {
+
                 cerrarModal();
             }
         }
