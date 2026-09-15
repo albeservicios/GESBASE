@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+
+<title>GESBASE - Registrar empleado</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.app{
+    width:100%;
+    max-width:850px;
+    margin:auto;
+    min-height:100vh;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:#fff;
+    padding:24px 20px;
+}
+
+header h1{
+    font-size:26px;
+}
+
+header p{
+    margin-top:6px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+.tarjeta{
+    background:#fff;
+    border:1px solid #d1d5db;
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:18px;
+}
+
+.titulo{
+    font-size:21px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.descripcion{
+    color:#6b7280;
+    font-size:14px;
+    line-height:1.5;
+    margin-bottom:20px;
+}
+
+.formulario{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.campo{
+    margin-bottom:2px;
+}
+
+.campo-completo{
+    grid-column:1 / -1;
+}
+
+.campo label{
+    display:block;
+    font-size:13px;
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+.campo input,
+.campo select{
+    width:100%;
+    padding:13px;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    font-size:15px;
+    background:#fff;
+    color:#111827;
+}
+
+.campo input:focus,
+.campo select:focus{
+    outline:none;
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+
+.seccion-chofer{
+    display:none;
+    margin-top:20px;
+    padding:18px;
+    border-radius:12px;
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+}
+
+.seccion-chofer h3{
+    color:#1e40af;
+    margin-bottom:6px;
+}
+
+.seccion-chofer p{
+    color:#1e40af;
+    font-size:13px;
+    line-height:1.5;
+    margin-bottom:16px;
+}
+
+.alerta{
+    display:none;
+    padding:13px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.exito{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.info{
+    background:#eff6ff;
+    color:#1e40af;
+}
+
+.botones{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:20px;
+}
+
+.boton{
+    border:none;
+    border-radius:10px;
+    padding:14px 18px;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.boton-principal{
+    background:#111827;
+    color:#fff;
+}
+
+.boton-principal:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+.boton-volver{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.nota{
+    margin-top:18px;
+    padding:13px;
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:9px;
+    color:#6b7280;
+    font-size:12px;
+    line-height:1.5;
+}
+
+.cargando{
+    text-align:center;
+    padding:25px;
+    color:#6b7280;
+}
+
+@media(max-width:700px){
+
+    main{
+        padding:14px;
+    }
+
+    .formulario{
+        grid-template-columns:1fr;
+    }
+
+    .campo-completo{
+        grid-column:auto;
+    }
+
+    .botones{
+        flex-direction:column;
+    }
+
+    .boton{
+        width:100%;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+
+<h1>GESBASE</h1>
+
+<p>
+Administración · Registro de empleados
+</p>
+
+</header>
+
+<main>
+
+<div id="mensaje" class="alerta"></div>
+
+<div class="tarjeta">
+
+<div class="titulo">
+👤 Registrar empleado
+</div>
+
+<div class="descripcion">
+Completá los datos del empleado. Si seleccionás
+<strong>Chofer</strong>, podrás asignarle una unidad
+de la flota de la empresa.
+</div>
+
+
+<div class="formulario">
+
+
+<div class="campo">
+
+<label for="nombre">
+Nombre *
+</label>
+
+<input
+type="text"
+id="nombre"
+placeholder="Nombre"
+autocomplete="given-name"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="apellido">
+Apellido *
+</label>
+
+<input
+type="text"
+id="apellido"
+placeholder="Apellido"
+autocomplete="family-name"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="dni">
+DNI
+</label>
+
+<input
+type="text"
+id="dni"
+placeholder="DNI"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="telefono">
+Teléfono
+</label>
+
+<input
+type="tel"
+id="telefono"
+placeholder="Teléfono"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="email">
+Email
+</label>
+
+<input
+type="email"
+id="email"
+placeholder="empleado@correo.com"
+autocomplete="email"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="puesto">
+Puesto
+</label>
+
+<input
+type="text"
+id="puesto"
+placeholder="Ej.: Operario, Administrativo..."
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="tipoEmpleado">
+Tipo de empleado *
+</label>
+
+<select id="tipoEmpleado">
+
+<option value="">
+Seleccionar
+</option>
+
+<option value="empleado">
+👷 Empleado
+</option>
+
+<option value="chofer">
+🚛 Chofer
+</option>
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label for="estado">
+Estado *
+</label>
+
+<select id="estado">
+
+<option value="activo">
+Activo
+</option>
+
+<option value="inactivo">
+Inactivo
+</option>
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label for="pagoDiario">
+Pago diario
+</label>
+
+<input
+type="number"
+id="pagoDiario"
+min="0"
+step="0.01"
+placeholder="0"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="adicionales">
+Adicionales
+</label>
+
+<input
+type="number"
+id="adicionales"
+min="0"
+step="0.01"
+value="0"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="descuentos">
+Descuentos
+</label>
+
+<input
+type="number"
+id="descuentos"
+min="0"
+step="0.01"
+value="0"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="fechaIngreso">
+Fecha de ingreso
+</label>
+
+<input
+type="date"
+id="fechaIngreso"
+>
+
+</div>
+
+</div>
+
+
+<!-- =========================================
+     DATOS DEL CHOFER
+========================================= -->
+
+<div
+id="seccionChofer"
+class="seccion-chofer"
+>
+
+<h3>
+🚛 Datos del chofer
+</h3>
+
+<p>
+Esta información permitirá relacionar al chofer
+con una unidad de la flota y posteriormente utilizar
+el modo chofer y el GPS.
+</p>
+
+
+<div class="formulario">
+
+
+<div class="campo">
+
+<label for="unidadId">
+Unidad asignada
+</label>
+
+<select id="unidadId">
+
+<option value="">
+Sin unidad asignada
+</option>
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label for="licencia">
+Número de licencia
+</label>
+
+<input
+type="text"
+id="licencia"
+placeholder="Número de licencia"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="categoriaLicencia">
+Categoría
+</label>
+
+<input
+type="text"
+id="categoriaLicencia"
+placeholder="Ej.: C, D1, D2..."
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="vencimientoLicencia">
+Vencimiento de licencia
+</label>
+
+<input
+type="date"
+id="vencimientoLicencia"
+>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="botones">
+
+<button
+type="button"
+id="btnGuardar"
+class="boton boton-principal"
+>
+💾 REGISTRAR EMPLEADO
+</button>
+
+<button
+type="button"
+id="btnVolver"
+class="boton boton-volver"
+>
+⬅️ VOLVER
+</button>
+
+</div>
+
+
+<div class="nota">
+
+<strong>Importante:</strong><br>
+
+El registro crea la ficha laboral del empleado dentro
+de la empresa. El acceso mediante Firebase Auth se
+vinculará posteriormente sin cerrar la sesión del
+administrador.
+
+</div>
+
+</div>
+
+</main>
+
+</div>
+
+
+<script type="module">
+
+/*
+=========================================================
+ GESBASE - REGISTRO DE EMPLEADOS
+=========================================================
+*/
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+import {
+    collection,
+    getDocs,
+    query,
+    where,
+    addDoc,
+    doc,
+    getDoc,
+    updateDoc,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+
+/* =========================================
+   ELEMENTOS
+========================================= */
+
+const mensaje =
+document.getElementById("mensaje");
+
+const nombre =
+document.getElementById("nombre");
+
+const apellido =
+document.getElementById("apellido");
+
+const dni =
+document.getElementById("dni");
+
+const telefono =
+document.getElementById("telefono");
+
+const email =
+document.getElementById("email");
+
+const puesto =
+document.getElementById("puesto");
+
+const tipoEmpleado =
+document.getElementById("tipoEmpleado");
+
+const estado =
+document.getElementById("estado");
+
+const pagoDiario =
+document.getElementById("pagoDiario");
+
+const adicionales =
+document.getElementById("adicionales");
+
+const descuentos =
+document.getElementById("descuentos");
+
+const fechaIngreso =
+document.getElementById("fechaIngreso");
+
+const seccionChofer =
+document.getElementById("seccionChofer");
+
+const unidadId =
+document.getElementById("unidadId");
+
+const licencia =
+document.getElementById("licencia");
+
+const categoriaLicencia =
+document.getElementById("categoriaLicencia");
+
+const vencimientoLicencia =
+document.getElementById("vencimientoLicencia");
+
+const btnGuardar =
+document.getElementById("btnGuardar");
+
+const btnVolver =
+document.getElementById("btnVolver");
+
+
+/* =========================================
+   VARIABLES
+========================================= */
+
+let usuarioActual = null;
+
+let empresaActualId = "";
+
+let empresaActual = null;
+
+let unidadesDisponibles = [];
+
+
+/* =========================================
+   UTILIDADES
+========================================= */
+
+function texto(valor){
+
+    if(
+        valor === undefined ||
+        valor === null
+    ){
+
+        return "";
+
+    }
+
+    return String(valor).trim();
+
+}
+
+
+function numero(valor){
+
+    const n =
+    Number(valor);
+
+    return Number.isFinite(n)
+        ? n
+        : 0;
+
+}
+
+
+function mostrarMensaje(
+    textoMensaje,
+    tipo
+){
+
+    mensaje.textContent =
+    textoMensaje;
+
+    mensaje.className =
+    "alerta " + tipo;
+
+    mensaje.style.display =
+    "block";
+
+}
+
+
+function ocultarMensaje(){
+
+    mensaje.style.display =
+    "none";
+
+    mensaje.textContent =
+    "";
+
+}
+
+
+/* =========================================
+   FECHA
+========================================= */
+
+function fechaHoy(){
+
+    const fecha =
+    new Date();
+
+    const yyyy =
+    fecha.getFullYear();
+
+    const mm =
+    String(
+        fecha.getMonth()+1
+    ).padStart(2,"0");
+
+    const dd =
+    String(
+        fecha.getDate()
+    ).padStart(2,"0");
+
+    return (
+        yyyy +
+        "-" +
+        mm +
+        "-" +
+        dd
+    );
+
+}
+
+
+fechaIngreso.value =
+fechaHoy();
+
+
+/* =========================================
+   MOSTRAR DATOS DE CHOFER
+========================================= */
+
+tipoEmpleado.addEventListener(
+    "change",
+    function(){
+
+        if(
+            tipoEmpleado.value ===
+            "chofer"
+        ){
+
+            seccionChofer.style.display =
+            "block";
+
+            puesto.value =
+            "Chofer";
+
+        }
+        else{
+
+            seccionChofer.style.display =
+            "none";
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   OBTENER EMPRESA
+========================================= */
+
+async function obtenerEmpresa(){
+
+    if(!usuarioActual){
+
+        throw new Error(
+            "No existe una sesión activa."
+        );
+
+    }
+
+
+    /*
+     * Primero buscamos el perfil del usuario.
+     */
+
+    const referenciaUsuario =
+    doc(
+        db,
+        "usuarios",
+        usuarioActual.uid
+    );
+
+
+    const resultadoUsuario =
+    await getDoc(
+        referenciaUsuario
+    );
+
+
+    if(resultadoUsuario.exists()){
+
+        const datosUsuario =
+        resultadoUsuario.data();
+
+
+        const posibleEmpresa =
+        texto(
+            datosUsuario.empresaId ||
+            datosUsuario.idEmpresa ||
+            datosUsuario.empresa
+        );
+
+
+        if(posibleEmpresa){
+
+            empresaActualId =
+            posibleEmpresa;
+
+        }
+
+    }
+
+
+    /*
+     * Si no encontramos empresa en usuarios,
+     * buscamos propietarioUid en empresas.
+     */
+
+    if(!empresaActualId){
+
+        const referenciaEmpresas =
+        collection(
+            db,
+            "empresas"
+        );
+
+
+        const consulta =
+        query(
+            referenciaEmpresas,
+            where(
+                "propietarioUid",
+                "==",
+                usuarioActual.uid
+            )
+        );
+
+
+        const resultado =
+        await getDocs(
+            consulta
+        );
+
+
+        if(!resultado.empty){
+
+            const documento =
+            resultado.docs[0];
+
+
+            empresaActualId =
+            documento.id;
+
+        }
+
+    }
+
+
+    if(!empresaActualId){
+
+        throw new Error(
+            "No se encontró una empresa asociada a esta cuenta."
+        );
+
+    }
+
+
+    /*
+     * Cargar empresa.
+     */
+
+    const referenciaEmpresa =
+    doc(
+        db,
+        "empresas",
+        empresaActualId
+    );
+
+
+    const resultadoEmpresa =
+    await getDoc(
+        referenciaEmpresa
+    );
+
+
+    if(!resultadoEmpresa.exists()){
+
+        throw new Error(
+            "La empresa no existe."
+        );
+
+    }
+
+
+    empresaActual =
+    resultadoEmpresa.data();
+
+
+    /*
+     * Control de acceso.
+     */
+
+    const rol =
+    texto(
+        (
+            resultadoUsuario.exists()
+                ? resultadoUsuario.data().rol
+                : ""
+        )
+    ).toLowerCase();
+
+
+    const esAdmin =
+    usuarioActual.email ===
+    "julianbattauz006@gmail.com"
+    ||
+    rol === "admin"
+    ||
+    rol === "administrador";
+
+
+    if(!esAdmin){
+
+        throw new Error(
+            "Solo un administrador puede registrar empleados."
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   CARGAR UNIDADES
+========================================= */
+
+async function cargarUnidades(){
+
+    unidadesDisponibles = [];
+
+    unidadId.innerHTML =
+    `
+    <option value="">
+        Sin unidad asignada
+    </option>
+    `;
+
+
+    const referencia =
+    collection(
+        db,
+        "unidades"
+    );
+
+
+    const consulta =
+    query(
+        referencia,
+        where(
+            "empresaId",
+            "==",
+            empresaActualId
+        )
+    );
+
+
+    const resultado =
+    await getDocs(
+        consulta
+    );
+
+
+    resultado.forEach(
+        documento => {
+
+            const unidad = {
+
+                id:
+                documento.id,
+
+                ...documento.data()
+
+            };
+
+
+            /*
+             * Solo mostramos unidades que no tengan
+             * un chofer asignado.
+             */
+
+            const tieneChofer =
+            texto(
+                unidad.choferId
+            );
+
+
+            if(!tieneChofer){
+
+                unidadesDisponibles.push(
+                    unidad
+                );
+
+            }
+
+        }
+    );
+
+
+    unidadesDisponibles.sort(
+        (a,b) => {
+
+            return texto(
+                a.patente
+            ).localeCompare(
+                texto(b.patente)
+            );
+
+        }
+    );
+
+
+    unidadesDisponibles.forEach(
+        unidad => {
+
+            const option =
+            document.createElement(
+                "option"
+            );
+
+
+            option.value =
+            unidad.id;
+
+
+            const patente =
+            texto(
+                unidad.patente
+            )
+            ||
+            "Sin patente";
+
+
+            const tipo =
+            texto(
+                unidad.tipo
+            );
+
+
+            const marca =
+            texto(
+                unidad.marca
+            );
+
+
+            option.textContent =
+            patente +
+            (
+                tipo
+                    ? " · " + tipo
+                    : ""
+            ) +
+            (
+                marca
+                    ? " · " + marca
+                    : ""
+            );
+
+
+            unidadId.appendChild(
+                option
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================
+   VALIDAR
+========================================= */
+
+function validar(){
+
+    if(
+        !texto(nombre.value)
+    ){
+
+        throw new Error(
+            "Ingresá el nombre del empleado."
+        );
+
+    }
+
+
+    if(
+        !texto(apellido.value)
+    ){
+
+        throw new Error(
+            "Ingresá el apellido del empleado."
+        );
+
+    }
+
+
+    if(
+        !tipoEmpleado.value
+    ){
+
+        throw new Error(
+            "Seleccioná el tipo de empleado."
+        );
+
+    }
+
+
+    if(
+        tipoEmpleado.value ===
+        "chofer"
+        &&
+        !texto(puesto.value)
+    ){
+
+        puesto.value =
+        "Chofer";
+
+    }
+
+}
+
+
+/* =========================================
+   REGISTRAR EMPLEADO
+========================================= */
+
+async function registrarEmpleado(){
+
+    ocultarMensaje();
+
+
+    try{
+
+        validar();
+
+
+        btnGuardar.disabled =
+        true;
+
+        btnGuardar.textContent =
+        "REGISTRANDO...";
+
+
+        const esChofer =
+        tipoEmpleado.value ===
+        "chofer";
+
+
+        /*
+         * Datos principales del empleado.
+         */
+
+        const datosEmpleado = {
+
+            empresaId:
+            empresaActualId,
+
+            nombre:
+            texto(nombre.value),
+
+            apellido:
+            texto(apellido.value),
+
+            dni:
+            texto(dni.value),
+
+            telefono:
+            texto(telefono.value),
+
+            email:
+            texto(email.value)
+            .toLowerCase(),
+
+            puesto:
+            texto(puesto.value),
+
+            tipoEmpleado:
+            tipoEmpleado.value,
+
+            estado:
+            estado.value,
+
+            pagoDiario:
+            numero(pagoDiario.value),
+
+            adicionales:
+            numero(adicionales.value),
+
+            descuentos:
+            numero(descuentos.value),
+
+            fechaIngreso:
+            texto(fechaIngreso.value),
+
+            authUid:
+            "",
+
+            usuarioId:
+            "",
+
+            creadoPor:
+            usuarioActual.uid,
+
+            creadoEn:
+            serverTimestamp(),
+
+            actualizadoEn:
+            serverTimestamp()
+
+        };
+
+
+        /*
+         * Crear empleado.
+         */
+
+        const referenciaEmpleado =
+        await addDoc(
+            collection(
+                db,
+                "empleados"
+            ),
+            datosEmpleado
+        );
+
+
+        /*
+         * Si es chofer, crear su registro
+         * en la colección choferes.
+         */
+
+        if(esChofer){
+
+            const unidadSeleccionada =
+            texto(
+                unidadId.value
+            );
+
+
+            const datosChofer = {
+
+                empresaId:
+                empresaActualId,
+
+                empleadoId:
+                referenciaEmpleado.id,
+
+                usuarioId:
+                "",
+
+                unidadId:
+                unidadSeleccionada,
+
+                licencia:
+                texto(licencia.value),
+
+                categoriaLicencia:
+                texto(categoriaLicencia.value),
+
+                vencimientoLicencia:
+                texto(vencimientoLicencia.value),
+
+                estado:
+                "activo",
+
+                creadoPor:
+                usuarioActual.uid,
+
+                creadoEn:
+                serverTimestamp(),
+
+                actualizadoEn:
+                serverTimestamp()
+
+            };
+
+
+            const referenciaChofer =
+            await addDoc(
+                collection(
+                    db,
+                    "choferes"
+                ),
+                datosChofer
+            );
+
+
+            /*
+             * Si hay unidad asignada,
+             * actualizarla inmediatamente.
+             */
+
+            if(unidadSeleccionada){
+
+                const referenciaUnidad =
+                doc(
+                    db,
+                    "unidades",
+                    unidadSeleccionada
+                );
+
+
+                await updateDoc(
+                    referenciaUnidad,
+                    {
+
+                        choferId:
+                        referenciaChofer.id,
+
+                        choferUsuarioId:
+                        "",
+
+                        choferNombre:
+                        (
+                            texto(nombre.value) +
+                            " " +
+                            texto(apellido.value)
+                        ).trim(),
+
+                        actualizadoEn:
+                        serverTimestamp()
+
+                    }
+                );
+
+            }
+
+        }
+
+
+        mostrarMensaje(
+            esChofer
+                ? "Chofer registrado correctamente y vinculado con su unidad."
+                : "Empleado registrado correctamente.",
+            "exito"
+        );
+
+
+        /*
+         * Limpiar formulario.
+         */
+
+        nombre.value = "";
+        apellido.value = "";
+        dni.value = "";
+        telefono.value = "";
+        email.value = "";
+        puesto.value = "";
+        tipoEmpleado.value = "";
+        estado.value = "activo";
+        pagoDiario.value = "";
+        adicionales.value = "0";
+        descuentos.value = "0";
+        fechaIngreso.value = fechaHoy();
+
+        unidadId.value = "";
+        licencia.value = "";
+        categoriaLicencia.value = "";
+        vencimientoLicencia.value = "";
+
+        seccionChofer.style.display =
+        "none";
+
+
+        /*
+         * Recargar unidades disponibles.
+         */
+
+        await cargarUnidades();
+
+    }
+    catch(error){
+
+        console.error(
+            "GESBASE - Error registrando empleado:",
+            error
+        );
+
+
+        mostrarMensaje(
+            error.message ||
+            "No se pudo registrar el empleado.",
+            "error"
+        );
+
+    }
+    finally{
+
+        btnGuardar.disabled =
+        false;
+
+        btnGuardar.textContent =
+        "💾 REGISTRAR EMPLEADO";
+
+    }
+
+}
+
+
+/* =========================================
+   GUARDAR
+========================================= */
+
+btnGuardar.addEventListener(
+    "click",
+    registrarEmpleado
+);
+
+
+/* =========================================
+   VOLVER
+========================================= */
+
+btnVolver.addEventListener(
+    "click",
+    function(){
+
+        window.location.href =
+        "panel-administracion.html";
+
+    }
+);
+
+
+/* =========================================
+   AUTENTICACIÓN
+========================================= */
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+        usuario;
+
+
+        try{
+
+            mostrarMensaje(
+                "Verificando permisos y empresa...",
+                "info"
+            );
+
+
+            await obtenerEmpresa();
+
+
+            await cargarUnidades();
+
+
+            ocultarMensaje();
+
+
+            console.log(
+                "GESBASE - Registro de empleados listo.",
+                "Empresa:",
+                empresaActualId
+            );
+
+        }
+        catch(error){
+
+            console.error(
+                "GESBASE:",
+                error
+            );
+
+
+            mostrarMensaje(
+                error.message ||
+                "No se pudo cargar el registro.",
+                "error"
+            );
+
+
+            btnGuardar.disabled =
+            true;
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
