@@ -327,6 +327,24 @@ header {
     background: #dbeafe;
 }
 
+.boton-chofer {
+    background: #e0f2fe;
+    border: 1px solid #7dd3fc;
+}
+
+.boton-chofer:hover {
+    background: #bae6fd;
+}
+
+.boton-administracion {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+}
+
+.boton-administracion:hover {
+    background: #fde68a;
+}
+
 .boton-control {
     background: #fef3c7;
 }
@@ -911,13 +929,27 @@ footer {
                     🔧 Mantenimiento
                 </button>
 
+
+                <!-- =========================================
+                     MODO CHOFER
+                ========================================== -->
+
+                <button
+                    id="btnModoChofer"
+                    class="boton boton-chofer acceso-protegido"
+                    data-url="modo-chofer.html"
+                    style="display:none;"
+                >
+                    👨‍✈️ Modo chofer
+                </button>
+
             </div>
 
         </section>
 
 
         <!-- =================================================
-             GESTIÓN DE SERVICIOS
+             GESTIÓN DE PERSONAL
         ================================================== -->
 
         <section
@@ -929,6 +961,11 @@ footer {
                 👷 Gestión de personal
             </h3>
 
+            <p class="seccion-descripcion">
+                Administrá empleados, fichajes y
+                documentación del personal.
+            </p>
+
             <div class="menu-grid">
 
                 <button
@@ -937,6 +974,36 @@ footer {
                 >
                     👷 Empleados
                 </button>
+
+
+                <!-- =========================================
+                     ADMINISTRACIÓN DE EMPLEADOS
+                ========================================== -->
+
+                <button
+                    id="btnAdministracionEmpleados"
+                    class="boton boton-administracion acceso-protegido"
+                    data-url="registro-empleado.html"
+                    style="display:none;"
+                >
+                    ➕ Administración de empleados
+                </button>
+
+
+                <!-- =========================================
+                     MODO CHOFER
+                     También disponible desde personal
+                ========================================== -->
+
+                <button
+                    id="btnModoChoferPersonal"
+                    class="boton boton-chofer acceso-protegido"
+                    data-url="modo-chofer.html"
+                    style="display:none;"
+                >
+                    👨‍✈️ Modo chofer
+                </button>
+
 
                 <button
                     class="boton acceso-protegido"
@@ -1148,7 +1215,8 @@ import {
    CONFIGURACIÓN
 ========================================================= */
 
-const EMAIL_ADMIN = "julianbattauz006@gmail.com";
+const EMAIL_ADMIN =
+    "julianbattauz006@gmail.com";
 
 
 let accesoPermitido = false;
@@ -1218,6 +1286,17 @@ const seccionAtencion =
 const contadorNotificaciones =
     document.getElementById("contadorNotificaciones");
 
+const btnModoChofer =
+    document.getElementById("btnModoChofer");
+
+const btnModoChoferPersonal =
+    document.getElementById("btnModoChoferPersonal");
+
+const btnAdministracionEmpleados =
+    document.getElementById(
+        "btnAdministracionEmpleados"
+    );
+
 
 /* =========================================================
    NORMALIZAR RUBRO
@@ -1229,7 +1308,10 @@ function normalizarRubro(valor) {
         .toLowerCase()
         .trim()
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
+        .replace(
+            /[\u0300-\u036f]/g,
+            ""
+        );
 
 }
 
@@ -1240,7 +1322,9 @@ function normalizarRubro(valor) {
 
 function esRubroComercio(rubro) {
 
-    const r = normalizarRubro(rubro);
+    const r =
+        normalizarRubro(rubro);
+
 
     const rubrosComercio = [
 
@@ -1263,6 +1347,7 @@ function esRubroComercio(rubro) {
 
     ];
 
+
     return rubrosComercio.includes(r);
 
 }
@@ -1274,7 +1359,9 @@ function esRubroComercio(rubro) {
 
 function esRubroTransporte(rubro) {
 
-    const r = normalizarRubro(rubro);
+    const r =
+        normalizarRubro(rubro);
+
 
     const rubrosTransporte = [
 
@@ -1290,6 +1377,7 @@ function esRubroTransporte(rubro) {
         "flete"
 
     ];
+
 
     return rubrosTransporte.includes(r);
 
@@ -1313,22 +1401,38 @@ function configurarRubro(
        OCULTAR TODO PRIMERO
     ----------------------------------------- */
 
-    seccionServicios.style.display = "none";
+    seccionServicios.style.display =
+        "none";
 
-    seccionComercio.style.display = "none";
+    seccionComercio.style.display =
+        "none";
 
-    seccionTransporte.style.display = "none";
+    seccionTransporte.style.display =
+        "none";
 
-    seccionGestionServicios.style.display = "none";
+    seccionGestionServicios.style.display =
+        "none";
 
 
     /* -----------------------------------------
        TRANSPORTE
     ----------------------------------------- */
 
-    if (esRubroTransporte(r)) {
+    if (
+        esRubroTransporte(r)
+    ) {
 
-        seccionTransporte.style.display = "block";
+        seccionTransporte.style.display =
+            "block";
+
+
+        /*
+         * También mostramos gestión de personal
+         * para empresas de transporte.
+         */
+        seccionGestionServicios.style.display =
+            "block";
+
 
         mensajeRubro.textContent =
             "Gestioná unidades, viajes, paquetería, choferes y seguimiento desde GESBASE.";
@@ -1340,22 +1444,25 @@ function configurarRubro(
             );
 
 
-        botones.forEach(boton => {
+        botones.forEach(
+            boton => {
 
-            const modulo =
-                boton.dataset.modulo;
-
-            const habilitado =
-                modulos &&
-                modulos[modulo] === true;
+                const modulo =
+                    boton.dataset.modulo;
 
 
-            boton.style.display =
-                habilitado
-                    ? "block"
-                    : "none";
+                const habilitado =
+                    modulos &&
+                    modulos[modulo] === true;
 
-        });
+
+                boton.style.display =
+                    habilitado
+                        ? "block"
+                        : "none";
+
+            }
+        );
 
 
         return;
@@ -1367,10 +1474,21 @@ function configurarRubro(
        COMERCIO
     ----------------------------------------- */
 
-    if (esRubroComercio(r)) {
+    if (
+        esRubroComercio(r)
+    ) {
 
         seccionComercio.style.display =
             "block";
+
+
+        /*
+         * También permitimos gestión de personal
+         * para empresas comerciales.
+         */
+        seccionGestionServicios.style.display =
+            "block";
+
 
         mensajeRubro.textContent =
             "Gestioná productos, inventario, ventas, compras y proveedores desde GESBASE.";
@@ -1389,6 +1507,7 @@ function configurarRubro(
 
     seccionGestionServicios.style.display =
         "block";
+
 
     mensajeRubro.textContent =
         "Organizá presupuestos, trabajos, clientes, gastos y toda la gestión de tu empresa.";
@@ -1424,7 +1543,8 @@ async function comprobarAccesoEmpresa(
 
     if (!empresaId) {
 
-        empresaId = usuario.uid;
+        empresaId =
+            usuario.uid;
 
     }
 
@@ -1438,11 +1558,16 @@ async function comprobarAccesoEmpresa(
                 empresaId
             );
 
+
         const empresaSnap =
-            await getDoc(empresaRef);
+            await getDoc(
+                empresaRef
+            );
 
 
-        if (!empresaSnap.exists()) {
+        if (
+            !empresaSnap.exists()
+        ) {
 
             return false;
 
@@ -1468,6 +1593,7 @@ async function comprobarAccesoEmpresa(
             error
         );
 
+
         return false;
 
     }
@@ -1492,7 +1618,8 @@ async function obtenerEmpresa(
 
     if (!empresaId) {
 
-        empresaId = usuario.uid;
+        empresaId =
+            usuario.uid;
 
     }
 
@@ -1510,7 +1637,9 @@ async function obtenerEmpresa(
 
 
     const empresaSnap =
-        await getDoc(empresaRef);
+        await getDoc(
+            empresaRef
+        );
 
 
     if (
@@ -1520,12 +1649,250 @@ async function obtenerEmpresa(
         datosEmpresaActual =
             empresaSnap.data();
 
+
         return datosEmpresaActual;
 
     }
 
 
     return null;
+
+}
+
+
+/* =========================================================
+   COMPROBAR SI ES CHOFER
+========================================================= */
+
+async function comprobarSiEsChofer(
+    usuario,
+    empresaId,
+    rol
+) {
+
+    try {
+
+        /* -----------------------------------------
+           1. ROL DIRECTO
+        ----------------------------------------- */
+
+        const rolNormalizado =
+            String(
+                rol || ""
+            )
+            .toLowerCase()
+            .trim();
+
+
+        if (
+            rolNormalizado === "chofer" ||
+            rolNormalizado === "conductor"
+        ) {
+
+            return true;
+
+        }
+
+
+        /* -----------------------------------------
+           2. FICHA DE EMPLEADO
+        ----------------------------------------- */
+
+        const empleadosRef =
+            collection(
+                db,
+                "empleados"
+            );
+
+
+        const consultaEmpleado =
+            query(
+                empleadosRef,
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                ),
+                where(
+                    "authUid",
+                    "==",
+                    usuario.uid
+                )
+            );
+
+
+        const empleadosSnap =
+            await getDocs(
+                consultaEmpleado
+            );
+
+
+        for (
+            const empleadoDoc
+            of empleadosSnap.docs
+        ) {
+
+            const empleado =
+                empleadoDoc.data();
+
+
+            const tipoEmpleado =
+                String(
+                    empleado.tipoEmpleado ||
+                    empleado.tipo ||
+                    ""
+                )
+                .toLowerCase()
+                .trim();
+
+
+            if (
+                tipoEmpleado === "chofer" ||
+                tipoEmpleado === "conductor"
+            ) {
+
+                return true;
+
+            }
+
+        }
+
+
+        /* -----------------------------------------
+           3. COLECCIÓN CHOFERES
+        ----------------------------------------- */
+
+        const choferesRef =
+            collection(
+                db,
+                "choferes"
+            );
+
+
+        const consultaChofer =
+            query(
+                choferesRef,
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                ),
+                where(
+                    "usuarioId",
+                    "==",
+                    usuario.uid
+                )
+            );
+
+
+        const choferesSnap =
+            await getDocs(
+                consultaChofer
+            );
+
+
+        if (
+            !choferesSnap.empty
+        ) {
+
+            return true;
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Error comprobando chofer:",
+            error
+        );
+
+    }
+
+
+    return false;
+
+}
+
+
+/* =========================================================
+   CONFIGURAR ACCESOS DE PERSONAL
+========================================================= */
+
+async function configurarAccesosPersonal(
+    usuario,
+    empresaId,
+    rol
+) {
+
+    const rolNormalizado =
+        String(
+            rol || ""
+        )
+        .toLowerCase()
+        .trim();
+
+
+    const esAdministrador =
+        rolNormalizado === "admin" ||
+        rolNormalizado === "administrador";
+
+
+    const esAdminGesbase =
+        usuario.email &&
+        usuario.email.toLowerCase() ===
+        EMAIL_ADMIN.toLowerCase();
+
+
+    /* -----------------------------------------
+       ADMINISTRACIÓN DE EMPLEADOS
+    ----------------------------------------- */
+
+    if (
+        esAdministrador ||
+        esAdminGesbase
+    ) {
+
+        btnAdministracionEmpleados.style.display =
+            "block";
+
+    } else {
+
+        btnAdministracionEmpleados.style.display =
+            "none";
+
+    }
+
+
+    /* -----------------------------------------
+       MODO CHOFER
+    ----------------------------------------- */
+
+    const esChofer =
+        await comprobarSiEsChofer(
+            usuario,
+            empresaId,
+            rol
+        );
+
+
+    if (esChofer) {
+
+        btnModoChofer.style.display =
+            "block";
+
+        btnModoChoferPersonal.style.display =
+            "block";
+
+    } else {
+
+        btnModoChofer.style.display =
+            "none";
+
+        btnModoChoferPersonal.style.display =
+            "none";
+
+    }
 
 }
 
@@ -1573,18 +1940,29 @@ async function cargarBalance(
 
 
                 const perteneceEmpresa =
-                    data.empresaId === empresaId ||
-                    data.usuarioId === usuario.uid ||
-                    data.uid === usuario.uid;
+                    data.empresaId ===
+                        empresaId ||
+
+                    data.usuarioId ===
+                        usuario.uid ||
+
+                    data.uid ===
+                        usuario.uid;
 
 
-                if (!perteneceEmpresa) {
+                if (
+                    !perteneceEmpresa
+                ) {
+
                     return;
+
                 }
 
 
                 if (
-                    data.estado === "Cobrado" ||
+                    data.estado ===
+                        "Cobrado" ||
+
                     !data.estado
                 ) {
 
@@ -1597,7 +1975,8 @@ async function cargarBalance(
                         );
 
 
-                    ingresos += monto;
+                    ingresos +=
+                        monto;
 
                 }
 
@@ -1689,28 +2068,37 @@ async function cargarBalance(
 
 
         const resultado =
-            ingresos - gastos;
+            ingresos -
+            gastos;
 
 
-        balanceIngresos.textContent =
+        document.getElementById(
+            "balanceIngresos"
+        ).textContent =
             formatearMoneda(
                 ingresos
             );
 
 
-        balanceGastos.textContent =
+        document.getElementById(
+            "balanceGastos"
+        ).textContent =
             formatearMoneda(
                 gastos
             );
 
 
-        balanceResultado.textContent =
+        document.getElementById(
+            "balanceResultado"
+        ).textContent =
             formatearMoneda(
                 resultado
             );
 
 
-        balanceFichajes.textContent =
+        document.getElementById(
+            "balanceFichajes"
+        ).textContent =
             fichajes;
 
 
@@ -1802,12 +2190,15 @@ async function cargarNotificaciones(
         );
 
 
-        if (pendientes > 0) {
+        if (
+            pendientes > 0
+        ) {
 
             contadorNotificaciones.textContent =
                 pendientes > 99
                     ? "99+"
                     : pendientes;
+
 
             contadorNotificaciones.style.display =
                 "flex";
@@ -1861,6 +2252,7 @@ document
                             "El acceso de tu empresa está bloqueado."
                         );
 
+
                         return;
 
                     }
@@ -1909,14 +2301,20 @@ document
 
             try {
 
-                await signOut(auth);
+                await signOut(
+                    auth
+                );
+
 
                 window.location.href =
                     "login.html";
 
             } catch (error) {
 
-                console.error(error);
+                console.error(
+                    error
+                );
+
 
                 alert(
                     "No se pudo cerrar la sesión."
@@ -1940,6 +2338,7 @@ onAuthStateChanged(
 
             window.location.href =
                 "login.html";
+
 
             return;
 
@@ -2032,7 +2431,8 @@ onAuthStateChanged(
 
 
             const modulos =
-                empresa.modulos || {};
+                empresa.modulos ||
+                {};
 
 
             /* -----------------------------------------
@@ -2084,7 +2484,9 @@ onAuthStateChanged(
                 );
 
 
-            if (!accesoPermitido) {
+            if (
+                !accesoPermitido
+            ) {
 
                 alertaAcceso.style.display =
                     "block";
@@ -2102,14 +2504,19 @@ onAuthStateChanged(
             ----------------------------------------- */
 
             const rolNormalizado =
-                String(rol)
-                    .toLowerCase()
-                    .trim();
+                String(
+                    rol
+                )
+                .toLowerCase()
+                .trim();
 
 
             const esAdministrador =
-                rolNormalizado === "admin" ||
-                rolNormalizado === "administrador";
+                rolNormalizado ===
+                    "admin" ||
+
+                rolNormalizado ===
+                    "administrador";
 
 
             const esAdminGesbase =
@@ -2138,10 +2545,13 @@ onAuthStateChanged(
                CONTROL Y ATENCIÓN
             ----------------------------------------- */
 
-            if (esAdminGesbase) {
+            if (
+                esAdminGesbase
+            ) {
 
                 seccionControl.style.display =
                     "block";
+
 
                 seccionAtencion.style.display =
                     "block";
@@ -2151,10 +2561,22 @@ onAuthStateChanged(
                 seccionControl.style.display =
                     "none";
 
+
                 seccionAtencion.style.display =
                     "none";
 
             }
+
+
+            /* -----------------------------------------
+               ACCESOS DE PERSONAL
+            ----------------------------------------- */
+
+            await configurarAccesosPersonal(
+                usuario,
+                empresaActualId,
+                rol
+            );
 
 
             /* -----------------------------------------
@@ -2183,6 +2605,7 @@ onAuthStateChanged(
             loading.style.display =
                 "none";
 
+
             contenido.style.display =
                 "block";
 
@@ -2196,6 +2619,7 @@ onAuthStateChanged(
 
 
             loading.innerHTML = `
+
                 <div style="
                     max-width:500px;
                     margin:auto;
@@ -2230,6 +2654,7 @@ onAuthStateChanged(
                     </button>
 
                 </div>
+
             `;
 
         }
