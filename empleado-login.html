@@ -188,7 +188,9 @@ body{
 
 </head>
 
+
 <body>
+
 
 <div class="contenedor">
 
@@ -198,7 +200,9 @@ body{
 
             <h1>GESBASE</h1>
 
-            <p>Acceso exclusivo para empleados</p>
+            <p>
+                Acceso exclusivo para empleados
+            </p>
 
         </div>
 
@@ -303,17 +307,38 @@ body{
 
 <script type="module">
 
+
 /*
 =========================================================
- GESBASE - LOGIN DE EMPLEADOS
- Firebase 12.18.0
+ GESBASE - ACCESO DE EMPLEADOS
+=========================================================
+
+ FLUJO:
+
+ Empleado
+     ↓
+ acceso-empleado.html
+     ↓
+ Firebase Authentication
+     ↓
+ empleados/{empleadoId}
+     ↓
+ tipoEmpleado
+     ↓
+ ┌─────────────────────────┐
+ │                         │
+Empleado                 Chofer
+ │                         │
+ ↓                         ↓
+fichaje.html        modo-chofer.html
+
 =========================================================
 */
 
 
 /*
 =========================================================
- FIREBASE PRINCIPAL
+ FIREBASE
 =========================================================
 */
 
@@ -323,24 +348,10 @@ import {
 } from "./Js/firebase.js";
 
 
-/*
-=========================================================
- FIREBASE AUTHENTICATION
- MISMA VERSIÓN QUE firebase.js
-=========================================================
-*/
-
 import {
     signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
-
-/*
-=========================================================
- FIRESTORE
- MISMA VERSIÓN QUE firebase.js
-=========================================================
-*/
 
 import {
     collection,
@@ -358,25 +369,45 @@ import {
 */
 
 const email =
-document.getElementById("email");
+    document.getElementById(
+        "email"
+    );
+
 
 const password =
-document.getElementById("password");
+    document.getElementById(
+        "password"
+    );
+
 
 const btnIngresar =
-document.getElementById("btnIngresar");
+    document.getElementById(
+        "btnIngresar"
+    );
+
 
 const btnVolver =
-document.getElementById("btnVolver");
+    document.getElementById(
+        "btnVolver"
+    );
+
 
 const mensajeError =
-document.getElementById("mensajeError");
+    document.getElementById(
+        "mensajeError"
+    );
+
 
 const mensajeExito =
-document.getElementById("mensajeExito");
+    document.getElementById(
+        "mensajeExito"
+    );
+
 
 const cargando =
-document.getElementById("cargando");
+    document.getElementById(
+        "cargando"
+    );
 
 
 /*
@@ -385,7 +416,9 @@ document.getElementById("cargando");
 =========================================================
 */
 
-function mostrarError(mensaje){
+function mostrarError(
+    mensaje
+){
 
     mensajeError.textContent =
         mensaje;
@@ -399,7 +432,9 @@ function mostrarError(mensaje){
 }
 
 
-function mostrarExito(mensaje){
+function mostrarExito(
+    mensaje
+){
 
     mensajeExito.textContent =
         mensaje;
@@ -460,11 +495,13 @@ function terminarCarga(){
 
 /*
 =========================================================
- CONVERTIR VALORES A TEXTO
+ TEXTO SEGURO
 =========================================================
 */
 
-function texto(valor){
+function texto(
+    valor
+){
 
     if(
         valor === undefined ||
@@ -475,7 +512,59 @@ function texto(valor){
 
     }
 
-    return String(valor);
+    return String(
+        valor
+    );
+
+}
+
+
+/*
+=========================================================
+ NORMALIZAR TIPO DE EMPLEADO
+=========================================================
+*/
+
+function obtenerTipoEmpleado(
+    empleado
+){
+
+    const tipo1 =
+        texto(
+            empleado.tipoEmpleado
+        )
+        .trim()
+        .toLowerCase();
+
+
+    const tipo2 =
+        texto(
+            empleado.tipo
+        )
+        .trim()
+        .toLowerCase();
+
+
+    /*
+     * PRIORIDAD:
+     * tipoEmpleado
+     */
+
+    if(tipo1){
+
+        return tipo1;
+
+    }
+
+
+    if(tipo2){
+
+        return tipo2;
+
+    }
+
+
+    return "empleado";
 
 }
 
@@ -486,11 +575,9 @@ function texto(valor){
 =========================================================
 */
 
-async function buscarEmpleado(usuario){
-
-    /*
-     * REFERENCIA A LA COLECCIÓN
-     */
+async function buscarEmpleado(
+    usuario
+){
 
     const referencia =
         collection(
@@ -500,11 +587,12 @@ async function buscarEmpleado(usuario){
 
 
     /*
-     * BUSCAR POR authUid
+     * BUSCAR CUENTA VINCULADA
      */
 
     const consulta =
         query(
+
             referencia,
 
             where(
@@ -514,12 +602,9 @@ async function buscarEmpleado(usuario){
             ),
 
             limit(1)
+
         );
 
-
-    /*
-     * EJECUTAR CONSULTA
-     */
 
     const resultados =
         await getDocs(
@@ -531,7 +616,9 @@ async function buscarEmpleado(usuario){
      * NO EXISTE
      */
 
-    if(resultados.empty){
+    if(
+        resultados.empty
+    ){
 
         throw new Error(
             "No encontramos el perfil del empleado. El administrador debe vincular esta cuenta desde GESBASE."
@@ -541,16 +628,12 @@ async function buscarEmpleado(usuario){
 
 
     /*
-     * PRIMER DOCUMENTO
+     * DOCUMENTO
      */
 
     const documento =
         resultados.docs[0];
 
-
-    /*
-     * DATOS DEL EMPLEADO
-     */
 
     const empleado = {
 
@@ -564,7 +647,7 @@ async function buscarEmpleado(usuario){
 
     /*
      =====================================================
-     ESTADO DEL EMPLEADO
+     ESTADO
      =====================================================
     */
 
@@ -601,7 +684,9 @@ async function buscarEmpleado(usuario){
         .trim();
 
 
-    if(!empresaId){
+    if(
+        !empresaId
+    ){
 
         throw new Error(
             "El empleado no tiene una empresa asignada."
@@ -612,7 +697,7 @@ async function buscarEmpleado(usuario){
 
     /*
      =====================================================
-     VINCULACIÓN CON FIREBASE AUTH
+     AUTH UID
      =====================================================
     */
 
@@ -633,7 +718,30 @@ async function buscarEmpleado(usuario){
 
     /*
      =====================================================
-     CREAR SESIÓN DEL EMPLEADO
+     TIPO DE EMPLEADO
+     =====================================================
+    */
+
+    const tipoEmpleado =
+        obtenerTipoEmpleado(
+            empleado
+        );
+
+
+    /*
+     =====================================================
+     ES CHOFER
+     =====================================================
+    */
+
+    const esChofer =
+        tipoEmpleado === "chofer" ||
+        tipoEmpleado === "conductor";
+
+
+    /*
+     =====================================================
+     PERFIL DE SESIÓN
      =====================================================
     */
 
@@ -650,6 +758,14 @@ async function buscarEmpleado(usuario){
 
         perfil:
             "empleado",
+
+        tipoEmpleado:
+            esChofer
+            ? "chofer"
+            : "empleado",
+
+        esChofer:
+            esChofer,
 
         nombre:
             texto(
@@ -675,6 +791,21 @@ async function buscarEmpleado(usuario){
         pagoDiario:
             Number(
                 empleado.pagoDiario || 0
+            ),
+
+        unidadId:
+            texto(
+                empleado.unidadId
+            ),
+
+        licencia:
+            texto(
+                empleado.licencia
+            ),
+
+        categoriaLicencia:
+            texto(
+                empleado.categoriaLicencia
             )
 
     };
@@ -687,14 +818,157 @@ async function buscarEmpleado(usuario){
     */
 
     sessionStorage.setItem(
+
         "gesbaseEmpleado",
+
         JSON.stringify(
             sesion
         )
+
     );
 
 
     return sesion;
+
+}
+
+
+/*
+=========================================================
+ BUSCAR CHOFER
+=========================================================
+
+ Si el empleado es chofer también intentamos encontrar
+ su registro correspondiente en la colección choferes.
+
+ Esto permite que modo-chofer.html tenga disponible
+ el choferId y unidadId.
+
+=========================================================
+*/
+
+async function buscarDatosChofer(
+    sesion
+){
+
+    if(
+        !sesion.esChofer
+    ){
+
+        return null;
+
+    }
+
+
+    try{
+
+        const consulta =
+            query(
+
+                collection(
+                    db,
+                    "choferes"
+                ),
+
+                where(
+                    "empresaId",
+                    "==",
+                    sesion.empresaId
+                ),
+
+                where(
+                    "empleadoId",
+                    "==",
+                    sesion.empleadoId
+                ),
+
+                limit(1)
+
+            );
+
+
+        const resultados =
+            await getDocs(
+                consulta
+            );
+
+
+        if(
+            resultados.empty
+        ){
+
+            return null;
+
+        }
+
+
+        const documento =
+            resultados.docs[0];
+
+
+        const chofer = {
+
+            id:
+                documento.id,
+
+            ...documento.data()
+
+        };
+
+
+        /*
+         * ACTUALIZAR SESIÓN
+         */
+
+        sesion.choferId =
+            chofer.id;
+
+
+        sesion.unidadId =
+            texto(
+                chofer.unidadId ||
+                sesion.unidadId
+            );
+
+
+        sesion.licencia =
+            texto(
+                chofer.licencia ||
+                sesion.licencia
+            );
+
+
+        sesion.categoriaLicencia =
+            texto(
+                chofer.categoriaLicencia ||
+                sesion.categoriaLicencia
+            );
+
+
+        sessionStorage.setItem(
+
+            "gesbaseEmpleado",
+
+            JSON.stringify(
+                sesion
+            )
+
+        );
+
+
+        return chofer;
+
+
+    }catch(error){
+
+        console.warn(
+            "No se pudo cargar el perfil de chofer:",
+            error
+        );
+
+        return null;
+
+    }
 
 }
 
@@ -710,19 +984,11 @@ async function iniciarSesion(){
     limpiarMensajes();
 
 
-    /*
-     * EMAIL
-     */
-
     const emailValor =
         email.value
         .trim()
         .toLowerCase();
 
-
-    /*
-     * CONTRASEÑA
-     */
 
     const passwordValor =
         password.value;
@@ -732,7 +998,9 @@ async function iniciarSesion(){
      * VALIDAR EMAIL
      */
 
-    if(!emailValor){
+    if(
+        !emailValor
+    ){
 
         mostrarError(
             "Ingresá el email."
@@ -749,7 +1017,9 @@ async function iniciarSesion(){
      * VALIDAR CONTRASEÑA
      */
 
-    if(!passwordValor){
+    if(
+        !passwordValor
+    ){
 
         mostrarError(
             "Ingresá la contraseña."
@@ -769,15 +1039,19 @@ async function iniciarSesion(){
 
         /*
          =================================================
-         AUTENTICAR EN FIREBASE
+         AUTENTICACIÓN
          =================================================
         */
 
         const resultado =
             await signInWithEmailAndPassword(
+
                 auth,
+
                 emailValor,
+
                 passwordValor
+
             );
 
 
@@ -787,7 +1061,7 @@ async function iniciarSesion(){
 
         /*
          =================================================
-         BUSCAR PERFIL EN FIRESTORE
+         BUSCAR EMPLEADO
          =================================================
         */
 
@@ -799,7 +1073,49 @@ async function iniciarSesion(){
 
         /*
          =================================================
-         ÉXITO
+         SI ES CHOFER
+         =================================================
+        */
+
+        if(
+            empleado.esChofer
+        ){
+
+            await buscarDatosChofer(
+                empleado
+            );
+
+
+            mostrarExito(
+                "Bienvenido " +
+                (
+                    empleado.nombre ||
+                    "chofer"
+                ) +
+                ". Abriendo modo chofer..."
+            );
+
+
+            setTimeout(
+                function(){
+
+                    window.location.replace(
+                        "modo-chofer.html"
+                    );
+
+                },
+                700
+            );
+
+
+            return;
+
+        }
+
+
+        /*
+         =================================================
+         SI ES EMPLEADO NORMAL
          =================================================
         */
 
@@ -809,15 +1125,9 @@ async function iniciarSesion(){
                 empleado.nombre ||
                 "empleado"
             ) +
-            ". Ingresando..."
+            ". Abriendo fichaje..."
         );
 
-
-        /*
-         =================================================
-         ENTRAR AL FICHAJE
-         =================================================
-        */
 
         setTimeout(
             function(){
@@ -829,6 +1139,7 @@ async function iniciarSesion(){
             },
             700
         );
+
 
     }
     catch(error){
@@ -845,7 +1156,7 @@ async function iniciarSesion(){
 
         /*
          =================================================
-         ERRORES DE FIREBASE AUTH
+         AUTH
          =================================================
         */
 
@@ -909,9 +1220,10 @@ async function iniciarSesion(){
 
         }
 
+
         /*
          =================================================
-         FIRESTORE - PERMISOS
+         FIRESTORE
          =================================================
         */
 
@@ -925,23 +1237,6 @@ async function iniciarSesion(){
 
         }
 
-        /*
-         =================================================
-         ERROR DE FIRESTORE / REFERENCIA
-         =================================================
-        */
-
-        else if(
-            error.message &&
-            error.message.includes(
-                "Expected first argument to collection()"
-            )
-        ){
-
-            mensaje =
-                "Error de conexión con Firestore. Verificá la configuración de Firebase.";
-
-        }
 
         /*
          =================================================
@@ -949,7 +1244,9 @@ async function iniciarSesion(){
          =================================================
         */
 
-        else if(error.message){
+        else if(
+            error.message
+        ){
 
             mensaje =
                 error.message;
@@ -959,7 +1256,7 @@ async function iniciarSesion(){
 
         /*
          =================================================
-         ELIMINAR SESIÓN SI FALLÓ
+         LIMPIAR SESIÓN
          =================================================
         */
 
@@ -967,12 +1264,6 @@ async function iniciarSesion(){
             "gesbaseEmpleado"
         );
 
-
-        /*
-         =================================================
-         MOSTRAR ERROR
-         =================================================
-        */
 
         mostrarError(
             mensaje
@@ -995,8 +1286,11 @@ async function iniciarSesion(){
 */
 
 btnIngresar.addEventListener(
+
     "click",
+
     iniciarSesion
+
 );
 
 
@@ -1007,7 +1301,9 @@ btnIngresar.addEventListener(
 */
 
 password.addEventListener(
+
     "keydown",
+
     function(event){
 
         if(
@@ -1020,6 +1316,7 @@ password.addEventListener(
         }
 
     }
+
 );
 
 
@@ -1030,7 +1327,9 @@ password.addEventListener(
 */
 
 email.addEventListener(
+
     "keydown",
+
     function(event){
 
         if(
@@ -1043,6 +1342,7 @@ email.addEventListener(
         }
 
     }
+
 );
 
 
@@ -1053,12 +1353,15 @@ email.addEventListener(
 */
 
 btnVolver.addEventListener(
+
     "click",
+
     function(){
 
         window.history.back();
 
     }
+
 );
 
 </script>
