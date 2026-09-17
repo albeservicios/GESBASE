@@ -1678,3 +1678,605 @@ exports.notificarCambioLlamada =
         }
 
     );
+// ============================================================
+// 👷 CREAR ACCESO PARA EMPLEADO
+// Genera automáticamente una contraseña temporal
+// ============================================================
+
+const {
+    onCall,
+    HttpsError
+} = require("firebase-functions/v2/https");
+
+const crypto =
+    require("crypto");
+
+
+// ============================================================
+// GENERAR CONTRASEÑA TEMPORAL
+// ============================================================
+
+function generarPasswordTemporal(
+    longitud = 10
+) {
+
+    const caracteres =
+        "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+
+    let password =
+        "";
+
+    for (
+        let i = 0;
+        i < longitud;
+        i++
+    ) {
+
+        password +=
+            caracteres[
+                crypto.randomInt(
+                    0,
+                    caracteres.length
+                )
+            ];
+
+    }
+
+    return password;
+
+}
+
+
+// ============================================================
+// CREAR CUENTA DE EMPLEADO
+// ============================================================
+
+exports.crearAccesoEmpleado =
+    onCall(
+
+        {
+            region:
+                REGION,
+
+            timeoutSeconds:
+                60,
+
+            memory:
+                "256MiB"
+        },
+
+        async request => {
+
+            try {
+
+                // =================================================
+                // VERIFICAR ADMINISTRADOR LOGUEADO
+                // =================================================
+
+                if (
+                    !request.auth
+                ) {
+
+                    throw new HttpsError(
+                        "unauthenticated",
+                        "Debés iniciar sesión como administrador."
+                    );
+
+                }
+
+
+                const adminUid =
+                    request.auth.uid;
+
+
+                const adminEmail =
+                    String(
+                        request.auth.token.email ||
+                        ""
+                    )
+                    .trim()
+                    .toLowerCase();
+
+
+                // =================================================
+                // OBTENER USUARIO ADMIN
+                // =================================================
+
+                const usuarioRef =
+                    db
+                        .collection("usuarios")
+                        .doc(adminUid);
+
+
+                const usuarioSnap =
+                    await usuarioRef.get();
+
+
+                if (
+                    !usuarioSnap.exists
+                ) {
+
+                    throw new HttpsError(
+                        "not-found",
+                        "No se encontró el usuario administrador."
+                    );
+
+                }
+
+
+                const usuarioData =
+                    usuarioSnap.data() ||
+                    {};
+
+
+                const rol =
+                    String(
+                        usuarioData.rol ||
+                        ""
+                    )
+                    .trim()
+                    .toLowerCase();
+
+
+                const esAdministrador =
+
+                    adminEmail ===
+                        "julianbattauz006@gmail.com"
+
+                    ||
+
+                    rol ===
+                        "admin"
+
+                    ||
+
+                    rol ===
+                        "administrador";
+
+
+                if (
+                    !esAdministrador
+                ) {
+
+                    throw new HttpsError(
+                        "permission-denied",
+                        "No tenés permisos para crear accesos de empleados."
+                    );
+
+                }
+
+
+                // =================================================
+                // OBTENER EMPRESA DEL ADMINISTRADOR
+                // =================================================
+
+                let empresaId =
+
+                    usuarioData.empresaId ||
+
+                    usuarioData.idEmpresa ||
+
+                    usuarioData.empresa ||
+
+                    "";
+
+
+                empresaId =
+                    String(
+                        empresaId
+                    )
+                    .trim();
+
+
+                // =================================================
+                // SI NO ESTÁ EN USUARIOS, BUSCAR EN EMPRESAS
+                // =================================================
+
+                if (
+                    !empresaId
+                ) {
+
+                    const empresasSnap =
+                        await db
+                            .collection("empresas")
+                            .where(
+                                "propietarioUid",
+                                "==",
+                                adminUid
+                            )
+                            .limit(1)
+                            .get();
+
+
+                    if (
+                        !empresasSnap.empty
+                    ) {
+
+                        const empresaDoc =
+                            empresasSnap.docs[0];
+
+
+                        const empresaData =
+                            empresaDoc.data() ||
+                            {};
+
+
+                        empresaId =
+
+                            empresaData.empresaId ||
+
+                            empresaDoc.id;
+
+                    }
+
+                }
+
+
+                if (
+                    !empresaId
+                ) {
+
+                    throw new HttpsError(
+                        "failed-precondition",
+                        "No se pudo determinar la empresa del administrador."
+                    );
+
+                }
+
+
+                // =================================================
+                // RECIBIR EMPLEADO
+                // =================================================
+
+                const empleadoId =
+                    String(
+                        request.data?.empleadoId ||
+                        ""
+                    )
+                    .trim();
+
+
+                if (
+                    !empleadoId
+                ) {
+
+                    throw new HttpsError(
+                        "invalid-argument",
+                        "No se recibió el ID del empleado."
+                    );
+
+                }
+
+
+                // =================================================
+                // OBTENER EMPLEADO
+                // =================================================
+
+                const empleadoRef =
+                    db
+                        .collection("empleados")
+                        .doc(empleadoId);
+
+
+                const empleadoSnap =
+                    await empleadoRef.get();
+
+
+                if (
+                    !empleadoSnap.exists
+                ) {
+
+                    throw new HttpsError(
+                        "not-found",
+                        "El empleado no existe."
+                    );
+
+                }
+
+
+                const empleado =
+                    empleadoSnap.data() ||
+                    {};
+
+
+                // =================================================
+                // SEGURIDAD: EMPRESA DEL EMPLEADO
+                // =================================================
+
+                const empresaEmpleado =
+                    String(
+                        empleado.empresaId ||
+                        ""
+                    )
+                    .trim();
+
+
+                if (
+                    empresaEmpleado !==
+                    empresaId
+                ) {
+
+                    throw new HttpsError(
+                        "permission-denied",
+                        "El empleado no pertenece a tu empresa."
+                    );
+
+                }
+
+
+                // =================================================
+                // EMAIL
+                // =================================================
+
+                const email =
+                    String(
+                        empleado.email ||
+                        ""
+                    )
+                    .trim()
+                    .toLowerCase();
+
+
+                if (
+                    !email
+                ) {
+
+                    throw new HttpsError(
+                        "failed-precondition",
+                        "El empleado no tiene un email cargado."
+                    );
+
+                }
+
+
+                // =================================================
+                // EVITAR CREAR DOS ACCESOS
+                // =================================================
+
+                if (
+                    empleado.authUid
+                ) {
+
+                    throw new HttpsError(
+                        "already-exists",
+                        "Este empleado ya tiene un acceso creado."
+                    );
+
+                }
+
+
+                // =================================================
+                // GENERAR CONTRASEÑA
+                // =================================================
+
+                const passwordTemporal =
+                    generarPasswordTemporal(
+                        10
+                    );
+
+
+                // =================================================
+                // CREAR USUARIO EN FIREBASE AUTH
+                // =================================================
+
+                let usuarioAuth;
+
+
+                try {
+
+                    usuarioAuth =
+                        await getAuth()
+                            .createUser({
+
+                                email:
+                                    email,
+
+                                password:
+                                    passwordTemporal,
+
+                                displayName:
+                                    `${empleado.nombre || ""} ${empleado.apellido || ""}`
+                                        .trim()
+
+                            });
+
+                } catch (
+                    error
+                ) {
+
+                    console.error(
+                        "ERROR CREANDO AUTH EMPLEADO:",
+                        error
+                    );
+
+
+                    if (
+                        error.code ===
+                        "auth/email-already-exists"
+                    ) {
+
+                        throw new HttpsError(
+                            "already-exists",
+                            "Ya existe una cuenta de Firebase con ese email."
+                        );
+
+                    }
+
+
+                    throw new HttpsError(
+                        "internal",
+                        "No se pudo crear la cuenta de acceso del empleado."
+                    );
+
+                }
+
+
+                // =================================================
+                // GUARDAR ACCESO EN EMPLEADO
+                // =================================================
+
+                const ahora =
+                    FieldValue.serverTimestamp();
+
+
+                const vencimiento =
+                    new Date(
+                        Date.now() +
+                        24 *
+                        60 *
+                        60 *
+                        1000
+                    );
+
+
+                await empleadoRef.update({
+
+                    authUid:
+                        usuarioAuth.uid,
+
+                    usuarioId:
+                        usuarioAuth.uid,
+
+                    passwordTemporal:
+                        true,
+
+                    passwordTemporalCreada:
+                        ahora,
+
+                    passwordTemporalVencimiento:
+                        vencimiento,
+
+                    actualizadoEn:
+                        ahora
+
+                });
+
+
+                // =================================================
+                // ASEGURAR PERFIL DEL USUARIO
+                // =================================================
+
+                await db
+                    .collection("usuarios")
+                    .doc(usuarioAuth.uid)
+                    .set(
+
+                        {
+
+                            uid:
+                                usuarioAuth.uid,
+
+                            empresaId:
+                                empresaId,
+
+                            email:
+                                email,
+
+                            nombre:
+                                empleado.nombre ||
+                                "",
+
+                            apellido:
+                                empleado.apellido ||
+                                "",
+
+                            nombreCompleto:
+                                `${empleado.nombre || ""} ${empleado.apellido || ""}`
+                                    .trim(),
+
+                            rol:
+                                "empleado",
+
+                            empleadoId:
+                                empleadoId,
+
+                            activo:
+                                true,
+
+                            passwordTemporal:
+                                true,
+
+                            creadoEn:
+                                ahora,
+
+                            actualizadoEn:
+                                ahora
+
+                        },
+
+                        {
+
+                            merge:
+                                true
+
+                        }
+
+                    );
+
+
+                // =================================================
+                // RESPUESTA
+                // =================================================
+
+                console.log(
+                    "ACCESO EMPLEADO CREADO:",
+                    empleadoId,
+                    email,
+                    usuarioAuth.uid
+                );
+
+
+                return {
+
+                    ok:
+                        true,
+
+                    email:
+                        email,
+
+                    passwordTemporal:
+                        passwordTemporal,
+
+                    authUid:
+                        usuarioAuth.uid,
+
+                    empleadoId:
+                        empleadoId
+
+                };
+
+
+            } catch (
+                error
+            ) {
+
+                console.error(
+                    "ERROR crearAccesoEmpleado:",
+                    error
+                );
+
+
+                // ---------------------------------------------
+                // Mantener errores HttpsError
+                // ---------------------------------------------
+
+                if (
+                    error instanceof HttpsError
+                ) {
+
+                    throw error;
+
+                }
+
+
+                throw new HttpsError(
+                    "internal",
+                    error?.message ||
+                    "No se pudo crear el acceso del empleado."
+                );
+
+            }
+
+        }
+
+    );
