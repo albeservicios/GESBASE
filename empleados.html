@@ -327,6 +327,16 @@ tr:hover{
     line-height:1.5;
 }
 
+.error-detalle{
+    margin-top:10px;
+    padding:10px;
+    background:#fff;
+    border-radius:8px;
+    font-family:monospace;
+    font-size:11px;
+    word-break:break-word;
+}
+
 @media(max-width:700px){
 
     main{
@@ -713,6 +723,31 @@ function mostrarMensaje(
 }
 
 
+function mostrarErrorCompleto(error){
+
+    console.error(
+        "ERROR COMPLETO CREAR ACCESO:",
+        error
+    );
+
+    console.error(
+        "Código:",
+        error?.code
+    );
+
+    console.error(
+        "Mensaje:",
+        error?.message
+    );
+
+    console.error(
+        "Detalles:",
+        error?.details
+    );
+
+}
+
+
 function ocultarMensaje(){
 
     mensaje.style.display =
@@ -741,15 +776,6 @@ async function obtenerEmpresa(){
 
     empresaId = "";
 
-
-    /*
-     * PRIMERO:
-     *
-     * usuarios/{uid}
-     *
-     * Buscamos la empresa directamente
-     * asociada al administrador.
-     */
 
     const usuarioRef =
     doc(
@@ -786,11 +812,8 @@ async function obtenerEmpresa(){
 
 
     /*
-     * SEGUNDO:
-     *
-     * Si no encontramos empresa en usuarios,
-     * buscamos la empresa cuyo propietarioUid
-     * sea el administrador.
+     * Si no está en usuarios,
+     * buscar por propietarioUid.
      */
 
     if(!empresaId){
@@ -900,8 +923,16 @@ async function verificarAdministrador(){
     .toLowerCase();
 
 
+    const email =
+    texto(
+        usuarioActual.email
+    )
+    .trim()
+    .toLowerCase();
+
+
     const esAdministrador =
-        usuarioActual.email ===
+        email ===
         "julianbattauz006@gmail.com"
         ||
         rol === "admin"
@@ -1379,7 +1410,7 @@ function mostrarEmpleados(){
 
 
     /*
-     * BOTONES CREAR ACCESO
+     * CREAR ACCESO
      */
 
     document
@@ -1410,7 +1441,7 @@ function mostrarEmpleados(){
 
 
     /*
-     * BOTONES FICHAJE
+     * FICHAJE
      */
 
     document
@@ -1423,12 +1454,6 @@ function mostrarEmpleados(){
             boton.addEventListener(
                 "click",
                 function(){
-
-                    /*
-                     * El fichaje lo realiza el
-                     * propio empleado desde
-                     * su cuenta.
-                     */
 
                     window.location.href =
                     "fichaje.html";
@@ -1504,14 +1529,18 @@ async function crearAcceso(
     }
 
 
+    const nombreEmpleado =
+    (
+        texto(empleado.nombre) +
+        " " +
+        texto(empleado.apellido)
+    ).trim();
+
+
     const confirmar =
     window.confirm(
         "¿Crear el acceso para " +
-        (
-            texto(empleado.nombre) +
-            " " +
-            texto(empleado.apellido)
-        ).trim() +
+        nombreEmpleado +
         "?"
     );
 
@@ -1535,13 +1564,25 @@ async function crearAcceso(
         ocultarMensaje();
 
 
+        if(!usuarioActual){
+
+            throw new Error(
+                "La sesión del administrador no está disponible."
+            );
+
+        }
+
+
         /*
-         * La Cloud Function recibe solamente
-         * el ID del empleado.
-         *
-         * La empresa se determina en el
-         * servidor mediante el administrador.
+         * Forzar actualización del token.
+         * Esto evita problemas si Firebase
+         * tiene una sesión antigua.
          */
+
+        await usuarioActual.getIdToken(
+            true
+        );
+
 
         const respuesta =
         await crearAccesoEmpleado({
@@ -1579,10 +1620,6 @@ async function crearAcceso(
         }
 
 
-        /*
-         * Mostrar acceso
-         */
-
         mostrarAccesoGenerado(
             emailResultado,
             passwordTemporal,
@@ -1591,15 +1628,10 @@ async function crearAcceso(
 
 
         mostrarMensaje(
-            "Acceso creado correctamente.",
+            "✅ Acceso creado correctamente.",
             "exito"
         );
 
-
-        /*
-         * Volver a cargar empleados
-         * para mostrar el nuevo estado.
-         */
 
         await cargarEmpleados();
 
@@ -1607,19 +1639,36 @@ async function crearAcceso(
     }
     catch(error){
 
-        console.error(
-            "Error creando acceso:",
+        mostrarErrorCompleto(
             error
         );
 
 
+        let codigo =
+        texto(
+            error?.code
+        );
+
+
         let mensajeError =
-        error.message ||
-        "No se pudo crear el acceso.";
+        texto(
+            error?.message
+        );
 
 
         if(
-            error.code ===
+            codigo ===
+            "functions/internal"
+        ){
+
+            mensajeError =
+            "La Cloud Function respondió con un error interno.";
+
+        }
+
+
+        if(
+            codigo ===
             "functions/already-exists"
         ){
 
@@ -1630,7 +1679,7 @@ async function crearAcceso(
 
 
         if(
-            error.code ===
+            codigo ===
             "functions/permission-denied"
         ){
 
@@ -1641,7 +1690,7 @@ async function crearAcceso(
 
 
         if(
-            error.code ===
+            codigo ===
             "functions/not-found"
         ){
 
@@ -1652,7 +1701,7 @@ async function crearAcceso(
 
 
         if(
-            error.code ===
+            codigo ===
             "functions/failed-precondition"
         ){
 
@@ -1662,10 +1711,54 @@ async function crearAcceso(
         }
 
 
-        mostrarMensaje(
-            mensajeError,
-            "error"
-        );
+        if(
+            codigo ===
+            "functions/unauthenticated"
+        ){
+
+            mensajeError =
+            "La sesión del administrador no es válida. Cerrá sesión e ingresá nuevamente.";
+
+        }
+
+
+        if(!mensajeError){
+
+            mensajeError =
+            "No se pudo crear el acceso.";
+
+        }
+
+
+        mensaje.innerHTML =
+        `
+        ${escapar(mensajeError)}
+
+        <div class="error-detalle">
+
+            Código:
+            ${escapar(codigo || "sin código")}
+
+            <br>
+
+            Detalle:
+            ${escapar(
+                texto(
+                    error?.details
+                ) ||
+                "Sin detalles adicionales"
+            )}
+
+        </div>
+        `;
+
+
+        mensaje.className =
+        "alerta error";
+
+
+        mensaje.style.display =
+        "block";
 
 
         boton.disabled =
@@ -1876,6 +1969,7 @@ btnActualizar.addEventListener(
         catch(error){
 
             console.error(
+                "Error actualizando:",
                 error
             );
 
@@ -1940,16 +2034,8 @@ onAuthStateChanged(
             `;
 
 
-            /*
-             * Verificar administrador
-             */
-
             await verificarAdministrador();
 
-
-            /*
-             * Obtener empresa automáticamente
-             */
 
             tablaContenedor.innerHTML =
             `
@@ -1961,10 +2047,6 @@ onAuthStateChanged(
 
             await obtenerEmpresa();
 
-
-            /*
-             * Cargar empleados
-             */
 
             tablaContenedor.innerHTML =
             `
