@@ -323,14 +323,23 @@ body{
      ↓
  empleados/{empleadoId}
      ↓
- tipoEmpleado
+ ¿passwordTemporal?
      ↓
- ┌─────────────────────────┐
- │                         │
-Empleado                 Chofer
- │                         │
- ↓                         ↓
-fichaje.html        modo-chofer.html
+ ┌───────────────────────────────┐
+ │                               │
+ SÍ                              NO
+ │                               │
+ ↓                               ↓
+cambiar-password.html       acceso normal
+ │                               │
+ ↓                               ↓
+Nueva contraseña             empleado/chofer
+ │
+ ↓
+passwordTemporal = false
+ │
+ ↓
+fichaje / modo-chofer
 
 =========================================================
 */
@@ -545,11 +554,6 @@ function obtenerTipoEmpleado(
         .toLowerCase();
 
 
-    /*
-     * PRIORIDAD:
-     * tipoEmpleado
-     */
-
     if(tipo1){
 
         return tipo1;
@@ -586,10 +590,6 @@ async function buscarEmpleado(
         );
 
 
-    /*
-     * BUSCAR CUENTA VINCULADA
-     */
-
     const consulta =
         query(
 
@@ -612,10 +612,6 @@ async function buscarEmpleado(
         );
 
 
-    /*
-     * NO EXISTE
-     */
-
     if(
         resultados.empty
     ){
@@ -626,10 +622,6 @@ async function buscarEmpleado(
 
     }
 
-
-    /*
-     * DOCUMENTO
-     */
 
     const documento =
         resultados.docs[0];
@@ -646,9 +638,9 @@ async function buscarEmpleado(
 
 
     /*
-     =====================================================
+    =====================================================
      ESTADO
-     =====================================================
+    =====================================================
     */
 
     const estadoEmpleado =
@@ -672,9 +664,9 @@ async function buscarEmpleado(
 
 
     /*
-     =====================================================
+    =====================================================
      EMPRESA
-     =====================================================
+    =====================================================
     */
 
     const empresaId =
@@ -696,9 +688,9 @@ async function buscarEmpleado(
 
 
     /*
-     =====================================================
+    =====================================================
      AUTH UID
-     =====================================================
+    =====================================================
     */
 
     if(
@@ -717,9 +709,9 @@ async function buscarEmpleado(
 
 
     /*
-     =====================================================
+    =====================================================
      TIPO DE EMPLEADO
-     =====================================================
+    =====================================================
     */
 
     const tipoEmpleado =
@@ -728,21 +720,15 @@ async function buscarEmpleado(
         );
 
 
-    /*
-     =====================================================
-     ES CHOFER
-     =====================================================
-    */
-
     const esChofer =
         tipoEmpleado === "chofer" ||
         tipoEmpleado === "conductor";
 
 
     /*
-     =====================================================
-     PERFIL DE SESIÓN
-     =====================================================
+    =====================================================
+     SESIÓN
+    =====================================================
     */
 
     const sesion = {
@@ -806,15 +792,23 @@ async function buscarEmpleado(
         categoriaLicencia:
             texto(
                 empleado.categoriaLicencia
-            )
+            ),
+
+        /*
+         * IMPORTANTE
+         * Guardamos si la contraseña es temporal.
+         */
+
+        passwordTemporal:
+            empleado.passwordTemporal === true
 
     };
 
 
     /*
-     =====================================================
+    =====================================================
      GUARDAR SESIÓN
-     =====================================================
+    =====================================================
     */
 
     sessionStorage.setItem(
@@ -836,14 +830,6 @@ async function buscarEmpleado(
 /*
 =========================================================
  BUSCAR CHOFER
-=========================================================
-
- Si el empleado es chofer también intentamos encontrar
- su registro correspondiente en la colección choferes.
-
- Esto permite que modo-chofer.html tenga disponible
- el choferId y unidadId.
-
 =========================================================
 */
 
@@ -916,10 +902,6 @@ async function buscarDatosChofer(
         };
 
 
-        /*
-         * ACTUALIZAR SESIÓN
-         */
-
         sesion.choferId =
             chofer.id;
 
@@ -959,7 +941,8 @@ async function buscarDatosChofer(
         return chofer;
 
 
-    }catch(error){
+    }
+    catch(error){
 
         console.warn(
             "No se pudo cargar el perfil de chofer:",
@@ -995,8 +978,10 @@ async function iniciarSesion(){
 
 
     /*
-     * VALIDAR EMAIL
-     */
+    =====================================================
+     VALIDAR EMAIL
+    =====================================================
+    */
 
     if(
         !emailValor
@@ -1014,8 +999,10 @@ async function iniciarSesion(){
 
 
     /*
-     * VALIDAR CONTRASEÑA
-     */
+    =====================================================
+     VALIDAR PASSWORD
+    =====================================================
+    */
 
     if(
         !passwordValor
@@ -1038,9 +1025,9 @@ async function iniciarSesion(){
     try{
 
         /*
-         =================================================
+        =================================================
          AUTENTICACIÓN
-         =================================================
+        =================================================
         */
 
         const resultado =
@@ -1060,9 +1047,9 @@ async function iniciarSesion(){
 
 
         /*
-         =================================================
+        =================================================
          BUSCAR EMPLEADO
-         =================================================
+        =================================================
         */
 
         const empleado =
@@ -1072,9 +1059,41 @@ async function iniciarSesion(){
 
 
         /*
-         =================================================
-         SI ES CHOFER
-         =================================================
+        =================================================
+         CONTRASEÑA TEMPORAL
+        =================================================
+        */
+
+        if(
+            empleado.passwordTemporal === true
+        ){
+
+            mostrarExito(
+                "Primer acceso detectado. Tenés que cambiar tu contraseña."
+            );
+
+
+            setTimeout(
+                function(){
+
+                    window.location.replace(
+                        "cambiar-password.html"
+                    );
+
+                },
+                700
+            );
+
+
+            return;
+
+        }
+
+
+        /*
+        =================================================
+         CHOFER
+        =================================================
         */
 
         if(
@@ -1114,9 +1133,9 @@ async function iniciarSesion(){
 
 
         /*
-         =================================================
-         SI ES EMPLEADO NORMAL
-         =================================================
+        =================================================
+         EMPLEADO NORMAL
+        =================================================
         */
 
         mostrarExito(
@@ -1153,12 +1172,6 @@ async function iniciarSesion(){
         let mensaje =
             "No se pudo iniciar sesión.";
 
-
-        /*
-         =================================================
-         AUTH
-         =================================================
-        */
 
         if(
             error.code ===
@@ -1220,13 +1233,6 @@ async function iniciarSesion(){
 
         }
 
-
-        /*
-         =================================================
-         FIRESTORE
-         =================================================
-        */
-
         else if(
             error.code ===
             "permission-denied"
@@ -1236,13 +1242,6 @@ async function iniciarSesion(){
                 "Firebase rechazó el acceso a los empleados. Hay que revisar las reglas de Firestore.";
 
         }
-
-
-        /*
-         =================================================
-         OTROS ERRORES
-         =================================================
-        */
 
         else if(
             error.message
@@ -1255,9 +1254,9 @@ async function iniciarSesion(){
 
 
         /*
-         =================================================
+        =================================================
          LIMPIAR SESIÓN
-         =================================================
+        =================================================
         */
 
         sessionStorage.removeItem(
