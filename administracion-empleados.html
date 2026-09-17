@@ -1,0 +1,3151 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Administración de empleados - GESBASE</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+    background: #f3f4f6;
+    color: #111827;
+}
+
+header {
+    background: #111827;
+    color: white;
+    padding: 18px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.header-contenido {
+    max-width: 1100px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-volver {
+    border: none;
+    background: #374151;
+    color: white;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 20px;
+}
+
+header p {
+    margin: 3px 0 0;
+    font-size: 13px;
+    color: #d1d5db;
+}
+
+main {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px 14px 50px;
+}
+
+.mensaje {
+    display: none;
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+
+.mensaje.ok {
+    display: block;
+    background: #dcfce7;
+    color: #166534;
+}
+
+.mensaje.error {
+    display: block;
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.tarjeta {
+    background: white;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 3px 14px rgba(0,0,0,.06);
+}
+
+.tarjeta h2 {
+    margin-top: 0;
+    font-size: 18px;
+}
+
+label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 7px;
+    color: #374151;
+}
+
+select,
+input,
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    background: white;
+    font-size: 15px;
+    outline: none;
+}
+
+select:focus,
+input:focus,
+textarea:focus {
+    border-color: #6366f1;
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.grupo {
+    margin-bottom: 15px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+}
+
+.info {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 13px;
+}
+
+.info small {
+    display: block;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.info strong {
+    font-size: 15px;
+}
+
+.estado {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.estado.activo {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.estado.inactivo {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.estado.bloqueado {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.botones {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 18px;
+}
+
+button.accion {
+    border: none;
+    border-radius: 11px;
+    padding: 13px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-editar {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.btn-acceso {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.btn-bloquear {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.btn-alta {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.btn-baja {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.btn-liquidacion {
+    background: #ede9fe;
+    color: #5b21b6;
+}
+
+.btn-gastos {
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+.btn-historial {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.btn-guardar {
+    background: #111827;
+    color: white;
+}
+
+.btn-cancelar {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.oculto {
+    display: none !important;
+}
+
+#panelEmpleado {
+    display: none;
+}
+
+#panelEmpleado.visible {
+    display: block;
+}
+
+.acceso-box {
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 15px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+}
+
+.acceso-box strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.credenciales {
+    margin-top: 12px;
+    background: #111827;
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    font-family: monospace;
+    overflow-wrap: anywhere;
+}
+
+.credenciales div {
+    margin: 7px 0;
+}
+
+.tabla-contenedor {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 11px 9px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 13px;
+}
+
+th {
+    background: #f9fafb;
+}
+
+.resumen {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.resumen .caja {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.resumen .numero {
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.resumen .texto {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.form-edicion {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.acciones-secundarias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.acciones-secundarias button {
+    border: none;
+    padding: 10px 13px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.vacio {
+    padding: 18px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.cargando {
+    text-align: center;
+    padding: 25px;
+    color: #6b7280;
+}
+
+@media (max-width: 600px) {
+
+    main {
+        padding: 15px 10px 40px;
+    }
+
+    .tarjeta {
+        padding: 15px;
+    }
+
+    header h1 {
+        font-size: 18px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="header-contenido">
+
+        <button
+            class="btn-volver"
+            onclick="volver()"
+        >
+            ← Volver
+        </button>
+
+        <div>
+
+            <h1>
+                📋 Administración de empleados
+            </h1>
+
+            <p>
+                Gestión individual del personal
+            </p>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main>
+
+
+<div id="mensaje" class="mensaje"></div>
+
+
+<!-- =====================================================
+     SELECCIONAR EMPLEADO
+===================================================== -->
+
+<section class="tarjeta">
+
+    <h2>
+        👤 Seleccionar empleado
+    </h2>
+
+    <div class="grupo">
+
+        <label for="empleadoSelect">
+            Empleado
+        </label>
+
+        <select id="empleadoSelect">
+
+            <option value="">
+                Cargando empleados...
+            </option>
+
+        </select>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     PANEL DEL EMPLEADO
+===================================================== -->
+
+<section
+    id="panelEmpleado"
+    class="tarjeta"
+>
+
+    <h2>
+        Información del empleado
+    </h2>
+
+
+    <div
+        id="datosEmpleado"
+        class="grid"
+    >
+    </div>
+
+
+    <div
+        id="estadoAcceso"
+        class="acceso-box"
+    >
+    </div>
+
+
+    <!-- =================================================
+         EDITAR INFORMACIÓN
+    ================================================== -->
+
+    <div
+        id="formEdicion"
+        class="form-edicion oculto"
+    >
+
+        <h2>
+            ✏️ Editar información
+        </h2>
+
+
+        <div class="grid">
+
+            <div class="grupo">
+
+                <label>
+                    Nombre
+                </label>
+
+                <input
+                    id="editNombre"
+                    type="text"
+                >
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label>
+                    Apellido
+                </label>
+
+                <input
+                    id="editApellido"
+                    type="text"
+                >
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label>
+                    DNI
+                </label>
+
+                <input
+                    id="editDni"
+                    type="text"
+                >
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label>
+                    Teléfono
+                </label>
+
+                <input
+                    id="editTelefono"
+                    type="text"
+                >
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label>
+                    Email
+                </label>
+
+                <input
+                    id="editEmail"
+                    type="email"
+                >
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label>
+                    Puesto
+                </label>
+
+                <input
+                    id="editPuesto"
+                    type="text"
+                >
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label>
+                    Tipo de empleado
+                </label>
+
+                <input
+                    id="editTipo"
+                    type="text"
+                >
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label>
+                    Pago diario
+                </label>
+
+                <input
+                    id="editPago"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                >
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label>
+                    Adicionales
+                </label>
+
+                <input
+                    id="editAdicionales"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                >
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label>
+                    Descuentos
+                </label>
+
+                <input
+                    id="editDescuentos"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                >
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label>
+                    Fecha de ingreso
+                </label>
+
+                <input
+                    id="editFechaIngreso"
+                    type="date"
+                >
+
+            </div>
+
+
+        </div>
+
+
+        <div class="botones">
+
+            <button
+                class="accion btn-guardar"
+                onclick="guardarEdicion()"
+            >
+                💾 Guardar cambios
+            </button>
+
+            <button
+                class="accion btn-cancelar"
+                onclick="cancelarEdicion()"
+            >
+                Cancelar
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         ACCIONES
+    ================================================== -->
+
+    <div class="botones">
+
+        <button
+            id="btnEditar"
+            class="accion btn-editar"
+            onclick="editarEmpleado()"
+        >
+            ✏️ Editar información
+        </button>
+
+
+        <button
+            id="btnAcceso"
+            class="accion btn-acceso"
+            onclick="darAcceso()"
+        >
+            🔐 Dar acceso a GESBASE
+        </button>
+
+
+        <button
+            id="btnBloquear"
+            class="accion btn-bloquear"
+            onclick="bloquearAcceso()"
+        >
+            🚫 Bloquear acceso
+        </button>
+
+
+        <button
+            id="btnActivar"
+            class="accion btn-alta oculto"
+            onclick="activarEmpleado()"
+        >
+            ✅ Activar empleado
+        </button>
+
+
+        <button
+            id="btnBaja"
+            class="accion btn-baja"
+            onclick="darDeBaja()"
+        >
+            📋 Dar de baja
+        </button>
+
+
+        <button
+            class="accion btn-liquidacion"
+            onclick="irLiquidacion()"
+        >
+            💰 Liquidación mensual
+        </button>
+
+
+        <button
+            class="accion btn-gastos"
+            onclick="mostrarGastos()"
+        >
+            💸 Gastos
+        </button>
+
+
+        <button
+            class="accion btn-historial"
+            onclick="mostrarHistorial()"
+        >
+            📜 Historial
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     GASTOS
+===================================================== -->
+
+<section
+    id="seccionGastos"
+    class="tarjeta oculto"
+>
+
+    <h2>
+        💸 Gastos del empleado
+    </h2>
+
+    <div
+        id="listaGastos"
+        class="cargando"
+    >
+        Cargando gastos...
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     HISTORIAL
+===================================================== -->
+
+<section
+    id="seccionHistorial"
+    class="tarjeta oculto"
+>
+
+    <h2>
+        📜 Historial del empleado
+    </h2>
+
+    <div
+        id="listaHistorial"
+        class="cargando"
+    >
+        Cargando historial...
+    </div>
+
+</section>
+
+
+</main>
+
+
+<script type="module">
+
+
+/* =========================================================
+   FIREBASE
+========================================================= */
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    query,
+    where,
+    updateDoc,
+    addDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+const EMAIL_ADMIN =
+    "julianbattauz006@gmail.com";
+
+let usuarioActual = null;
+
+let empresaActualId = null;
+
+let empleadoSeleccionado = null;
+
+let empleados = [];
+
+
+/* =========================================================
+   ELEMENTOS
+========================================================= */
+
+const selectEmpleado =
+    document.getElementById(
+        "empleadoSelect"
+    );
+
+const panelEmpleado =
+    document.getElementById(
+        "panelEmpleado"
+    );
+
+const datosEmpleado =
+    document.getElementById(
+        "datosEmpleado"
+    );
+
+const estadoAcceso =
+    document.getElementById(
+        "estadoAcceso"
+    );
+
+const mensaje =
+    document.getElementById(
+        "mensaje"
+    );
+
+
+/* =========================================================
+   MENSAJES
+========================================================= */
+
+function mostrarMensaje(
+    texto,
+    tipo = "ok"
+) {
+
+    mensaje.textContent = texto;
+
+    mensaje.className =
+        "mensaje " + tipo;
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+function limpiarMensaje() {
+
+    mensaje.textContent = "";
+
+    mensaje.className =
+        "mensaje";
+
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+onAuthStateChanged(
+    auth,
+    async (user) => {
+
+        if (!user) {
+
+            location.href =
+                "login.html";
+
+            return;
+        }
+
+
+        usuarioActual = user;
+
+
+        try {
+
+            await obtenerEmpresa();
+
+            await cargarEmpleados();
+
+        } catch (error) {
+
+            console.error(error);
+
+            mostrarMensaje(
+                "No se pudo cargar la administración.",
+                "error"
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   OBTENER EMPRESA DEL ADMINISTRADOR
+========================================================= */
+
+async function obtenerEmpresa() {
+
+    const usuarioRef =
+        doc(
+            db,
+            "usuarios",
+            usuarioActual.uid
+        );
+
+    const usuarioSnap =
+        await getDoc(usuarioRef);
+
+
+    if (usuarioSnap.exists()) {
+
+        const datos =
+            usuarioSnap.data();
+
+
+        empresaActualId =
+            datos.empresaId ||
+            datos.idEmpresa ||
+            datos.empresa ||
+            null;
+
+    }
+
+
+    /*
+     * Si no encontramos empresaId,
+     * buscamos una empresa cuyo propietario
+     * sea el usuario actual.
+     */
+
+    if (!empresaActualId) {
+
+        const q =
+            query(
+                collection(
+                    db,
+                    "empresas"
+                ),
+                where(
+                    "propietarioUid",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
+
+
+        const snap =
+            await getDocs(q);
+
+
+        if (!snap.empty) {
+
+            empresaActualId =
+                snap.docs[0].id;
+
+        }
+
+    }
+
+
+    if (!empresaActualId) {
+
+        throw new Error(
+            "No se encontró la empresa del administrador."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   CARGAR EMPLEADOS
+========================================================= */
+
+async function cargarEmpleados() {
+
+    selectEmpleado.innerHTML = `
+        <option value="">
+            Seleccioná un empleado
+        </option>
+    `;
+
+
+    const q =
+        query(
+            collection(
+                db,
+                "empleados"
+            ),
+            where(
+                "empresaId",
+                "==",
+                empresaActualId
+            )
+        );
+
+
+    const snap =
+        await getDocs(q);
+
+
+    empleados = [];
+
+
+    snap.forEach(
+        item => {
+
+            const datos =
+                item.data();
+
+
+            empleados.push({
+                id: item.id,
+                ...datos
+            });
+
+        }
+    );
+
+
+    empleados.sort(
+        (a, b) => {
+
+            const nombreA =
+                obtenerNombre(a)
+                    .toLowerCase();
+
+            const nombreB =
+                obtenerNombre(b)
+                    .toLowerCase();
+
+            return nombreA.localeCompare(
+                nombreB
+            );
+
+        }
+    );
+
+
+    empleados.forEach(
+        empleado => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                empleado.id;
+
+            option.textContent =
+                obtenerNombre(
+                    empleado
+                );
+
+
+            if (
+                empleado.dni
+            ) {
+
+                option.textContent +=
+                    " - DNI " +
+                    empleado.dni;
+
+            }
+
+
+            selectEmpleado.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    if (empleados.length === 0) {
+
+        selectEmpleado.innerHTML = `
+            <option value="">
+                No hay empleados registrados
+            </option>
+        `;
+
+    }
+
+}
+
+
+/* =========================================================
+   SELECCIONAR EMPLEADO
+========================================================= */
+
+selectEmpleado.addEventListener(
+    "change",
+    async () => {
+
+        const id =
+            selectEmpleado.value;
+
+
+        if (!id) {
+
+            panelEmpleado.classList.remove(
+                "visible"
+            );
+
+            empleadoSeleccionado = null;
+
+            return;
+
+        }
+
+
+        empleadoSeleccionado =
+            empleados.find(
+                e => e.id === id
+            );
+
+
+        if (!empleadoSeleccionado) {
+
+            return;
+
+        }
+
+
+        mostrarEmpleado();
+
+    }
+);
+
+
+/* =========================================================
+   OBTENER NOMBRE
+========================================================= */
+
+function obtenerNombre(
+    empleado
+) {
+
+    if (
+        empleado.nombreCompleto
+    ) {
+
+        return empleado.nombreCompleto;
+
+    }
+
+
+    const nombre =
+        empleado.nombre ||
+        "";
+
+
+    const apellido =
+        empleado.apellido ||
+        empleado.apellidos ||
+        "";
+
+
+    const completo =
+        `${nombre} ${apellido}`.trim();
+
+
+    return completo ||
+        "Empleado sin nombre";
+
+}
+
+
+/* =========================================================
+   MOSTRAR EMPLEADO
+========================================================= */
+
+function mostrarEmpleado() {
+
+    limpiarMensaje();
+
+    panelEmpleado.classList.add(
+        "visible"
+    );
+
+
+    const e =
+        empleadoSeleccionado;
+
+
+    const estado =
+        obtenerEstado(e);
+
+
+    const acceso =
+        tieneAcceso(e);
+
+
+    datosEmpleado.innerHTML = `
+
+        <div class="info">
+            <small>Nombre completo</small>
+            <strong>
+                ${escapar(obtenerNombre(e))}
+            </strong>
+        </div>
+
+        <div class="info">
+            <small>DNI</small>
+            <strong>
+                ${escapar(e.dni || "-")}
+            </strong>
+        </div>
+
+        <div class="info">
+            <small>Teléfono</small>
+            <strong>
+                ${escapar(
+                    e.telefono ||
+                    e.phone ||
+                    "-"
+                )}
+            </strong>
+        </div>
+
+        <div class="info">
+            <small>Email</small>
+            <strong>
+                ${escapar(e.email || "-")}
+            </strong>
+        </div>
+
+        <div class="info">
+            <small>Puesto</small>
+            <strong>
+                ${escapar(
+                    e.puesto ||
+                    e.cargo ||
+                    "-"
+                )}
+            </strong>
+        </div>
+
+        <div class="info">
+            <small>Tipo de empleado</small>
+            <strong>
+                ${escapar(
+                    e.tipoEmpleado ||
+                    e.tipo ||
+                    "-"
+                )}
+            </strong>
+        </div>
+
+        <div class="info">
+            <small>Pago diario</small>
+            <strong>
+                $${formatearNumero(
+                    e.pagoDiario || 0
+                )}
+            </strong>
+        </div>
+
+        <div class="info">
+            <small>Fecha de ingreso</small>
+            <strong>
+                ${escapar(
+                    e.fechaIngreso ||
+                    "-"
+                )}
+            </strong>
+        </div>
+
+        <div class="info">
+            <small>Estado</small>
+            <strong>
+                <span class="estado ${
+                    estado === "activo"
+                        ? "activo"
+                        : "inactivo"
+                }">
+                    ${estado.toUpperCase()}
+                </span>
+            </strong>
+        </div>
+
+    `;
+
+
+    let accesoTexto = "";
+
+    if (acceso) {
+
+        accesoTexto = `
+            <strong>
+                🔐 Acceso a GESBASE: HABILITADO
+            </strong>
+
+            <span>
+                Este empleado tiene una cuenta
+                de acceso.
+            </span>
+        `;
+
+    } else {
+
+        accesoTexto = `
+            <strong>
+                🔒 Acceso a GESBASE: NO HABILITADO
+            </strong>
+
+            <span>
+                El empleado todavía no tiene
+                acceso a GESBASE.
+            </span>
+        `;
+
+    }
+
+
+    if (
+        e.passwordTemporal === true
+    ) {
+
+        accesoTexto += `
+            <div style="margin-top:10px;color:#92400e;">
+                ⚠️ Tiene una contraseña temporal
+                pendiente de cambio.
+            </div>
+        `;
+
+    }
+
+
+    estadoAcceso.innerHTML =
+        accesoTexto;
+
+
+    actualizarBotones();
+
+}
+
+
+/* =========================================================
+   ESTADO
+========================================================= */
+
+function obtenerEstado(
+    empleado
+) {
+
+    const estado =
+        String(
+            empleado.estado || ""
+        ).toLowerCase();
+
+
+    if (
+        estado === "baja" ||
+        estado === "inactivo" ||
+        estado === "bloqueado"
+    ) {
+
+        return "inactivo";
+
+    }
+
+
+    return "activo";
+
+}
+
+
+/* =========================================================
+   ACCESO
+========================================================= */
+
+function tieneAcceso(
+    empleado
+) {
+
+    return Boolean(
+        empleado.authUid ||
+        empleado.usuarioId
+    );
+
+}
+
+
+/* =========================================================
+   BOTONES
+========================================================= */
+
+function actualizarBotones() {
+
+    if (!empleadoSeleccionado) {
+
+        return;
+
+    }
+
+
+    const e =
+        empleadoSeleccionado;
+
+
+    const acceso =
+        tieneAcceso(e);
+
+
+    const estado =
+        obtenerEstado(e);
+
+
+    const btnAcceso =
+        document.getElementById(
+            "btnAcceso"
+        );
+
+    const btnBloquear =
+        document.getElementById(
+            "btnBloquear"
+        );
+
+    const btnActivar =
+        document.getElementById(
+            "btnActivar"
+        );
+
+    const btnBaja =
+        document.getElementById(
+            "btnBaja"
+        );
+
+
+    if (acceso) {
+
+        btnAcceso.disabled = true;
+
+        btnAcceso.textContent =
+            "🔐 Acceso creado";
+
+    } else {
+
+        btnAcceso.disabled = false;
+
+        btnAcceso.textContent =
+            "🔐 Dar acceso a GESBASE";
+
+    }
+
+
+    if (
+        e.accesoBloqueado === true
+    ) {
+
+        btnBloquear.textContent =
+            "🔓 Desbloquear acceso";
+
+        btnBloquear.disabled =
+            false;
+
+    } else {
+
+        btnBloquear.textContent =
+            "🚫 Bloquear acceso";
+
+        btnBloquear.disabled =
+            !acceso;
+
+    }
+
+
+    if (
+        estado === "inactivo"
+    ) {
+
+        btnActivar.classList.remove(
+            "oculto"
+        );
+
+        btnBaja.classList.add(
+            "oculto"
+        );
+
+    } else {
+
+        btnActivar.classList.add(
+            "oculto"
+        );
+
+        btnBaja.classList.remove(
+            "oculto"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   EDITAR
+========================================================= */
+
+function editarEmpleado() {
+
+    if (!empleadoSeleccionado) {
+
+        return;
+
+    }
+
+
+    const e =
+        empleadoSeleccionado;
+
+
+    document
+        .getElementById("editNombre")
+        .value =
+        e.nombre || "";
+
+
+    document
+        .getElementById("editApellido")
+        .value =
+        e.apellido ||
+        e.apellidos ||
+        "";
+
+
+    document
+        .getElementById("editDni")
+        .value =
+        e.dni || "";
+
+
+    document
+        .getElementById("editTelefono")
+        .value =
+        e.telefono ||
+        e.phone ||
+        "";
+
+
+    document
+        .getElementById("editEmail")
+        .value =
+        e.email || "";
+
+
+    document
+        .getElementById("editPuesto")
+        .value =
+        e.puesto ||
+        e.cargo ||
+        "";
+
+
+    document
+        .getElementById("editTipo")
+        .value =
+        e.tipoEmpleado ||
+        e.tipo ||
+        "";
+
+
+    document
+        .getElementById("editPago")
+        .value =
+        e.pagoDiario || 0;
+
+
+    document
+        .getElementById("editAdicionales")
+        .value =
+        e.adicionales || 0;
+
+
+    document
+        .getElementById("editDescuentos")
+        .value =
+        e.descuentos || 0;
+
+
+    document
+        .getElementById("editFechaIngreso")
+        .value =
+        e.fechaIngreso || "";
+
+
+    document
+        .getElementById("formEdicion")
+        .classList.remove(
+            "oculto"
+        );
+
+
+    document
+        .getElementById("formEdicion")
+        .scrollIntoView({
+            behavior: "smooth"
+        });
+
+}
+
+
+window.editarEmpleado =
+    editarEmpleado;
+
+
+/* =========================================================
+   CANCELAR EDICIÓN
+========================================================= */
+
+function cancelarEdicion() {
+
+    document
+        .getElementById("formEdicion")
+        .classList.add(
+            "oculto"
+        );
+
+}
+
+
+window.cancelarEdicion =
+    cancelarEdicion;
+
+
+/* =========================================================
+   GUARDAR EDICIÓN
+========================================================= */
+
+async function guardarEdicion() {
+
+    if (!empleadoSeleccionado) {
+
+        return;
+
+    }
+
+
+    const nombre =
+        document
+            .getElementById("editNombre")
+            .value.trim();
+
+
+    if (!nombre) {
+
+        mostrarMensaje(
+            "El nombre es obligatorio.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        const datosActualizados = {
+
+            nombre,
+
+            apellido:
+                document
+                    .getElementById(
+                        "editApellido"
+                    )
+                    .value.trim(),
+
+            dni:
+                document
+                    .getElementById(
+                        "editDni"
+                    )
+                    .value.trim(),
+
+            telefono:
+                document
+                    .getElementById(
+                        "editTelefono"
+                    )
+                    .value.trim(),
+
+            email:
+                document
+                    .getElementById(
+                        "editEmail"
+                    )
+                    .value.trim(),
+
+            puesto:
+                document
+                    .getElementById(
+                        "editPuesto"
+                    )
+                    .value.trim(),
+
+            tipoEmpleado:
+                document
+                    .getElementById(
+                        "editTipo"
+                    )
+                    .value.trim(),
+
+            pagoDiario:
+                Number(
+                    document
+                        .getElementById(
+                            "editPago"
+                        )
+                        .value
+                ) || 0,
+
+            adicionales:
+                Number(
+                    document
+                        .getElementById(
+                            "editAdicionales"
+                        )
+                        .value
+                ) || 0,
+
+            descuentos:
+                Number(
+                    document
+                        .getElementById(
+                            "editDescuentos"
+                        )
+                        .value
+                ) || 0,
+
+            fechaIngreso:
+                document
+                    .getElementById(
+                        "editFechaIngreso"
+                    )
+                    .value,
+
+            actualizadoEn:
+                serverTimestamp(),
+
+            actualizadoPor:
+                usuarioActual.uid
+
+        };
+
+
+        const empleadoRef =
+            doc(
+                db,
+                "empleados",
+                empleadoSeleccionado.id
+            );
+
+
+        await updateDoc(
+            empleadoRef,
+            datosActualizados
+        );
+
+
+        Object.assign(
+            empleadoSeleccionado,
+            datosActualizados
+        );
+
+
+        const index =
+            empleados.findIndex(
+                e =>
+                    e.id ===
+                    empleadoSeleccionado.id
+            );
+
+
+        if (index !== -1) {
+
+            empleados[index] =
+                empleadoSeleccionado;
+
+        }
+
+
+        const option =
+            [...selectEmpleado.options]
+                .find(
+                    o =>
+                        o.value ===
+                        empleadoSeleccionado.id
+                );
+
+
+        if (option) {
+
+            option.textContent =
+                obtenerNombre(
+                    empleadoSeleccionado
+                ) +
+                (
+                    empleadoSeleccionado.dni
+                        ? " - DNI " +
+                          empleadoSeleccionado.dni
+                        : ""
+                );
+
+        }
+
+
+        mostrarEmpleado();
+
+        cancelarEdicion();
+
+
+        mostrarMensaje(
+            "Información del empleado actualizada correctamente."
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        mostrarMensaje(
+            "No se pudieron guardar los cambios.",
+            "error"
+        );
+
+    }
+
+}
+
+
+window.guardarEdicion =
+    guardarEdicion;
+
+
+/* =========================================================
+   DAR ACCESO
+========================================================= */
+
+async function darAcceso() {
+
+    if (!empleadoSeleccionado) {
+
+        return;
+
+    }
+
+
+    const e =
+        empleadoSeleccionado;
+
+
+    if (tieneAcceso(e)) {
+
+        mostrarMensaje(
+            "Este empleado ya tiene acceso a GESBASE.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const email =
+        e.email ||
+        "";
+
+
+    if (!email) {
+
+        mostrarMensaje(
+            "Primero cargá un email para este empleado.",
+            "error"
+        );
+
+        editarEmpleado();
+
+        return;
+
+    }
+
+
+    const confirmar =
+        confirm(
+            "¿Querés crear el acceso a GESBASE para " +
+            obtenerNombre(e) +
+            "?"
+        );
+
+
+    if (!confirmar) {
+
+        return;
+
+    }
+
+
+    try {
+
+        mostrarMensaje(
+            "Creando acceso..."
+        );
+
+
+        /*
+         * Llamamos a la Cloud Function
+         * crearAccesoEmpleado.
+         */
+
+        const token =
+            await usuarioActual
+                .getIdToken();
+
+
+        const respuesta =
+            await fetch(
+                "https://us-central1-gesbase-web.cloudfunctions.net/crearAccesoEmpleado",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            "Bearer " +
+                            token
+                    },
+
+                    body: JSON.stringify({
+                        empleadoId:
+                            e.id
+                    })
+
+                }
+            );
+
+
+        const resultado =
+            await respuesta.json();
+
+
+        if (!respuesta.ok) {
+
+            throw new Error(
+                resultado.error ||
+                resultado.message ||
+                "Error al crear acceso."
+            );
+
+        }
+
+
+        /*
+         * Guardamos los datos recibidos
+         * en memoria para actualizar
+         * la pantalla.
+         */
+
+        empleadoSeleccionado.authUid =
+            resultado.authUid || "";
+
+
+        empleadoSeleccionado.usuarioId =
+            resultado.authUid || "";
+
+
+        empleadoSeleccionado.passwordTemporal =
+            true;
+
+
+        mostrarEmpleado();
+
+
+        /*
+         * Mostramos las credenciales
+         * una sola vez.
+         */
+
+        estadoAcceso.innerHTML += `
+
+            <div class="credenciales">
+
+                <div>
+                    📧 Email:
+                    <strong>
+                        ${escapar(
+                            resultado.email ||
+                            email
+                        )}
+                    </strong>
+                </div>
+
+                <div>
+                    🔑 Contraseña temporal:
+                    <strong>
+                        ${escapar(
+                            resultado.password ||
+                            "No informada"
+                        )}
+                    </strong>
+                </div>
+
+                <div style="margin-top:12px;color:#d1d5db;">
+                    ⚠️ Guardá esta contraseña.
+                    El empleado deberá cambiarla
+                    al ingresar.
+                </div>
+
+            </div>
+
+        `;
+
+
+        mostrarMensaje(
+            "Acceso creado correctamente."
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        mostrarMensaje(
+            "No se pudo crear el acceso: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+window.darAcceso =
+    darAcceso;
+
+
+/* =========================================================
+   BLOQUEAR / DESBLOQUEAR
+========================================================= */
+
+async function bloquearAcceso() {
+
+    if (!empleadoSeleccionado) {
+
+        return;
+
+    }
+
+
+    const e =
+        empleadoSeleccionado;
+
+
+    /*
+     * Si ya está bloqueado,
+     * lo desbloqueamos.
+     */
+
+    if (
+        e.accesoBloqueado === true
+    ) {
+
+        try {
+
+            await updateDoc(
+                doc(
+                    db,
+                    "empleados",
+                    e.id
+                ),
+                {
+                    accesoBloqueado: false,
+                    accesoBloqueadoEn: null,
+                    accesoBloqueadoPor: null
+                }
+            );
+
+
+            e.accesoBloqueado =
+                false;
+
+
+            mostrarEmpleado();
+
+
+            mostrarMensaje(
+                "El acceso del empleado fue desbloqueado."
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            mostrarMensaje(
+                "No se pudo desbloquear el acceso.",
+                "error"
+            );
+
+        }
+
+        return;
+
+    }
+
+
+    const confirmar =
+        confirm(
+            "¿Querés bloquear el acceso de " +
+            obtenerNombre(e) +
+            "?"
+        );
+
+
+    if (!confirmar) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await updateDoc(
+            doc(
+                db,
+                "empleados",
+                e.id
+            ),
+            {
+                accesoBloqueado: true,
+                accesoBloqueadoEn:
+                    serverTimestamp(),
+                accesoBloqueadoPor:
+                    usuarioActual.uid
+            }
+        );
+
+
+        e.accesoBloqueado =
+            true;
+
+
+        mostrarEmpleado();
+
+
+        mostrarMensaje(
+            "El acceso fue bloqueado."
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        mostrarMensaje(
+            "No se pudo bloquear el acceso.",
+            "error"
+        );
+
+    }
+
+}
+
+
+window.bloquearAcceso =
+    bloquearAcceso;
+
+
+/* =========================================================
+   DAR DE BAJA
+========================================================= */
+
+async function darDeBaja() {
+
+    if (!empleadoSeleccionado) {
+
+        return;
+
+    }
+
+
+    const e =
+        empleadoSeleccionado;
+
+
+    const confirmar =
+        confirm(
+            "¿Dar de baja a " +
+            obtenerNombre(e) +
+            "?\n\n" +
+            "El empleado quedará inactivo, " +
+            "pero se conservarán sus fichajes, " +
+            "gastos, liquidaciones e historial."
+        );
+
+
+    if (!confirmar) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await updateDoc(
+            doc(
+                db,
+                "empleados",
+                e.id
+            ),
+            {
+                estado: "inactivo",
+                accesoBloqueado: true,
+                fechaBaja:
+                    new Date()
+                        .toISOString()
+                        .split("T")[0],
+                dadoDeBajaEn:
+                    serverTimestamp(),
+                dadoDeBajaPor:
+                    usuarioActual.uid
+            }
+        );
+
+
+        e.estado =
+            "inactivo";
+
+        e.accesoBloqueado =
+            true;
+
+
+        mostrarEmpleado();
+
+
+        mostrarMensaje(
+            "Empleado dado de baja. Su historial se conserva."
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        mostrarMensaje(
+            "No se pudo dar de baja al empleado.",
+            "error"
+        );
+
+    }
+
+}
+
+
+window.darDeBaja =
+    darDeBaja;
+
+
+/* =========================================================
+   ACTIVAR EMPLEADO
+========================================================= */
+
+async function activarEmpleado() {
+
+    if (!empleadoSeleccionado) {
+
+        return;
+
+    }
+
+
+    const confirmar =
+        confirm(
+            "¿Querés volver a activar a " +
+            obtenerNombre(
+                empleadoSeleccionado
+            ) +
+            "?"
+        );
+
+
+    if (!confirmar) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await updateDoc(
+            doc(
+                db,
+                "empleados",
+                empleadoSeleccionado.id
+            ),
+            {
+                estado: "activo",
+                accesoBloqueado: false,
+                fechaBaja: null
+            }
+        );
+
+
+        empleadoSeleccionado.estado =
+            "activo";
+
+        empleadoSeleccionado.accesoBloqueado =
+            false;
+
+
+        mostrarEmpleado();
+
+
+        mostrarMensaje(
+            "Empleado activado nuevamente."
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        mostrarMensaje(
+            "No se pudo activar el empleado.",
+            "error"
+        );
+
+    }
+
+}
+
+
+window.activarEmpleado =
+    activarEmpleado;
+
+
+/* =========================================================
+   LIQUIDACIÓN
+========================================================= */
+
+function irLiquidacion() {
+
+    if (!empleadoSeleccionado) {
+
+        mostrarMensaje(
+            "Primero seleccioná un empleado.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    sessionStorage.setItem(
+        "gesbaseEmpleadoAdmin",
+        JSON.stringify({
+            id:
+                empleadoSeleccionado.id,
+
+            nombre:
+                obtenerNombre(
+                    empleadoSeleccionado
+                )
+        })
+    );
+
+
+    location.href =
+        "liquidacion-empleado.html";
+
+}
+
+
+window.irLiquidacion =
+    irLiquidacion;
+
+
+/* =========================================================
+   GASTOS
+========================================================= */
+
+async function mostrarGastos() {
+
+    if (!empleadoSeleccionado) {
+
+        return;
+
+    }
+
+
+    const seccion =
+        document.getElementById(
+            "seccionGastos"
+        );
+
+
+    const lista =
+        document.getElementById(
+            "listaGastos"
+        );
+
+
+    seccion.classList.remove(
+        "oculto"
+    );
+
+
+    lista.innerHTML =
+        "Cargando gastos...";
+
+
+    try {
+
+        const q =
+            query(
+                collection(
+                    db,
+                    "gastos"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaActualId
+                )
+            );
+
+
+        const snap =
+            await getDocs(q);
+
+
+        const gastos = [];
+
+
+        snap.forEach(
+            item => {
+
+                const g =
+                    item.data();
+
+
+                const empleadoId =
+                    g.empleadoId ||
+                    g.idEmpleado ||
+                    g.usuarioEmpleadoId ||
+                    "";
+
+
+                if (
+                    empleadoId ===
+                    empleadoSeleccionado.id
+                ) {
+
+                    gastos.push({
+                        id: item.id,
+                        ...g
+                    });
+
+                }
+
+            }
+        );
+
+
+        if (!gastos.length) {
+
+            lista.innerHTML = `
+                <div class="vacio">
+                    No hay gastos registrados
+                    para este empleado.
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        let total = 0;
+
+
+        let html = `
+            <div class="tabla-contenedor">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Concepto</th>
+                            <th>Importe</th>
+                            <th>Estado</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+        `;
+
+
+        gastos.forEach(
+            g => {
+
+                const importe =
+                    Number(
+                        g.importe ||
+                        g.monto ||
+                        g.total ||
+                        0
+                    );
+
+
+                total += importe;
+
+
+                html += `
+
+                    <tr>
+
+                        <td>
+                            ${escapar(
+                                g.fecha ||
+                                g.fechaGasto ||
+                                "-"
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapar(
+                                g.concepto ||
+                                g.descripcion ||
+                                g.detalle ||
+                                "Gasto"
+                            )}
+                        </td>
+
+                        <td>
+                            $${formatearNumero(
+                                importe
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapar(
+                                g.estado ||
+                                "Registrado"
+                            )}
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        );
+
+
+        html += `
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="resumen">
+
+                <div class="caja">
+
+                    <div class="numero">
+                        ${gastos.length}
+                    </div>
+
+                    <div class="texto">
+                        Gastos registrados
+                    </div>
+
+                </div>
+
+                <div class="caja">
+
+                    <div class="numero">
+                        $${formatearNumero(total)}
+                    </div>
+
+                    <div class="texto">
+                        Total de gastos
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+
+        lista.innerHTML =
+            html;
+
+
+        seccion.scrollIntoView({
+            behavior: "smooth"
+        });
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        lista.innerHTML = `
+            <div class="vacio">
+                No se pudieron cargar
+                los gastos.
+            </div>
+        `;
+
+    }
+
+}
+
+
+window.mostrarGastos =
+    mostrarGastos;
+
+
+/* =========================================================
+   HISTORIAL
+========================================================= */
+
+async function mostrarHistorial() {
+
+    if (!empleadoSeleccionado) {
+
+        return;
+
+    }
+
+
+    const seccion =
+        document.getElementById(
+            "seccionHistorial"
+        );
+
+
+    const lista =
+        document.getElementById(
+            "listaHistorial"
+        );
+
+
+    seccion.classList.remove(
+        "oculto"
+    );
+
+
+    lista.innerHTML =
+        "Cargando historial...";
+
+
+    try {
+
+        const empleadoId =
+            empleadoSeleccionado.id;
+
+
+        /*
+         * Liquidaciones
+         */
+
+        const qLiquidaciones =
+            query(
+                collection(
+                    db,
+                    "liquidaciones"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaActualId
+                )
+            );
+
+
+        const snapLiquidaciones =
+            await getDocs(
+                qLiquidaciones
+            );
+
+
+        const liquidaciones = [];
+
+
+        snapLiquidaciones.forEach(
+            item => {
+
+                const l =
+                    item.data();
+
+
+                if (
+                    l.empleadoId ===
+                    empleadoId
+                ) {
+
+                    liquidaciones.push({
+                        id: item.id,
+                        ...l
+                    });
+
+                }
+
+            }
+        );
+
+
+        /*
+         * Fichajes
+         */
+
+        const qFichajes =
+            query(
+                collection(
+                    db,
+                    "fichajes"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaActualId
+                )
+            );
+
+
+        const snapFichajes =
+            await getDocs(
+                qFichajes
+            );
+
+
+        let cantidadFichajes = 0;
+
+
+        snapFichajes.forEach(
+            item => {
+
+                const f =
+                    item.data();
+
+
+                const idEmpleado =
+                    f.empleadoId ||
+                    f.idEmpleado ||
+                    "";
+
+
+                if (
+                    idEmpleado ===
+                    empleadoId
+                ) {
+
+                    cantidadFichajes++;
+
+                }
+
+            }
+        );
+
+
+        /*
+         * Armamos historial
+         */
+
+        let html = "";
+
+
+        html += `
+            <div class="resumen">
+
+                <div class="caja">
+
+                    <div class="numero">
+                        ${liquidaciones.length}
+                    </div>
+
+                    <div class="texto">
+                        Liquidaciones
+                    </div>
+
+                </div>
+
+                <div class="caja">
+
+                    <div class="numero">
+                        ${cantidadFichajes}
+                    </div>
+
+                    <div class="texto">
+                        Registros de fichaje
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+
+        if (
+            liquidaciones.length
+        ) {
+
+            html += `
+
+                <h3 style="margin-top:25px;">
+                    💰 Liquidaciones
+                </h3>
+
+                <div class="tabla-contenedor">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Período
+                                </th>
+
+                                <th>
+                                    Días
+                                </th>
+
+                                <th>
+                                    Base
+                                </th>
+
+                                <th>
+                                    Descuentos
+                                </th>
+
+                                <th>
+                                    Total
+                                </th>
+
+                                <th>
+                                    Estado
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+            `;
+
+
+            liquidaciones.sort(
+                (a, b) =>
+                    (
+                        Number(b.anio || 0) * 100 +
+                        Number(b.mes || 0)
+                    ) -
+                    (
+                        Number(a.anio || 0) * 100 +
+                        Number(a.mes || 0)
+                    )
+            );
+
+
+            liquidaciones.forEach(
+                l => {
+
+                    html += `
+
+                        <tr>
+
+                            <td>
+                                ${escapar(
+                                    String(
+                                        l.mes || "-"
+                                    ) +
+                                    "/" +
+                                    String(
+                                        l.anio || "-"
+                                    )
+                                )}
+                            </td>
+
+                            <td>
+                                ${Number(
+                                    l.diasTrabajados || 0
+                                )}
+                            </td>
+
+                            <td>
+                                $${formatearNumero(
+                                    l.base || 0
+                                )}
+                            </td>
+
+                            <td>
+                                $${formatearNumero(
+                                    l.totalDescuentos || 0
+                                )}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    $${formatearNumero(
+                                        l.total || 0
+                                    )}
+                                </strong>
+                            </td>
+
+                            <td>
+                                ${escapar(
+                                    l.estado ||
+                                    "Pendiente"
+                                )}
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            );
+
+
+            html += `
+                        </tbody>
+
+                    </table>
+
+                </div>
+            `;
+
+        } else {
+
+            html += `
+                <div class="vacio"
+                     style="margin-top:18px;">
+                    Todavía no hay liquidaciones
+                    para este empleado.
+                </div>
+            `;
+
+        }
+
+
+        lista.innerHTML =
+            html;
+
+
+        seccion.scrollIntoView({
+            behavior: "smooth"
+        });
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        lista.innerHTML = `
+            <div class="vacio">
+                No se pudo cargar el historial.
+            </div>
+        `;
+
+    }
+
+}
+
+
+window.mostrarHistorial =
+    mostrarHistorial;
+
+
+/* =========================================================
+   UTILIDADES
+========================================================= */
+
+function formatearNumero(
+    numero
+) {
+
+    return Number(
+        numero || 0
+    ).toLocaleString(
+        "es-AR",
+        {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        }
+    );
+
+}
+
+
+function escapar(
+    texto
+) {
+
+    return String(
+        texto ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+
+/* =========================================================
+   VOLVER
+========================================================= */
+
+function volver() {
+
+    location.href =
+        "index.html";
+
+}
+
+
+window.volver =
+    volver;
+
+
+</script>
+
+
+</body>
+
+</html>
