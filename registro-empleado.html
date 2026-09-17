@@ -156,6 +156,144 @@ main{
     color:#1e40af;
 }
 
+
+/* =========================================
+   TARJETA CONTRASEÑA TEMPORAL
+========================================= */
+
+.acceso-temporal{
+
+    display:none;
+
+    margin-top:20px;
+
+    padding:20px;
+
+    border-radius:14px;
+
+    background:#f0fdf4;
+
+    border:2px solid #86efac;
+
+}
+
+.acceso-temporal h3{
+
+    color:#166534;
+
+    font-size:19px;
+
+    margin-bottom:10px;
+
+}
+
+.acceso-temporal p{
+
+    color:#166534;
+
+    font-size:14px;
+
+    line-height:1.5;
+
+    margin-bottom:12px;
+
+}
+
+.dato-acceso{
+
+    background:#ffffff;
+
+    border:1px solid #bbf7d0;
+
+    border-radius:10px;
+
+    padding:13px;
+
+    margin-top:10px;
+
+}
+
+.dato-acceso strong{
+
+    display:block;
+
+    font-size:12px;
+
+    color:#6b7280;
+
+    margin-bottom:5px;
+
+}
+
+.password-generada{
+
+    font-size:24px;
+
+    font-weight:bold;
+
+    letter-spacing:2px;
+
+    color:#111827;
+
+    word-break:break-all;
+
+}
+
+.boton-copiar{
+
+    width:100%;
+
+    margin-top:12px;
+
+    padding:13px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#166534;
+
+    color:#fff;
+
+    font-size:14px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+.boton-copiar:hover{
+
+    background:#14532d;
+
+}
+
+.advertencia{
+
+    margin-top:14px;
+
+    padding:12px;
+
+    background:#fffbeb;
+
+    border:1px solid #fde68a;
+
+    border-radius:9px;
+
+    color:#92400e;
+
+    font-size:13px;
+
+    line-height:1.5;
+
+}
+
+
+/* =========================================
+   BOTONES
+========================================= */
+
 .botones{
     display:flex;
     gap:10px;
@@ -331,7 +469,7 @@ placeholder="Teléfono"
 <div class="campo">
 
 <label for="email">
-Email
+Email *
 </label>
 
 <input
@@ -560,6 +698,76 @@ id="vencimientoLicencia"
 </div>
 
 
+<!-- =========================================
+     ACCESO TEMPORAL
+========================================= -->
+
+<div
+id="accesoTemporal"
+class="acceso-temporal"
+>
+
+<h3>
+🔐 Acceso del empleado
+</h3>
+
+<p>
+El empleado fue registrado correctamente.
+Se generó una contraseña temporal para su primer acceso.
+</p>
+
+
+<div class="dato-acceso">
+
+<strong>
+EMAIL DE ACCESO
+</strong>
+
+<span id="emailGenerado">
+-
+</span>
+
+</div>
+
+
+<div class="dato-acceso">
+
+<strong>
+CONTRASEÑA TEMPORAL
+</strong>
+
+<span
+id="passwordGenerada"
+class="password-generada"
+>
+-
+</span>
+
+</div>
+
+
+<button
+type="button"
+id="btnCopiar"
+class="boton-copiar"
+>
+📋 COPIAR DATOS DE ACCESO
+</button>
+
+
+<div class="advertencia">
+
+⚠️ <strong>Importante:</strong><br>
+
+Entregale estos datos al empleado.
+La contraseña es temporal y el empleado
+deberá cambiarla durante su primer acceso.
+
+</div>
+
+</div>
+
+
 <div class="botones">
 
 <button
@@ -583,12 +791,12 @@ class="boton boton-volver"
 
 <div class="nota">
 
-<strong>Importante:</strong><br>
+<strong>Acceso del empleado:</strong><br>
 
-El registro crea la ficha laboral del empleado dentro
-de la empresa. El acceso mediante Firebase Auth se
-vinculará posteriormente sin cerrar la sesión del
-administrador.
+Si se informa un email válido, GESBASE creará
+automáticamente la cuenta de acceso y generará
+una contraseña temporal. El administrador
+permanece conectado.
 
 </div>
 
@@ -601,9 +809,17 @@ administrador.
 
 <script type="module">
 
+
 /*
 =========================================================
  GESBASE - REGISTRO DE EMPLEADOS
+=========================================================
+*/
+
+
+/*
+=========================================================
+ FIREBASE
 =========================================================
 */
 
@@ -612,10 +828,12 @@ import {
     db
 } from "./Js/firebase.js";
 
+
 import {
     onAuthStateChanged
 } from
 "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
 
 import {
     collection,
@@ -631,9 +849,24 @@ import {
 "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-/* =========================================
-   ELEMENTOS
-========================================= */
+/*
+=========================================================
+ FIREBASE FUNCTIONS
+=========================================================
+*/
+
+import {
+    getFunctions,
+    httpsCallable
+} from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js";
+
+
+/*
+=========================================================
+ ELEMENTOS
+=========================================================
+*/
 
 const mensaje =
 document.getElementById("mensaje");
@@ -695,10 +928,24 @@ document.getElementById("btnGuardar");
 const btnVolver =
 document.getElementById("btnVolver");
 
+const accesoTemporal =
+document.getElementById("accesoTemporal");
 
-/* =========================================
-   VARIABLES
-========================================= */
+const emailGenerado =
+document.getElementById("emailGenerado");
+
+const passwordGenerada =
+document.getElementById("passwordGenerada");
+
+const btnCopiar =
+document.getElementById("btnCopiar");
+
+
+/*
+=========================================================
+ VARIABLES
+=========================================================
+*/
 
 let usuarioActual = null;
 
@@ -709,9 +956,27 @@ let empresaActual = null;
 let unidadesDisponibles = [];
 
 
-/* =========================================
-   UTILIDADES
-========================================= */
+/*
+=========================================================
+ FIREBASE FUNCTIONS
+=========================================================
+*/
+
+const functions =
+getFunctions();
+
+const crearAccesoEmpleado =
+httpsCallable(
+    functions,
+    "crearAccesoEmpleado"
+);
+
+
+/*
+=========================================================
+ UTILIDADES
+=========================================================
+*/
 
 function texto(valor){
 
@@ -769,9 +1034,11 @@ function ocultarMensaje(){
 }
 
 
-/* =========================================
-   FECHA
-========================================= */
+/*
+=========================================================
+ FECHA
+=========================================================
+*/
 
 function fechaHoy(){
 
@@ -806,9 +1073,11 @@ fechaIngreso.value =
 fechaHoy();
 
 
-/* =========================================
-   MOSTRAR DATOS DE CHOFER
-========================================= */
+/*
+=========================================================
+ MOSTRAR CHOFER
+=========================================================
+*/
 
 tipoEmpleado.addEventListener(
     "change",
@@ -837,9 +1106,11 @@ tipoEmpleado.addEventListener(
 );
 
 
-/* =========================================
-   OBTENER EMPRESA
-========================================= */
+/*
+=========================================================
+ OBTENER EMPRESA
+=========================================================
+*/
 
 async function obtenerEmpresa(){
 
@@ -851,10 +1122,6 @@ async function obtenerEmpresa(){
 
     }
 
-
-    /*
-     * Primero buscamos el perfil del usuario.
-     */
 
     const referenciaUsuario =
     doc(
@@ -893,11 +1160,6 @@ async function obtenerEmpresa(){
 
     }
 
-
-    /*
-     * Si no encontramos empresa en usuarios,
-     * buscamos propietarioUid en empresas.
-     */
 
     if(!empresaActualId){
 
@@ -948,10 +1210,6 @@ async function obtenerEmpresa(){
     }
 
 
-    /*
-     * Cargar empresa.
-     */
-
     const referenciaEmpresa =
     doc(
         db,
@@ -978,10 +1236,6 @@ async function obtenerEmpresa(){
     empresaActual =
     resultadoEmpresa.data();
 
-
-    /*
-     * Control de acceso.
-     */
 
     const rol =
     texto(
@@ -1013,9 +1267,11 @@ async function obtenerEmpresa(){
 }
 
 
-/* =========================================
-   CARGAR UNIDADES
-========================================= */
+/*
+=========================================================
+ CARGAR UNIDADES
+=========================================================
+*/
 
 async function cargarUnidades(){
 
@@ -1065,11 +1321,6 @@ async function cargarUnidades(){
 
             };
 
-
-            /*
-             * Solo mostramos unidades que no tengan
-             * un chofer asignado.
-             */
 
             const tieneChofer =
             texto(
@@ -1159,9 +1410,11 @@ async function cargarUnidades(){
 }
 
 
-/* =========================================
-   VALIDAR
-========================================= */
+/*
+=========================================================
+ VALIDAR
+=========================================================
+*/
 
 function validar(){
 
@@ -1182,6 +1435,17 @@ function validar(){
 
         throw new Error(
             "Ingresá el apellido del empleado."
+        );
+
+    }
+
+
+    if(
+        !texto(email.value)
+    ){
+
+        throw new Error(
+            "Ingresá el email del empleado para crear su acceso."
         );
 
     }
@@ -1213,13 +1477,110 @@ function validar(){
 }
 
 
-/* =========================================
-   REGISTRAR EMPLEADO
-========================================= */
+/*
+=========================================================
+ MOSTRAR ACCESO GENERADO
+=========================================================
+*/
+
+function mostrarAcceso(
+    datos
+){
+
+    emailGenerado.textContent =
+    datos.email || texto(email.value);
+
+
+    passwordGenerada.textContent =
+    datos.passwordTemporal || "-";
+
+
+    accesoTemporal.style.display =
+    "block";
+
+
+    accesoTemporal.scrollIntoView({
+        behavior:"smooth",
+        block:"center"
+    });
+
+}
+
+
+/*
+=========================================================
+ COPIAR ACCESO
+=========================================================
+*/
+
+btnCopiar.addEventListener(
+    "click",
+    async function(){
+
+        const emailTexto =
+        emailGenerado.textContent;
+
+
+        const passwordTexto =
+        passwordGenerada.textContent;
+
+
+        const datos =
+        "GESBASE - Acceso empleado\n\n" +
+        "Email: " +
+        emailTexto +
+        "\n" +
+        "Contraseña temporal: " +
+        passwordTexto;
+
+
+        try{
+
+            await navigator.clipboard.writeText(
+                datos
+            );
+
+
+            btnCopiar.textContent =
+            "✅ DATOS COPIADOS";
+
+
+            setTimeout(
+                function(){
+
+                    btnCopiar.textContent =
+                    "📋 COPIAR DATOS DE ACCESO";
+
+                },
+                1800
+            );
+
+        }
+        catch(error){
+
+            mostrarMensaje(
+                "No se pudo copiar automáticamente. Copiá los datos manualmente.",
+                "info"
+            );
+
+        }
+
+    }
+);
+
+
+/*
+=========================================================
+ REGISTRAR EMPLEADO
+=========================================================
+*/
 
 async function registrarEmpleado(){
 
     ocultarMensaje();
+
+    accesoTemporal.style.display =
+    "none";
 
 
     try{
@@ -1239,9 +1600,18 @@ async function registrarEmpleado(){
         "chofer";
 
 
+        const emailEmpleado =
+        texto(
+            email.value
+        )
+        .toLowerCase();
+
+
         /*
-         * Datos principales del empleado.
-         */
+        =============================================
+        DATOS PRINCIPALES
+        =============================================
+        */
 
         const datosEmpleado = {
 
@@ -1261,8 +1631,7 @@ async function registrarEmpleado(){
             texto(telefono.value),
 
             email:
-            texto(email.value)
-            .toLowerCase(),
+            emailEmpleado,
 
             puesto:
             texto(puesto.value),
@@ -1291,6 +1660,9 @@ async function registrarEmpleado(){
             usuarioId:
             "",
 
+            passwordTemporal:
+            true,
+
             creadoPor:
             usuarioActual.uid,
 
@@ -1304,8 +1676,10 @@ async function registrarEmpleado(){
 
 
         /*
-         * Crear empleado.
-         */
+        =============================================
+        CREAR FICHA DEL EMPLEADO
+        =============================================
+        */
 
         const referenciaEmpleado =
         await addDoc(
@@ -1318,9 +1692,10 @@ async function registrarEmpleado(){
 
 
         /*
-         * Si es chofer, crear su registro
-         * en la colección choferes.
-         */
+        =============================================
+        SI ES CHOFER
+        =============================================
+        */
 
         if(esChofer){
 
@@ -1378,11 +1753,6 @@ async function registrarEmpleado(){
             );
 
 
-            /*
-             * Si hay unidad asignada,
-             * actualizarla inmediatamente.
-             */
-
             if(unidadSeleccionada){
 
                 const referenciaUnidad =
@@ -1421,17 +1791,66 @@ async function registrarEmpleado(){
         }
 
 
+        /*
+        =============================================
+        CREAR ACCESO FIREBASE AUTH
+        =============================================
+        */
+
+        btnGuardar.textContent =
+        "🔐 GENERANDO ACCESO...";
+
+
+        const resultadoAcceso =
+        await crearAccesoEmpleado({
+
+            empleadoId:
+            referenciaEmpleado.id,
+
+            email:
+            emailEmpleado
+
+        });
+
+
+        const datosAcceso =
+        resultadoAcceso.data;
+
+
+        if(
+            !datosAcceso ||
+            datosAcceso.ok !== true
+        ){
+
+            throw new Error(
+                "El empleado fue registrado, pero no se pudo crear su acceso."
+            );
+
+        }
+
+
+        /*
+        =============================================
+        MOSTRAR CONTRASEÑA TEMPORAL
+        =============================================
+        */
+
+        mostrarAcceso(
+            datosAcceso
+        );
+
+
         mostrarMensaje(
-            esChofer
-                ? "Chofer registrado correctamente y vinculado con su unidad."
-                : "Empleado registrado correctamente.",
+            "✅ Empleado registrado y acceso temporal generado correctamente.",
             "exito"
         );
 
 
         /*
-         * Limpiar formulario.
-         */
+        =============================================
+        LIMPIAR FORMULARIO
+        =============================================
+        */
 
         nombre.value = "";
         apellido.value = "";
@@ -1456,8 +1875,10 @@ async function registrarEmpleado(){
 
 
         /*
-         * Recargar unidades disponibles.
-         */
+        =============================================
+        ACTUALIZAR UNIDADES
+        =============================================
+        */
 
         await cargarUnidades();
 
@@ -1470,9 +1891,52 @@ async function registrarEmpleado(){
         );
 
 
+        let mensajeError =
+        error.message ||
+        "No se pudo registrar el empleado.";
+
+
+        /*
+        =============================================
+        ERROR FUNCTION
+        =============================================
+        */
+
+        if(
+            error.code ===
+            "functions/unauthenticated"
+        ){
+
+            mensajeError =
+            "La sesión del administrador no está disponible.";
+
+        }
+
+
+        else if(
+            error.code ===
+            "functions/permission-denied"
+        ){
+
+            mensajeError =
+            "No tenés permiso para crear accesos de empleados.";
+
+        }
+
+
+        else if(
+            error.code ===
+            "functions/already-exists"
+        ){
+
+            mensajeError =
+            "Ya existe una cuenta de Firebase con ese email.";
+
+        }
+
+
         mostrarMensaje(
-            error.message ||
-            "No se pudo registrar el empleado.",
+            mensajeError,
             "error"
         );
 
@@ -1490,9 +1954,11 @@ async function registrarEmpleado(){
 }
 
 
-/* =========================================
-   GUARDAR
-========================================= */
+/*
+=========================================================
+ GUARDAR
+=========================================================
+*/
 
 btnGuardar.addEventListener(
     "click",
@@ -1500,9 +1966,11 @@ btnGuardar.addEventListener(
 );
 
 
-/* =========================================
-   VOLVER
-========================================= */
+/*
+=========================================================
+ VOLVER
+=========================================================
+*/
 
 btnVolver.addEventListener(
     "click",
@@ -1515,9 +1983,11 @@ btnVolver.addEventListener(
 );
 
 
-/* =========================================
-   AUTENTICACIÓN
-========================================= */
+/*
+=========================================================
+ AUTENTICACIÓN
+=========================================================
+*/
 
 onAuthStateChanged(
     auth,
