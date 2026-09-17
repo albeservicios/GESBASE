@@ -1210,7 +1210,7 @@ header{
         </h2>
 
         <p class="seccion-descripcion">
-            Administrá empleados y fichajes.
+            Administrá empleados, fichajes y liquidaciones.
         </p>
 
 
@@ -1230,7 +1230,7 @@ header{
                 </h3>
 
                 <p>
-                    Creá fichas y accesos para empleados.
+                    Creá fichas de empleados.
                 </p>
 
             </div>
@@ -1291,6 +1291,31 @@ header{
 
                 <p>
                     Administrá información del personal.
+                </p>
+
+            </div>
+
+
+            <!-- =================================================
+                 NUEVA LIQUIDACIÓN MENSUAL
+            ================================================== -->
+
+            <div
+                class="tarjeta morada protegido"
+                data-url="liquidacion-empleado.html"
+            >
+
+                <div class="icono">
+                    💰
+                </div>
+
+                <h3>
+                    Liquidación mensual
+                </h3>
+
+                <p>
+                    Calculá y administrá las liquidaciones
+                    de los empleados.
                 </p>
 
             </div>
@@ -2365,12 +2390,6 @@ function configurarVistaEmpresa(){
         !comercio;
 
 
-    /*
-    -----------------------------------------------
-    TRANSPORTE
-    -----------------------------------------------
-    */
-
     document
         .getElementById(
             "seccionTransporte"
@@ -2380,12 +2399,6 @@ function configurarVistaEmpresa(){
             !transporte
         );
 
-
-    /*
-    -----------------------------------------------
-    COMERCIO
-    -----------------------------------------------
-    */
 
     document
         .getElementById(
@@ -2397,12 +2410,6 @@ function configurarVistaEmpresa(){
         );
 
 
-    /*
-    -----------------------------------------------
-    SERVICIOS
-    -----------------------------------------------
-    */
-
     document
         .getElementById(
             "seccionServicios"
@@ -2412,17 +2419,6 @@ function configurarVistaEmpresa(){
             !servicios
         );
 
-
-    /*
-    -----------------------------------------------
-    PERSONAL
-    -----------------------------------------------
-    */
-
-    /*
-     * El personal puede existir en cualquier
-     * empresa, incluida una empresa de transporte.
-     */
 
     document
         .getElementById(
@@ -2550,10 +2546,6 @@ function cargarDatosEmpresa(){
 
 async function cargarBalance(){
 
-    /*
-     * NUNCA se ejecuta para empleados.
-     */
-
     if(
         !empresaActualId
     ){
@@ -2571,12 +2563,6 @@ async function cargarBalance(){
 
         let fichajes = 0;
 
-
-        /*
-        -----------------------------------------------
-        COBROS
-        -----------------------------------------------
-        */
 
         const cobrosSnap =
             await getDocs(
@@ -2640,12 +2626,6 @@ async function cargarBalance(){
         );
 
 
-        /*
-        -----------------------------------------------
-        GASTOS
-        -----------------------------------------------
-        */
-
         const gastosSnap =
             await getDocs(
                 collection(
@@ -2688,12 +2668,6 @@ async function cargarBalance(){
             }
         );
 
-
-        /*
-        -----------------------------------------------
-        FICHAJES
-        -----------------------------------------------
-        */
 
         const fichajesSnap =
             await getDocs(
@@ -2805,11 +2779,6 @@ async function configurarPersonal(){
         ||
         rol === "administrador";
 
-
-    /*
-     * Administración de empleados solo
-     * para administradores.
-     */
 
     if(!esAdmin){
 
@@ -2933,10 +2902,6 @@ document
 
                     }
 
-
-                    /*
-                     * Si es administrador:
-                     */
 
                     if(
                         !sesionEmpleado
@@ -3086,12 +3051,6 @@ onAuthStateChanged(
 
         try{
 
-            /*
-            =============================================
-            USUARIO FIRESTORE
-            =============================================
-            */
-
             const usuarioSnap =
                 await getDoc(
                     doc(
@@ -3107,12 +3066,6 @@ onAuthStateChanged(
                 ? usuarioSnap.data()
                 : {};
 
-
-            /*
-            =============================================
-            DETECTAR EMPLEADO
-            =============================================
-            */
 
             const rol =
                 texto(
@@ -3135,12 +3088,6 @@ onAuthStateChanged(
                 rol === "conductor";
 
 
-            /*
-            =============================================
-            EMPLEADO
-            =============================================
-            */
-
             if(esEmpleado){
 
                 sesionEmpleado =
@@ -3148,12 +3095,6 @@ onAuthStateChanged(
 
 
                 if(!sesionEmpleado){
-
-                    /*
-                     * Si el usuario figura como empleado
-                     * pero no tiene sesión local,
-                     * no mostramos datos de empresa.
-                     */
 
                     sessionStorage.removeItem(
                         "gesbaseEmpleado"
@@ -3168,19 +3109,6 @@ onAuthStateChanged(
 
                 }
 
-
-                /*
-                 * IMPORTANTE:
-                 *
-                 * NO cargar:
-                 * - balance
-                 * - razón social
-                 * - rubro
-                 * - administración
-                 * - comercio
-                 * - servicios
-                 * - datos financieros
-                 */
 
                 mostrarPanelEmpleado(
                     sesionEmpleado
@@ -3200,12 +3128,6 @@ onAuthStateChanged(
 
             }
 
-
-            /*
-            =============================================
-            ADMINISTRADOR
-            =============================================
-            */
 
             panelAdministrador
                 .classList
@@ -3229,12 +3151,6 @@ onAuthStateChanged(
 
             }
 
-
-            /*
-            =============================================
-            ACCESO
-            =============================================
-            */
 
             accesoPermitido =
                 await comprobarAccesoEmpresa();
@@ -3268,32 +3184,14 @@ onAuthStateChanged(
             }
 
 
-            /*
-            =============================================
-            DATOS
-            =============================================
-            */
-
             cargarDatosEmpresa();
 
 
             await configurarPersonal();
 
 
-            /*
-            =============================================
-            BALANCE
-            =============================================
-            */
-
             await cargarBalance();
 
-
-            /*
-            =============================================
-            ADMIN GESBASE
-            =============================================
-            */
 
             const esAdminGESBASE =
                 usuario.email ===
