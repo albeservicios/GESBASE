@@ -94,6 +94,11 @@ button{
     margin-top:10px;
 }
 
+button:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
 .btn-guardar{
     background:#111827;
     color:white;
@@ -126,46 +131,18 @@ button{
     color:#92400e;
 }
 
-.acceso-generado{
-    margin-top:25px;
-    padding:20px;
-    background:#ecfdf5;
-    border:2px solid #10b981;
-    border-radius:16px;
-}
-
-.acceso-generado h3{
-    color:#047857;
-    margin-bottom:10px;
-}
-
-.acceso-generado p{
-    margin-bottom:15px;
-    line-height:1.5;
-}
-
-.dato-acceso{
-    background:white;
-    padding:12px;
-    border-radius:10px;
-    margin-top:10px;
-    word-break:break-word;
-}
-
-.password{
-    font-size:20px;
-    font-weight:bold;
-    letter-spacing:1px;
-    color:#111827;
-}
-
-.btn-copiar{
-    background:#10b981;
-    color:white;
-}
-
 .oculto{
     display:none;
+}
+
+.info-registro{
+    margin-bottom:20px;
+    padding:15px;
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    border-radius:12px;
+    color:#1e40af;
+    line-height:1.5;
 }
 
 @media(max-width:650px){
@@ -202,16 +179,48 @@ button{
 <h2>👤 Datos del empleado</h2>
 
 
+<div class="info-registro">
+
+    <strong>ℹ️ Registro de empleado</strong>
+
+    <br>
+
+    Acá se registra solamente la ficha del empleado.
+    El acceso a GESBASE se puede otorgar posteriormente
+    desde <strong>Administrar empleados</strong>.
+
+</div>
+
+
 <div class="grid">
 
     <div class="grupo">
-        <label for="nombre">Nombre</label>
-        <input id="nombre" type="text">
+
+        <label for="nombre">
+            Nombre
+        </label>
+
+        <input
+            id="nombre"
+            type="text"
+            autocomplete="given-name"
+        >
+
     </div>
 
+
     <div class="grupo">
-        <label for="apellido">Apellido</label>
-        <input id="apellido" type="text">
+
+        <label for="apellido">
+            Apellido
+        </label>
+
+        <input
+            id="apellido"
+            type="text"
+            autocomplete="family-name"
+        >
+
     </div>
 
 </div>
@@ -220,13 +229,32 @@ button{
 <div class="grid">
 
     <div class="grupo">
-        <label for="dni">DNI</label>
-        <input id="dni" type="text">
+
+        <label for="dni">
+            DNI
+        </label>
+
+        <input
+            id="dni"
+            type="text"
+            inputmode="numeric"
+        >
+
     </div>
 
+
     <div class="grupo">
-        <label for="telefono">Teléfono</label>
-        <input id="telefono" type="tel">
+
+        <label for="telefono">
+            Teléfono
+        </label>
+
+        <input
+            id="telefono"
+            type="tel"
+            autocomplete="tel"
+        >
+
     </div>
 
 </div>
@@ -242,7 +270,17 @@ button{
         id="email"
         type="email"
         placeholder="empleado@email.com"
+        autocomplete="email"
     >
+
+    <small style="
+        display:block;
+        margin-top:6px;
+        color:#6b7280;
+    ">
+        El email puede cargarse ahora o posteriormente
+        si se decide darle acceso a GESBASE.
+    </small>
 
 </div>
 
@@ -380,7 +418,9 @@ button{
 </div>
 
 
-<!-- DATOS DEL CHOFER -->
+<!-- =========================
+     DATOS DEL CHOFER
+========================= -->
 
 <div id="datosChofer" class="oculto">
 
@@ -412,7 +452,10 @@ button{
                 Licencia
             </label>
 
-            <input id="licencia" type="text">
+            <input
+                id="licencia"
+                type="text"
+            >
 
         </div>
 
@@ -450,6 +493,10 @@ button{
 </div>
 
 
+<!-- =========================
+     BOTÓN REGISTRAR
+========================= -->
+
 <button
     id="btnGuardar"
     class="btn-guardar"
@@ -472,69 +519,6 @@ button{
     id="mensaje"
     class="mensaje"
 ></div>
-
-
-<!-- ACCESO GENERADO -->
-
-<div
-    id="accesoGenerado"
-    class="acceso-generado"
-    style="display:none;"
->
-
-    <h3>🔐 ACCESO DEL EMPLEADO</h3>
-
-    <p>
-        El acceso fue creado correctamente.
-        Entregale estos datos al empleado.
-        La contraseña es momentánea y deberá cambiarla
-        en su primer ingreso.
-    </p>
-
-
-    <div class="dato-acceso">
-
-        <strong>Email:</strong>
-
-        <span id="accesoEmail"></span>
-
-    </div>
-
-
-    <div class="dato-acceso">
-
-        <strong>
-            Contraseña momentánea:
-        </strong>
-
-        <div
-            id="accesoPassword"
-            class="password"
-        ></div>
-
-    </div>
-
-
-    <div class="dato-acceso">
-
-        <strong>
-            Validez:
-        </strong>
-
-        24 horas
-
-    </div>
-
-
-    <button
-        id="btnCopiarAcceso"
-        class="btn-copiar"
-        type="button"
-    >
-        📋 COPIAR ACCESO
-    </button>
-
-</div>
 
 
 </div>
@@ -568,20 +552,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-import {
-    getFunctions,
-    httpsCallable
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js";
-
-
-const functions = getFunctions();
-
-const crearAccesoEmpleado =
-    httpsCallable(
-        functions,
-        "crearAccesoEmpleado"
-    );
-
+/* =========================================================
+   VARIABLES
+========================================================= */
 
 let usuarioActual = null;
 
@@ -590,7 +563,9 @@ let empresaActualId = null;
 let empresaActual = null;
 
 
-/* ELEMENTOS */
+/* =========================================================
+   ELEMENTOS
+========================================================= */
 
 const nombre =
     document.getElementById("nombre");
@@ -646,17 +621,13 @@ const datosChofer =
 const mensaje =
     document.getElementById("mensaje");
 
-const accesoGenerado =
-    document.getElementById("accesoGenerado");
-
-const accesoEmail =
-    document.getElementById("accesoEmail");
-
-const accesoPassword =
-    document.getElementById("accesoPassword");
+const btnGuardar =
+    document.getElementById("btnGuardar");
 
 
-/* FUNCIONES */
+/* =========================================================
+   FUNCIONES AUXILIARES
+========================================================= */
 
 function texto(valor){
 
@@ -697,11 +668,13 @@ function ocultarMensaje(){
 }
 
 
-/* MOSTRAR / OCULTAR CHOFER */
+/* =========================================================
+   MOSTRAR / OCULTAR DATOS DE CHOFER
+========================================================= */
 
 tipoEmpleado.addEventListener(
     "change",
-    () => {
+    async () => {
 
         if(
             tipoEmpleado.value === "chofer"
@@ -711,7 +684,7 @@ tipoEmpleado.addEventListener(
                 "oculto"
             );
 
-            cargarUnidades();
+            await cargarUnidades();
 
         }else{
 
@@ -725,9 +698,20 @@ tipoEmpleado.addEventListener(
 );
 
 
-/* OBTENER EMPRESA DEL ADMINISTRADOR */
+/* =========================================================
+   OBTENER EMPRESA DEL ADMINISTRADOR
+========================================================= */
 
 async function obtenerEmpresa(){
+
+    if(!usuarioActual){
+
+        throw new Error(
+            "No hay una sesión activa."
+        );
+
+    }
+
 
     const usuarioRef =
         doc(
@@ -744,7 +728,7 @@ async function obtenerEmpresa(){
     if(!usuarioSnap.exists()){
 
         throw new Error(
-            "No se encontró tu usuario."
+            "No se encontró tu usuario en GESBASE."
         );
 
     }
@@ -793,6 +777,12 @@ async function obtenerEmpresa(){
     empresaId =
         texto(empresaId);
 
+
+    /*
+       Si el usuario no tiene empresaId,
+       buscamos una empresa cuyo propietarioUid
+       sea el usuario actual.
+    */
 
     if(!empresaId){
 
@@ -856,7 +846,9 @@ async function obtenerEmpresa(){
 }
 
 
-/* CARGAR UNIDADES */
+/* =========================================================
+   CARGAR UNIDADES
+========================================================= */
 
 async function cargarUnidades(){
 
@@ -874,73 +866,94 @@ async function cargarUnidades(){
     `;
 
 
-    const q =
-        query(
-            collection(db,"unidades"),
-            where(
-                "empresaId",
-                "==",
-                empresaActualId
-            )
+    try{
+
+        const q =
+            query(
+                collection(db,"unidades"),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaActualId
+                )
+            );
+
+
+        const snap =
+            await getDocs(q);
+
+
+        snap.forEach(
+            documento => {
+
+                const unidad =
+                    documento.data();
+
+
+                /*
+                   Si la unidad ya tiene chofer,
+                   no la mostramos como disponible.
+                */
+
+                if(
+                    unidad.choferId
+                ){
+
+                    return;
+
+                }
+
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    documento.id;
+
+
+                option.textContent =
+                    unidad.patente
+                    ||
+                    unidad.nombre
+                    ||
+                    documento.id;
+
+
+                unidadId.appendChild(
+                    option
+                );
+
+            }
+        );
+
+    }catch(error){
+
+        console.error(
+            "Error cargando unidades:",
+            error
         );
 
 
-    const snap =
-        await getDocs(q);
+        mostrarMensaje(
+            "No se pudieron cargar las unidades.",
+            "aviso"
+        );
 
-
-    snap.forEach(
-        documento => {
-
-            const unidad =
-                documento.data();
-
-
-            if(
-                unidad.choferId
-            ){
-
-                return;
-
-            }
-
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                documento.id;
-
-
-            option.textContent =
-                unidad.patente
-                ||
-                unidad.nombre
-                ||
-                documento.id;
-
-
-            unidadId.appendChild(
-                option
-            );
-
-        }
-    );
+    }
 
 }
 
 
-/* REGISTRAR EMPLEADO */
+/* =========================================================
+   REGISTRAR EMPLEADO
+========================================================= */
 
 async function registrarEmpleado(){
 
     ocultarMensaje();
-
-    accesoGenerado.style.display =
-        "none";
 
 
     if(!usuarioActual){
@@ -977,12 +990,18 @@ async function registrarEmpleado(){
         texto(email.value).toLowerCase();
 
 
+    /* =====================================================
+       VALIDACIONES
+    ===================================================== */
+
     if(!nombreTexto){
 
         mostrarMensaje(
             "Ingresá el nombre del empleado.",
             "error"
         );
+
+        nombre.focus();
 
         return;
 
@@ -996,38 +1015,31 @@ async function registrarEmpleado(){
             "error"
         );
 
-        return;
-
-    }
-
-
-    if(!emailTexto){
-
-        mostrarMensaje(
-            "El empleado necesita un email para generar su acceso.",
-            "error"
-        );
+        apellido.focus();
 
         return;
 
     }
 
 
-    const btn =
-        document.getElementById(
-            "btnGuardar"
-        );
+    /* =====================================================
+       BOTÓN
+    ===================================================== */
 
+    btnGuardar.disabled = true;
 
-    btn.disabled = true;
-
-    btn.textContent =
-        "⏳ REGISTRANDO...";
+    btnGuardar.textContent =
+        "⏳ REGISTRANDO EMPLEADO...";
 
 
     try{
 
-        /* CREAR FICHA */
+        /* =================================================
+           CREAR FICHA DEL EMPLEADO
+
+           IMPORTANTE:
+           ACÁ NO SE CREA NINGÚN ACCESO.
+        ================================================= */
 
         const datosEmpleado = {
 
@@ -1070,6 +1082,12 @@ async function registrarEmpleado(){
             fechaIngreso:
                 texto(fechaIngreso.value),
 
+            /*
+               El empleado comienza sin acceso.
+               El acceso se podrá crear después
+               desde Administración de empleados.
+            */
+
             authUid:
                 "",
 
@@ -1101,13 +1119,15 @@ async function registrarEmpleado(){
             );
 
 
-        /* SI ES CHOFER */
+        /* =================================================
+           SI ES CHOFER
+        ================================================= */
 
         if(
             tipoEmpleado.value === "chofer"
         ){
 
-            const datosChofer = {
+            const datosChoferEmpleado = {
 
                 empresaId:
                     empresaActualId,
@@ -1149,11 +1169,13 @@ async function registrarEmpleado(){
                     db,
                     "choferes"
                 ),
-                datosChofer
+                datosChoferEmpleado
             );
 
 
-            /* ASIGNAR CHOFER A UNIDAD */
+            /* =============================================
+               ASIGNAR CHOFER A UNIDAD
+            ============================================= */
 
             if(
                 texto(unidadId.value)
@@ -1169,6 +1191,11 @@ async function registrarEmpleado(){
 
                         choferId:
                             referenciaEmpleado.id,
+
+                        /*
+                           Todavía no tiene usuario
+                           porque todavía no tiene acceso.
+                        */
 
                         choferUsuarioId:
                             "",
@@ -1187,59 +1214,19 @@ async function registrarEmpleado(){
         }
 
 
-        /* GENERAR ACCESO */
+        /* =================================================
+           ÉXITO
+        ================================================= */
 
         mostrarMensaje(
-            "Empleado registrado. Generando acceso...",
+            "✅ Empleado registrado correctamente. El acceso a GESBASE no fue creado.",
             "exito"
         );
 
 
-        const respuesta =
-            await crearAccesoEmpleado({
-
-                empleadoId:
-                    referenciaEmpleado.id
-
-            });
-
-
-        const acceso =
-            respuesta.data;
-
-
-        if(
-            !acceso ||
-            !acceso.ok
-        ){
-
-            throw new Error(
-                "El empleado fue registrado, pero no se pudo generar el acceso."
-            );
-
-        }
-
-
-        /* MOSTRAR CONTRASEÑA */
-
-        accesoEmail.textContent =
-            acceso.email;
-
-        accesoPassword.textContent =
-            acceso.passwordTemporal;
-
-
-        accesoGenerado.style.display =
-            "block";
-
-
-        mostrarMensaje(
-            "✅ Empleado registrado y acceso generado correctamente.",
-            "exito"
-        );
-
-
-        /* LIMPIAR FORMULARIO */
+        /* =================================================
+           LIMPIAR FORMULARIO
+        ================================================= */
 
         nombre.value = "";
 
@@ -1267,10 +1254,17 @@ async function registrarEmpleado(){
 
         vencimientoLicencia.value = "";
 
-        unidadId.value = "";
+        unidadId.innerHTML = `
+            <option value="">
+                Seleccionar unidad
+            </option>
+        `;
 
         tipoEmpleado.value =
             "empleado";
+
+        estado.value =
+            "activo";
 
         datosChofer.classList.add(
             "oculto"
@@ -1279,7 +1273,10 @@ async function registrarEmpleado(){
 
     }catch(error){
 
-        console.error(error);
+        console.error(
+            "Error registrando empleado:",
+            error
+        );
 
 
         mostrarMensaje(
@@ -1291,9 +1288,9 @@ async function registrarEmpleado(){
 
     }finally{
 
-        btn.disabled = false;
+        btnGuardar.disabled = false;
 
-        btn.textContent =
+        btnGuardar.textContent =
             "💾 REGISTRAR EMPLEADO";
 
     }
@@ -1301,59 +1298,19 @@ async function registrarEmpleado(){
 }
 
 
-/* COPIAR ACCESO */
+/* =========================================================
+   BOTÓN REGISTRAR
+========================================================= */
 
-document
-.getElementById("btnCopiarAcceso")
-.addEventListener(
-    "click",
-    async () => {
-
-        const textoAcceso =
-`GESBASE - Acceso de empleado
-
-Email: ${accesoEmail.textContent}
-
-Contraseña momentánea: ${accesoPassword.textContent}
-
-Ingresá a GESBASE con estos datos.
-La contraseña deberá cambiarse en el primer ingreso.`;
-
-
-        try{
-
-            await navigator.clipboard.writeText(
-                textoAcceso
-            );
-
-
-            mostrarMensaje(
-                "📋 Acceso copiado.",
-                "exito"
-            );
-
-        }catch(error){
-
-            mostrarMensaje(
-                "No se pudo copiar automáticamente.",
-                "aviso"
-            );
-
-        }
-
-    }
-);
-
-
-/* BOTONES */
-
-document
-.getElementById("btnGuardar")
-.addEventListener(
+btnGuardar.addEventListener(
     "click",
     registrarEmpleado
 );
 
+
+/* =========================================================
+   BOTÓN VOLVER
+========================================================= */
 
 document
 .getElementById("btnVolver")
@@ -1368,7 +1325,9 @@ document
 );
 
 
-/* SESIÓN */
+/* =========================================================
+   SESIÓN
+========================================================= */
 
 onAuthStateChanged(
     auth,
@@ -1393,17 +1352,33 @@ onAuthStateChanged(
 
             await obtenerEmpresa();
 
-            await cargarUnidades();
+            /*
+               Solo cargamos unidades si el formulario
+               comienza seleccionado como chofer.
+            */
+
+            if(
+                tipoEmpleado.value === "chofer"
+            ){
+
+                await cargarUnidades();
+
+            }
 
         }catch(error){
 
-            console.error(error);
+            console.error(
+                "Error inicializando registro:",
+                error
+            );
 
 
             mostrarMensaje(
                 error.message,
                 "error"
             );
+
+            btnGuardar.disabled = true;
 
         }
 
