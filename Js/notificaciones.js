@@ -1,143 +1,106 @@
-// =========================================================
-// GESBASE - NOTIFICACIONES Y LLAMADAS GLOBALES
-// Disponible en todas las secciones de GESBASE
-// =========================================================
+/* ============================================================
+   GESBASE
+   NOTIFICACIONES + LLAMADAS GLOBALES
+   ============================================================ */
 
-import { auth, db } from "./firebase.js";
+import {
+    auth,
+    db
+} from "./firebase.js";
 
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
+    collection,
     doc,
     getDoc,
-    setDoc,
-    serverTimestamp,
-    collection,
+    onSnapshot,
     query,
     where,
-    onSnapshot
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-import {
-    getMessaging,
-    getToken,
-    onMessage,
-    isSupported
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-messaging.js";
+
+/* ============================================================
+   CONFIGURACIÓN
+   ============================================================ */
+
+const RUTA_LLAMADA =
+    "./llamada.html";
+
+const RUTA_VIDEOLLAMADA =
+    "./videollamada.html";
+
+const SONIDO_LLAMADA =
+    "./sonidos/llamada.mp3";
+
+const SONIDO_VIDEOLLAMADA =
+    "./sonidos/videollamada.mp3";
+
+const SONIDO_MENSAJE =
+    "./sonidos/mensaje.mp3";
 
 
-// =========================================================
-// CONFIGURACIÓN
-// =========================================================
-
-/*
- * IMPORTANTE:
- *
- * No dejamos una VAPID falsa.
- *
- * Si todavía no configuraste la Web Push certificate key
- * de Firebase, el sistema continuará funcionando para
- * detectar llamadas mediante Firestore, pero FCM Push
- * necesitará la VAPID KEY para las notificaciones cuando
- * GESBASE esté en segundo plano.
- */
-
-const VAPID_KEY = "";
-
+/* ============================================================
+   VARIABLES
+   ============================================================ */
 
 let usuarioActual = null;
+let empresaActual = null;
 
-let empresaIdActual = null;
+let salasEscuchadas = new Set();
 
-let audioMensaje = null;
+let llamadaActual = null;
+
+let intervaloContador = null;
 
 let audioLlamada = null;
 
-let audioVideo = null;
+let audioContext = null;
+let oscilador = null;
+let gainNode = null;
 
-let escuchandoSalas = false;
-
-let salaMostrada = null;
+let ultimoEstadoLlamada = null;
 
 
-// =========================================================
-// INICIAR GESBASE
-// =========================================================
+/* ============================================================
+   INICIO
+   ============================================================ */
 
 onAuthStateChanged(
     auth,
-    async (user) => {
+    async usuario => {
 
-        if (!user) {
-
-            return;
-
-        }
-
-
-        usuarioActual = user;
-
-
-        try {
-
-            empresaIdActual =
-                await obtenerEmpresaId(
-                    user.uid
-                );
-
-
-            if (!empresaIdActual) {
-
-                console.warn(
-                    "[GESBASE] No se encontró empresaId."
-                );
-
-                return;
-
-            }
-
-
-            crearSonidos();
-
-
-            /*
-             * Primero escuchamos las salas.
-             *
-             * Esto permite detectar una llamada
-             * aunque el usuario esté en otra sección
-             * de GESBASE.
-             */
-
-            escucharLlamadas();
-
-
-            /*
-             * Después intentamos activar FCM.
-             */
-
-            await iniciarNotificaciones();
-
-
-        } catch (error) {
-
-            console.error(
-                "[GESBASE] Error iniciando comunicación:",
-                error
+        if (!usuario) {
+            console.log(
+                "[GESBASE] No hay usuario autenticado."
             );
-
+            return;
         }
 
+        usuarioActual = usuario;
+
+        console.log(
+            "[GESBASE] Usuario conectado:",
+            usuario.uid
+        );
+
+        await iniciarSistemaNotificaciones();
     }
 );
 
 
-// =========================================================
-// OBTENER EMPRESA DEL USUARIO
-// =========================================================
+/* ============================================================
+   OBTENER EMPRESA
+   ============================================================ */
 
-async function obtenerEmpresaId(uid) {
+async function obtenerEmpresa() {
+
+    if (!usuarioActual) {
+        return null;
+    }
 
     try {
 
@@ -145,53 +108,42 @@ async function obtenerEmpresaId(uid) {
             doc(
                 db,
                 "usuarios",
-                uid
+                usuarioActual.uid
             );
-
 
         const usuarioSnap =
-            await getDoc(
-                usuarioRef
-            );
-
+            await getDoc(usuarioRef);
 
         if (
-            usuarioSnap.exists()
+            !usuarioSnap.exists()
         ) {
 
-            const datos =
-                usuarioSnap.data();
+            console.warn(
+                "[GESBASE] No existe documento de usuario."
+            );
 
-
-            /*
-             * Orden de prioridad:
-             */
-
-            if (datos.empresaId) {
-
-                return datos.empresaId;
-
-            }
-
-
-            if (datos.idEmpresa) {
-
-                return datos.idEmpresa;
-
-            }
-
-
-            if (datos.empresa) {
-
-                return datos.empresa;
-
-            }
-
+            return null;
         }
 
+        const datos =
+            usuarioSnap.data();
 
-        return null;
+        const empresaId =
+            datos.empresaId ||
+            datos.idEmpresa ||
+            datos.empresa ||
+            null;
 
+        if (!empresaId) {
+
+            console.warn(
+                "[GESBASE] El usuario no tiene empresaId."
+            );
+
+            return null;
+        }
+
+        return empresaId;
 
     } catch (error) {
 
@@ -201,696 +153,497 @@ async function obtenerEmpresaId(uid) {
         );
 
         return null;
-
     }
-
 }
 
 
-// =========================================================
-// CREAR SONIDOS
-// =========================================================
+/* ============================================================
+   INICIAR SISTEMA
+   ============================================================ */
 
-function crearSonidos() {
+async function iniciarSistemaNotificaciones() {
+
+    empresaActual =
+        await obtenerEmpresa();
+
+    if (!empresaActual) {
+        return;
+    }
+
+    console.log(
+        "[GESBASE] Empresa:",
+        empresaActual
+    );
+
+    crearEstilosGlobales();
+
+    prepararAudio();
+
+    escucharLlamadas();
+
+    escucharCambiosDeLlamada();
+}
+
+
+/* ============================================================
+   AUDIO
+   ============================================================ */
+
+function prepararAudio() {
 
     try {
 
-        audioMensaje =
-            new Audio(
-                "./sonidos/mensaje.mp3"
-            );
-
-
         audioLlamada =
             new Audio(
-                "./sonidos/llamada.mp3"
+                SONIDO_LLAMADA
             );
 
+        audioLlamada.loop = true;
 
-        audioVideo =
-            new Audio(
-                "./sonidos/videollamada.mp3"
-            );
+        audioLlamada.volume = 1;
 
+        audioLlamada.preload = "auto";
 
-        audioMensaje.volume =
-            0.8;
-
-
-        audioLlamada.volume =
-            1;
-
-
-        audioVideo.volume =
-            1;
-
-
-        /*
-         * No hacemos loop permanente todavía.
-         * Lo controlaremos en la pantalla de llamada.
-         */
-
-        audioMensaje.loop = false;
-
-        audioLlamada.loop = false;
-
-        audioVideo.loop = false;
-
+        console.log(
+            "[GESBASE] Audio de llamada preparado."
+        );
 
     } catch (error) {
 
         console.warn(
-            "[GESBASE] No se pudieron preparar los sonidos.",
+            "[GESBASE] No se pudo preparar el audio:",
             error
         );
-
     }
-
 }
 
 
-// =========================================================
-// FIREBASE CLOUD MESSAGING
-// =========================================================
+/* ============================================================
+   REPRODUCIR TONO
+   ============================================================ */
 
-async function iniciarNotificaciones() {
+async function reproducirTono(tipo) {
+
+    detenerTono();
+
+    const archivo =
+        tipo === "video"
+            ? SONIDO_VIDEOLLAMADA
+            : SONIDO_LLAMADA;
 
     try {
 
-        const soportado =
-            await isSupported();
-
-
-        if (!soportado) {
-
-            console.warn(
-                "[GESBASE] Este navegador no soporta FCM."
+        const audio =
+            new Audio(
+                archivo
             );
 
-            return;
+        audio.loop = true;
 
+        audio.volume = 1;
+
+        audioLlamada = audio;
+
+        await audio.play();
+
+        console.log(
+            "[GESBASE] Tono reproduciéndose."
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "[GESBASE] El navegador bloqueó el audio:",
+            error
+        );
+
+        /*
+         * Intentamos además Web Audio.
+         * Esto sirve como respaldo cuando el archivo
+         * no puede reproducirse.
+         */
+
+        iniciarTonoWebAudio();
+    }
+}
+
+
+/* ============================================================
+   TONO WEB AUDIO DE RESPALDO
+   ============================================================ */
+
+function iniciarTonoWebAudio() {
+
+    try {
+
+        if (!audioContext) {
+
+            audioContext =
+                new (
+                    window.AudioContext ||
+                    window.webkitAudioContext
+                )();
         }
-
-
-        /*
-         * Comprobar permiso.
-         */
-
-        let permiso =
-            Notification.permission;
-
-
-        /*
-         * No pedimos permiso automáticamente
-         * si todavía no fue solicitado.
-         *
-         * Esto evita que cada página de GESBASE
-         * muestre el cartel de permisos.
-         */
 
         if (
-            permiso !== "granted"
+            audioContext.state === "suspended"
         ) {
 
-            console.log(
-                "[GESBASE] Notificaciones pendientes de autorización."
-            );
-
-            return;
-
+            audioContext.resume()
+                .catch(() => {});
         }
 
+        detenerTonoWebAudio();
 
-        /*
-         * Usamos el Service Worker que YA EXISTE.
-         */
+        oscilador =
+            audioContext.createOscillator();
 
-        const registro =
-            await navigator.serviceWorker.register(
-                "./firebase-messaging-sw.js"
-            );
+        gainNode =
+            audioContext.createGain();
 
+        oscilador.type =
+            "sine";
+
+        oscilador.frequency.value =
+            700;
+
+        gainNode.gain.value =
+            0.15;
+
+        oscilador.connect(
+            gainNode
+        );
+
+        gainNode.connect(
+            audioContext.destination
+        );
+
+        oscilador.start();
 
         console.log(
-            "[GESBASE] Service Worker registrado."
+            "[GESBASE] Tono Web Audio iniciado."
         );
-
-
-        const messaging =
-            getMessaging();
-
-
-        /*
-         * Si todavía no tenemos VAPID KEY,
-         * no intentamos generar el token.
-         */
-
-        if (!VAPID_KEY) {
-
-            console.warn(
-                "[GESBASE] Falta configurar VAPID KEY."
-            );
-
-            /*
-             * Las llamadas mediante Firestore
-             * continúan funcionando.
-             */
-
-            return;
-
-        }
-
-
-        /*
-         * Obtener token FCM.
-         */
-
-        const token =
-            await getToken(
-                messaging,
-                {
-                    vapidKey:
-                        VAPID_KEY,
-
-                    serviceWorkerRegistration:
-                        registro
-                }
-            );
-
-
-        if (!token) {
-
-            console.warn(
-                "[GESBASE] No se obtuvo token FCM."
-            );
-
-            return;
-
-        }
-
-
-        /*
-         * Guardar token.
-         */
-
-        await guardarToken(
-            token
-        );
-
-
-        /*
-         * Mensajes recibidos mientras
-         * GESBASE está abierta.
-         */
-
-        onMessage(
-            messaging,
-            (payload) => {
-
-                console.log(
-                    "[GESBASE] FCM recibido:",
-                    payload
-                );
-
-
-                procesarNotificacion(
-                    payload
-                );
-
-            }
-        );
-
-
-        console.log(
-            "[GESBASE] Notificaciones FCM activadas."
-        );
-
 
     } catch (error) {
 
-        console.error(
-            "[GESBASE] Error FCM:",
+        console.warn(
+            "[GESBASE] Web Audio no disponible:",
             error
         );
-
     }
-
 }
 
 
-// =========================================================
-// GUARDAR TOKEN FCM
-// =========================================================
+/* ============================================================
+   DETENER TONO
+   ============================================================ */
 
-async function guardarToken(token) {
+function detenerTono() {
 
-    if (
-        !usuarioActual ||
-        !empresaIdActual
-    ) {
+    if (audioLlamada) {
 
-        return;
+        try {
 
+            audioLlamada.pause();
+
+            audioLlamada.currentTime =
+                0;
+
+        } catch (error) {}
     }
 
-
-    try {
-
-        const referencia =
-            doc(
-                db,
-                "tokensNotificaciones",
-                usuarioActual.uid
-            );
-
-
-        await setDoc(
-            referencia,
-            {
-
-                uid:
-                    usuarioActual.uid,
-
-                empresaId:
-                    empresaIdActual,
-
-                token:
-                    token,
-
-                platform:
-                    "web",
-
-                updatedAt:
-                    serverTimestamp()
-
-            },
-
-            {
-                merge: true
-            }
-
-        );
-
-
-        console.log(
-            "[GESBASE] Token guardado."
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "[GESBASE] Error guardando token:",
-            error
-        );
-
-    }
-
+    detenerTonoWebAudio();
 }
 
 
-// =========================================================
-// PROCESAR NOTIFICACIONES
-// =========================================================
+/* ============================================================
+   DETENER WEB AUDIO
+   ============================================================ */
 
-function procesarNotificacion(
-    payload
-) {
+function detenerTonoWebAudio() {
 
-    const datos =
-        payload.data || {};
+    if (oscilador) {
 
+        try {
 
-    const tipo =
-        datos.tipo ||
-        datos.type ||
-        "mensaje";
+            oscilador.stop();
 
-
-    /*
-     * -------------------------------------------------------
-     * MENSAJE
-     * -------------------------------------------------------
-     */
-
-    if (
-        tipo === "mensaje"
-    ) {
-
-        reproducirSonido(
-            audioMensaje
-        );
-
-
-        mostrarNotificacionLocal(
-            payload.notification?.title ||
-            datos.title ||
-            "Nuevo mensaje",
-
-            payload.notification?.body ||
-            datos.body ||
-            "Tenés un nuevo mensaje."
-        );
-
-
-        return;
-
+        } catch (error) {}
     }
 
-
-    /*
-     * -------------------------------------------------------
-     * LLAMADA
-     * -------------------------------------------------------
-     */
-
-    if (
-        tipo === "llamada"
-    ) {
-
-        reproducirSonido(
-            audioLlamada
-        );
-
-
-        mostrarLlamadaEntrante(
-            datos,
-            "audio"
-        );
-
-
-        return;
-
-    }
-
-
-    /*
-     * -------------------------------------------------------
-     * VIDEOLLAMADA
-     * -------------------------------------------------------
-     */
-
-    if (
-        tipo === "videollamada" ||
-        tipo === "video"
-    ) {
-
-        reproducirSonido(
-            audioVideo
-        );
-
-
-        mostrarLlamadaEntrante(
-            datos,
-            "video"
-        );
-
-
-        return;
-
-    }
-
+    oscilador = null;
+    gainNode = null;
 }
 
 
-// =========================================================
-// ESCUCHAR LLAMADAS EN FIRESTORE
-// =========================================================
+/* ============================================================
+   ESCUCHAR LLAMADAS ENTRANTES
+   ============================================================ */
 
 function escucharLlamadas() {
 
-    if (
-        escuchandoSalas
-    ) {
-
+    if (!empresaActual) {
         return;
-
     }
 
-
-    if (
-        !empresaIdActual ||
-        !usuarioActual
-    ) {
-
-        return;
-
-    }
-
-
-    escuchandoSalas =
-        true;
-
-
-    console.log(
-        "[GESBASE] Escuchando llamadas de empresa:",
-        empresaIdActual
-    );
-
-
-    try {
-
-        const salasRef =
-            collection(
-                db,
-                "salas"
-            );
-
-
-        /*
-         * Solo salas de la empresa actual
-         * y que estén sonando.
-         */
-
-        const consulta =
-            query(
-
-                salasRef,
-
-                where(
-                    "empresaId",
-                    "==",
-                    empresaIdActual
-                ),
-
-                where(
-                    "status",
-                    "==",
-                    "ringing"
-                )
-
-            );
-
-
-        onSnapshot(
-            consulta,
-
-            (snapshot) => {
-
-                snapshot.docChanges()
-                    .forEach(
-                        (change) => {
-
-                            if (
-                                change.type !==
-                                "added"
-                            ) {
-
-                                return;
-
-                            }
-
-
-                            const sala =
-                                change.doc.data();
-
-
-                            /*
-                             * Seguridad:
-                             *
-                             * La llamada debe incluir
-                             * al usuario actual.
-                             */
-
-                            if (
-                                !Array.isArray(
-                                    sala.participants
-                                )
-                            ) {
-
-                                return;
-
-                            }
-
-
-                            if (
-                                !sala.participants.includes(
-                                    usuarioActual.uid
-                                )
-                            ) {
-
-                                return;
-
-                            }
-
-
-                            /*
-                             * No mostrar nuestra
-                             * propia llamada.
-                             */
-
-                            if (
-                                sala.createdBy ===
-                                usuarioActual.uid
-                            ) {
-
-                                return;
-
-                            }
-
-
-                            /*
-                             * Evitar duplicados.
-                             */
-
-                            if (
-                                salaMostrada ===
-                                change.doc.id
-                            ) {
-
-                                return;
-
-                            }
-
-
-                            salaMostrada =
-                                change.doc.id;
-
-
-                            const tipo =
-                                sala.type ===
-                                "video"
-
-                                    ? "video"
-
-                                    : "audio";
-
-
-                            console.log(
-                                "[GESBASE] Llamada entrante:",
-                                change.doc.id
-                            );
-
-
-                            if (
-                                tipo ===
-                                "video"
-                            ) {
-
-                                reproducirSonido(
-                                    audioVideo
-                                );
-
-                            } else {
-
-                                reproducirSonido(
-                                    audioLlamada
-                                );
-
-                            }
-
-
-                            mostrarLlamadaEntrante(
-                                {
-
-                                    salaId:
-                                        change.doc.id,
-
-                                    callerUid:
-                                        sala.createdBy,
-
-                                    callerName:
-                                        sala.createdByName ||
-                                        "Usuario GESBASE",
-
-                                    empresaId:
-                                        sala.empresaId
-
-                                },
-
-                                tipo
-
-                            );
-
+    const salasRef =
+        collection(
+            db,
+            "salas"
+        );
+
+    const consulta =
+        query(
+            salasRef,
+            where(
+                "empresaId",
+                "==",
+                empresaActual
+            ),
+            where(
+                "status",
+                "==",
+                "ringing"
+            )
+        );
+
+    onSnapshot(
+        consulta,
+        snapshot => {
+
+            snapshot.docChanges()
+                .forEach(
+                    cambio => {
+
+                        const sala =
+                            cambio.doc.data();
+
+                        const salaId =
+                            cambio.doc.id;
+
+                        /*
+                         * Evitar procesar dos veces
+                         */
+
+                        if (
+                            salasEscuchadas.has(
+                                salaId
+                            )
+                        ) {
+                            return;
                         }
-                    );
 
-            },
+                        /*
+                         * Verificar que el usuario
+                         * realmente participe.
+                         */
 
-            (error) => {
+                        const participantes =
+                            Array.isArray(
+                                sala.participants
+                            )
+                                ? sala.participants
+                                : [];
 
-                console.error(
-                    "[GESBASE] Error escuchando salas:",
-                    error
+                        if (
+                            !participantes.includes(
+                                usuarioActual.uid
+                            )
+                        ) {
+                            return;
+                        }
+
+                        /*
+                         * No mostrar la propia llamada.
+                         */
+
+                        if (
+                            sala.createdBy ===
+                            usuarioActual.uid
+                        ) {
+                            return;
+                        }
+
+                        salasEscuchadas.add(
+                            salaId
+                        );
+
+                        console.log(
+                            "[GESBASE] Llamada entrante:",
+                            salaId
+                        );
+
+                        mostrarLlamadaEntrante(
+                            salaId,
+                            sala
+                        );
+                    }
                 );
 
-            }
+        },
+        error => {
 
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "[GESBASE] Error creando escucha:",
-            error
-        );
-
-    }
-
+            console.error(
+                "[GESBASE] Error escuchando llamadas:",
+                error
+            );
+        }
+    );
 }
 
 
-// =========================================================
-// LLAMADA ENTRANTE
-// =========================================================
+/* ============================================================
+   ESCUCHAR CAMBIOS EN LA LLAMADA ACTUAL
+   ============================================================ */
+
+function escucharCambiosDeLlamada() {
+
+    /*
+     * Esta función queda preparada para detectar
+     * cuando la otra persona acepta o finaliza.
+     */
+
+    const salasRef =
+        collection(
+            db,
+            "salas"
+        );
+
+    const consulta =
+        query(
+            salasRef,
+            where(
+                "empresaId",
+                "==",
+                empresaActual
+            )
+        );
+
+    onSnapshot(
+        consulta,
+        snapshot => {
+
+            snapshot.docChanges()
+                .forEach(
+                    cambio => {
+
+                        const datos =
+                            cambio.doc.data();
+
+                        const id =
+                            cambio.doc.id;
+
+                        if (
+                            !llamadaActual ||
+                            llamadaActual.salaId !== id
+                        ) {
+                            return;
+                        }
+
+                        /*
+                         * Si la llamada terminó,
+                         * quitar la ventana.
+                         */
+
+                        if (
+                            datos.status ===
+                            "ended"
+                        ) {
+
+                            cerrarLlamadaEntrante();
+
+                        }
+
+                    }
+                );
+
+        },
+        error => {
+
+            console.warn(
+                "[GESBASE] Error monitoreando salas:",
+                error
+            );
+        }
+    );
+}
+
+
+/* ============================================================
+   MOSTRAR LLAMADA ENTRANTE
+   ============================================================ */
 
 function mostrarLlamadaEntrante(
-    datos,
-    tipo
+    salaId,
+    sala
 ) {
 
     /*
      * Si ya hay una llamada visible,
-     * no crear otra ventana.
+     * no crear otra.
      */
 
     if (
-        document.getElementById(
-            "gesbase-llamada-entrante"
-        )
+        llamadaActual
     ) {
-
         return;
-
     }
 
+    const esVideo =
+        sala.type === "video" ||
+        sala.type === "videollamada";
+
+    const nombre =
+        sala.createdByName ||
+        "Usuario de GESBASE";
+
+    llamadaActual = {
+
+        salaId,
+
+        tipo:
+            esVideo
+                ? "video"
+                : "audio",
+
+        nombre,
+
+        inicio:
+            Date.now()
+
+    };
+
+    crearVentanaLlamada(
+        llamadaActual
+    );
+
+    iniciarContador();
+
+    reproducirTono(
+        llamadaActual.tipo
+    );
+}
+
+
+/* ============================================================
+   CREAR VENTANA GLOBAL
+   ============================================================ */
+
+function crearVentanaLlamada(
+    llamada
+) {
 
     /*
-     * Si no tenemos sala,
-     * no podemos contestar.
+     * Eliminar ventana anterior
      */
 
-    if (
-        !datos.salaId
-    ) {
-
-        console.warn(
-            "[GESBASE] Llamada sin salaId."
+    const anterior =
+        document.getElementById(
+            "gesbase-llamada-entrante"
         );
 
-        return;
-
+    if (anterior) {
+        anterior.remove();
     }
 
 
@@ -899,81 +652,86 @@ function mostrarLlamadaEntrante(
             "div"
         );
 
-
     fondo.id =
         "gesbase-llamada-entrante";
 
 
-    fondo.innerHTML = `
+    const caja =
+        document.createElement(
+            "div"
+        );
 
-        <div class="gesbase-llamada-box">
+    caja.className =
+        "gesbase-llamada-caja";
 
-            <div class="gesbase-llamada-icono">
 
+    const icono =
+        llamada.tipo === "video"
+            ? "🎥"
+            : "📞";
+
+
+    const titulo =
+        llamada.tipo === "video"
+            ? "Videollamada entrante"
+            : "Llamada entrante";
+
+
+    caja.innerHTML = `
+
+        <div class="gesbase-llamada-icono">
+            ${icono}
+        </div>
+
+        <div class="gesbase-llamada-titulo">
+            ${titulo}
+        </div>
+
+        <div class="gesbase-llamada-nombre">
+            ${escapeHTML(
+                llamada.nombre
+            )}
+        </div>
+
+        <div
+            id="gesbase-contador-llamada"
+            class="gesbase-contador"
+        >
+            00:00
+        </div>
+
+        <div class="gesbase-llamada-texto">
+            Te está llamando...
+        </div>
+
+        <div class="gesbase-llamada-botones">
+
+            <button
+                id="gesbase-rechazar-llamada"
+                class="gesbase-btn-rechazar"
+            >
+                ❌ Rechazar
+            </button>
+
+            <button
+                id="gesbase-aceptar-llamada"
+                class="gesbase-btn-aceptar"
+            >
                 ${
-                    tipo === "video"
-                        ? "📹"
-                        : "📞"
+                    llamada.tipo === "video"
+                        ? "🎥 Aceptar"
+                        : "📞 Aceptar"
                 }
-
-            </div>
-
-
-            <div class="gesbase-llamada-titulo">
-
-                ${
-                    tipo === "video"
-                        ? "Videollamada entrante"
-                        : "Llamada entrante"
-                }
-
-            </div>
-
-
-            <div class="gesbase-llamada-nombre">
-
-                ${escapeHTML(
-                    datos.callerName ||
-                    "Usuario GESBASE"
-                )}
-
-            </div>
-
-
-            <div class="gesbase-llamada-botones">
-
-                <button
-                    type="button"
-                    id="gesbase-rechazar"
-                    class="gesbase-btn-rechazar">
-
-                    ❌ Rechazar
-
-                </button>
-
-
-                <button
-                    type="button"
-                    id="gesbase-aceptar"
-                    class="gesbase-btn-aceptar">
-
-                    ${
-                        tipo === "video"
-                            ? "📹 Aceptar"
-                            : "📞 Aceptar"
-                    }
-
-                </button>
-
-            </div>
+            </button>
 
         </div>
 
     `;
 
 
-    agregarEstilosLlamada();
-
+    fondo.appendChild(
+        caja
+    );
 
     document.body.appendChild(
         fondo
@@ -981,175 +739,291 @@ function mostrarLlamadaEntrante(
 
 
     /*
-     * RECHAZAR
+     * Botón aceptar
      */
 
-    const botonRechazar =
-        document.getElementById(
-            "gesbase-rechazar"
+    document
+        .getElementById(
+            "gesbase-aceptar-llamada"
+        )
+        .addEventListener(
+            "click",
+            aceptarLlamada
         );
-
-
-    if (
-        botonRechazar
-    ) {
-
-        botonRechazar.onclick =
-            () => {
-
-                detenerSonidos();
-
-
-                fondo.remove();
-
-
-                salaMostrada =
-                    null;
-
-            };
-
-    }
 
 
     /*
-     * ACEPTAR
+     * Botón rechazar
      */
 
-    const botonAceptar =
-        document.getElementById(
-            "gesbase-aceptar"
+    document
+        .getElementById(
+            "gesbase-rechazar-llamada"
+        )
+        .addEventListener(
+            "click",
+            rechazarLlamada
         );
-
-
-    if (
-        botonAceptar
-    ) {
-
-        botonAceptar.onclick =
-            () => {
-
-                detenerSonidos();
-
-
-                const salaId =
-                    datos.salaId;
-
-
-                if (!salaId) {
-
-                    fondo.remove();
-
-                    return;
-
-                }
-
-
-                /*
-                 * La página de llamada
-                 * se encargará de WebRTC.
-                 */
-
-                const pagina =
-                    tipo === "video"
-
-                        ? "videollamada.html"
-
-                        : "llamada.html";
-
-
-                window.location.href =
-                    pagina +
-                    "?sala=" +
-                    encodeURIComponent(
-                        salaId
-                    );
-
-            };
-
-    }
-
 }
 
 
-// =========================================================
-// NOTIFICACIÓN LOCAL
-// =========================================================
+/* ============================================================
+   CONTADOR
+   ============================================================ */
 
-function mostrarNotificacionLocal(
-    titulo,
-    cuerpo
-) {
+function iniciarContador() {
+
+    detenerContador();
+
+    intervaloContador =
+        setInterval(
+            () => {
+
+                if (!llamadaActual) {
+                    return;
+                }
+
+                const segundos =
+                    Math.floor(
+                        (
+                            Date.now() -
+                            llamadaActual.inicio
+                        ) / 1000
+                    );
+
+                const minutos =
+                    Math.floor(
+                        segundos / 60
+                    );
+
+                const segundosRestantes =
+                    segundos % 60;
+
+                const texto =
+                    String(
+                        minutos
+                    ).padStart(
+                        2,
+                        "0"
+                    ) +
+                    ":" +
+                    String(
+                        segundosRestantes
+                    ).padStart(
+                        2,
+                        "0"
+                    );
+
+                const contador =
+                    document.getElementById(
+                        "gesbase-contador-llamada"
+                    );
+
+                if (contador) {
+
+                    contador.textContent =
+                        texto;
+                }
+
+            },
+            1000
+        );
+}
+
+
+/* ============================================================
+   DETENER CONTADOR
+   ============================================================ */
+
+function detenerContador() {
+
+    if (
+        intervaloContador
+    ) {
+
+        clearInterval(
+            intervaloContador
+        );
+
+        intervaloContador =
+            null;
+    }
+}
+
+
+/* ============================================================
+   ACEPTAR LLAMADA
+   ============================================================ */
+
+async function aceptarLlamada() {
+
+    if (!llamadaActual) {
+        return;
+    }
+
+    const salaId =
+        llamadaActual.salaId;
+
+    const tipo =
+        llamadaActual.tipo;
+
+    detenerTono();
+
+    detenerContador();
+
 
     try {
 
-        if (
-            typeof Notification ===
-            "undefined"
-        ) {
-
-            return;
-
-        }
-
-
-        if (
-            Notification.permission !==
-            "granted"
-        ) {
-
-            return;
-
-        }
-
-
         /*
-         * Evitar mostrar notificación
-         * si la página no está disponible.
+         * Marcar llamada como aceptada.
          */
 
-        new Notification(
-            titulo,
+        await updateDoc(
+            doc(
+                db,
+                "salas",
+                salaId
+            ),
             {
-
-                body:
-                    cuerpo,
-
-                icon:
-                    "/GESBASE/icon-192.png",
-
-                badge:
-                    "/GESBASE/icon-192.png"
-
+                status:
+                    "accepted"
             }
         );
-
 
     } catch (error) {
 
         console.warn(
-            "[GESBASE] No se pudo mostrar notificación.",
+            "[GESBASE] No se pudo actualizar estado:",
             error
         );
-
     }
 
+
+    /*
+     * Guardar sala antes de salir.
+     */
+
+    sessionStorage.setItem(
+        "gesbaseSalaLlamada",
+        salaId
+    );
+
+
+    /*
+     * Eliminar ventana.
+     */
+
+    cerrarLlamadaEntrante();
+
+
+    /*
+     * Abrir directamente la llamada.
+     */
+
+    if (
+        tipo === "video"
+    ) {
+
+        window.location.href =
+            RUTA_VIDEOLLAMADA +
+            "?sala=" +
+            encodeURIComponent(
+                salaId
+            );
+
+    } else {
+
+        window.location.href =
+            RUTA_LLAMADA +
+            "?sala=" +
+            encodeURIComponent(
+                salaId
+            );
+    }
 }
 
 
-// =========================================================
-// ESTILOS DE LLAMADA
-// =========================================================
+/* ============================================================
+   RECHAZAR LLAMADA
+   ============================================================ */
 
-function agregarEstilosLlamada() {
+async function rechazarLlamada() {
+
+    if (!llamadaActual) {
+        return;
+    }
+
+    const salaId =
+        llamadaActual.salaId;
+
+    detenerTono();
+
+    detenerContador();
+
+
+    try {
+
+        await updateDoc(
+            doc(
+                db,
+                "salas",
+                salaId
+            ),
+            {
+                status:
+                    "rejected"
+            }
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "[GESBASE] No se pudo rechazar la llamada:",
+            error
+        );
+    }
+
+
+    cerrarLlamadaEntrante();
+}
+
+
+/* ============================================================
+   CERRAR VENTANA
+   ============================================================ */
+
+function cerrarLlamadaEntrante() {
+
+    detenerTono();
+
+    detenerContador();
+
+    const ventana =
+        document.getElementById(
+            "gesbase-llamada-entrante"
+        );
+
+    if (ventana) {
+        ventana.remove();
+    }
+
+    llamadaActual =
+        null;
+}
+
+
+/* ============================================================
+   ESTILOS
+   ============================================================ */
+
+function crearEstilosGlobales() {
 
     if (
         document.getElementById(
-            "gesbase-estilos-llamada"
+            "gesbase-estilos-notificaciones"
         )
     ) {
-
         return;
-
     }
 
 
@@ -1158,9 +1032,8 @@ function agregarEstilosLlamada() {
             "style"
         );
 
-
     style.id =
-        "gesbase-estilos-llamada";
+        "gesbase-estilos-notificaciones";
 
 
     style.textContent = `
@@ -1171,10 +1044,10 @@ function agregarEstilosLlamada() {
 
             inset: 0;
 
-            z-index: 999999;
+            z-index: 2147483647;
 
             background:
-                rgba(0, 0, 0, 0.78);
+                rgba(0,0,0,.72);
 
             display: flex;
 
@@ -1184,142 +1057,100 @@ function agregarEstilosLlamada() {
 
             padding: 20px;
 
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Arial,
+                sans-serif;
+
         }
 
 
-        .gesbase-llamada-box {
+        .gesbase-llamada-caja {
 
-            width: min(
-                420px,
-                100%
-            );
+            width: 100%;
+
+            max-width: 390px;
 
             background:
                 #111827;
 
-            color:
-                white;
+            color: white;
 
-            border-radius:
-                24px;
+            border-radius: 28px;
 
-            padding:
-                30px 20px;
+            padding: 30px 22px;
 
-            text-align:
-                center;
+            text-align: center;
 
             box-shadow:
-                0 20px 60px
-                rgba(0,0,0,.45);
+                0 25px 70px
+                rgba(0,0,0,.55);
+
+            animation:
+                gesbaseEntrada
+                .25s ease;
+
+        }
+
+
+        @keyframes gesbaseEntrada {
+
+            from {
+
+                opacity: 0;
+
+                transform:
+                    scale(.88)
+                    translateY(20px);
+
+            }
+
+            to {
+
+                opacity: 1;
+
+                transform:
+                    scale(1)
+                    translateY(0);
+
+            }
 
         }
 
 
         .gesbase-llamada-icono {
 
-            font-size:
-                64px;
+            width: 90px;
 
-            margin-bottom:
-                12px;
+            height: 90px;
+
+            margin:
+                0 auto 18px;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 42px;
+
+            background:
+                rgba(255,255,255,.10);
 
             animation:
-                gesbase-pulso
-                1.2s
-                infinite;
+                gesbasePulso
+                1.2s infinite;
 
         }
 
 
-        .gesbase-llamada-titulo {
-
-            font-size:
-                22px;
-
-            font-weight:
-                800;
-
-            margin-bottom:
-                8px;
-
-        }
-
-
-        .gesbase-llamada-nombre {
-
-            font-size:
-                18px;
-
-            opacity:
-                .85;
-
-            margin-bottom:
-                28px;
-
-        }
-
-
-        .gesbase-llamada-botones {
-
-            display:
-                flex;
-
-            gap:
-                12px;
-
-        }
-
-
-        .gesbase-llamada-botones button {
-
-            flex:
-                1;
-
-            border:
-                0;
-
-            border-radius:
-                14px;
-
-            padding:
-                14px 10px;
-
-            font-size:
-                15px;
-
-            font-weight:
-                700;
-
-            cursor:
-                pointer;
-
-        }
-
-
-        .gesbase-btn-rechazar {
-
-            background:
-                #dc2626;
-
-            color:
-                white;
-
-        }
-
-
-        .gesbase-btn-aceptar {
-
-            background:
-                #16a34a;
-
-            color:
-                white;
-
-        }
-
-
-        @keyframes gesbase-pulso {
+        @keyframes gesbasePulso {
 
             0% {
 
@@ -1331,7 +1162,7 @@ function agregarEstilosLlamada() {
             50% {
 
                 transform:
-                    scale(1.12);
+                    scale(1.10);
 
             }
 
@@ -1344,134 +1175,193 @@ function agregarEstilosLlamada() {
 
         }
 
+
+        .gesbase-llamada-titulo {
+
+            font-size: 22px;
+
+            font-weight: 700;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .gesbase-llamada-nombre {
+
+            font-size: 20px;
+
+            font-weight: 600;
+
+            margin-bottom: 10px;
+
+        }
+
+
+        .gesbase-contador {
+
+            font-size: 30px;
+
+            font-weight: 700;
+
+            letter-spacing: 2px;
+
+            margin:
+                8px 0;
+
+        }
+
+
+        .gesbase-llamada-texto {
+
+            color:
+                #cbd5e1;
+
+            font-size: 15px;
+
+            margin-bottom: 24px;
+
+        }
+
+
+        .gesbase-llamada-botones {
+
+            display: flex;
+
+            gap: 12px;
+
+        }
+
+
+        .gesbase-llamada-botones button {
+
+            flex: 1;
+
+            border: 0;
+
+            border-radius: 15px;
+
+            padding: 15px 10px;
+
+            font-size: 15px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+        }
+
+
+        .gesbase-btn-rechazar {
+
+            background:
+                #dc2626;
+
+            color: white;
+
+        }
+
+
+        .gesbase-btn-aceptar {
+
+            background:
+                #16a34a;
+
+            color: white;
+
+        }
+
+
+        .gesbase-llamada-botones button:active {
+
+            transform:
+                scale(.96);
+
+        }
+
     `;
 
 
     document.head.appendChild(
         style
     );
-
 }
 
 
-// =========================================================
-// REPRODUCIR SONIDO
-// =========================================================
+/* ============================================================
+   ESCAPE HTML
+   ============================================================ */
 
-function reproducirSonido(
-    audio
-) {
-
-    if (!audio) {
-
-        return;
-
-    }
-
-
-    try {
-
-        audio.currentTime =
-            0;
-
-
-        const promesa =
-            audio.play();
-
-
-        if (
-            promesa &&
-            promesa.catch
-        ) {
-
-            promesa.catch(
-                () => {
-
-                    console.warn(
-                        "[GESBASE] El navegador bloqueó el sonido."
-                    );
-
-                }
-            );
-
-        }
-
-
-    } catch (error) {
-
-        console.warn(
-            "[GESBASE] No se pudo reproducir el sonido."
-        );
-
-    }
-
-}
-
-
-// =========================================================
-// DETENER SONIDOS
-// =========================================================
-
-function detenerSonidos() {
-
-    const sonidos = [
-
-        audioMensaje,
-
-        audioLlamada,
-
-        audioVideo
-
-    ];
-
-
-    sonidos.forEach(
-        (audio) => {
-
-            if (!audio) {
-
-                return;
-
-            }
-
-
-            try {
-
-                audio.pause();
-
-                audio.currentTime =
-                    0;
-
-            } catch (error) {
-
-                // Ignorar
-
-            }
-
-        }
-    );
-
-}
-
-
-// =========================================================
-// ESCAPAR HTML
-// =========================================================
-
-function escapeHTML(
-    texto
-) {
+function escapeHTML(texto) {
 
     const div =
         document.createElement(
             "div"
         );
 
-
     div.textContent =
         texto || "";
 
-
     return div.innerHTML;
-
 }
+
+
+/* ============================================================
+   ACTIVAR AUDIO DESPUÉS DE UNA INTERACCIÓN
+   ============================================================ */
+
+document.addEventListener(
+    "click",
+    () => {
+
+        try {
+
+            if (!audioContext) {
+
+                audioContext =
+                    new (
+                        window.AudioContext ||
+                        window.webkitAudioContext
+                    )();
+
+            }
+
+            if (
+                audioContext.state ===
+                "suspended"
+            ) {
+
+                audioContext.resume()
+                    .catch(() => {});
+            }
+
+        } catch (error) {}
+
+    },
+    {
+        once: false,
+        passive: true
+    }
+);
+
+
+/* ============================================================
+   EXPONER FUNCIONES
+   ============================================================ */
+
+window.GESBASE_NOTIFICACIONES = {
+
+    aceptarLlamada,
+
+    rechazarLlamada,
+
+    cerrarLlamadaEntrante,
+
+    detenerTono
+
+};
+
+
+console.log(
+    "[GESBASE] Sistema global de notificaciones cargado."
+);
