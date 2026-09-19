@@ -21,13 +21,13 @@ importScripts(
 
 
 /* ============================================================
-   CONFIGURACIÓN FIREBASE GESBASE
+   CONFIGURACIÓN FIREBASE
 ============================================================ */
 
 firebase.initializeApp({
 
     apiKey:
-        "AIzaSyDDCQ7Wh9S8Gy8DwQGZ01VaFTmSgV2rjs9o",
+        "AIzaSyDDCQ7WhS9G8Dw8QGZ01VaFTmSgV2rjs9o",
 
     authDomain:
         "gesbase-4bf94.firebaseapp.com",
@@ -51,7 +51,7 @@ firebase.initializeApp({
 
 
 /* ============================================================
-   MESSAGING
+   FIREBASE MESSAGING
 ============================================================ */
 
 const messaging =
@@ -59,14 +59,14 @@ const messaging =
 
 
 /* ============================================================
-   NOTIFICACIÓN EN SEGUNDO PLANO
+   NOTIFICACIONES EN SEGUNDO PLANO
 ============================================================ */
 
 messaging.onBackgroundMessage(
     payload => {
 
         console.log(
-            "[GESBASE] Notificación recibida:",
+            "[GESBASE] Push recibida:",
             payload
         );
 
@@ -79,11 +79,27 @@ messaging.onBackgroundMessage(
             payload.data || {};
 
 
+        /* ====================================================
+           TIPO DE NOTIFICACIÓN
+        ==================================================== */
+
+        const tipo =
+            data.tipo || "notificacion";
+
+
+        /* ====================================================
+           TÍTULO
+        ==================================================== */
+
         let titulo =
             notification.title ||
             data.title ||
             "GESBASE";
 
+
+        /* ====================================================
+           MENSAJE
+        ==================================================== */
 
         let cuerpo =
             notification.body ||
@@ -91,10 +107,118 @@ messaging.onBackgroundMessage(
             "Tenés una nueva actividad en GESBASE.";
 
 
-        let icono =
+        /* ====================================================
+           ICONO
+        ==================================================== */
+
+        const icono =
             data.icon ||
             "/GESBASE/icon-192.png";
 
+
+        /* ====================================================
+           URL
+        ==================================================== */
+
+        let url =
+            data.url || "";
+
+
+        /* ====================================================
+           LLAMADA DE AUDIO
+        ==================================================== */
+
+        if (
+            tipo === "llamada" ||
+            tipo === "audio"
+        ) {
+
+            titulo =
+                notification.title ||
+                data.title ||
+                "📞 Llamada entrante";
+
+            cuerpo =
+                notification.body ||
+                data.body ||
+                "Tenés una llamada entrante.";
+
+            if (!url && data.llamadaId) {
+
+                url =
+                    "/GESBASE/llamada.html?sala=" +
+                    encodeURIComponent(
+                        data.llamadaId
+                    );
+
+            }
+
+        }
+
+
+        /* ====================================================
+           VIDEOLLAMADA
+        ==================================================== */
+
+        if (
+            tipo === "videollamada" ||
+            tipo === "video"
+        ) {
+
+            titulo =
+                notification.title ||
+                data.title ||
+                "📹 Videollamada entrante";
+
+            cuerpo =
+                notification.body ||
+                data.body ||
+                "Tenés una videollamada entrante.";
+
+            if (!url && data.llamadaId) {
+
+                url =
+                    "/GESBASE/videollamada.html?sala=" +
+                    encodeURIComponent(
+                        data.llamadaId
+                    );
+
+            }
+
+        }
+
+
+        /* ====================================================
+           MENSAJE
+        ==================================================== */
+
+        if (
+            tipo === "mensaje"
+        ) {
+
+            titulo =
+                notification.title ||
+                data.title ||
+                "💬 Nuevo mensaje";
+
+            cuerpo =
+                notification.body ||
+                data.body ||
+                "Tenés un nuevo mensaje.";
+
+            if (!url) {
+
+                url =
+                    "/GESBASE/chat.html";
+
+            }
+
+        }
+
+
+        /* ====================================================
+           OPCIONES DE NOTIFICACIÓN
+        ==================================================== */
 
         const options = {
 
@@ -109,30 +233,50 @@ messaging.onBackgroundMessage(
 
             tag:
                 data.tag ||
-                "gesbase-notificacion",
+                "gesbase-" + tipo,
 
             renotify:
                 true,
 
-            data:{
+            requireInteraction:
+                tipo === "llamada" ||
+                tipo === "audio" ||
+                tipo === "videollamada" ||
+                tipo === "video",
+
+            data: {
 
                 tipo:
-                    data.tipo || "",
+                    tipo,
 
                 usuario:
-                    data.usuario || "",
+                    data.usuario ||
+                    "",
 
                 llamadaId:
-                    data.llamadaId || "",
+                    data.llamadaId ||
+                    "",
+
+                mensajeId:
+                    data.mensajeId ||
+                    "",
+
+                empresaId:
+                    data.empresaId ||
+                    "",
 
                 url:
-                    data.url ||
-                    "/GESBASE/mensajes.html"
+                    url ||
+                    "/GESBASE/comunicacion.html"
 
             }
 
         };
 
+
+        /* ====================================================
+           MOSTRAR NOTIFICACIÓN
+        ==================================================== */
 
         self.registration.showNotification(
             titulo,
@@ -144,7 +288,7 @@ messaging.onBackgroundMessage(
 
 
 /* ============================================================
-   CLICK SOBRE LA NOTIFICACIÓN
+   CLICK EN UNA NOTIFICACIÓN
 ============================================================ */
 
 self.addEventListener(
@@ -161,46 +305,92 @@ self.addEventListener(
 
         let url =
             data.url ||
-            "/GESBASE/mensajes.html";
+            "/GESBASE/comunicacion.html";
 
 
-        if(
-            !data.url &&
-            data.usuario
-        ){
+        /* ====================================================
+           SI ES LLAMADA DE AUDIO
+        ==================================================== */
+
+        if (
+            (
+                data.tipo === "llamada" ||
+                data.tipo === "audio"
+            ) &&
+            data.llamadaId
+        ) {
 
             url =
-                "/GESBASE/mensajes.html?usuario=" +
+                "/GESBASE/llamada.html?sala=" +
                 encodeURIComponent(
-                    data.usuario
+                    data.llamadaId
                 );
 
         }
 
 
+        /* ====================================================
+           SI ES VIDEOLLAMADA
+        ==================================================== */
+
+        if (
+            (
+                data.tipo === "videollamada" ||
+                data.tipo === "video"
+            ) &&
+            data.llamadaId
+        ) {
+
+            url =
+                "/GESBASE/videollamada.html?sala=" +
+                encodeURIComponent(
+                    data.llamadaId
+                );
+
+        }
+
+
+        /* ====================================================
+           SI ES MENSAJE
+        ==================================================== */
+
+        if (
+            data.tipo === "mensaje"
+        ) {
+
+            url =
+                data.url ||
+                "/GESBASE/chat.html";
+
+        }
+
+
+        /* ====================================================
+           ABRIR O REUTILIZAR GESBASE
+        ==================================================== */
+
         event.waitUntil(
 
             clients
                 .matchAll({
-                    type:"window",
-                    includeUncontrolled:true
+                    type: "window",
+                    includeUncontrolled: true
                 })
                 .then(
                     windowClients => {
 
-                        /*
-                         * Si GESBASE ya está abierta,
-                         * reutilizamos esa ventana.
-                         */
+                        /* ------------------------------------
+                           BUSCAR UNA VENTANA DE GESBASE
+                        ------------------------------------ */
 
-                        for(
+                        for (
                             const client
                             of windowClients
-                        ){
+                        ) {
 
-                            if(
+                            if (
                                 "focus" in client
-                            ){
+                            ) {
 
                                 client.navigate(
                                     url
@@ -213,14 +403,13 @@ self.addEventListener(
                         }
 
 
-                        /*
-                         * Si no está abierta,
-                         * abrimos GESBASE.
-                         */
+                        /* ------------------------------------
+                           SI NO HAY VENTANA ABIERTA
+                        ------------------------------------ */
 
-                        if(
+                        if (
                             clients.openWindow
-                        ){
+                        ) {
 
                             return clients.openWindow(
                                 url
@@ -243,7 +432,7 @@ self.addEventListener(
 
 self.addEventListener(
     "install",
-    () => {
+    event => {
 
         console.log(
             "[GESBASE] Service Worker instalado."
@@ -262,6 +451,10 @@ self.addEventListener(
 self.addEventListener(
     "activate",
     event => {
+
+        console.log(
+            "[GESBASE] Service Worker activado."
+        );
 
         event.waitUntil(
             self.clients.claim()
