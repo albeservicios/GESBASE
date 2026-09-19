@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>GESBASE - Llamada</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+
+    min-height: 100vh;
+
+    background:
+        linear-gradient(
+            160deg,
+            #111827,
+            #1f2937
+        );
+
+    color: white;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 20px;
+
+}
+
+
+.llamada {
+
+    width: 100%;
+
+    max-width: 430px;
+
+    text-align: center;
+
+}
+
+
+.logo {
+
+    font-size: 28px;
+
+    font-weight: 900;
+
+    margin-bottom: 40px;
+
+}
+
+
+.icono {
+
+    width: 120px;
+
+    height: 120px;
+
+    margin: auto;
+
+    border-radius: 50%;
+
+    background: rgba(255,255,255,.08);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 58px;
+
+    animation:
+        pulso 1.5s infinite;
+
+}
+
+
+.estado {
+
+    margin-top: 28px;
+
+    font-size: 22px;
+
+    font-weight: 800;
+
+}
+
+
+.nombre {
+
+    margin-top: 8px;
+
+    font-size: 18px;
+
+    opacity: .75;
+
+}
+
+
+.tiempo {
+
+    margin-top: 14px;
+
+    font-size: 16px;
+
+    opacity: .6;
+
+}
+
+
+.botones {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 16px;
+
+    margin-top: 45px;
+
+}
+
+
+.boton {
+
+    width: 65px;
+
+    height: 65px;
+
+    border: 0;
+
+    border-radius: 50%;
+
+    font-size: 25px;
+
+    cursor: pointer;
+
+}
+
+
+.boton-silenciar {
+
+    background: #374151;
+
+    color: white;
+
+}
+
+
+.boton-colgar {
+
+    background: #dc2626;
+
+    color: white;
+
+}
+
+
+.boton-activar {
+
+    background: #16a34a;
+
+    color: white;
+
+}
+
+
+.error {
+
+    margin-top: 25px;
+
+    padding: 14px;
+
+    border-radius: 12px;
+
+    background: rgba(220,38,38,.2);
+
+    color: #fecaca;
+
+    display: none;
+
+}
+
+
+@keyframes pulso {
+
+    0% {
+
+        transform: scale(1);
+
+    }
+
+    50% {
+
+        transform: scale(1.08);
+
+    }
+
+    100% {
+
+        transform: scale(1);
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="llamada">
+
+    <div class="logo">
+        GESBASE
+    </div>
+
+
+    <div
+        id="icono"
+        class="icono">
+        📞
+    </div>
+
+
+    <div
+        id="estado"
+        class="estado">
+
+        Conectando...
+
+    </div>
+
+
+    <div
+        id="nombre"
+        class="nombre">
+
+        Llamada GESBASE
+
+    </div>
+
+
+    <div
+        id="tiempo"
+        class="tiempo">
+
+        00:00
+
+    </div>
+
+
+    <div class="botones">
+
+
+        <button
+            id="botonSilenciar"
+            class="boton boton-silenciar"
+            type="button">
+
+            🎙️
+
+        </button>
+
+
+        <button
+            id="botonColgar"
+            class="boton boton-colgar"
+            type="button">
+
+            📞
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="error"
+        class="error">
+
+        No se pudo conectar la llamada.
+
+    </div>
+
+</div>
+
+
+
+<script type="module">
+
+// =========================================================
+// GESBASE - LLAMADA DE AUDIO
+// =========================================================
+
+import {
+    auth
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    updateDoc,
+    onSnapshot,
+    collection,
+    addDoc,
+    query,
+    where,
+    orderBy,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+
+// =========================================================
+// FIREBASE
+// =========================================================
+
+const db =
+    getFirestore();
+
+
+// =========================================================
+// ELEMENTOS
+// =========================================================
+
+const estado =
+    document.getElementById(
+        "estado"
+    );
+
+
+const nombre =
+    document.getElementById(
+        "nombre"
+    );
+
+
+const tiempo =
+    document.getElementById(
+        "tiempo"
+    );
+
+
+const errorBox =
+    document.getElementById(
+        "error"
+    );
+
+
+const botonColgar =
+    document.getElementById(
+        "botonColgar"
+    );
+
+
+const botonSilenciar =
+    document.getElementById(
+        "botonSilenciar"
+    );
+
+
+// =========================================================
+// SALA
+// =========================================================
+
+const parametros =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const salaId =
+    parametros.get(
+        "sala"
+    );
+
+
+if (!salaId) {
+
+    mostrarError(
+        "No se encontró la sala de llamada."
+    );
+
+}
+
+
+// =========================================================
+// VARIABLES
+// =========================================================
+
+let usuarioActual = null;
+
+let sala = null;
+
+let peerConnection = null;
+
+let localStream = null;
+
+let audioRemoto = null;
+
+let candidatoListener = null;
+
+let salaListener = null;
+
+let contadorInterval = null;
+
+let segundos = 0;
+
+let silenciado = false;
+
+let iniciando = false;
+
+
+// =========================================================
+// CONFIGURACIÓN WEBRTC
+// =========================================================
+
+const configuracionRTC = {
+
+    iceServers: [
+
+        {
+            urls:
+                "stun:stun.l.google.com:19302"
+        }
+
+    ]
+
+};
+
+
+// =========================================================
+// AUTENTICACIÓN
+// =========================================================
+
+onAuthStateChanged(
+    auth,
+    async (user) => {
+
+        if (!user) {
+
+            mostrarError(
+                "No hay un usuario autenticado."
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+            user;
+
+
+        if (!salaId) {
+
+            return;
+
+        }
+
+
+        await iniciarLlamada();
+
+    }
+);
+
+
+// =========================================================
+// INICIAR
+// =========================================================
+
+async function iniciarLlamada() {
+
+    if (iniciando) {
+
+        return;
+
+    }
+
+
+    iniciando =
+        true;
+
+
+    try {
+
+        estado.textContent =
+            "Conectando...";
+
+
+        const salaRef =
+            doc(
+                db,
+                "salas",
+                salaId
+            );
+
+
+        const salaSnap =
+            await getDoc(
+                salaRef
+            );
+
+
+        if (!salaSnap.exists()) {
+
+            mostrarError(
+                "La sala de llamada no existe."
+            );
+
+            return;
+
+        }
+
+
+        sala =
+            salaSnap.data();
+
+
+        /*
+         * Verificar que el usuario
+         * pertenece a la sala.
+         */
+
+        if (
+            !Array.isArray(
+                sala.participants
+            ) ||
+            !sala.participants.includes(
+                usuarioActual.uid
+            )
+        ) {
+
+            mostrarError(
+                "No tenés acceso a esta llamada."
+            );
+
+            return;
+
+        }
+
+
+        /*
+         * Verificar empresa.
+         *
+         * El servidor/reglas de Firestore
+         * también deben controlar esto.
+         */
+
+        const empresaUsuario =
+            await obtenerEmpresaId(
+                usuarioActual.uid
+            );
+
+
+        if (
+            sala.empresaId &&
+            empresaUsuario &&
+            sala.empresaId !==
+            empresaUsuario
+        ) {
+
+            mostrarError(
+                "Esta llamada pertenece a otra empresa."
+            );
+
+            return;
+
+        }
+
+
+        nombre.textContent =
+            obtenerNombreOtroParticipante();
+
+
+        /*
+         * Crear conexión WebRTC.
+         */
+
+        await crearConexion();
+
+
+        /*
+         * Determinar quién crea la oferta.
+         */
+
+        if (
+            sala.createdBy ===
+            usuarioActual.uid
+        ) {
+
+            await crearOferta();
+
+        } else {
+
+            estado.textContent =
+                "Esperando conexión...";
+
+        }
+
+
+        /*
+         * Escuchar cambios de sala.
+         */
+
+        escucharSala();
+
+
+        estado.textContent =
+            "Llamando...";
+
+
+    } catch (error) {
+
+        console.error(
+            "[GESBASE] Error llamada:",
+            error
+        );
+
+
+        mostrarError(
+            "No se pudo iniciar la llamada."
+        );
+
+    }
+
+}
+
+
+// =========================================================
+// CREAR CONEXIÓN WEBRTC
+// =========================================================
+
+async function crearConexion() {
+
+    peerConnection =
+        new RTCPeerConnection(
+            configuracionRTC
+        );
+
+
+    /*
+     * Micrófono
+     */
+
+    try {
+
+        localStream =
+            await navigator.mediaDevices
+                .getUserMedia({
+
+                    audio: true,
+
+                    video: false
+
+                });
+
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        mostrarError(
+            "No se pudo acceder al micrófono. Revisá los permisos del navegador."
+        );
+
+
+        throw error;
+
+    }
+
+
+    /*
+     * Agregar micrófono
+     */
+
+    localStream
+        .getTracks()
+        .forEach(
+            track => {
+
+                peerConnection.addTrack(
+                    track,
+                    localStream
+                );
+
+            }
+        );
+
+
+    /*
+     * Audio remoto
+     */
+
+    audioRemoto =
+        document.createElement(
+            "audio"
+        );
+
+
+    audioRemoto.autoplay =
+        true;
+
+
+    audioRemoto.playsInline =
+        true;
+
+
+    document.body.appendChild(
+        audioRemoto
+    );
+
+
+    peerConnection.ontrack =
+        event => {
+
+            if (
+                event.streams &&
+                event.streams[0]
+            ) {
+
+                audioRemoto.srcObject =
+                    event.streams[0];
+
+            }
+
+            estado.textContent =
+                "Llamada conectada";
+
+
+            iniciarContador();
+
+        };
+
+
+    /*
+     * ICE candidates.
+     *
+     * Se guardan dentro de la sala.
+     */
+
+    peerConnection.onicecandidate =
+        async event => {
+
+            if (
+                !event.candidate
+            ) {
+
+                return;
+
+            }
+
+
+            try {
+
+                const candidatosRef =
+                    collection(
+                        db,
+                        "salas",
+                        salaId,
+                        "candidates"
+                    );
+
+
+                await addDoc(
+                    candidatosRef,
+                    {
+
+                        uid:
+                            usuarioActual.uid,
+
+                        candidate:
+                            event.candidate.toJSON(),
+
+                        createdAt:
+                            serverTimestamp()
+
+                    }
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "[GESBASE] Error ICE:",
+                    error
+                );
+
+            }
+
+        };
+
+
+    /*
+     * Estado WebRTC.
+     */
+
+    peerConnection.onconnectionstatechange =
+        () => {
+
+            const estadoRTC =
+                peerConnection.connectionState;
+
+
+            console.log(
+                "[GESBASE] WebRTC:",
+                estadoRTC
+            );
+
+
+            if (
+                estadoRTC ===
+                "connected"
+            ) {
+
+                estado.textContent =
+                    "Llamada conectada";
+
+                iniciarContador();
+
+            }
+
+
+            if (
+                estadoRTC ===
+                "disconnected"
+            ) {
+
+                estado.textContent =
+                    "Conexión interrumpida";
+
+            }
+
+
+            if (
+                estadoRTC ===
+                "failed"
+            ) {
+
+                mostrarError(
+                    "Se perdió la conexión."
+                );
+
+            }
+
+
+            if (
+                estadoRTC ===
+                "closed"
+            ) {
+
+                finalizarLocal();
+
+            }
+
+        };
+
+
+    /*
+     * Escuchar candidatos del otro usuario.
+     */
+
+    const candidatosRef =
+        collection(
+            db,
+            "salas",
+            salaId,
+            "candidates"
+        );
+
+
+    candidatoListener =
+        onSnapshot(
+            candidatosRef,
+            async snapshot => {
+
+                for (
+                    const cambio
+                    of snapshot.docChanges()
+                ) {
+
+                    if (
+                        cambio.type !==
+                        "added"
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    const datos =
+                        cambio.doc.data();
+
+
+                    /*
+                     * Ignorar nuestros
+                     * propios candidatos.
+                     */
+
+                    if (
+                        datos.uid ===
+                        usuarioActual.uid
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    try {
+
+                        await peerConnection
+                            .addIceCandidate(
+                                new RTCIceCandidate(
+                                    datos.candidate
+                                )
+                            );
+
+                    } catch (error) {
+
+                        console.warn(
+                            "[GESBASE] Error agregando ICE:",
+                            error
+                        );
+
+                    }
+
+                }
+
+            }
+        );
+
+}
+
+
+// =========================================================
+// CREAR OFERTA
+// =========================================================
+
+async function crearOferta() {
+
+    const oferta =
+        await peerConnection
+            .createOffer();
+
+
+    await peerConnection
+        .setLocalDescription(
+            oferta
+        );
+
+
+    const salaRef =
+        doc(
+            db,
+            "salas",
+            salaId
+        );
+
+
+    await updateDoc(
+        salaRef,
+        {
+
+            offer:
+                {
+
+                    type:
+                        oferta.type,
+
+                    sdp:
+                        oferta.sdp
+
+                },
+
+            status:
+                "calling"
+
+        }
+    );
+
+
+    estado.textContent =
+        "Llamando...";
+
+}
+
+
+// =========================================================
+// ESCUCHAR SALA
+// =========================================================
+
+function escucharSala() {
+
+    const salaRef =
+        doc(
+            db,
+            "salas",
+            salaId
+        );
+
+
+    salaListener =
+        onSnapshot(
+            salaRef,
+            async snapshot => {
+
+                if (
+                    !snapshot.exists()
+                ) {
+
+                    finalizarLocal();
+
+                    return;
+
+                }
+
+
+                const datos =
+                    snapshot.data();
+
+
+                sala =
+                    datos;
+
+
+                /*
+                 * Si somos el receptor
+                 * y llegó una oferta.
+                 */
+
+                if (
+                    sala.createdBy !==
+                    usuarioActual.uid &&
+                    sala.offer &&
+                    !peerConnection.currentRemoteDescription
+                ) {
+
+                    await responderOferta();
+
+                }
+
+
+                /*
+                 * Si somos quien creó
+                 * la llamada y recibimos
+                 * answer.
+                 */
+
+                if (
+                    sala.createdBy ===
+                    usuarioActual.uid &&
+                    sala.answer &&
+                    !peerConnection.currentRemoteDescription
+                ) {
+
+                    try {
+
+                        await peerConnection
+                            .setRemoteDescription(
+                                new RTCSessionDescription(
+                                    sala.answer
+                                )
+                            );
+
+
+                        estado.textContent =
+                            "Conectando...";
+
+
+                    } catch (error) {
+
+                        console.error(
+                            "[GESBASE] Error answer:",
+                            error
+                        );
+
+                    }
+
+                }
+
+
+                /*
+                 * Si la llamada fue
+                 * finalizada.
+                 */
+
+                if (
+                    sala.status ===
+                    "ended"
+                ) {
+
+                    finalizarLocal();
+
+                }
+
+            }
+        );
+
+}
+
+
+// =========================================================
+// RESPONDER OFERTA
+// =========================================================
+
+async function responderOferta() {
+
+    try {
+
+        await peerConnection
+            .setRemoteDescription(
+                new RTCSessionDescription(
+                    sala.offer
+                )
+            );
+
+
+        const respuesta =
+            await peerConnection
+                .createAnswer();
+
+
+        await peerConnection
+            .setLocalDescription(
+                respuesta
+            );
+
+
+        const salaRef =
+            doc(
+                db,
+                "salas",
+                salaId
+            );
+
+
+        await updateDoc(
+            salaRef,
+            {
+
+                answer:
+                    {
+
+                        type:
+                            respuesta.type,
+
+                        sdp:
+                            respuesta.sdp
+
+                    },
+
+                status:
+                    "connected"
+
+            }
+        );
+
+
+        estado.textContent =
+            "Conectando...";
+
+
+    } catch (error) {
+
+        console.error(
+            "[GESBASE] Error respondiendo llamada:",
+            error
+        );
+
+
+        mostrarError(
+            "No se pudo aceptar la llamada."
+        );
+
+    }
+
+}
+
+
+// =========================================================
+// OBTENER EMPRESA
+// =========================================================
+
+async function obtenerEmpresaId(
+    uid
+) {
+
+    try {
+
+        const ref =
+            doc(
+                db,
+                "usuarios",
+                uid
+            );
+
+
+        const snap =
+            await getDoc(
+                ref
+            );
+
+
+        if (
+            !snap.exists()
+        ) {
+
+            return null;
+
+        }
+
+
+        const datos =
+            snap.data();
+
+
+        return (
+            datos.empresaId ||
+            datos.idEmpresa ||
+            datos.empresa ||
+            null
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        return null;
+
+    }
+
+}
+
+
+// =========================================================
+// NOMBRE DEL OTRO PARTICIPANTE
+// =========================================================
+
+function obtenerNombreOtroParticipante() {
+
+    if (
+        !sala ||
+        !Array.isArray(
+            sala.participants
+        )
+    ) {
+
+        return "Llamada GESBASE";
+
+    }
+
+
+    const otroUid =
+        sala.participants.find(
+            uid =>
+                uid !==
+                usuarioActual.uid
+        );
+
+
+    if (
+        !otroUid
+    ) {
+
+        return (
+            sala.createdByName ||
+            "Llamada GESBASE"
+        );
+
+    }
+
+
+    /*
+     * En una primera versión
+     * mostramos el nombre del creador
+     * si está disponible.
+     */
+
+    if (
+        sala.createdBy !==
+        usuarioActual.uid
+    ) {
+
+        return (
+            sala.createdByName ||
+            "Empleado GESBASE"
+        );
+
+    }
+
+
+    return "Usuario GESBASE";
+
+}
+
+
+// =========================================================
+// SILENCIAR MICRÓFONO
+// =========================================================
+
+botonSilenciar.onclick =
+    () => {
+
+        if (
+            !localStream
+        ) {
+
+            return;
+
+        }
+
+
+        const pistas =
+            localStream.getAudioTracks();
+
+
+        if (
+            pistas.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        silenciado =
+            !silenciado;
+
+
+        pistas.forEach(
+            pista => {
+
+                pista.enabled =
+                    !silenciado;
+
+            }
+        );
+
+
+        botonSilenciar.textContent =
+            silenciado
+                ? "🔇"
+                : "🎙️";
+
+    };
+
+
+// =========================================================
+// COLGAR
+// =========================================================
+
+botonColgar.onclick =
+    async () => {
+
+        try {
+
+            const salaRef =
+                doc(
+                    db,
+                    "salas",
+                    salaId
+                );
+
+
+            await updateDoc(
+                salaRef,
+                {
+
+                    status:
+                        "ended",
+
+                    endedBy:
+                        usuarioActual?.uid ||
+                        null,
+
+                    endedAt:
+                        serverTimestamp()
+
+                }
+            );
+
+
+        } catch (error) {
+
+            console.warn(
+                "[GESBASE] No se pudo actualizar la sala.",
+                error
+            );
+
+        }
+
+
+        finalizarLocal();
+
+    };
+
+
+// =========================================================
+// FINALIZAR
+// =========================================================
+
+function finalizarLocal() {
+
+    detenerContador();
+
+
+    if (
+        localStream
+    ) {
+
+        localStream
+            .getTracks()
+            .forEach(
+                track => {
+
+                    track.stop();
+
+                }
+            );
+
+        localStream =
+            null;
+
+    }
+
+
+    if (
+        peerConnection
+    ) {
+
+        try {
+
+            peerConnection.close();
+
+        } catch (error) {}
+
+        peerConnection =
+            null;
+
+    }
+
+
+    if (
+        audioRemoto
+    ) {
+
+        audioRemoto.srcObject =
+            null;
+
+        audioRemoto.remove();
+
+        audioRemoto =
+            null;
+
+    }
+
+
+    estado.textContent =
+        "Llamada finalizada";
+
+
+    setTimeout(
+        () => {
+
+            window.location.href =
+                "comunicacion.html";
+
+        },
+        1000
+    );
+
+}
+
+
+// =========================================================
+// CONTADOR
+// =========================================================
+
+function iniciarContador() {
+
+    if (
+        contadorInterval
+    ) {
+
+        return;
+
+    }
+
+
+    contadorInterval =
+        setInterval(
+            () => {
+
+                segundos++;
+
+
+                const minutos =
+                    Math.floor(
+                        segundos / 60
+                    );
+
+
+                const segundosRestantes =
+                    segundos % 60;
+
+
+                tiempo.textContent =
+                    String(
+                        minutos
+                    ).padStart(
+                        2,
+                        "0"
+                    ) +
+                    ":" +
+                    String(
+                        segundosRestantes
+                    ).padStart(
+                        2,
+                        "0"
+                    );
+
+            },
+            1000
+        );
+
+}
+
+
+function detenerContador() {
+
+    if (
+        contadorInterval
+    ) {
+
+        clearInterval(
+            contadorInterval
+        );
+
+        contadorInterval =
+            null;
+
+    }
+
+}
+
+
+// =========================================================
+// ERROR
+// =========================================================
+
+function mostrarError(
+    mensaje
+) {
+
+    errorBox.textContent =
+        mensaje;
+
+
+    errorBox.style.display =
+        "block";
+
+
+    estado.textContent =
+        "Error";
+
+}
+
+
+// =========================================================
+// EVITAR CERRAR SIN LIMPIAR
+// =========================================================
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        if (
+            localStream
+        ) {
+
+            localStream
+                .getTracks()
+                .forEach(
+                    track =>
+                        track.stop()
+                );
+
+        }
+
+
+        if (
+            peerConnection
+        ) {
+
+            peerConnection.close();
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
