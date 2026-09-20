@@ -186,6 +186,13 @@ main{
     color:white;
 }
 
+.btn-notificaciones:disabled{
+
+    opacity:.6;
+
+    cursor:not-allowed;
+}
+
 .btn-reunion{
 
     background:#ede9fe;
@@ -588,6 +595,11 @@ main{
 
 @media(max-width:760px){
 
+    .top-actions{
+
+        grid-template-columns:1fr;
+    }
+
     .layout{
 
         grid-template-columns:1fr;
@@ -668,9 +680,7 @@ Comunicación interna de tu empresa
     class="btn-notificaciones"
     type="button"
 >
-
     🔔 Activar notificaciones
-
 </button>
 
 
@@ -679,9 +689,7 @@ Comunicación interna de tu empresa
     class="btn-reunion"
     type="button"
 >
-
     📹 Nueva reunión
-
 </button>
 
 </div>
@@ -735,9 +743,7 @@ Cargando empleados...
     id="chatAvatar"
     class="avatar"
 >
-
-💬
-
+    💬
 </div>
 
 
@@ -747,9 +753,7 @@ Cargando empleados...
     id="chatName"
     class="chat-name"
 >
-
-Seleccioná un empleado
-
+    Seleccioná un empleado
 </div>
 
 
@@ -757,9 +761,7 @@ Seleccioná un empleado
     id="chatStatus"
     class="chat-status"
 >
-
-Solo personas de tu empresa
-
+    Solo personas de tu empresa
 </div>
 
 </div>
@@ -775,9 +777,7 @@ Solo personas de tu empresa
     type="button"
     disabled
 >
-
-📞
-
+    📞
 </button>
 
 
@@ -788,9 +788,7 @@ Solo personas de tu empresa
     type="button"
     disabled
 >
-
-📹
-
+    📹
 </button>
 
 
@@ -841,9 +839,7 @@ para comenzar una conversación.
     type="submit"
     disabled
 >
-
-➤
-
+    ➤
 </button>
 
 </form>
@@ -857,11 +853,10 @@ para comenzar una conversación.
 
 
 <!-- =====================================================
-     JAVASCRIPT
+     JAVASCRIPT PRINCIPAL
 ===================================================== -->
 
 <script type="module">
-
 
 /* =========================================================
    FIREBASE
@@ -1198,8 +1193,8 @@ async function cargarEmpresa(
 
 
     /*
-     * Si el usuario no tiene empresaId,
-     * buscamos su empresa.
+     * Si no tiene empresaId,
+     * buscar empresa por propietarioUid.
      */
 
     if(
@@ -1305,11 +1300,6 @@ async function cargarEmpleados(){
         .filter(
             empleado => {
 
-                /*
-                 * Necesitamos authUid
-                 * para poder llamar.
-                 */
-
                 if(
                     !empleado.authUid
                 ){
@@ -1318,10 +1308,6 @@ async function cargarEmpleados(){
 
                 }
 
-
-                /*
-                 * No mostrar al usuario actual.
-                 */
 
                 if(
                     empleado.authUid ===
@@ -1332,10 +1318,6 @@ async function cargarEmpleados(){
 
                 }
 
-
-                /*
-                 * No mostrar inactivos.
-                 */
 
                 const estado =
                     String(
@@ -1448,13 +1430,17 @@ function mostrarEmpleados(){
                             ? "selected"
                             : ""
                     }"
-                    data-id="${empleado.id}"
+                    data-id="${escapar(
+                        empleado.id
+                    )}"
                 >
 
                     <div class="avatar">
 
-                        ${iniciales(
-                            empleado
+                        ${escapar(
+                            iniciales(
+                                empleado
+                            )
                         )}
 
                     </div>
@@ -1825,7 +1811,7 @@ document
             try{
 
                 /*
-                 * Crear/actualizar conversación.
+                 * Crear / actualizar conversación.
                  */
 
                 await setDoc(
@@ -1939,309 +1925,121 @@ document
 
 /* =========================================================
    ACTIVAR NOTIFICACIONES
+   =========================================================
+   IMPORTANTE:
+   El sistema FCM está centralizado en:
+
+   ./Js/notificaciones.js
+
+   NO se registra otro Service Worker acá.
+   NO se coloca otra VAPID KEY acá.
+   NO se ejecuta getToken() acá.
+   NO se ejecuta onMessage() acá.
 ========================================================= */
 
-async function activarNotificaciones(){
+btnNotificaciones.onclick =
+    async () => {
 
-    try{
+        try{
 
-        if(
-            !("Notification" in window)
-        ){
+            if(
+                !window.GESBASE_NOTIFICACIONES ||
+                typeof
+                window.GESBASE_NOTIFICACIONES
+                    .activarNotificaciones !==
+                    "function"
+            ){
 
-            mostrarAviso(
+                mostrarAviso(
 
-                "Este navegador no admite notificaciones web.",
+                    "El sistema de notificaciones todavía está cargando. Esperá unos segundos y probá nuevamente.",
 
-                "error"
+                    "info"
 
-            );
-
-            return;
-
-        }
-
-
-        const permiso =
-            await Notification.requestPermission();
-
-
-        if(
-            permiso !==
-            "granted"
-        ){
-
-            mostrarAviso(
-
-                "Tenés que permitir las notificaciones.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-        if(
-            !("serviceWorker" in navigator)
-        ){
-
-            mostrarAviso(
-
-                "Este navegador no admite Service Worker.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-        const registro =
-            await navigator.serviceWorker.register(
-
-                "./firebase-messaging-sw.js"
-
-            );
-
-
-        const {
-            getMessaging,
-            getToken,
-            onMessage
-        } =
-            await import(
-
-                "https://www.gstatic.com/firebasejs/12.18.0/firebase-messaging.js"
-
-            );
-
-
-        const messaging =
-            getMessaging();
-
-
-        /*
-         * =====================================================
-         * IMPORTANTE
-         * =====================================================
-         *
-         * PEGÁ ACÁ TU VAPID KEY DE FIREBASE.
-         */
-
-        const vapidKey =
-            "PEGAR_AQUI_LA_CLAVE_VAPID_DE_FIREBASE";
-
-
-        if(
-            vapidKey.startsWith(
-                "PEGAR_"
-            )
-        ){
-
-            mostrarAviso(
-
-                "Falta configurar la clave VAPID de Firebase.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-        const token =
-            await getToken(
-
-                messaging,
-
-                {
-
-                    vapidKey,
-
-                    serviceWorkerRegistration:
-                        registro
-
-                }
-
-            );
-
-
-        if(
-            !token
-        ){
-
-            mostrarAviso(
-
-                "No se pudo obtener el token del dispositivo.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-        await setDoc(
-
-            doc(
-
-                db,
-
-                "tokensNotificaciones",
-
-                usuarioActual.uid
-
-            ),
-
-            {
-
-                uid:
-                    usuarioActual.uid,
-
-                empresaId,
-
-                token,
-
-                platform:
-                    "web",
-
-                updatedAt:
-                    serverTimestamp()
-
-            },
-
-            {
-                merge:true
-            }
-
-        );
-
-
-        onMessage(
-
-            messaging,
-
-            payload => {
-
-                console.log(
-                    "[GESBASE] Notificación:",
-                    payload
                 );
 
+                console.warn(
+                    "[GESBASE] notificaciones.js todavía no está disponible."
+                );
 
-                const titulo =
-                    payload.notification?.title ||
-                    payload.data?.title ||
-                    "GESBASE";
-
-
-                const cuerpo =
-                    payload.notification?.body ||
-                    payload.data?.body ||
-                    "Tenés una nueva notificación.";
-
-
-                /*
-                 * Sonido de mensaje.
-                 */
-
-                try{
-
-                    const sonido =
-                        new Audio(
-                            "./sonidos/mensaje.mp3"
-                        );
-
-
-                    sonido.play()
-                        .catch(
-                            () => {}
-                        );
-
-                }
-                catch(error){}
-
-
-                /*
-                 * Mostrar notificación
-                 * cuando la página está oculta.
-                 */
-
-                if(
-                    document.visibilityState !==
-                    "visible"
-                ){
-
-                    new Notification(
-
-                        titulo,
-
-                        {
-
-                            body:
-                                cuerpo,
-
-                            icon:
-                                "/GESBASE/icon-192.png"
-
-                        }
-
-                    );
-
-                }
+                return;
 
             }
 
-        );
+
+            btnNotificaciones.disabled =
+                true;
 
 
-        btnNotificaciones.textContent =
-            "🔔 Notificaciones activadas";
+            btnNotificaciones.textContent =
+                "⏳ Activando notificaciones...";
 
 
-        mostrarAviso(
-
-            "Las notificaciones quedaron activadas en este dispositivo.",
-
-            "ok"
-
-        );
+            const token =
+                await
+                window.GESBASE_NOTIFICACIONES
+                    .activarNotificaciones();
 
 
-    }
-    catch(error){
+            if(
+                token
+            ){
 
-        console.error(
-            "[GESBASE] Error notificaciones:",
-            error
-        );
-
-
-        mostrarAviso(
-
-            "Error al activar notificaciones: " +
-            error.message,
-
-            "error"
-
-        );
-
-    }
-
-}
+                btnNotificaciones.textContent =
+                    "🔔 Notificaciones activadas";
 
 
-btnNotificaciones.onclick =
-    activarNotificaciones;
+                mostrarAviso(
+
+                    "Las notificaciones quedaron activadas en este dispositivo.",
+
+                    "ok"
+
+                );
+
+            }
+            else{
+
+                btnNotificaciones.textContent =
+                    "🔔 Activar notificaciones";
+
+            }
+
+
+        }
+        catch(error){
+
+            console.error(
+                "[GESBASE] Error activando notificaciones:",
+                error
+            );
+
+
+            btnNotificaciones.textContent =
+                "🔔 Activar notificaciones";
+
+
+            mostrarAviso(
+
+                "No se pudieron activar las notificaciones: " +
+                (
+                    error.message ||
+                    "Error desconocido"
+                ),
+
+                "error"
+
+            );
+
+        }
+        finally{
+
+            btnNotificaciones.disabled =
+                false;
+
+        }
+
+    };
 
 
 /* =========================================================
@@ -2352,10 +2150,8 @@ async function iniciarLlamada(
 
 
         /*
-         * Crear sala.
-         *
-         * SOLO usuarios de esta empresa
-         * deben poder acceder a ella.
+         * La empresa queda guardada
+         * dentro de la sala.
          */
 
         await setDoc(
@@ -2378,10 +2174,9 @@ async function iniciarLlamada(
 
                 createdByName:
                     usuarioActual.nombre ||
-                    (
-                        usuarioActual.displayName ||
-                        usuarioActual.email
-                    ),
+                    usuarioActual.displayName ||
+                    usuarioActual.email ||
+                    "Usuario GESBASE",
 
                 participants: [
 
@@ -2517,7 +2312,7 @@ onAuthStateChanged(
 
 
 <!-- =====================================================
-     NOTIFICACIONES GLOBALES
+     SISTEMA GLOBAL DE NOTIFICACIONES + LLAMADAS + FCM
 ===================================================== -->
 
 <script
