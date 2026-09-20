@@ -27,7 +27,7 @@ importScripts(
 firebase.initializeApp({
 
     apiKey:
-        "AIzaSyDDCQ7WhS9G8Dw8QGZ01VaFTmSgV2rjs9o",
+        "AIzaSyDDQ7Wh9S8Gy8DwQGZ01VaFTmSgV2rjs9o",
 
     authDomain:
         "gesbase-4bf94.firebaseapp.com",
@@ -59,14 +59,14 @@ const messaging =
 
 
 /* ============================================================
-   NOTIFICACIONES EN SEGUNDO PLANO
+   MENSAJES EN SEGUNDO PLANO
 ============================================================ */
 
 messaging.onBackgroundMessage(
     payload => {
 
         console.log(
-            "[GESBASE] Push recibida:",
+            "[GESBASE] Notificación recibida en segundo plano:",
             payload
         );
 
@@ -74,14 +74,9 @@ messaging.onBackgroundMessage(
         const notification =
             payload.notification || {};
 
-
         const data =
             payload.data || {};
 
-
-        /* ====================================================
-           TIPO DE NOTIFICACIÓN
-        ==================================================== */
 
         const tipo =
             data.tipo || "notificacion";
@@ -98,7 +93,7 @@ messaging.onBackgroundMessage(
 
 
         /* ====================================================
-           MENSAJE
+           CUERPO
         ==================================================== */
 
         let cuerpo =
@@ -121,7 +116,18 @@ messaging.onBackgroundMessage(
         ==================================================== */
 
         let url =
-            data.url || "";
+            data.url ||
+            "";
+
+
+        /* ====================================================
+           ID DE SALA
+        ==================================================== */
+
+        const salaId =
+            data.salaId ||
+            data.llamadaId ||
+            "";
 
 
         /* ====================================================
@@ -143,12 +149,16 @@ messaging.onBackgroundMessage(
                 data.body ||
                 "Tenés una llamada entrante.";
 
-            if (!url && data.llamadaId) {
+
+            if (
+                !url &&
+                salaId
+            ) {
 
                 url =
                     "/GESBASE/llamada.html?sala=" +
                     encodeURIComponent(
-                        data.llamadaId
+                        salaId
                     );
 
             }
@@ -175,12 +185,16 @@ messaging.onBackgroundMessage(
                 data.body ||
                 "Tenés una videollamada entrante.";
 
-            if (!url && data.llamadaId) {
+
+            if (
+                !url &&
+                salaId
+            ) {
 
                 url =
                     "/GESBASE/videollamada.html?sala=" +
                     encodeURIComponent(
-                        data.llamadaId
+                        salaId
                     );
 
             }
@@ -206,10 +220,11 @@ messaging.onBackgroundMessage(
                 data.body ||
                 "Tenés un nuevo mensaje.";
 
+
             if (!url) {
 
                 url =
-                    "/GESBASE/chat.html";
+                    "/GESBASE/comunicacion.html";
 
             }
 
@@ -217,10 +232,45 @@ messaging.onBackgroundMessage(
 
 
         /* ====================================================
-           OPCIONES DE NOTIFICACIÓN
+           DATOS DE LA NOTIFICACIÓN
         ==================================================== */
 
-        const options = {
+        const datosNotificacion = {
+
+            tipo:
+                tipo,
+
+            salaId:
+                salaId,
+
+            llamadaId:
+                data.llamadaId ||
+                salaId,
+
+            mensajeId:
+                data.mensajeId ||
+                "",
+
+            usuario:
+                data.usuario ||
+                "",
+
+            empresaId:
+                data.empresaId ||
+                "",
+
+            url:
+                url ||
+                "/GESBASE/comunicacion.html"
+
+        };
+
+
+        /* ====================================================
+           OPCIONES
+        ==================================================== */
+
+        const opciones = {
 
             body:
                 cuerpo,
@@ -233,43 +283,30 @@ messaging.onBackgroundMessage(
 
             tag:
                 data.tag ||
-                "gesbase-" + tipo,
+                (
+                    "gesbase-" +
+                    tipo +
+                    "-" +
+                    (
+                        salaId ||
+                        data.mensajeId ||
+                        Date.now()
+                    )
+                ),
 
             renotify:
                 true,
 
             requireInteraction:
-                tipo === "llamada" ||
-                tipo === "audio" ||
-                tipo === "videollamada" ||
-                tipo === "video",
+                (
+                    tipo === "llamada" ||
+                    tipo === "audio" ||
+                    tipo === "videollamada" ||
+                    tipo === "video"
+                ),
 
-            data: {
-
-                tipo:
-                    tipo,
-
-                usuario:
-                    data.usuario ||
-                    "",
-
-                llamadaId:
-                    data.llamadaId ||
-                    "",
-
-                mensajeId:
-                    data.mensajeId ||
-                    "",
-
-                empresaId:
-                    data.empresaId ||
-                    "",
-
-                url:
-                    url ||
-                    "/GESBASE/comunicacion.html"
-
-            }
+            data:
+                datosNotificacion
 
         };
 
@@ -278,9 +315,9 @@ messaging.onBackgroundMessage(
            MOSTRAR NOTIFICACIÓN
         ==================================================== */
 
-        self.registration.showNotification(
+        return self.registration.showNotification(
             titulo,
-            options
+            opciones
         );
 
     }
@@ -288,7 +325,7 @@ messaging.onBackgroundMessage(
 
 
 /* ============================================================
-   CLICK EN UNA NOTIFICACIÓN
+   CLICK EN NOTIFICACIÓN
 ============================================================ */
 
 self.addEventListener(
@@ -308,104 +345,114 @@ self.addEventListener(
             "/GESBASE/comunicacion.html";
 
 
+        const tipo =
+            data.tipo ||
+            "";
+
+
+        const salaId =
+            data.salaId ||
+            data.llamadaId ||
+            "";
+
+
         /* ====================================================
-           SI ES LLAMADA DE AUDIO
+           LLAMADA
         ==================================================== */
 
         if (
             (
-                data.tipo === "llamada" ||
-                data.tipo === "audio"
+                tipo === "llamada" ||
+                tipo === "audio"
             ) &&
-            data.llamadaId
+            salaId
         ) {
 
             url =
                 "/GESBASE/llamada.html?sala=" +
                 encodeURIComponent(
-                    data.llamadaId
+                    salaId
                 );
 
         }
 
 
         /* ====================================================
-           SI ES VIDEOLLAMADA
+           VIDEOLLAMADA
         ==================================================== */
 
         if (
             (
-                data.tipo === "videollamada" ||
-                data.tipo === "video"
+                tipo === "videollamada" ||
+                tipo === "video"
             ) &&
-            data.llamadaId
+            salaId
         ) {
 
             url =
                 "/GESBASE/videollamada.html?sala=" +
                 encodeURIComponent(
-                    data.llamadaId
+                    salaId
                 );
 
         }
 
 
         /* ====================================================
-           SI ES MENSAJE
+           MENSAJE
         ==================================================== */
 
         if (
-            data.tipo === "mensaje"
+            tipo === "mensaje"
         ) {
 
             url =
                 data.url ||
-                "/GESBASE/chat.html";
+                "/GESBASE/comunicacion.html";
 
         }
 
 
         /* ====================================================
-           ABRIR O REUTILIZAR GESBASE
+           ABRIR GESBASE
         ==================================================== */
 
         event.waitUntil(
 
             clients
                 .matchAll({
-                    type: "window",
-                    includeUncontrolled: true
-                })
-                .then(
-                    windowClients => {
 
-                        /* ------------------------------------
-                           BUSCAR UNA VENTANA DE GESBASE
-                        ------------------------------------ */
+                    type:
+                        "window",
+
+                    includeUncontrolled:
+                        true
+
+                })
+
+                .then(
+                    ventanas => {
 
                         for (
-                            const client
-                            of windowClients
+                            const ventana
+                            of ventanas
                         ) {
 
                             if (
-                                "focus" in client
+                                "focus" in ventana
                             ) {
 
-                                client.navigate(
-                                    url
-                                );
-
-                                return client.focus();
+                                return ventana
+                                    .navigate(url)
+                                    .then(
+                                        () =>
+                                            ventana.focus()
+                                    );
 
                             }
 
                         }
 
-
-                        /* ------------------------------------
-                           SI NO HAY VENTANA ABIERTA
-                        ------------------------------------ */
 
                         if (
                             clients.openWindow
@@ -461,4 +508,30 @@ self.addEventListener(
         );
 
     }
+);
+
+
+/* ============================================================
+   FETCH
+   No interceptamos las páginas de GESBASE.
+============================================================ */
+
+self.addEventListener(
+    "fetch",
+    event => {
+
+        /*
+         * El Service Worker solamente se utiliza
+         * para las notificaciones de Firebase.
+         *
+         * No modificamos las solicitudes normales
+         * de GESBASE.
+         */
+
+    }
+);
+
+
+console.log(
+    "[GESBASE] Firebase Messaging Service Worker cargado."
 );
