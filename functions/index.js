@@ -1,4 +1,211 @@
 // ============================================================
+// 📲 ENVÍO DE NOTIFICACIONES PUSH
+// ============================================================
+
+async function enviarPush({
+    uidDestino,
+    titulo,
+    cuerpo,
+    tipo,
+    usuario,
+    mensajeId,
+    llamadaId,
+    url
+}) {
+
+    try {
+
+        if (!uidDestino) {
+            console.warn("❌ Push sin uidDestino");
+            return;
+        }
+
+        // =====================================================
+        // USUARIO DESTINO
+        // =====================================================
+
+        const usuarioDestino =
+            await obtenerUsuario(uidDestino);
+
+        if (!usuarioDestino) {
+
+            console.warn(
+                "❌ Usuario destino no encontrado:",
+                uidDestino
+            );
+
+            return;
+        }
+
+        // =====================================================
+        // TOKENS FCM
+        // =====================================================
+
+        const tokens =
+            await obtenerTokensUsuario(uidDestino);
+
+        if (
+            !Array.isArray(tokens) ||
+            tokens.length === 0
+        ) {
+
+            console.log(
+                "ℹ️ Usuario sin tokens FCM:",
+                uidDestino
+            );
+
+            return;
+        }
+
+        // =====================================================
+        // DATOS
+        // =====================================================
+
+        const datos = {
+
+            tipo: String(
+                tipo || "mensaje"
+            ),
+
+            titulo: String(
+                titulo || "GESBASE"
+            ),
+
+            cuerpo: String(
+                cuerpo || ""
+            ),
+
+            usuario: String(
+                usuario || ""
+            ),
+
+            mensajeId: String(
+                mensajeId || ""
+            ),
+
+            llamadaId: String(
+                llamadaId || ""
+            ),
+
+            salaId: String(
+                llamadaId || ""
+            ),
+
+            url: String(
+                url ||
+                "/GESBASE/comunicacion.html"
+            )
+        };
+
+        // =====================================================
+        // ENVIAR A TODOS LOS DISPOSITIVOS DEL USUARIO
+        // =====================================================
+
+        for (
+            const token of tokens
+        ) {
+
+            if (!token) {
+                continue;
+            }
+
+            try {
+
+                await getMessaging().send({
+
+                    token: token,
+
+                    // DATA ONLY
+                    // El Service Worker crea la notificación
+                    data: datos,
+
+                    webpush: {
+
+                        headers: {
+
+                            Urgency:
+                                (
+                                    tipo === "llamada" ||
+                                    tipo === "videollamada"
+                                )
+                                    ? "high"
+                                    : "normal"
+
+                        }
+
+                    }
+
+                });
+
+                console.log(
+                    "✅ Push enviado correctamente a:",
+                    uidDestino
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "❌ Error enviando push:",
+                    error
+                );
+
+                const codigo =
+                    String(
+                        error?.code || ""
+                    );
+
+                // =================================================
+                // ELIMINAR TOKEN INVÁLIDO
+                // =================================================
+
+                if (
+
+                    codigo.includes(
+                        "registration-token-not-registered"
+                    )
+
+                    ||
+
+                    codigo.includes(
+                        "invalid-registration-token"
+                    )
+
+                ) {
+
+                    try {
+
+                        await eliminarTokensInvalidos(
+                            uidDestino,
+                            [token],
+                            error
+                        );
+
+                    } catch (errorEliminar) {
+
+                        console.error(
+                            "❌ Error eliminando token inválido:",
+                            errorEliminar
+                        );
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "❌ ERROR GENERAL EN enviarPush:",
+            error
+        );
+
+    }
+
+}
+// ============================================================
 // 📞 🎥 NOTIFICACIÓN DE LLAMADA
 // ESCUCHA: salas/{salaId}
 // ============================================================
