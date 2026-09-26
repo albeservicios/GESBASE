@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>GESBASE - Comprobantes de alquiler</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:18px;
+}
+
+.header-contenido{
+    max-width:1150px;
+    margin:auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+}
+
+.logo{
+    font-size:21px;
+    font-weight:bold;
+}
+
+.subtitulo{
+    font-size:13px;
+    opacity:.75;
+    margin-top:3px;
+}
+
+.contenedor{
+    max-width:1150px;
+    margin:25px auto;
+    padding:0 15px;
+}
+
+.barra-superior{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+h1{
+    margin:0;
+    font-size:25px;
+}
+
+h2{
+    margin-top:0;
+}
+
+button{
+    border:0;
+    border-radius:9px;
+    padding:10px 14px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn-principal{
+    background:#16a34a;
+    color:white;
+}
+
+.btn-secundario{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.btn-danger{
+    background:#dc2626;
+    color:white;
+}
+
+.btn-imprimir{
+    background:#111827;
+    color:white;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.panel{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 4px 16px rgba(0,0,0,.06);
+    margin-bottom:20px;
+}
+
+.filtros{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:12px;
+}
+
+input,
+select{
+    width:100%;
+    padding:11px;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    font-size:14px;
+    background:white;
+}
+
+.tabla-contenedor{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:850px;
+}
+
+th,
+td{
+    padding:12px 10px;
+    border-bottom:1px solid #e5e7eb;
+    text-align:left;
+    font-size:13px;
+}
+
+th{
+    background:#f9fafb;
+    font-size:12px;
+    text-transform:uppercase;
+}
+
+.estado{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.estado-generado{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado-pendiente{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.sin-datos{
+    text-align:center;
+    padding:30px;
+    color:#6b7280;
+}
+
+.oculto{
+    display:none !important;
+}
+
+/* MODAL */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+    z-index:1000;
+}
+
+.modal-contenido{
+    width:100%;
+    max-width:500px;
+    background:white;
+    border-radius:15px;
+    padding:22px;
+    max-height:90vh;
+    overflow-y:auto;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+}
+
+.modal-header h3{
+    margin:0;
+}
+
+.cerrar{
+    background:#e5e7eb;
+    width:35px;
+    height:35px;
+    padding:0;
+    border-radius:50%;
+}
+
+.campo{
+    margin-bottom:14px;
+}
+
+.campo label{
+    display:block;
+    font-size:12px;
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+.info-cobro{
+    background:#f9fafb;
+    border-radius:10px;
+    padding:14px;
+    margin-bottom:16px;
+    font-size:13px;
+    line-height:1.6;
+}
+
+.acciones-modal{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+    margin-top:18px;
+}
+
+/* COMPROBANTE */
+
+.comprobante{
+    background:white;
+    width:100%;
+    max-width:800px;
+    margin:0 auto;
+    padding:35px;
+    border:1px solid #e5e7eb;
+}
+
+.comprobante-encabezado{
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    border-bottom:2px solid #111827;
+    padding-bottom:20px;
+    margin-bottom:25px;
+}
+
+.comprobante-marca{
+    font-size:25px;
+    font-weight:bold;
+}
+
+.comprobante-subtitulo{
+    color:#6b7280;
+    font-size:13px;
+    margin-top:5px;
+}
+
+.numero-comprobante{
+    text-align:right;
+}
+
+.numero-comprobante strong{
+    display:block;
+    font-size:13px;
+}
+
+.numero-comprobante span{
+    font-size:20px;
+    font-weight:bold;
+}
+
+.datos-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    margin-bottom:25px;
+}
+
+.dato-bloque{
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:14px;
+}
+
+.dato-bloque h4{
+    margin:0 0 10px;
+    font-size:12px;
+    text-transform:uppercase;
+    color:#6b7280;
+}
+
+.dato-bloque p{
+    margin:5px 0;
+    font-size:14px;
+}
+
+.importe{
+    text-align:right;
+    background:#f9fafb;
+    border-radius:10px;
+    padding:20px;
+    margin-top:20px;
+}
+
+.importe-label{
+    color:#6b7280;
+    font-size:13px;
+}
+
+.importe-valor{
+    font-size:30px;
+    font-weight:bold;
+    margin-top:5px;
+}
+
+.comprobante-pie{
+    border-top:1px solid #e5e7eb;
+    margin-top:30px;
+    padding-top:15px;
+    color:#6b7280;
+    font-size:11px;
+    line-height:1.5;
+}
+
+@media(max-width:700px){
+
+    .filtros{
+        grid-template-columns:1fr;
+    }
+
+    .datos-grid{
+        grid-template-columns:1fr;
+    }
+
+    .comprobante{
+        padding:20px;
+    }
+
+    .comprobante-encabezado{
+        flex-direction:column;
+    }
+
+    .numero-comprobante{
+        text-align:left;
+    }
+
+}
+
+/* IMPRESIÓN */
+
+@media print{
+
+    body{
+        background:white;
+    }
+
+    body *{
+        visibility:hidden;
+    }
+
+    #areaComprobante,
+    #areaComprobante *{
+        visibility:visible;
+    }
+
+    #areaComprobante{
+        position:absolute;
+        left:0;
+        top:0;
+        width:100%;
+        padding:0;
+    }
+
+    .comprobante{
+        border:0;
+        max-width:none;
+        width:100%;
+        margin:0;
+    }
+
+    .no-imprimir{
+        display:none !important;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<header>
+
+    <div class="header-contenido">
+
+        <div>
+            <div class="logo">GESBASE</div>
+            <div class="subtitulo">
+                Comprobantes de alquileres temporarios
+            </div>
+        </div>
+
+        <button
+            class="btn-secundario"
+            id="btnVolver"
+        >
+            ← Volver
+        </button>
+
+    </div>
+
+</header>
+
+
+<main class="contenedor">
+
+    <div class="barra-superior">
+
+        <div>
+            <h1>🧾 Comprobantes</h1>
+
+            <div
+                id="empresaNombre"
+                style="color:#6b7280;font-size:13px;margin-top:5px;"
+            >
+                Cargando empresa...
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- FILTROS -->
+
+    <section class="panel">
+
+        <h2>Buscar comprobantes</h2>
+
+        <div class="filtros">
+
+            <input
+                type="text"
+                id="buscar"
+                placeholder="Buscar por cliente, propiedad o número..."
+            >
+
+            <select id="filtroEstado">
+
+                <option value="todos">
+                    Todos
+                </option>
+
+                <option value="generado">
+                    Generados
+                </option>
+
+                <option value="pendiente">
+                    Sin comprobante
+                </option>
+
+            </select>
+
+        </div>
+
+    </section>
+
+
+    <!-- LISTADO -->
+
+    <section class="panel">
+
+        <div class="tabla-contenedor">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Comprobante</th>
+
+                        <th>Fecha</th>
+
+                        <th>Cliente</th>
+
+                        <th>Propiedad</th>
+
+                        <th>Importe</th>
+
+                        <th>Método</th>
+
+                        <th>Estado</th>
+
+                        <th>Acciones</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="tablaComprobantes">
+
+                    <tr>
+                        <td
+                            colspan="8"
+                            class="sin-datos"
+                        >
+                            Cargando...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- MODAL GENERAR -->
+
+<div
+    class="modal oculto"
+    id="modalGenerar"
+>
+
+    <div class="modal-contenido">
+
+        <div class="modal-header">
+
+            <h3>🧾 Generar comprobante</h3>
+
+            <button
+                class="cerrar"
+                id="btnCerrarModal"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <div
+            class="info-cobro"
+            id="infoCobro"
+        ></div>
+
+
+        <div class="campo">
+
+            <label>
+                Concepto del comprobante
+            </label>
+
+            <input
+                type="text"
+                id="conceptoComprobante"
+                value="Pago de alquiler temporario"
+            >
+
+        </div>
+
+
+        <div class="campo">
+
+            <label>
+                Observación
+            </label>
+
+            <input
+                type="text"
+                id="observacionComprobante"
+                placeholder="Opcional"
+            >
+
+        </div>
+
+
+        <div class="acciones-modal">
+
+            <button
+                class="btn-secundario"
+                id="btnCancelarModal"
+            >
+                Cancelar
+            </button>
+
+            <button
+                class="btn-principal"
+                id="btnConfirmarComprobante"
+            >
+                Generar comprobante
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ÁREA DEL COMPROBANTE -->
+
+<section
+    id="areaComprobante"
+    class="oculto"
+>
+
+    <div class="comprobante">
+
+        <div class="comprobante-encabezado">
+
+            <div>
+
+                <div class="comprobante-marca">
+                    GESBASE
+                </div>
+
+                <div class="comprobante-subtitulo">
+                    Comprobante de pago
+                </div>
+
+                <div
+                    id="comprobanteEmpresa"
+                    class="comprobante-subtitulo"
+                ></div>
+
+            </div>
+
+
+            <div class="numero-comprobante">
+
+                <strong>
+                    COMPROBANTE
+                </strong>
+
+                <span id="numeroComprobante">
+                    -
+                </span>
+
+                <div
+                    id="fechaComprobante"
+                    style="font-size:12px;color:#6b7280;margin-top:5px;"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <div class="datos-grid">
+
+            <div class="dato-bloque">
+
+                <h4>
+                    Cliente
+                </h4>
+
+                <p id="comprobanteCliente">
+                    -
+                </p>
+
+                <p id="comprobanteDni">
+                    DNI: -
+                </p>
+
+            </div>
+
+
+            <div class="dato-bloque">
+
+                <h4>
+                    Propiedad
+                </h4>
+
+                <p id="comprobantePropiedad">
+                    -
+                </p>
+
+                <p id="comprobanteReserva">
+                    Reserva: -
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="dato-bloque">
+
+            <h4>
+                Detalle del pago
+            </h4>
+
+            <p id="comprobanteConcepto">
+                -
+            </p>
+
+            <p id="comprobanteMetodo">
+                Método: -
+            </p>
+
+            <p id="comprobanteFechaPago">
+                Fecha de pago: -
+            </p>
+
+        </div>
+
+
+        <div class="importe">
+
+            <div class="importe-label">
+                IMPORTE RECIBIDO
+            </div>
+
+            <div
+                class="importe-valor"
+                id="comprobanteImporte"
+            >
+                -
+            </div>
+
+        </div>
+
+
+        <div
+            class="comprobante-pie"
+            id="comprobantePie"
+        >
+            Comprobante generado por GESBASE.
+        </div>
+
+    </div>
+
+</section>
+
+
+<script type="module">
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    query,
+    where,
+    addDoc,
+    updateDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+
+/* ============================================================
+   VARIABLES
+============================================================ */
+
+let usuarioActual = null;
+let empresaActual = null;
+let empresaId = null;
+
+let cobros = [];
+let comprobantes = [];
+
+let cobroSeleccionado = null;
+
+
+/* ============================================================
+   ELEMENTOS
+============================================================ */
+
+const tablaComprobantes =
+    document.getElementById("tablaComprobantes");
+
+const buscar =
+    document.getElementById("buscar");
+
+const filtroEstado =
+    document.getElementById("filtroEstado");
+
+const modalGenerar =
+    document.getElementById("modalGenerar");
+
+const infoCobro =
+    document.getElementById("infoCobro");
+
+const areaComprobante =
+    document.getElementById("areaComprobante");
+
+
+/* ============================================================
+   UTILIDADES
+============================================================ */
+
+function escaparHTML(valor){
+
+    if(valor === null || valor === undefined){
+        return "";
+    }
+
+    return String(valor)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+}
+
+
+function formatearImporte(valor, moneda){
+
+    const numero =
+        Number(valor || 0);
+
+    return new Intl.NumberFormat(
+        "es-AR",
+        {
+            minimumFractionDigits:2,
+            maximumFractionDigits:2
+        }
+    ).format(numero) +
+    " " +
+    (moneda || "ARS");
+}
+
+
+function formatearFecha(valor){
+
+    if(!valor){
+        return "-";
+    }
+
+    try{
+
+        if(typeof valor.toDate === "function"){
+            return valor.toDate().toLocaleDateString("es-AR");
+        }
+
+        const fecha = new Date(valor);
+
+        if(isNaN(fecha)){
+            return "-";
+        }
+
+        return fecha.toLocaleDateString("es-AR");
+
+    }catch{
+
+        return "-";
+
+    }
+
+}
+
+
+function normalizarTexto(valor){
+
+    return String(valor || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"");
+
+}
+
+
+/* ============================================================
+   EMPRESA
+============================================================ */
+
+async function obtenerEmpresa(){
+
+    const usuarioRef =
+        doc(db,"usuarios",usuarioActual.uid);
+
+    const usuarioSnap =
+        await getDoc(usuarioRef);
+
+    if(usuarioSnap.exists()){
+
+        const datos =
+            usuarioSnap.data();
+
+        empresaId =
+            datos.empresaId ||
+            datos.idEmpresa ||
+            datos.empresa ||
+            null;
+    }
+
+
+    if(!empresaId){
+
+        const empresasSnap =
+            await getDocs(
+                query(
+                    collection(db,"empresas"),
+                    where(
+                        "propietarioUid",
+                        "==",
+                        usuarioActual.uid
+                    )
+                )
+            );
+
+        if(!empresasSnap.empty){
+
+            empresaId =
+                empresasSnap.docs[0].id;
+
+        }
+
+    }
+
+
+    if(!empresaId){
+
+        throw new Error(
+            "No se encontró la empresa."
+        );
+
+    }
+
+
+    const empresaSnap =
+        await getDoc(
+            doc(db,"empresas",empresaId)
+        );
+
+
+    if(!empresaSnap.exists()){
+
+        throw new Error(
+            "La empresa no existe."
+        );
+
+    }
+
+
+    empresaActual =
+        empresaSnap.data();
+
+
+    const rubro =
+        String(
+            empresaActual.rubro ||
+            empresaActual.tipoNegocio ||
+            ""
+        )
+        .toLowerCase();
+
+
+    if(
+        ![
+            "alquileres",
+            "alquiler",
+            "alquileres temporarios",
+            "alquiler temporario"
+        ].includes(rubro)
+    ){
+
+        throw new Error(
+            "Este módulo corresponde a Alquileres temporarios."
+        );
+
+    }
+
+
+    if(
+        empresaActual.accesoHabilitado === false
+    ){
+
+        throw new Error(
+            "El acceso de la empresa está bloqueado."
+        );
+
+    }
+
+
+    document.getElementById(
+        "empresaNombre"
+    ).textContent =
+        empresaActual.nombreEmpresa ||
+        empresaActual.nombre ||
+        "Empresa";
+
+
+    document.getElementById(
+        "comprobanteEmpresa"
+    ).textContent =
+        empresaActual.nombreEmpresa ||
+        empresaActual.nombre ||
+        "Empresa";
+
+}
+
+
+/* ============================================================
+   CARGAR COBROS
+============================================================ */
+
+async function cargarCobros(){
+
+    const snap =
+        await getDocs(
+            query(
+                collection(db,"cobrosAlquiler"),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                )
+            )
+        );
+
+
+    cobros =
+        snap.docs.map(
+            documento => ({
+                id:documento.id,
+                ...documento.data()
+            })
+        );
+
+}
+
+
+/* ============================================================
+   CARGAR COMPROBANTES
+============================================================ */
+
+async function cargarComprobantes(){
+
+    const snap =
+        await getDocs(
+            query(
+                collection(db,"comprobantesAlquiler"),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                )
+            )
+        );
+
+
+    comprobantes =
+        snap.docs.map(
+            documento => ({
+                id:documento.id,
+                ...documento.data()
+            })
+        );
+
+}
+
+
+/* ============================================================
+   NUMERACIÓN
+============================================================ */
+
+function siguienteNumero(){
+
+    let mayor = 0;
+
+
+    comprobantes.forEach(
+        comprobante => {
+
+            const numero =
+                Number(
+                    comprobante.numero ||
+                    0
+                );
+
+            if(numero > mayor){
+                mayor = numero;
+            }
+
+        }
+    );
+
+
+    return mayor + 1;
+
+}
+
+
+/* ============================================================
+   RENDER
+============================================================ */
+
+function renderizar(){
+
+    const texto =
+        normalizarTexto(
+            buscar.value
+        );
+
+
+    const estado =
+        filtroEstado.value;
+
+
+    const filas = [];
+
+
+    cobros.forEach(cobro => {
+
+        const comprobante =
+            comprobantes.find(
+                item =>
+                    item.cobroId === cobro.id
+            );
+
+
+        const contenido =
+            normalizarTexto(
+                [
+                    cobro.clienteNombre,
+                    cobro.propiedadNombre,
+                    comprobante
+                        ? comprobante.numero
+                        : ""
+                ].join(" ")
+            );
+
+
+        if(
+            texto &&
+            !contenido.includes(texto)
+        ){
+            return;
+        }
+
+
+        if(
+            estado === "generado" &&
+            !comprobante
+        ){
+            return;
+        }
+
+
+        if(
+            estado === "pendiente" &&
+            comprobante
+        ){
+            return;
+        }
+
+
+        filas.push({
+
+            cobro,
+            comprobante
+
+        });
+
+    });
+
+
+    if(!filas.length){
+
+        tablaComprobantes.innerHTML = `
+            <tr>
+                <td
+                    colspan="8"
+                    class="sin-datos"
+                >
+                    No hay comprobantes para mostrar.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    tablaComprobantes.innerHTML =
+        filas.map(item => {
+
+            const cobro =
+                item.cobro;
+
+            const comprobante =
+                item.comprobante;
+
+
+            return `
+                <tr>
+
+                    <td>
+                        ${
+                            comprobante
+                            ? `
+                                <strong>
+                                    N.º ${String(
+                                        comprobante.numero
+                                    ).padStart(6,"0")}
+                                </strong>
+                              `
+                            : "—"
+                        }
+                    </td>
+
+                    <td>
+                        ${formatearFecha(
+                            comprobante?.fechaEmision ||
+                            cobro.fechaPago
+                        )}
+                    </td>
+
+                    <td>
+                        ${escaparHTML(
+                            cobro.clienteNombre ||
+                            "Sin cliente"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escaparHTML(
+                            cobro.propiedadNombre ||
+                            "Sin propiedad"
+                        )}
+                    </td>
+
+                    <td>
+                        <strong>
+                            ${formatearImporte(
+                                cobro.importe,
+                                cobro.moneda
+                            )}
+                        </strong>
+                    </td>
+
+                    <td>
+                        ${escaparHTML(
+                            cobro.metodoPago ||
+                            "-"
+                        )}
+                    </td>
+
+                    <td>
+
+                        ${
+                            comprobante
+
+                            ?
+
+                            `
+                                <span class="estado estado-generado">
+                                    Generado
+                                </span>
+                            `
+
+                            :
+
+                            `
+                                <span class="estado estado-pendiente">
+                                    Pendiente
+                                </span>
+                            `
+                        }
+
+                    </td>
+
+                    <td>
+
+                        ${
+                            comprobante
+
+                            ?
+
+                            `
+                                <button
+                                    class="btn-imprimir"
+                                    onclick="verComprobante('${comprobante.id}')"
+                                >
+                                    Ver / imprimir
+                                </button>
+                            `
+
+                            :
+
+                            `
+                                <button
+                                    class="btn-principal"
+                                    onclick="abrirGenerar('${cobro.id}')"
+                                >
+                                    Generar
+                                </button>
+                            `
+                        }
+
+                    </td>
+
+                </tr>
+            `;
+
+        }).join("");
+
+}
+
+
+/* ============================================================
+   ABRIR GENERAR
+============================================================ */
+
+window.abrirGenerar = function(cobroId){
+
+    cobroSeleccionado =
+        cobros.find(
+            cobro =>
+                cobro.id === cobroId
+        );
+
+
+    if(!cobroSeleccionado){
+        return;
+    }
+
+
+    infoCobro.innerHTML = `
+
+        <strong>
+            ${escaparHTML(
+                cobroSeleccionado.clienteNombre ||
+                "Cliente"
+            )}
+        </strong>
+
+        <br>
+
+        Propiedad:
+        ${escaparHTML(
+            cobroSeleccionado.propiedadNombre ||
+            "-"
+        )}
+
+        <br>
+
+        Importe:
+        <strong>
+            ${formatearImporte(
+                cobroSeleccionado.importe,
+                cobroSeleccionado.moneda
+            )}
+        </strong>
+
+        <br>
+
+        Método:
+        ${escaparHTML(
+            cobroSeleccionado.metodoPago ||
+            "-"
+        )}
+
+        <br>
+
+        Fecha:
+        ${formatearFecha(
+            cobroSeleccionado.fechaPago
+        )}
+
+    `;
+
+
+    document.getElementById(
+        "conceptoComprobante"
+    ).value =
+        cobroSeleccionado.concepto ||
+        "Pago de alquiler temporario";
+
+
+    document.getElementById(
+        "observacionComprobante"
+    ).value =
+        cobroSeleccionado.observaciones ||
+        "";
+
+
+    modalGenerar.classList.remove(
+        "oculto"
+    );
+
+};
+
+
+/* ============================================================
+   CERRAR MODAL
+============================================================ */
+
+function cerrarModal(){
+
+    modalGenerar.classList.add(
+        "oculto"
+    );
+
+    cobroSeleccionado =
+        null;
+
+}
+
+
+document.getElementById(
+    "btnCerrarModal"
+).onclick =
+    cerrarModal;
+
+
+document.getElementById(
+    "btnCancelarModal"
+).onclick =
+    cerrarModal;
+
+
+/* ============================================================
+   GENERAR COMPROBANTE
+============================================================ */
+
+document.getElementById(
+    "btnConfirmarComprobante"
+).onclick =
+async function(){
+
+    if(!cobroSeleccionado){
+
+        alert(
+            "No se seleccionó ningún cobro."
+        );
+
+        return;
+
+    }
+
+
+    try{
+
+        const existente =
+            comprobantes.find(
+                comprobante =>
+                    comprobante.cobroId ===
+                    cobroSeleccionado.id
+            );
+
+
+        if(existente){
+
+            alert(
+                "Este cobro ya tiene un comprobante."
+            );
+
+            cerrarModal();
+            renderizar();
+
+            return;
+
+        }
+
+
+        const numero =
+            siguienteNumero();
+
+
+        const concepto =
+            document.getElementById(
+                "conceptoComprobante"
+            ).value.trim();
+
+
+        const observacion =
+            document.getElementById(
+                "observacionComprobante"
+            ).value.trim();
+
+
+        const nuevo = {
+
+            empresaId,
+
+            cobroId:
+                cobroSeleccionado.id,
+
+            reservaId:
+                cobroSeleccionado.reservaId ||
+                "",
+
+            clienteId:
+                cobroSeleccionado.clienteId ||
+                "",
+
+            clienteNombre:
+                cobroSeleccionado.clienteNombre ||
+                "",
+
+            propiedadId:
+                cobroSeleccionado.propiedadId ||
+                "",
+
+            propiedadNombre:
+                cobroSeleccionado.propiedadNombre ||
+                "",
+
+            importe:
+                Number(
+                    cobroSeleccionado.importe ||
+                    0
+                ),
+
+            moneda:
+                cobroSeleccionado.moneda ||
+                "ARS",
+
+            fechaPago:
+                cobroSeleccionado.fechaPago ||
+                "",
+
+            metodoPago:
+                cobroSeleccionado.metodoPago ||
+                "",
+
+            concepto,
+
+            observacion,
+
+            numero,
+
+            estado:
+                "emitido",
+
+            fechaEmision:
+                serverTimestamp(),
+
+            creadoPor:
+                usuarioActual.uid,
+
+            creadoEn:
+                serverTimestamp()
+
+        };
+
+
+        const refComprobante =
+            await addDoc(
+                collection(
+                    db,
+                    "comprobantesAlquiler"
+                ),
+                nuevo
+            );
+
+
+        alert(
+            "Comprobante generado correctamente."
+        );
+
+
+        await cargarComprobantes();
+
+
+        cerrarModal();
+
+        renderizar();
+
+
+        verComprobante(
+            refComprobante.id
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "Error generando comprobante:",
+            error
+        );
+
+        alert(
+            "No se pudo generar el comprobante."
+        );
+
+    }
+
+};
+
+
+/* ============================================================
+   VER COMPROBANTE
+============================================================ */
+
+window.verComprobante = function(
+    comprobanteId
+){
+
+    const comprobante =
+        comprobantes.find(
+            item =>
+                item.id === comprobanteId
+        );
+
+
+    if(!comprobante){
+        return;
+    }
+
+
+    document.getElementById(
+        "numeroComprobante"
+    ).textContent =
+        String(
+            comprobante.numero || 0
+        ).padStart(6,"0");
+
+
+    document.getElementById(
+        "fechaComprobante"
+    ).textContent =
+        "Fecha de emisión: " +
+        formatearFecha(
+            comprobante.fechaEmision
+        );
+
+
+    document.getElementById(
+        "comprobanteCliente"
+    ).textContent =
+        comprobante.clienteNombre ||
+        "-";
+
+
+    document.getElementById(
+        "comprobanteDni"
+    ).textContent =
+        "DNI: " +
+        (
+            comprobante.clienteDni ||
+            "No informado"
+        );
+
+
+    document.getElementById(
+        "comprobantePropiedad"
+    ).textContent =
+        comprobante.propiedadNombre ||
+        "-";
+
+
+    document.getElementById(
+        "comprobanteReserva"
+    ).textContent =
+        "Reserva: " +
+        (
+            comprobante.reservaId ||
+            "No asociada"
+        );
+
+
+    document.getElementById(
+        "comprobanteConcepto"
+    ).textContent =
+        comprobante.concepto ||
+        "Pago de alquiler temporario";
+
+
+    document.getElementById(
+        "comprobanteMetodo"
+    ).textContent =
+        "Método: " +
+        (
+            comprobante.metodoPago ||
+            "-"
+        );
+
+
+    document.getElementById(
+        "comprobanteFechaPago"
+    ).textContent =
+        "Fecha de pago: " +
+        formatearFecha(
+            comprobante.fechaPago
+        );
+
+
+    document.getElementById(
+        "comprobanteImporte"
+    ).textContent =
+        formatearImporte(
+            comprobante.importe,
+            comprobante.moneda
+        );
+
+
+    document.getElementById(
+        "comprobantePie"
+    ).innerHTML = `
+
+        Comprobante generado por GESBASE.<br>
+
+        ${
+            comprobante.observacion
+            ? escaparHTML(
+                comprobante.observacion
+              )
+            : ""
+        }
+
+    `;
+
+
+    areaComprobante.classList.remove(
+        "oculto"
+    );
+
+
+    setTimeout(
+        () => window.print(),
+        300
+    );
+
+};
+
+
+/* ============================================================
+   FILTROS
+============================================================ */
+
+buscar.addEventListener(
+    "input",
+    renderizar
+);
+
+filtroEstado.addEventListener(
+    "change",
+    renderizar
+);
+
+
+/* ============================================================
+   VOLVER
+============================================================ */
+
+document.getElementById(
+    "btnVolver"
+).onclick = function(){
+
+    window.location.href =
+        "alquileres.html";
+
+};
+
+
+/* ============================================================
+   AUTENTICACIÓN
+============================================================ */
+
+onAuthStateChanged(
+    auth,
+    async usuario => {
+
+        if(!usuario){
+
+            window.location.href =
+                "index.html";
+
+            return;
+
+        }
+
+
+        usuarioActual =
+            usuario;
+
+
+        try{
+
+            await obtenerEmpresa();
+
+            await cargarCobros();
+
+            await cargarComprobantes();
+
+            renderizar();
+
+        }catch(error){
+
+            console.error(error);
+
+            alert(
+                error.message ||
+                "No se pudo cargar el módulo."
+            );
+
+            window.location.href =
+                "alquileres.html";
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
