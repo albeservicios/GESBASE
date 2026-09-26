@@ -176,7 +176,7 @@ button:disabled{
 table{
     width:100%;
     border-collapse:collapse;
-    min-width:950px;
+    min-width:1100px;
 }
 
 th,
@@ -230,6 +230,38 @@ th{
 .acciones button{
     padding:7px 9px;
     font-size:11px;
+}
+
+.notificaciones{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    min-width:130px;
+}
+
+.notificacion{
+    font-size:11px;
+    font-weight:700;
+}
+
+.notificacion-pendiente{
+    color:#92400e;
+}
+
+.notificacion-enviando{
+    color:#2563eb;
+}
+
+.notificacion-enviado{
+    color:#166534;
+}
+
+.notificacion-error{
+    color:#991b1b;
+}
+
+.notificacion-no-disponible{
+    color:#6b7280;
 }
 
 .vacio{
@@ -313,6 +345,29 @@ th{
     font-size:14px;
 }
 
+.notificaciones-detalle{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+    margin-top:15px;
+}
+
+.notificacion-card{
+    background:#f9fafb;
+    border-radius:12px;
+    padding:15px;
+}
+
+.notificacion-card h3{
+    margin:0 0 8px;
+    font-size:14px;
+}
+
+.notificacion-card .estado-notificacion{
+    font-size:13px;
+    font-weight:700;
+}
+
 .modal-actions{
     display:flex;
     gap:8px;
@@ -336,6 +391,10 @@ th{
 
     .detalle.full{
         grid-column:auto;
+    }
+
+    .notificaciones-detalle{
+        grid-template-columns:1fr;
     }
 
 }
@@ -415,10 +474,6 @@ th{
     <div id="mensaje"></div>
 
 
-    <!-- ==========================================
-         ESTADÍSTICAS
-    =========================================== -->
-
     <section class="stats">
 
         <div class="stat nueva">
@@ -475,10 +530,6 @@ th{
     </section>
 
 
-    <!-- ==========================================
-         LISTADO
-    =========================================== -->
-
     <section class="card">
 
         <div class="table-wrap">
@@ -518,6 +569,10 @@ th{
                         </th>
 
                         <th>
+                            Notificaciones
+                        </th>
+
+                        <th>
                             Acciones
                         </th>
 
@@ -545,10 +600,6 @@ th{
 
 </main>
 
-
-<!-- ==========================================
-     MODAL DETALLE
-========================================== -->
 
 <div
     id="modal"
@@ -623,6 +674,8 @@ let empresaActual = null;
 let solicitudes = [];
 let propiedades = [];
 let clientes = [];
+
+let notificaciones = [];
 
 let solicitudActual = null;
 
@@ -717,6 +770,52 @@ function mostrarMensaje(
         },
         5000
     );
+
+}
+
+
+/* ==========================================
+   ESTADO NOTIFICACIÓN
+========================================== */
+
+function textoEstadoNotificacion(estado){
+
+    const estados = {
+
+        pendiente:"⏳ Pendiente",
+
+        enviando:"🔄 Enviando",
+
+        enviado:"✅ Enviado",
+
+        error:"❌ Error"
+
+    };
+
+    return estados[estado] ||
+        "—";
+
+}
+
+
+function claseEstadoNotificacion(estado){
+
+    return `
+        notificacion
+        notificacion-${estado || "no-disponible"}
+    `;
+
+}
+
+
+function obtenerNotificacionSolicitud(
+    solicitudId
+){
+
+    return notificaciones.find(
+        n =>
+            n.solicitudId === solicitudId
+    ) || null;
 
 }
 
@@ -888,6 +987,8 @@ onAuthStateChanged(
 
             await cargarClientes();
 
+            await cargarNotificaciones();
+
             await cargarSolicitudes();
 
         }catch(error){
@@ -983,6 +1084,59 @@ async function cargarClientes(){
 
         }
     );
+
+}
+
+
+/* ==========================================
+   NOTIFICACIONES
+========================================== */
+
+async function cargarNotificaciones(){
+
+    notificaciones = [];
+
+
+    try{
+
+        const q =
+            query(
+                collection(
+                    db,
+                    "notificacionesAlquiler"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaActual.id
+                )
+            );
+
+
+        const resultado =
+            await getDocs(q);
+
+
+        resultado.docs.forEach(
+            documento => {
+
+                notificaciones.push({
+                    id:documento.id,
+                    ...documento.data()
+                });
+
+            }
+        );
+
+
+    }catch(error){
+
+        console.warn(
+            "No se pudieron cargar las notificaciones:",
+            error
+        );
+
+    }
 
 }
 
@@ -1090,7 +1244,7 @@ function renderSolicitudes(){
         body.innerHTML = `
             <tr>
                 <td
-                    colspan="8"
+                    colspan="9"
                     class="vacio"
                 >
                     📋 No hay solicitudes recibidas.
@@ -1123,6 +1277,12 @@ function renderSolicitudes(){
             const estado =
                 solicitud.estado ||
                 "pendiente";
+
+
+            const notificacion =
+                obtenerNotificacionSolicitud(
+                    solicitud.id
+                );
 
 
             tr.innerHTML = `
@@ -1187,6 +1347,46 @@ function renderSolicitudes(){
                             estado
                         )}
                     </span>
+
+                </td>
+
+                <td>
+
+                    ${
+                        notificacion
+                        ? `
+                            <div class="notificaciones">
+
+                                <span
+                                    class="${claseEstadoNotificacion(
+                                        notificacion.sms?.estado
+                                    )}"
+                                >
+                                    📱 SMS:
+                                    ${textoEstadoNotificacion(
+                                        notificacion.sms?.estado
+                                    )}
+                                </span>
+
+                                <span
+                                    class="${claseEstadoNotificacion(
+                                        notificacion.email?.estado
+                                    )}"
+                                >
+                                    📧 Email:
+                                    ${textoEstadoNotificacion(
+                                        notificacion.email?.estado
+                                    )}
+                                </span>
+
+                            </div>
+                        `
+                        : `
+                            <span class="notificacion-no-disponible">
+                                —
+                            </span>
+                        `
+                    }
 
                 </td>
 
@@ -1355,6 +1555,12 @@ function(id){
         }`.trim();
 
 
+    const notificacion =
+        obtenerNotificacionSolicitud(
+            id
+        );
+
+
     const detalle =
         document.getElementById(
             "detalleSolicitud"
@@ -1512,6 +1718,87 @@ function(id){
 
         </div>
 
+        ${
+            notificacion
+            ? `
+
+                <div class="detalle full">
+
+                    <span>
+                        Estado de las notificaciones
+                    </span>
+
+                    <div class="notificaciones-detalle">
+
+                        <div class="notificacion-card">
+
+                            <h3>
+                                📱 SMS
+                            </h3>
+
+                            <div
+                                class="${claseEstadoNotificacion(
+                                    notificacion.sms?.estado
+                                )} estado-notificacion"
+                            >
+                                ${textoEstadoNotificacion(
+                                    notificacion.sms?.estado
+                                )}
+                            </div>
+
+                            ${
+                                notificacion.sms?.error
+                                ? `
+                                    <small>
+                                        ${escaparHTML(
+                                            notificacion.sms.error
+                                        )}
+                                    </small>
+                                `
+                                : ""
+                            }
+
+                        </div>
+
+
+                        <div class="notificacion-card">
+
+                            <h3>
+                                📧 Email
+                            </h3>
+
+                            <div
+                                class="${claseEstadoNotificacion(
+                                    notificacion.email?.estado
+                                )} estado-notificacion"
+                            >
+                                ${textoEstadoNotificacion(
+                                    notificacion.email?.estado
+                                )}
+                            </div>
+
+                            ${
+                                notificacion.email?.error
+                                ? `
+                                    <small>
+                                        ${escaparHTML(
+                                            notificacion.email.error
+                                        )}
+                                    </small>
+                                `
+                                : ""
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `
+            : ""
+        }
+
     `;
 
 
@@ -1619,6 +1906,10 @@ async function(id){
 
     try{
 
+        /*
+         * 1. Primero aprobamos la solicitud.
+         */
+
         await updateDoc(
             doc(
                 db,
@@ -1640,12 +1931,89 @@ async function(id){
         );
 
 
+        /*
+         * 2. Creamos el registro de notificación.
+         *
+         * IMPORTANTE:
+         * Estos estados quedan en "pendiente".
+         * El backend será quien los cambie
+         * a "enviando", "enviado" o "error".
+         */
+
+        await addDoc(
+            collection(
+                db,
+                "notificacionesAlquiler"
+            ),
+            {
+
+                empresaId:
+                    empresaActual.id,
+
+                solicitudId:
+                    id,
+
+                tipo:
+                    "solicitud_aprobada",
+
+                destinatario: {
+
+                    nombre:
+                        `${solicitud.nombre || ""} ${
+                            solicitud.apellido || ""
+                        }`.trim(),
+
+                    telefono:
+                        solicitud.telefono ||
+                        "",
+
+                    email:
+                        solicitud.email ||
+                        ""
+
+                },
+
+                sms: {
+
+                    estado:
+                        "pendiente",
+
+                    intentos:
+                        0
+
+                },
+
+                email: {
+
+                    estado:
+                        "pendiente",
+
+                    intentos:
+                        0
+
+                },
+
+                estadoGeneral:
+                    "pendiente",
+
+                creadoEn:
+                    serverTimestamp(),
+
+                creadoPor:
+                    usuarioActual.uid
+
+            }
+        );
+
+
         mostrarMensaje(
-            "Solicitud aprobada correctamente."
+            "Solicitud aprobada. Se creó la notificación SMS + Email."
         );
 
 
         cerrarModal();
+
+        await cargarNotificaciones();
 
         await cargarSolicitudes();
 
@@ -1765,11 +2133,6 @@ async function(id){
         "";
 
 
-    /*
-     * Primero buscamos si ya existe
-     * un cliente con el mismo DNI.
-     */
-
     let clienteExistente =
         null;
 
@@ -1802,6 +2165,7 @@ async function(id){
         if(!resultado.empty){
 
             clienteExistente = {
+
                 id:
                     resultado.docs[0].id,
 
@@ -1879,11 +2243,6 @@ async function(id){
 
         }
 
-
-        /*
-         * Vinculamos la solicitud
-         * al cliente.
-         */
 
         await updateDoc(
             doc(
@@ -1973,12 +2332,6 @@ function abrirReservasConSolicitud(
     solicitud,
     clienteId
 ){
-
-    /*
-     * Guardamos temporalmente la información
-     * en sessionStorage para que
-     * reservas-alquiler.html pueda recuperarla.
-     */
 
     sessionStorage.setItem(
         "gesbaseSolicitudAlquiler",
