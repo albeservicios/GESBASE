@@ -1,0 +1,2240 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>GESBASE - Historial de alquileres</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:18px;
+}
+
+.header-contenido{
+    max-width:1150px;
+    margin:auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+}
+
+.logo{
+    font-size:21px;
+    font-weight:bold;
+}
+
+.subtitulo{
+    font-size:13px;
+    opacity:.75;
+    margin-top:3px;
+}
+
+.contenedor{
+    max-width:1150px;
+    margin:25px auto;
+    padding:0 15px;
+}
+
+.barra-superior{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+h1{
+    margin:0;
+    font-size:25px;
+}
+
+h2{
+    margin-top:0;
+}
+
+button{
+    border:0;
+    border-radius:9px;
+    padding:10px 14px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn-principal{
+    background:#16a34a;
+    color:white;
+}
+
+.btn-secundario{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.btn-ver{
+    background:#111827;
+    color:white;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.panel{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 4px 16px rgba(0,0,0,.06);
+    margin-bottom:20px;
+}
+
+.filtros{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr;
+    gap:12px;
+}
+
+input,
+select{
+    width:100%;
+    padding:11px;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    font-size:14px;
+    background:white;
+}
+
+.tabla-contenedor{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:900px;
+}
+
+th,
+td{
+    padding:12px 10px;
+    border-bottom:1px solid #e5e7eb;
+    text-align:left;
+    font-size:13px;
+}
+
+th{
+    background:#f9fafb;
+    font-size:12px;
+    text-transform:uppercase;
+}
+
+.estado{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.estado-pendiente{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.estado-confirmada{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+.estado-curso{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado-finalizada{
+    background:#e5e7eb;
+    color:#374151;
+}
+
+.estado-cancelada{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.sin-datos{
+    text-align:center;
+    padding:30px;
+    color:#6b7280;
+}
+
+.oculto{
+    display:none !important;
+}
+
+
+/* ============================================================
+   ESTADÍSTICAS
+============================================================ */
+
+.estadisticas{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:20px;
+}
+
+.estadistica{
+    background:white;
+    border-radius:13px;
+    padding:17px;
+    box-shadow:0 4px 14px rgba(0,0,0,.05);
+}
+
+.estadistica-label{
+    color:#6b7280;
+    font-size:12px;
+}
+
+.estadistica-valor{
+    font-size:24px;
+    font-weight:bold;
+    margin-top:6px;
+}
+
+
+/* ============================================================
+   MODAL
+============================================================ */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+    z-index:1000;
+}
+
+.modal-contenido{
+    width:100%;
+    max-width:850px;
+    background:white;
+    border-radius:16px;
+    padding:22px;
+    max-height:90vh;
+    overflow-y:auto;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.modal-header h3{
+    margin:0;
+}
+
+.cerrar{
+    background:#e5e7eb;
+    width:35px;
+    height:35px;
+    padding:0;
+    border-radius:50%;
+}
+
+.resumen{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.resumen-item{
+    background:#f9fafb;
+    border-radius:10px;
+    padding:13px;
+}
+
+.resumen-label{
+    font-size:11px;
+    color:#6b7280;
+    margin-bottom:5px;
+}
+
+.resumen-valor{
+    font-size:15px;
+    font-weight:bold;
+}
+
+.seccion-historial{
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    margin-bottom:14px;
+    overflow:hidden;
+}
+
+.seccion-historial-titulo{
+    background:#f9fafb;
+    padding:12px 14px;
+    font-weight:bold;
+    font-size:13px;
+}
+
+.seccion-historial-contenido{
+    padding:14px;
+}
+
+.item-historial{
+    border-bottom:1px solid #e5e7eb;
+    padding:11px 0;
+    font-size:13px;
+}
+
+.item-historial:last-child{
+    border-bottom:0;
+}
+
+.item-fecha{
+    color:#6b7280;
+    font-size:11px;
+    margin-bottom:4px;
+}
+
+.item-titulo{
+    font-weight:bold;
+}
+
+.item-detalle{
+    color:#4b5563;
+    margin-top:4px;
+    line-height:1.5;
+}
+
+.badge{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:999px;
+    background:#e5e7eb;
+    font-size:10px;
+    font-weight:bold;
+}
+
+@media(max-width:900px){
+
+    .estadisticas{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .filtros{
+        grid-template-columns:1fr 1fr;
+    }
+
+}
+
+@media(max-width:600px){
+
+    .estadisticas{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .filtros{
+        grid-template-columns:1fr;
+    }
+
+    .resumen{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="header-contenido">
+
+        <div>
+
+            <div class="logo">
+                GESBASE
+            </div>
+
+            <div class="subtitulo">
+                Historial de alquileres temporarios
+            </div>
+
+        </div>
+
+        <button
+            class="btn-secundario"
+            id="btnVolver"
+        >
+            ← Volver
+        </button>
+
+    </div>
+
+</header>
+
+
+<main class="contenedor">
+
+
+    <div class="barra-superior">
+
+        <div>
+
+            <h1>
+                📚 Historial de alquileres
+            </h1>
+
+            <div
+                id="empresaNombre"
+                style="color:#6b7280;font-size:13px;margin-top:5px;"
+            >
+                Cargando empresa...
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ESTADÍSTICAS -->
+
+    <section class="estadisticas">
+
+        <div class="estadistica">
+
+            <div class="estadistica-label">
+                Reservas registradas
+            </div>
+
+            <div
+                class="estadistica-valor"
+                id="totalReservas"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="estadistica">
+
+            <div class="estadistica-label">
+                Alquileres finalizados
+            </div>
+
+            <div
+                class="estadistica-valor"
+                id="totalFinalizadas"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="estadistica">
+
+            <div class="estadistica-label">
+                Pagos registrados
+            </div>
+
+            <div
+                class="estadistica-valor"
+                id="totalPagos"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="estadistica">
+
+            <div class="estadistica-label">
+                Comprobantes emitidos
+            </div>
+
+            <div
+                class="estadistica-valor"
+                id="totalComprobantes"
+            >
+                0
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- FILTROS -->
+
+    <section class="panel">
+
+        <h2>
+            Buscar historial
+        </h2>
+
+        <div class="filtros">
+
+            <input
+                type="text"
+                id="buscar"
+                placeholder="Cliente, propiedad o reserva..."
+            >
+
+
+            <select id="filtroEstado">
+
+                <option value="todos">
+                    Todos los estados
+                </option>
+
+                <option value="pendiente">
+                    Pendiente
+                </option>
+
+                <option value="confirmada">
+                    Confirmada
+                </option>
+
+                <option value="enCurso">
+                    En curso
+                </option>
+
+                <option value="finalizada">
+                    Finalizada
+                </option>
+
+                <option value="cancelada">
+                    Cancelada
+                </option>
+
+            </select>
+
+
+            <select id="filtroOrden">
+
+                <option value="reciente">
+                    Más recientes
+                </option>
+
+                <option value="antiguo">
+                    Más antiguos
+                </option>
+
+            </select>
+
+        </div>
+
+    </section>
+
+
+    <!-- TABLA -->
+
+    <section class="panel">
+
+        <div class="tabla-contenedor">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Reserva</th>
+
+                        <th>Cliente</th>
+
+                        <th>Propiedad</th>
+
+                        <th>Entrada</th>
+
+                        <th>Salida</th>
+
+                        <th>Total</th>
+
+                        <th>Saldo</th>
+
+                        <th>Estado</th>
+
+                        <th>Acciones</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tablaHistorial">
+
+                    <tr>
+
+                        <td
+                            colspan="9"
+                            class="sin-datos"
+                        >
+                            Cargando historial...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+<!-- ============================================================
+     MODAL HISTORIAL COMPLETO
+============================================================ -->
+
+<div
+    class="modal oculto"
+    id="modalHistorial"
+>
+
+    <div class="modal-contenido">
+
+        <div class="modal-header">
+
+            <h3>
+                📚 Historial completo
+            </h3>
+
+            <button
+                class="cerrar"
+                id="btnCerrarModal"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <div class="resumen">
+
+            <div class="resumen-item">
+
+                <div class="resumen-label">
+                    Cliente
+                </div>
+
+                <div
+                    class="resumen-valor"
+                    id="detalleCliente"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="resumen-item">
+
+                <div class="resumen-label">
+                    Propiedad
+                </div>
+
+                <div
+                    class="resumen-valor"
+                    id="detallePropiedad"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="resumen-item">
+
+                <div class="resumen-label">
+                    Estado
+                </div>
+
+                <div
+                    class="resumen-valor"
+                    id="detalleEstado"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="resumen-item">
+
+                <div class="resumen-label">
+                    Entrada
+                </div>
+
+                <div
+                    class="resumen-valor"
+                    id="detalleEntrada"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="resumen-item">
+
+                <div class="resumen-label">
+                    Salida
+                </div>
+
+                <div
+                    class="resumen-valor"
+                    id="detalleSalida"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="resumen-item">
+
+                <div class="resumen-label">
+                    Importe total
+                </div>
+
+                <div
+                    class="resumen-valor"
+                    id="detalleTotal"
+                >
+                    -
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SOLICITUD -->
+
+        <div class="seccion-historial">
+
+            <div class="seccion-historial-titulo">
+                📋 Solicitud de alquiler
+            </div>
+
+            <div
+                class="seccion-historial-contenido"
+                id="historialSolicitud"
+            >
+                Sin información.
+            </div>
+
+        </div>
+
+
+        <!-- RESERVA -->
+
+        <div class="seccion-historial">
+
+            <div class="seccion-historial-titulo">
+                📅 Reserva
+            </div>
+
+            <div
+                class="seccion-historial-contenido"
+                id="historialReserva"
+            >
+                Sin información.
+            </div>
+
+        </div>
+
+
+        <!-- PAGOS -->
+
+        <div class="seccion-historial">
+
+            <div class="seccion-historial-titulo">
+                💰 Pagos
+            </div>
+
+            <div
+                class="seccion-historial-contenido"
+                id="historialPagos"
+            >
+                Sin pagos registrados.
+            </div>
+
+        </div>
+
+
+        <!-- COMPROBANTES -->
+
+        <div class="seccion-historial">
+
+            <div class="seccion-historial-titulo">
+                🧾 Comprobantes
+            </div>
+
+            <div
+                class="seccion-historial-contenido"
+                id="historialComprobantes"
+            >
+                Sin comprobantes.
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<script type="module">
+
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    query,
+    where
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+
+/* ============================================================
+   VARIABLES
+============================================================ */
+
+let usuarioActual = null;
+
+let empresaActual = null;
+
+let empresaId = null;
+
+let reservas = [];
+
+let solicitudes = [];
+
+let cobros = [];
+
+let comprobantes = [];
+
+
+/* ============================================================
+   ELEMENTOS
+============================================================ */
+
+const tablaHistorial =
+    document.getElementById(
+        "tablaHistorial"
+    );
+
+const buscar =
+    document.getElementById(
+        "buscar"
+    );
+
+const filtroEstado =
+    document.getElementById(
+        "filtroEstado"
+    );
+
+const filtroOrden =
+    document.getElementById(
+        "filtroOrden"
+    );
+
+const modalHistorial =
+    document.getElementById(
+        "modalHistorial"
+    );
+
+
+/* ============================================================
+   UTILIDADES
+============================================================ */
+
+function escaparHTML(valor){
+
+    if(
+        valor === null ||
+        valor === undefined
+    ){
+        return "";
+    }
+
+    return String(valor)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+
+}
+
+
+function normalizarTexto(valor){
+
+    return String(valor || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"");
+
+}
+
+
+function convertirFecha(valor){
+
+    if(!valor){
+        return null;
+    }
+
+    try{
+
+        if(
+            typeof valor.toDate ===
+            "function"
+        ){
+            return valor.toDate();
+        }
+
+        const fecha =
+            new Date(valor);
+
+        if(
+            isNaN(fecha.getTime())
+        ){
+            return null;
+        }
+
+        return fecha;
+
+    }catch{
+
+        return null;
+
+    }
+
+}
+
+
+function formatearFecha(valor){
+
+    const fecha =
+        convertirFecha(valor);
+
+    if(!fecha){
+        return "-";
+    }
+
+    return fecha.toLocaleDateString(
+        "es-AR"
+    );
+
+}
+
+
+function formatearImporte(
+    valor,
+    moneda
+){
+
+    return new Intl.NumberFormat(
+        "es-AR",
+        {
+            minimumFractionDigits:2,
+            maximumFractionDigits:2
+        }
+    ).format(
+        Number(valor || 0)
+    ) +
+    " " +
+    (
+        moneda ||
+        "ARS"
+    );
+
+}
+
+
+function claseEstado(estado){
+
+    switch(estado){
+
+        case "confirmada":
+            return "estado-confirmada";
+
+        case "enCurso":
+            return "estado-curso";
+
+        case "finalizada":
+            return "estado-finalizada";
+
+        case "cancelada":
+            return "estado-cancelada";
+
+        default:
+            return "estado-pendiente";
+
+    }
+
+}
+
+
+function textoEstado(estado){
+
+    const estados = {
+
+        pendiente:"Pendiente",
+
+        confirmada:"Confirmada",
+
+        enCurso:"En curso",
+
+        finalizada:"Finalizada",
+
+        cancelada:"Cancelada"
+
+    };
+
+    return estados[
+        estado
+    ] || estado || "-";
+
+}
+
+
+/* ============================================================
+   OBTENER EMPRESA
+============================================================ */
+
+async function obtenerEmpresa(){
+
+    const usuarioSnap =
+        await getDoc(
+            doc(
+                db,
+                "usuarios",
+                usuarioActual.uid
+            )
+        );
+
+
+    if(usuarioSnap.exists()){
+
+        const datos =
+            usuarioSnap.data();
+
+        empresaId =
+            datos.empresaId ||
+            datos.idEmpresa ||
+            datos.empresa ||
+            null;
+
+    }
+
+
+    if(!empresaId){
+
+        const empresasSnap =
+            await getDocs(
+                query(
+                    collection(
+                        db,
+                        "empresas"
+                    ),
+                    where(
+                        "propietarioUid",
+                        "==",
+                        usuarioActual.uid
+                    )
+                )
+            );
+
+
+        if(!empresasSnap.empty){
+
+            empresaId =
+                empresasSnap.docs[0].id;
+
+        }
+
+    }
+
+
+    if(!empresaId){
+
+        throw new Error(
+            "No se encontró la empresa."
+        );
+
+    }
+
+
+    const empresaSnap =
+        await getDoc(
+            doc(
+                db,
+                "empresas",
+                empresaId
+            )
+        );
+
+
+    if(!empresaSnap.exists()){
+
+        throw new Error(
+            "La empresa no existe."
+        );
+
+    }
+
+
+    empresaActual =
+        empresaSnap.data();
+
+
+    const rubro =
+        String(
+            empresaActual.rubro ||
+            empresaActual.tipoNegocio ||
+            ""
+        )
+        .toLowerCase();
+
+
+    if(
+        ![
+            "alquileres",
+            "alquiler",
+            "alquileres temporarios",
+            "alquiler temporario"
+        ].includes(rubro)
+    ){
+
+        throw new Error(
+            "Este módulo corresponde a Alquileres temporarios."
+        );
+
+    }
+
+
+    if(
+        empresaActual.accesoHabilitado === false
+    ){
+
+        throw new Error(
+            "El acceso de la empresa está bloqueado."
+        );
+
+    }
+
+
+    document.getElementById(
+        "empresaNombre"
+    ).textContent =
+        empresaActual.nombreEmpresa ||
+        empresaActual.nombre ||
+        "Empresa";
+
+}
+
+
+/* ============================================================
+   CARGAR COLECCIONES
+============================================================ */
+
+async function cargarDatos(){
+
+    const [
+        reservasSnap,
+        solicitudesSnap,
+        cobrosSnap,
+        comprobantesSnap
+    ] = await Promise.all([
+
+        getDocs(
+            query(
+                collection(
+                    db,
+                    "reservasAlquiler"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                )
+            )
+        ),
+
+        getDocs(
+            query(
+                collection(
+                    db,
+                    "solicitudesAlquiler"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                )
+            )
+        ),
+
+        getDocs(
+            query(
+                collection(
+                    db,
+                    "cobrosAlquiler"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                )
+            )
+        ),
+
+        getDocs(
+            query(
+                collection(
+                    db,
+                    "comprobantesAlquiler"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaId
+                )
+            )
+        )
+
+    ]);
+
+
+    reservas =
+        reservasSnap.docs.map(
+            d => ({
+                id:d.id,
+                ...d.data()
+            })
+        );
+
+
+    solicitudes =
+        solicitudesSnap.docs.map(
+            d => ({
+                id:d.id,
+                ...d.data()
+            })
+        );
+
+
+    cobros =
+        cobrosSnap.docs.map(
+            d => ({
+                id:d.id,
+                ...d.data()
+            })
+        );
+
+
+    comprobantes =
+        comprobantesSnap.docs.map(
+            d => ({
+                id:d.id,
+                ...d.data()
+            })
+        );
+
+
+    actualizarEstadisticas();
+
+    renderizar();
+
+}
+
+
+/* ============================================================
+   ESTADÍSTICAS
+============================================================ */
+
+function actualizarEstadisticas(){
+
+    document.getElementById(
+        "totalReservas"
+    ).textContent =
+        reservas.length;
+
+
+    document.getElementById(
+        "totalFinalizadas"
+    ).textContent =
+        reservas.filter(
+            r =>
+                r.estado ===
+                "finalizada"
+        ).length;
+
+
+    document.getElementById(
+        "totalPagos"
+    ).textContent =
+        cobros.length;
+
+
+    document.getElementById(
+        "totalComprobantes"
+    ).textContent =
+        comprobantes.length;
+
+}
+
+
+/* ============================================================
+   PAGOS DE UNA RESERVA
+============================================================ */
+
+function pagosDeReserva(
+    reservaId
+){
+
+    return cobros.filter(
+        cobro =>
+            cobro.reservaId ===
+            reservaId
+    );
+
+}
+
+
+/* ============================================================
+   COMPROBANTES DE UNA RESERVA
+============================================================ */
+
+function comprobantesDeReserva(
+    reservaId
+){
+
+    return comprobantes.filter(
+        comprobante =>
+            comprobante.reservaId ===
+            reservaId
+    );
+
+}
+
+
+/* ============================================================
+   RENDER TABLA
+============================================================ */
+
+function renderizar(){
+
+    let datos =
+        [...reservas];
+
+
+    const texto =
+        normalizarTexto(
+            buscar.value
+        );
+
+
+    const estado =
+        filtroEstado.value;
+
+
+    if(texto){
+
+        datos =
+            datos.filter(
+                reserva => {
+
+                    const contenido =
+                        normalizarTexto(
+                            [
+                                reserva.id,
+                                reserva.clienteNombre,
+                                reserva.clienteDni,
+                                reserva.propiedadNombre
+                            ].join(" ")
+                        );
+
+                    return contenido.includes(
+                        texto
+                    );
+
+                }
+            );
+
+    }
+
+
+    if(estado !== "todos"){
+
+        datos =
+            datos.filter(
+                reserva =>
+                    reserva.estado ===
+                    estado
+            );
+
+    }
+
+
+    datos.sort(
+        (a,b) => {
+
+            const fechaA =
+                convertirFecha(
+                    a.fechaEntrada
+                )?.getTime() || 0;
+
+            const fechaB =
+                convertirFecha(
+                    b.fechaEntrada
+                )?.getTime() || 0;
+
+
+            return filtroOrden.value ===
+                "reciente"
+
+                ? fechaB - fechaA
+
+                : fechaA - fechaB;
+
+        }
+    );
+
+
+    if(!datos.length){
+
+        tablaHistorial.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="9"
+                    class="sin-datos"
+                >
+                    No hay registros para mostrar.
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    tablaHistorial.innerHTML =
+        datos.map(
+            reserva => {
+
+                const pagos =
+                    pagosDeReserva(
+                        reserva.id
+                    );
+
+
+                const pagado =
+                    pagos.reduce(
+                        (
+                            total,
+                            pago
+                        ) =>
+                            total +
+                            Number(
+                                pago.importe ||
+                                0
+                            ),
+                        0
+                    );
+
+
+                const total =
+                    Number(
+                        reserva.importeTotal ||
+                        0
+                    );
+
+
+                const saldo =
+                    Math.max(
+                        total -
+                        pagado,
+                        0
+                    );
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+
+                            <strong>
+                                ${escaparHTML(
+                                    reserva.id
+                                )}
+                            </strong>
+
+                        </td>
+
+
+                        <td>
+                            ${escaparHTML(
+                                reserva.clienteNombre ||
+                                "Sin cliente"
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escaparHTML(
+                                reserva.propiedadNombre ||
+                                "Sin propiedad"
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${formatearFecha(
+                                reserva.fechaEntrada
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${formatearFecha(
+                                reserva.fechaSalida
+                            )}
+                        </td>
+
+
+                        <td>
+
+                            <strong>
+                                ${formatearImporte(
+                                    total,
+                                    reserva.moneda
+                                )}
+                            </strong>
+
+                        </td>
+
+
+                        <td>
+
+                            ${formatearImporte(
+                                saldo,
+                                reserva.moneda
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            <span
+                                class="estado
+                                ${claseEstado(
+                                    reserva.estado
+                                )}"
+                            >
+                                ${textoEstado(
+                                    reserva.estado
+                                )}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            <button
+                                class="btn-ver"
+                                onclick="verHistorial('${reserva.id}')"
+                            >
+                                Ver historial
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        ).join("");
+
+}
+
+
+/* ============================================================
+   VER HISTORIAL
+============================================================ */
+
+window.verHistorial =
+async function(
+    reservaId
+){
+
+    const reserva =
+        reservas.find(
+            item =>
+                item.id ===
+                reservaId
+        );
+
+
+    if(!reserva){
+        return;
+    }
+
+
+    const pagos =
+        pagosDeReserva(
+            reserva.id
+        );
+
+
+    const comprobantesReserva =
+        comprobantesDeReserva(
+            reserva.id
+        );
+
+
+    const solicitud =
+        solicitudes.find(
+            item => {
+
+                if(
+                    item.reservaId ===
+                    reserva.id
+                ){
+                    return true;
+                }
+
+                if(
+                    item.clienteId &&
+                    reserva.clienteId &&
+                    item.clienteId ===
+                    reserva.clienteId
+                ){
+
+                    return (
+                        item.propiedadId ===
+                        reserva.propiedadId
+                    );
+
+                }
+
+                return false;
+
+            }
+        );
+
+
+    document.getElementById(
+        "detalleCliente"
+    ).textContent =
+        reserva.clienteNombre ||
+        "-";
+
+
+    document.getElementById(
+        "detallePropiedad"
+    ).textContent =
+        reserva.propiedadNombre ||
+        "-";
+
+
+    document.getElementById(
+        "detalleEstado"
+    ).textContent =
+        textoEstado(
+            reserva.estado
+        );
+
+
+    document.getElementById(
+        "detalleEntrada"
+    ).textContent =
+        formatearFecha(
+            reserva.fechaEntrada
+        );
+
+
+    document.getElementById(
+        "detalleSalida"
+    ).textContent =
+        formatearFecha(
+            reserva.fechaSalida
+        );
+
+
+    document.getElementById(
+        "detalleTotal"
+    ).textContent =
+        formatearImporte(
+            reserva.importeTotal,
+            reserva.moneda
+        );
+
+
+    /* ========================================================
+       SOLICITUD
+    ======================================================== */
+
+    if(solicitud){
+
+        document.getElementById(
+            "historialSolicitud"
+        ).innerHTML = `
+
+            <div class="item-historial">
+
+                <div class="item-fecha">
+                    ${formatearFecha(
+                        solicitud.fechaSolicitud ||
+                        solicitud.fechaCreacion
+                    )}
+                </div>
+
+                <div class="item-titulo">
+
+                    Solicitud recibida
+
+                    <span class="badge">
+                        ${escaparHTML(
+                            solicitud.estado ||
+                            "pendiente"
+                        )}
+                    </span>
+
+                </div>
+
+                <div class="item-detalle">
+
+                    Cliente:
+                    ${escaparHTML(
+                        solicitud.nombreCompleto ||
+                        (
+                            (solicitud.nombre || "") +
+                            " " +
+                            (solicitud.apellido || "")
+                        )
+                    )}
+
+                    <br>
+
+                    DNI:
+                    ${escaparHTML(
+                        solicitud.dni ||
+                        "-"
+                    )}
+
+                    <br>
+
+                    Huéspedes:
+                    ${escaparHTML(
+                        solicitud.cantidadHuespedes ||
+                        "-"
+                    )}
+
+                    ${
+                        solicitud.mensaje
+                        ?
+                        `<br>
+                         Mensaje:
+                         ${escaparHTML(
+                             solicitud.mensaje
+                         )}`
+                        :
+                        ""
+                    }
+
+                </div>
+
+            </div>
+
+        `;
+
+    }else{
+
+        document.getElementById(
+            "historialSolicitud"
+        ).innerHTML = `
+
+            <div class="item-historial">
+
+                No se encontró una solicitud
+                vinculada a esta reserva.
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* ========================================================
+       RESERVA
+    ======================================================== */
+
+    document.getElementById(
+        "historialReserva"
+    ).innerHTML = `
+
+        <div class="item-historial">
+
+            <div class="item-fecha">
+
+                Creada:
+                ${formatearFecha(
+                    reserva.fechaCreacion ||
+                    reserva.createdAt
+                )}
+
+            </div>
+
+            <div class="item-titulo">
+
+                Reserva ${escaparHTML(
+                    reserva.id
+                )}
+
+            </div>
+
+            <div class="item-detalle">
+
+                Entrada:
+                ${formatearFecha(
+                    reserva.fechaEntrada
+                )}
+
+                <br>
+
+                Salida:
+                ${formatearFecha(
+                    reserva.fechaSalida
+                )}
+
+                <br>
+
+                Noches:
+                ${escaparHTML(
+                    reserva.cantidadNoches ||
+                    0
+                )}
+
+                <br>
+
+                Huéspedes:
+                ${escaparHTML(
+                    reserva.cantidadHuespedes ||
+                    0
+                )}
+
+                <br>
+
+                Precio por noche:
+                ${formatearImporte(
+                    reserva.precioNoche,
+                    reserva.moneda
+                )}
+
+                ${
+                    reserva.observacionesInternas
+                    ?
+                    `
+                        <br><br>
+
+                        <strong>
+                            Observaciones internas:
+                        </strong>
+
+                        <br>
+
+                        ${escaparHTML(
+                            reserva.observacionesInternas
+                        )}
+                    `
+                    :
+                    ""
+                }
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    /* ========================================================
+       PAGOS
+    ======================================================== */
+
+    if(!pagos.length){
+
+        document.getElementById(
+            "historialPagos"
+        ).innerHTML = `
+
+            <div class="item-historial">
+                No hay pagos registrados.
+            </div>
+
+        `;
+
+    }else{
+
+        document.getElementById(
+            "historialPagos"
+        ).innerHTML =
+            pagos
+                .sort(
+                    (a,b) => {
+
+                        const fa =
+                            convertirFecha(
+                                a.fechaPago
+                            )?.getTime() || 0;
+
+                        const fb =
+                            convertirFecha(
+                                b.fechaPago
+                            )?.getTime() || 0;
+
+                        return fb - fa;
+
+                    }
+                )
+                .map(
+                    pago => `
+
+                        <div class="item-historial">
+
+                            <div class="item-fecha">
+
+                                ${formatearFecha(
+                                    pago.fechaPago
+                                )}
+
+                            </div>
+
+                            <div class="item-titulo">
+
+                                ${formatearImporte(
+                                    pago.importe,
+                                    pago.moneda
+                                )}
+
+                                <span class="badge">
+                                    ${escaparHTML(
+                                        pago.metodoPago ||
+                                        "-"
+                                    )}
+                                </span>
+
+                            </div>
+
+                            <div class="item-detalle">
+
+                                Concepto:
+                                ${escaparHTML(
+                                    pago.concepto ||
+                                    "-"
+                                )}
+
+                                ${
+                                    pago.observaciones
+                                    ?
+                                    `<br>
+                                     ${escaparHTML(
+                                         pago.observaciones
+                                     )}`
+                                    :
+                                    ""
+                                }
+
+                            </div>
+
+                        </div>
+
+                    `
+                )
+                .join("");
+
+    }
+
+
+    /* ========================================================
+       COMPROBANTES
+    ======================================================== */
+
+    if(!comprobantesReserva.length){
+
+        document.getElementById(
+            "historialComprobantes"
+        ).innerHTML = `
+
+            <div class="item-historial">
+                No hay comprobantes emitidos.
+            </div>
+
+        `;
+
+    }else{
+
+        document.getElementById(
+            "historialComprobantes"
+        ).innerHTML =
+            comprobantesReserva
+                .map(
+                    comprobante => `
+
+                        <div class="item-historial">
+
+                            <div class="item-fecha">
+
+                                ${formatearFecha(
+                                    comprobante.fechaEmision
+                                )}
+
+                            </div>
+
+                            <div class="item-titulo">
+
+                                Comprobante N.º
+
+                                ${String(
+                                    comprobante.numero ||
+                                    0
+                                ).padStart(
+                                    6,
+                                    "0"
+                                )}
+
+                            </div>
+
+                            <div class="item-detalle">
+
+                                Importe:
+
+                                ${formatearImporte(
+                                    comprobante.importe,
+                                    comprobante.moneda
+                                )}
+
+                                <br>
+
+                                Método:
+
+                                ${escaparHTML(
+                                    comprobante.metodoPago ||
+                                    "-"
+                                )}
+
+                            </div>
+
+                        </div>
+
+                    `
+                )
+                .join("");
+
+    }
+
+
+    modalHistorial.classList.remove(
+        "oculto"
+    );
+
+};
+
+
+/* ============================================================
+   CERRAR MODAL
+============================================================ */
+
+document.getElementById(
+    "btnCerrarModal"
+).onclick =
+function(){
+
+    modalHistorial.classList.add(
+        "oculto"
+    );
+
+};
+
+
+modalHistorial.addEventListener(
+    "click",
+    event => {
+
+        if(
+            event.target ===
+            modalHistorial
+        ){
+
+            modalHistorial.classList.add(
+                "oculto"
+            );
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   FILTROS
+============================================================ */
+
+buscar.addEventListener(
+    "input",
+    renderizar
+);
+
+filtroEstado.addEventListener(
+    "change",
+    renderizar
+);
+
+filtroOrden.addEventListener(
+    "change",
+    renderizar
+);
+
+
+/* ============================================================
+   VOLVER
+============================================================ */
+
+document.getElementById(
+    "btnVolver"
+).onclick =
+function(){
+
+    window.location.href =
+        "alquileres.html";
+
+};
+
+
+/* ============================================================
+   AUTENTICACIÓN
+============================================================ */
+
+onAuthStateChanged(
+    auth,
+    async usuario => {
+
+        if(!usuario){
+
+            window.location.href =
+                "index.html";
+
+            return;
+
+        }
+
+
+        usuarioActual =
+            usuario;
+
+
+        try{
+
+            await obtenerEmpresa();
+
+            await cargarDatos();
+
+        }catch(error){
+
+            console.error(
+                error
+            );
+
+            alert(
+                error.message ||
+                "No se pudo cargar el historial."
+            );
+
+            window.location.href =
+                "alquileres.html";
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
