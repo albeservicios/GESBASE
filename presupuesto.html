@@ -22,6 +22,9 @@
 
 <title>Nuevo presupuesto - GESBASE</title>
 
+<!-- PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <style>
 
 *{
@@ -38,7 +41,7 @@ body{
 
 .contenedor{
     width:100%;
-    max-width:600px;
+    max-width:700px;
     margin:auto;
     min-height:100vh;
     background:#fff;
@@ -137,6 +140,137 @@ textarea{
     resize:vertical;
 }
 
+/* =====================================================
+   SECCIONES
+===================================================== */
+
+.seccion{
+    margin-top:25px;
+    margin-bottom:20px;
+    padding:18px;
+    border:1px solid #d1d5db;
+    border-radius:14px;
+    background:#fff;
+}
+
+.seccion-titulo{
+    font-size:19px;
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+.seccion-subtitulo{
+    color:#6b7280;
+    font-size:13px;
+    line-height:1.5;
+    margin-bottom:18px;
+}
+
+.seccion-construccion{
+    border:2px solid #f97316;
+    background:#fff7ed;
+}
+
+.seccion-construccion .seccion-titulo{
+    color:#c2410c;
+}
+
+.subseccion{
+    margin-top:20px;
+    padding-top:18px;
+    border-top:1px solid #fed7aa;
+}
+
+.subseccion h3{
+    font-size:16px;
+    margin-bottom:12px;
+}
+
+.grid-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.grid-3{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:10px;
+}
+
+/* =====================================================
+   AMBIENTES
+===================================================== */
+
+.ambiente{
+    padding:14px;
+    margin-bottom:12px;
+    background:#fff;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+}
+
+.ambiente-cabecera{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:12px;
+}
+
+.ambiente-nombre{
+    font-weight:bold;
+}
+
+.btn-pequeno{
+    border:none;
+    border-radius:7px;
+    padding:8px 10px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.btn-eliminar{
+    background:#dc2626;
+    color:#fff;
+}
+
+.btn-azul{
+    background:#2563eb;
+    color:#fff;
+}
+
+.btn-naranja{
+    background:#f97316;
+    color:#fff;
+}
+
+.btn-verde{
+    background:#16a34a;
+    color:#fff;
+}
+
+/* =====================================================
+   ABERTURAS
+===================================================== */
+
+.abertura{
+    display:grid;
+    grid-template-columns:1.2fr 1fr 1fr .7fr auto;
+    gap:7px;
+    align-items:end;
+    margin-bottom:10px;
+}
+
+.abertura button{
+    margin:0;
+    width:auto;
+}
+
+/* =====================================================
+   MATERIALES MANUALES
+===================================================== */
+
 .material-item{
     display:flex;
     gap:8px;
@@ -167,6 +301,54 @@ textarea{
     background:#2563eb;
     color:#fff;
 }
+
+/* =====================================================
+   RESULTADO MATERIALES
+===================================================== */
+
+.resultado-materiales{
+    display:none;
+    margin-top:18px;
+    padding:15px;
+    border-radius:12px;
+    background:#fff;
+    border:2px solid #fed7aa;
+}
+
+.resultado-materiales.visible{
+    display:block;
+}
+
+.material-calculado{
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    gap:8px;
+    padding:9px 0;
+    border-bottom:1px solid #e5e7eb;
+    font-size:14px;
+}
+
+.material-calculado:last-child{
+    border-bottom:none;
+}
+
+.material-calculado strong{
+    text-align:right;
+}
+
+.aviso-calculo{
+    margin-top:14px;
+    padding:11px;
+    background:#fef3c7;
+    color:#92400e;
+    border-radius:9px;
+    font-size:12px;
+    line-height:1.5;
+}
+
+/* =====================================================
+   RESUMEN
+===================================================== */
 
 .resumen{
     margin-top:20px;
@@ -227,11 +409,6 @@ textarea{
     margin-bottom:14px;
 }
 
-.panel-privado input,
-.panel-privado select{
-    background:#fff;
-}
-
 .analisis-resumen{
     margin-top:18px;
     padding:15px;
@@ -250,14 +427,6 @@ textarea{
 
 .analisis-linea strong{
     text-align:right;
-}
-
-.analisis-total{
-    margin-top:8px;
-    padding-top:12px;
-    border-top:2px solid #7c3aed;
-    font-size:17px;
-    font-weight:bold;
 }
 
 .analisis-ganancia{
@@ -339,12 +508,33 @@ button:disabled{
         padding:15px;
     }
 
+    .grid-2,
+    .grid-3{
+        grid-template-columns:1fr;
+    }
+
+    .abertura{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .abertura .abertura-tipo{
+        grid-column:1 / -1;
+    }
+
     .material-item{
         align-items:stretch;
     }
 
     .material-cantidad{
         width:100px;
+    }
+
+    .material-calculado{
+        grid-template-columns:1fr auto;
+    }
+
+    .material-calculado .unidad{
+        grid-column:2;
     }
 
 }
@@ -375,9 +565,9 @@ Verificando sesión...
 </div>
 
 
-<!-- ==========================================
+<!-- =====================================================
      EMPRESA
-========================================== -->
+===================================================== -->
 
 <div class="empresa-info">
 
@@ -419,9 +609,9 @@ Datos de la empresa
 </div>
 
 
-<!-- ==========================================
+<!-- =====================================================
      CLIENTE
-========================================== -->
+===================================================== -->
 
 <div class="campo">
 
@@ -439,9 +629,9 @@ Cliente
 </div>
 
 
-<!-- ==========================================
-     NÚMERO DE AGENDA
-========================================== -->
+<!-- =====================================================
+     NÚMERO
+===================================================== -->
 
 <div class="campo">
 
@@ -460,9 +650,9 @@ N.º de agenda
 </div>
 
 
-<!-- ==========================================
+<!-- =====================================================
      FECHA
-========================================== -->
+===================================================== -->
 
 <div class="campo">
 
@@ -478,9 +668,9 @@ Fecha
 </div>
 
 
-<!-- ==========================================
+<!-- =====================================================
      LUGAR
-========================================== -->
+===================================================== -->
 
 <div class="campo">
 
@@ -498,9 +688,9 @@ Lugar de trabajo
 </div>
 
 
-<!-- ==========================================
+<!-- =====================================================
      DESCRIPCIÓN
-========================================== -->
+===================================================== -->
 
 <div class="campo">
 
@@ -516,15 +706,476 @@ Descripción del trabajo
 </div>
 
 
-<!-- ==========================================
-     MATERIALES
-========================================== -->
+<!-- =====================================================
+     CALCULADOR DE CONSTRUCCIÓN
+===================================================== -->
+
+<section class="seccion seccion-construccion">
+
+<div class="seccion-titulo">
+🧱 Cómputo automático de materiales
+</div>
+
+<div class="seccion-subtitulo">
+Calculá automáticamente las cantidades necesarias para preparar
+el listado de compra de la obra. No incluye precios.
+</div>
+
+
+<div class="campo">
+
+<label for="tipoObra">
+Tipo de obra
+</label>
+
+<select id="tipoObra">
+
+<option value="casa">
+Casa
+</option>
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label for="superficieTotal">
+Superficie total de la obra (m²)
+</label>
+
+<input
+    type="number"
+    id="superficieTotal"
+    min="0"
+    step="0.01"
+    placeholder="Ej.: 120"
+>
+
+</div>
+
+
+<div class="campo">
+
+<label for="desperdicio">
+Desperdicio (%)
+</label>
+
+<input
+    type="number"
+    id="desperdicio"
+    min="0"
+    max="50"
+    step="1"
+    value="10"
+>
+
+</div>
+
+
+<!-- =====================================================
+     AMBIENTES
+===================================================== -->
+
+<div class="subseccion">
+
+<h3>
+📐 Ambientes
+</h3>
+
+<div class="seccion-subtitulo">
+Ingresá las medidas de cada ambiente. Las paredes y los
+cielorrasos se calculan automáticamente.
+</div>
+
+<div id="listaAmbientes"></div>
+
+<button
+    type="button"
+    class="btn-azul"
+    id="btnAgregarAmbiente"
+>
++ Agregar ambiente
+</button>
+
+</div>
+
+
+<!-- =====================================================
+     ABERTURAS
+===================================================== -->
+
+<div class="subseccion">
+
+<h3>
+🚪 Puertas y ventanas
+</h3>
+
+<div class="seccion-subtitulo">
+Las aberturas se descuentan automáticamente de la superficie
+de mampostería.
+</div>
+
+<div id="listaAberturas"></div>
+
+<button
+    type="button"
+    class="btn-azul"
+    id="btnAgregarAbertura"
+>
++ Agregar abertura
+</button>
+
+</div>
+
+
+<!-- =====================================================
+     MAMPOSTERÍA
+===================================================== -->
+
+<div class="subseccion">
+
+<h3>
+🧱 Mampostería
+</h3>
+
+<div class="campo">
+
+<label for="tipoMamposteria">
+Tipo de muro
+</label>
+
+<select id="tipoMamposteria">
+
+<option value="ladrillo18">
+Ladrillo hueco 18 × 18 × 33
+</option>
+
+<option value="ladrillo12">
+Ladrillo hueco 12 × 18 × 33
+</option>
+
+<option value="ladrilloComun">
+Ladrillo común
+</option>
+
+<option value="bloque">
+Bloque de hormigón
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     CIELORRASO
+===================================================== -->
+
+<div class="subseccion">
+
+<h3>
+🏠 Cielorraso
+</h3>
+
+<div class="campo">
+
+<label for="tipoCielorraso">
+Tipo de cielorraso
+</label>
+
+<select id="tipoCielorraso">
+
+<option value="ninguno">
+No calcular
+</option>
+
+<option value="madera">
+Madera
+</option>
+
+<option value="durlockJunta">
+Durlock - Junta tomada
+</option>
+
+<option value="durlockSuspendido">
+Durlock - Suspendido
+</option>
+
+<option value="desmontable">
+Desmontable 60 × 60
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     PLOMERÍA AGUA
+===================================================== -->
+
+<div class="subseccion">
+
+<h3>
+🚰 Agua
+</h3>
+
+<div class="grid-2">
+
+<div class="campo">
+
+<label for="puntosAgua">
+Puntos de agua
+</label>
+
+<input
+    type="number"
+    id="puntosAgua"
+    min="0"
+    step="1"
+    value="0"
+>
+
+</div>
+
+<div class="campo">
+
+<label for="metrosAgua">
+Metros adicionales de cañería
+</label>
+
+<input
+    type="number"
+    id="metrosAgua"
+    min="0"
+    step="0.1"
+    value="0"
+>
+
+</div>
+
+</div>
+
+<div class="grid-2">
+
+<div class="campo">
+
+<label for="puntosAguaCaliente">
+Puntos agua caliente</label>
+
+<input
+    type="number"
+    id="puntosAguaCaliente"
+    min="0"
+    step="1"
+    value="0"
+>
+
+</div>
+
+<div class="campo">
+
+<label for="llavesPaso">
+Llaves de paso</label>
+
+<input
+    type="number"
+    id="llavesPaso"
+    min="0"
+    step="1"
+    value="0"
+>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     CLOACA
+===================================================== -->
+
+<div class="subseccion">
+
+<h3>
+🚽 Cloaca
+</h3>
+
+<div class="grid-2">
+
+<div class="campo">
+
+<label for="inodoros">
+Inodoros
+</label>
+
+<input
+    type="number"
+    id="inodoros"
+    min="0"
+    step="1"
+    value="0"
+>
+
+</div>
+
+<div class="campo">
+
+<label for="duchas">
+Duchas
+</label>
+
+<input
+    type="number"
+    id="duchas"
+    min="0"
+    step="1"
+    value="0"
+>
+
+</div>
+
+<div class="campo">
+
+<label for="lavamanos">
+Lavamanos
+</label>
+
+<input
+    type="number"
+    id="lavamanos"
+    min="0"
+    step="1"
+    value="0"
+>
+
+</div>
+
+<div class="campo">
+
+<label for="cocinas">
+Cocinas
+</label>
+
+<input
+    type="number"
+    id="cocinas"
+    min="0"
+    step="1"
+    value="0"
+>
+
+</div>
+
+<div class="campo">
+
+<label for="lavaderos">
+Lavaderos
+</label>
+
+<input
+    type="number"
+    id="lavaderos"
+    min="0"
+    step="1"
+    value="0"
+>
+
+</div>
+
+<div class="campo">
+
+<label for="metrosCloaca">
+Metros adicionales de cloaca</label>
+
+<input
+    type="number"
+    id="metrosCloaca"
+    min="0"
+    step="0.1"
+    value="0"
+>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     RESULTADO
+===================================================== -->
+
+<div
+    id="resultadoMateriales"
+    class="resultado-materiales"
+>
+
+<strong>
+🛒 LISTADO AUTOMÁTICO DE COMPRA
+</strong>
+
+<div
+    id="listaMaterialesCalculados"
+    style="margin-top:12px;"
+></div>
+
+<div class="aviso-calculo">
+
+Las cantidades son estimativas y se calculan según las medidas
+ingresadas, el sistema constructivo seleccionado y el desperdicio
+indicado. Deben verificarse en obra antes de realizar la compra.
+
+</div>
+
+</div>
+
+
+<button
+    type="button"
+    class="btn-verde"
+    id="btnCalcularMateriales"
+>
+🧮 CALCULAR MATERIALES
+</button>
+
+
+<button
+    type="button"
+    class="btn-naranja"
+    id="btnPDFMateriales"
+    disabled
+>
+📄 GENERAR LISTADO DE COMPRA PDF
+</button>
+
+</section>
+
+
+<!-- =====================================================
+     MATERIALES DEL PRESUPUESTO
+===================================================== -->
 
 <div class="campo">
 
 <label>
-Materiales
+Materiales del presupuesto
 </label>
+
+<div class="seccion-subtitulo">
+Estos materiales son los que forman parte del presupuesto económico.
+El cómputo automático de arriba es independiente y sirve para preparar
+la lista de compra.
+</div>
 
 <div id="listaMateriales"></div>
 
@@ -539,9 +1190,9 @@ Materiales
 </div>
 
 
-<!-- ==========================================
+<!-- =====================================================
      VALOR MATERIALES
-========================================== -->
+===================================================== -->
 
 <div class="campo">
 
@@ -560,9 +1211,9 @@ Valor total de materiales
 </div>
 
 
-<!-- ==========================================
+<!-- =====================================================
      MANO DE OBRA
-========================================== -->
+===================================================== -->
 
 <div class="campo">
 
@@ -581,9 +1232,9 @@ Mano de obra
 </div>
 
 
-<!-- ==========================================
+<!-- =====================================================
      VIÁTICOS
-========================================== -->
+===================================================== -->
 
 <div class="campo">
 
@@ -602,10 +1253,9 @@ Viáticos
 </div>
 
 
-<!-- ==========================================
+<!-- =====================================================
      PANEL PRIVADO
-     SOLO JULIAN
-========================================== -->
+===================================================== -->
 
 <section
     id="panelPrivado"
@@ -621,9 +1271,6 @@ Información exclusiva del propietario.
 Estos datos son internos y no forman parte del presupuesto que recibe el cliente.
 </div>
 
-
-<!-- COSTO MATERIAL -->
-
 <div class="campo">
 
 <label for="costoMaterialReal">
@@ -636,13 +1283,9 @@ Costo real de materiales
     min="0"
     step="0.01"
     value="0"
-    placeholder="Costo que realmente pagás"
 >
 
 </div>
-
-
-<!-- COSTO MANO DE OBRA -->
 
 <div class="campo">
 
@@ -656,13 +1299,9 @@ Costo real de mano de obra
     min="0"
     step="0.01"
     value="0"
-    placeholder="Costo real para vos"
 >
 
 </div>
-
-
-<!-- OTROS COSTOS -->
 
 <div class="campo">
 
@@ -676,13 +1315,9 @@ Otros costos internos
     min="0"
     step="0.01"
     value="0"
-    placeholder="Flete, herramientas, etc."
 >
 
 </div>
-
-
-<!-- DÍAS -->
 
 <div class="campo">
 
@@ -700,9 +1335,6 @@ Días estimados hasta cobrar
 
 </div>
 
-
-<!-- TASA -->
-
 <div class="campo">
 
 <label for="tasaFinanciera">
@@ -718,9 +1350,6 @@ Costo financiero mensual (%)
 >
 
 </div>
-
-
-<!-- MARGEN -->
 
 <div class="campo">
 
@@ -746,88 +1375,39 @@ Margen sobre costo
 
 </div>
 
-
-<!-- RESULTADOS -->
-
 <div class="analisis-resumen">
 
 <div class="analisis-linea">
-
-<span>
-Costo real total
-</span>
-
-<strong>
-$ <span id="analisisCostoReal">0,00</span>
-</strong>
-
+<span>Costo real total</span>
+<strong>$ <span id="analisisCostoReal">0,00</span></strong>
 </div>
 
-
 <div class="analisis-linea">
-
-<span>
-Financiación estimada
-</span>
-
-<strong>
-$ <span id="analisisFinanciacion">0,00</span>
-</strong>
-
+<span>Financiación estimada</span>
+<strong>$ <span id="analisisFinanciacion">0,00</span></strong>
 </div>
 
-
 <div class="analisis-linea">
-
-<span>
-Costo protegido
-</span>
-
-<strong>
-$ <span id="analisisCostoProtegido">0,00</span>
-</strong>
-
+<span>Costo protegido</span>
+<strong>$ <span id="analisisCostoProtegido">0,00</span></strong>
 </div>
 
-
 <div class="analisis-linea">
-
-<span>
-Precio actual del presupuesto
-</span>
-
-<strong>
-$ <span id="analisisPrecioActual">0,00</span>
-</strong>
-
+<span>Precio actual del presupuesto</span>
+<strong>$ <span id="analisisPrecioActual">0,00</span></strong>
 </div>
 
-
 <div class="analisis-linea">
-
-<span>
-Ganancia con precio actual
-</span>
-
+<span>Ganancia con precio actual</span>
 <strong class="analisis-ganancia">
 $ <span id="analisisGananciaActual">0,00</span>
 </strong>
-
 </div>
-
 
 <div class="analisis-linea">
-
-<span>
-Margen seleccionado
-</span>
-
-<strong>
-<span id="analisisMargen">50</span>%
-</strong>
-
+<span>Margen seleccionado</span>
+<strong><span id="analisisMargen">50</span>%</strong>
 </div>
-
 
 <div class="analisis-recomendado">
 
@@ -843,72 +1423,39 @@ $ <span id="analisisPrecioRecomendado">
 
 </div>
 
-
 <div class="aviso-privado">
 
 🔐 Este panel es de uso interno.
-Los datos de costos, financiación y ganancia no se muestran al cliente.
 
 </div>
 
 </section>
 
 
-<!-- ==========================================
-     RESUMEN DEL CLIENTE
-========================================== -->
+<!-- =====================================================
+     RESUMEN
+===================================================== -->
 
 <div class="resumen">
 
 <div class="resumen-linea">
-
-<span>
-Materiales
-</span>
-
-<strong>
-$ <span id="resumenMateriales">0,00</span>
-</strong>
-
+<span>Materiales</span>
+<strong>$ <span id="resumenMateriales">0,00</span></strong>
 </div>
-
 
 <div class="resumen-linea">
-
-<span>
-Mano de obra
-</span>
-
-<strong>
-$ <span id="resumenManoObra">0,00</span>
-</strong>
-
+<span>Mano de obra</span>
+<strong>$ <span id="resumenManoObra">0,00</span></strong>
 </div>
-
 
 <div class="resumen-linea">
-
-<span>
-Viáticos
-</span>
-
-<strong>
-$ <span id="resumenViaticos">0,00</span>
-</strong>
-
+<span>Viáticos</span>
+<strong>$ <span id="resumenViaticos">0,00</span></strong>
 </div>
-
 
 <div class="resumen-linea resumen-total">
-
-<span>
-TOTAL GENERAL
-</span>
-
-<strong>
-$ <span id="total">0,00</span>
-</strong>
-
+<span>TOTAL GENERAL</span>
+<strong>$ <span id="total">0,00</span></strong>
 </div>
 
 </div>
@@ -920,10 +1467,6 @@ $ <span id="total">0,00</span>
 ></div>
 
 
-<!-- ==========================================
-     GUARDAR
-========================================== -->
-
 <button
     type="button"
     class="guardar"
@@ -932,10 +1475,6 @@ $ <span id="total">0,00</span>
 GUARDAR PRESUPUESTO
 </button>
 
-
-<!-- ==========================================
-     VOLVER
-========================================== -->
 
 <button
     type="button"
@@ -961,11 +1500,9 @@ import {
     db
 } from "./Js/firebase.js";
 
-
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-
 
 import {
     collection,
@@ -980,11 +1517,95 @@ import {
 
 
 /* =====================================================
-   CONFIGURACIÓN DEL PROPIETARIO
+   PROPIETARIO
 ===================================================== */
 
 const EMAIL_PROPIETARIO =
 "julianbattauz006@gmail.com";
+
+
+/* =====================================================
+   RENDIMIENTOS
+===================================================== */
+
+const RENDIMIENTOS = {
+
+    ladrillo18:{
+        unidadesM2:17,
+        cementoM2:0.10,
+        calM2:0.07,
+        arenaM2:0.020
+    },
+
+    ladrillo12:{
+        unidadesM2:17,
+        cementoM2:0.08,
+        calM2:0.06,
+        arenaM2:0.018
+    },
+
+    ladrilloComun:{
+        unidadesM2:55,
+        cementoM2:0.14,
+        calM2:0.10,
+        arenaM2:0.025
+    },
+
+    bloque:{
+        unidadesM2:12.5,
+        cementoM2:0.09,
+        calM2:0.05,
+        arenaM2:0.020
+    }
+
+};
+
+
+/*
+ * Cielorrasos:
+ *
+ * Son parámetros configurables.
+ * Las cantidades se calculan automáticamente.
+ */
+
+const CIELORRASOS = {
+
+    madera:{
+        maderaM2:1.10,
+        tiranteMlM2:2.50,
+        fijacionesM2:8
+    },
+
+    durlockJunta:{
+        placasM2:1.10,
+        montanteMlM2:3.00,
+        soleraMlM2:0.75,
+        tornillosM2:18,
+        masillaKgM2:0.35,
+        cintaMlM2:1.20
+    },
+
+    durlockSuspendido:{
+        placasM2:1.10,
+        perfilMlM2:3.20,
+        soleraMlM2:0.75,
+        suspensionesM2:1.80,
+        tornillosM2:18,
+        masillaKgM2:0.35,
+        cintaMlM2:1.20
+    },
+
+    desmontable:{
+        placasM2:1.10,
+        perfilPrincipalMlM2:0.84,
+        perfilSec120MlM2:1.67,
+        perfilSec060MlM2:0.84,
+        perimetralMlM2:0.40,
+        suspensionesM2:1.80,
+        fijacionesM2:1.80
+    }
+
+};
 
 
 /* =====================================================
@@ -1065,7 +1686,78 @@ document.getElementById("btnVolver");
 
 
 /* =====================================================
-   ELEMENTOS PANEL PRIVADO
+   CONSTRUCCIÓN
+===================================================== */
+
+const superficieTotal =
+document.getElementById("superficieTotal");
+
+const desperdicio =
+document.getElementById("desperdicio");
+
+const listaAmbientes =
+document.getElementById("listaAmbientes");
+
+const listaAberturas =
+document.getElementById("listaAberturas");
+
+const btnAgregarAmbiente =
+document.getElementById("btnAgregarAmbiente");
+
+const btnAgregarAbertura =
+document.getElementById("btnAgregarAbertura");
+
+const tipoMamposteria =
+document.getElementById("tipoMamposteria");
+
+const tipoCielorraso =
+document.getElementById("tipoCielorraso");
+
+const puntosAgua =
+document.getElementById("puntosAgua");
+
+const metrosAgua =
+document.getElementById("metrosAgua");
+
+const puntosAguaCaliente =
+document.getElementById("puntosAguaCaliente");
+
+const llavesPaso =
+document.getElementById("llavesPaso");
+
+const inodoros =
+document.getElementById("inodoros");
+
+const duchas =
+document.getElementById("duchas");
+
+const lavamanos =
+document.getElementById("lavamanos");
+
+const cocinas =
+document.getElementById("cocinas");
+
+const lavaderos =
+document.getElementById("lavaderos");
+
+const metrosCloaca =
+document.getElementById("metrosCloaca");
+
+const resultadoMateriales =
+document.getElementById("resultadoMateriales");
+
+const listaMaterialesCalculados =
+document.getElementById("listaMaterialesCalculados");
+
+const btnCalcularMateriales =
+document.getElementById("btnCalcularMateriales");
+
+const btnPDFMateriales =
+document.getElementById("btnPDFMateriales");
+
+
+/* =====================================================
+   PANEL PRIVADO
 ===================================================== */
 
 const panelPrivado =
@@ -1121,17 +1813,9 @@ let empresaIdActual = "";
 
 let esPropietario = false;
 
-let datosEmpresa = {
+let datosEmpresa = {};
 
-    nombreEmpresa:"",
-    razonSocial:"",
-    cuit:"",
-    telefono:"",
-    email:"",
-    direccion:"",
-    logoUrl:""
-
-};
+let calculoMaterialesActual = null;
 
 
 /* =====================================================
@@ -1156,12 +1840,42 @@ function texto(valor){
 
 function numero(valor){
 
+    if(
+        valor === undefined ||
+        valor === null ||
+        valor === ""
+    ){
+
+        return 0;
+
+    }
+
     const n =
-    Number(valor);
+    Number(
+        String(valor).replace(",",".")
+    );
 
     return Number.isFinite(n)
         ? n
         : 0;
+
+}
+
+
+function entero(valor){
+
+    return Math.ceil(
+        numero(valor)
+    );
+
+}
+
+
+function redondear(valor){
+
+    return Math.round(
+        numero(valor) * 100
+    ) / 100;
 
 }
 
@@ -1182,21 +1896,40 @@ function mostrarMensaje(
 
 function formatoDinero(valor){
 
-    return numero(
-        valor
-    ).toLocaleString(
-        "es-AR",
-        {
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
-        }
-    );
+    return numero(valor)
+        .toLocaleString(
+            "es-AR",
+            {
+                minimumFractionDigits:2,
+                maximumFractionDigits:2
+            }
+        );
+
+}
+
+
+function cantidad(valor){
+
+    const n =
+    numero(valor);
+
+    if(
+        n >= 100
+    ){
+
+        return Math.ceil(n);
+
+    }
+
+    return Math.ceil(
+        n * 10
+    ) / 10;
 
 }
 
 
 /* =====================================================
-   FECHA ACTUAL
+   FECHA
 ===================================================== */
 
 function colocarFechaActual(){
@@ -1208,7 +1941,7 @@ function colocarFechaActual(){
     ahora.getFullYear() +
     "-" +
     String(
-        ahora.getMonth() + 1
+        ahora.getMonth()+1
     ).padStart(2,"0") +
     "-" +
     String(
@@ -1219,7 +1952,7 @@ function colocarFechaActual(){
 
 
 /* =====================================================
-   ACTIVAR PANEL PRIVADO
+   PROPIETARIO
 ===================================================== */
 
 function verificarPropietario(){
@@ -1237,17 +1970,11 @@ function verificarPropietario(){
 
     }
 
-
-    const email =
+    esPropietario =
     texto(
         usuarioActual.email
-    ).toLowerCase();
-
-
-    esPropietario =
-    email ===
+    ).toLowerCase() ===
     EMAIL_PROPIETARIO.toLowerCase();
-
 
     if(esPropietario){
 
@@ -1270,7 +1997,7 @@ function verificarPropietario(){
 
 
 /* =====================================================
-   OBTENER EMPRESA ID
+   EMPRESA ID
 ===================================================== */
 
 async function obtenerEmpresaId(){
@@ -1281,7 +2008,6 @@ async function obtenerEmpresaId(){
 
     }
 
-
     try{
 
         const referenciaUsuario =
@@ -1291,12 +2017,10 @@ async function obtenerEmpresaId(){
             usuarioActual.uid
         );
 
-
         const resultadoUsuario =
         await getDoc(
             referenciaUsuario
         );
-
 
         if(
             resultadoUsuario.exists()
@@ -1305,15 +2029,16 @@ async function obtenerEmpresaId(){
             const datosUsuario =
             resultadoUsuario.data();
 
-
             const empresaId =
             texto(
                 datosUsuario.empresaId
             ) ||
             texto(
+                datosUsuario.idEmpresa
+            ) ||
+            texto(
                 datosUsuario.empresa
             );
-
 
             if(empresaId){
 
@@ -1327,12 +2052,11 @@ async function obtenerEmpresaId(){
     catch(error){
 
         console.warn(
-            "No se pudo consultar usuarios:",
+            "No se pudo consultar usuario:",
             error
         );
 
     }
-
 
     return usuarioActual.uid;
 
@@ -1351,21 +2075,18 @@ async function cargarEmpresa(){
 
     }
 
-
     try{
 
         empresaIdActual =
         await obtenerEmpresaId();
 
-
         if(!empresaIdActual){
 
             throw new Error(
-                "No se encontró la empresa asociada a la cuenta."
+                "No se encontró la empresa asociada."
             );
 
         }
-
 
         const referenciaEmpresa =
         doc(
@@ -1374,27 +2095,23 @@ async function cargarEmpresa(){
             empresaIdActual
         );
 
-
         const resultadoEmpresa =
         await getDoc(
             referenciaEmpresa
         );
-
 
         if(
             !resultadoEmpresa.exists()
         ){
 
             throw new Error(
-                "No existe el registro de la empresa en Firebase."
+                "No existe la empresa en Firebase."
             );
 
         }
 
-
         datosEmpresa =
         resultadoEmpresa.data();
-
 
         empresaNombre.textContent =
         texto(
@@ -1405,13 +2122,11 @@ async function cargarEmpresa(){
         ) ||
         "Sin informar";
 
-
         empresaRazonSocial.textContent =
         texto(
             datosEmpresa.razonSocial
         ) ||
         "Sin informar";
-
 
         empresaCuit.textContent =
         texto(
@@ -1422,7 +2137,6 @@ async function cargarEmpresa(){
         ) ||
         "Sin informar";
 
-
         empresaTelefono.textContent =
         texto(
             datosEmpresa.telefono
@@ -1431,7 +2145,6 @@ async function cargarEmpresa(){
             datosEmpresa.phone
         ) ||
         "Sin informar";
-
 
         empresaEmail.textContent =
         texto(
@@ -1442,7 +2155,6 @@ async function cargarEmpresa(){
         ) ||
         "Sin informar";
 
-
         const logo =
         texto(
             datosEmpresa.logoUrl
@@ -1451,7 +2163,6 @@ async function cargarEmpresa(){
             datosEmpresa.logo
         );
 
-
         if(logo){
 
             empresaLogo.src =
@@ -1459,12 +2170,6 @@ async function cargarEmpresa(){
 
             empresaLogo.style.display =
             "block";
-
-        }
-        else{
-
-            empresaLogo.style.display =
-            "none";
 
         }
 
@@ -1476,7 +2181,6 @@ async function cargarEmpresa(){
             error
         );
 
-
         empresaNombre.textContent =
         "Sin informar";
 
@@ -1490,12 +2194,8 @@ async function cargarEmpresa(){
         "Sin informar";
 
         empresaEmail.textContent =
-        usuarioActual.email ||
+        usuarioActual?.email ||
         "Sin informar";
-
-
-        estadoSesion.textContent =
-        "Sesión activa. No se pudieron cargar todos los datos de la empresa.";
 
     }
 
@@ -1503,65 +2203,1814 @@ async function cargarEmpresa(){
 
 
 /* =====================================================
-   AUTENTICACIÓN
+   AMBIENTES
 ===================================================== */
 
-onAuthStateChanged(
-    auth,
-    async function(usuario){
+function agregarAmbiente(
+    datos = {}
+){
 
-        if(!usuario){
+    const fila =
+    document.createElement("div");
 
-            window.location.replace(
-                "./login.html"
+    fila.className =
+    "ambiente";
+
+    fila.innerHTML = `
+
+        <div class="ambiente-cabecera">
+
+            <span class="ambiente-nombre">
+                Ambiente
+            </span>
+
+            <button
+                type="button"
+                class="btn-pequeno btn-eliminar"
+            >
+                Eliminar
+            </button>
+
+        </div>
+
+        <div class="campo">
+
+            <label>Nombre</label>
+
+            <input
+                class="ambiente-nombre-input"
+                type="text"
+                placeholder="Living, cocina, dormitorio..."
+                value="${texto(datos.nombre)}"
+            >
+
+        </div>
+
+        <div class="grid-3">
+
+            <div class="campo">
+
+                <label>Largo (m)</label>
+
+                <input
+                    class="ambiente-largo"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="${numero(datos.largo) || ""}"
+                >
+
+            </div>
+
+            <div class="campo">
+
+                <label>Ancho (m)</label>
+
+                <input
+                    class="ambiente-ancho"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="${numero(datos.ancho) || ""}"
+                >
+
+            </div>
+
+            <div class="campo">
+
+                <label>Altura (m)</label>
+
+                <input
+                    class="ambiente-altura"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="${numero(datos.altura) || 2.60}"
+                >
+
+            </div>
+
+        </div>
+
+    `;
+
+    fila.querySelector(
+        ".btn-eliminar"
+    ).addEventListener(
+        "click",
+        function(){
+
+            fila.remove();
+
+            calcularMaterialesAutomaticos();
+
+        }
+    );
+
+    fila.querySelectorAll(
+        "input"
+    ).forEach(
+        function(input){
+
+            input.addEventListener(
+                "input",
+                calcularMaterialesAutomaticos
             );
 
-            return;
-
         }
+    );
+
+    listaAmbientes.appendChild(
+        fila
+    );
+
+}
 
 
-        usuarioActual =
-        usuario;
+btnAgregarAmbiente.addEventListener(
+    "click",
+    function(){
 
-
-        estadoSesion.textContent =
-        "Sesión activa: " +
-        (
-            usuario.email ||
-            "usuario autenticado"
-        );
-
-
-        verificarPropietario();
-
-
-        btnGuardar.disabled =
-        false;
-
-
-        try{
-
-            await cargarEmpresa();
-
-        }
-        catch(error){
-
-            console.error(error);
-
-        }
-
-
-        calcularTotal();
-
-        calcularAnalisisInterno();
+        agregarAmbiente();
 
     }
 );
 
 
 /* =====================================================
-   AGREGAR MATERIAL
+   ABERTURAS
+===================================================== */
+
+function agregarAbertura(
+    datos = {}
+){
+
+    const fila =
+    document.createElement("div");
+
+    fila.className =
+    "abertura";
+
+    fila.innerHTML = `
+
+        <div class="abertura-tipo">
+
+            <label>Tipo</label>
+
+            <select class="abertura-tipo-input">
+
+                <option value="puerta">
+                    Puerta
+                </option>
+
+                <option value="ventana">
+                    Ventana
+                </option>
+
+                <option value="porton">
+                    Portón
+                </option>
+
+            </select>
+
+        </div>
+
+        <div>
+
+            <label>Ancho</label>
+
+            <input
+                class="abertura-ancho"
+                type="number"
+                min="0"
+                step="0.01"
+                value="${numero(datos.ancho) || ""}"
+            >
+
+        </div>
+
+        <div>
+
+            <label>Alto</label>
+
+            <input
+                class="abertura-alto"
+                type="number"
+                min="0"
+                step="0.01"
+                value="${numero(datos.alto) || ""}"
+            >
+
+        </div>
+
+        <div>
+
+            <label>Cant.</label>
+
+            <input
+                class="abertura-cantidad"
+                type="number"
+                min="1"
+                step="1"
+                value="${numero(datos.cantidad) || 1}"
+            >
+
+        </div>
+
+        <button
+            type="button"
+            class="btn-pequeno btn-eliminar"
+        >
+            ×
+        </button>
+
+    `;
+
+    if(datos.tipo){
+
+        fila.querySelector(
+            ".abertura-tipo-input"
+        ).value =
+        datos.tipo;
+
+    }
+
+    fila.querySelector(
+        ".btn-eliminar"
+    ).addEventListener(
+        "click",
+        function(){
+
+            fila.remove();
+
+            calcularMaterialesAutomaticos();
+
+        }
+    );
+
+    fila.querySelectorAll(
+        "input,select"
+    ).forEach(
+        function(input){
+
+            input.addEventListener(
+                "input",
+                calcularMaterialesAutomaticos
+            );
+
+            input.addEventListener(
+                "change",
+                calcularMaterialesAutomaticos
+            );
+
+        }
+    );
+
+    listaAberturas.appendChild(
+        fila
+    );
+
+}
+
+
+btnAgregarAbertura.addEventListener(
+    "click",
+    function(){
+
+        agregarAbertura();
+
+    }
+);
+
+
+/* =====================================================
+   OBTENER AMBIENTES
+===================================================== */
+
+function obtenerAmbientes(){
+
+    const lista = [];
+
+    document.querySelectorAll(
+        ".ambiente"
+    ).forEach(
+        function(elemento){
+
+            lista.push({
+
+                nombre:
+                texto(
+                    elemento.querySelector(
+                        ".ambiente-nombre-input"
+                    ).value
+                ),
+
+                largo:
+                numero(
+                    elemento.querySelector(
+                        ".ambiente-largo"
+                    ).value
+                ),
+
+                ancho:
+                numero(
+                    elemento.querySelector(
+                        ".ambiente-ancho"
+                    ).value
+                ),
+
+                altura:
+                numero(
+                    elemento.querySelector(
+                        ".ambiente-altura"
+                    ).value
+                )
+
+            });
+
+        }
+    );
+
+    return lista;
+
+}
+
+
+/* =====================================================
+   OBTENER ABERTURAS
+===================================================== */
+
+function obtenerAberturas(){
+
+    const lista = [];
+
+    document.querySelectorAll(
+        ".abertura"
+    ).forEach(
+        function(elemento){
+
+            lista.push({
+
+                tipo:
+                elemento.querySelector(
+                    ".abertura-tipo-input"
+                ).value,
+
+                ancho:
+                numero(
+                    elemento.querySelector(
+                        ".abertura-ancho"
+                    ).value
+                ),
+
+                alto:
+                numero(
+                    elemento.querySelector(
+                        ".abertura-alto"
+                    ).value
+                ),
+
+                cantidad:
+                entero(
+                    elemento.querySelector(
+                        ".abertura-cantidad"
+                    ).value
+                )
+
+            });
+
+        }
+    );
+
+    return lista;
+
+}
+
+
+/* =====================================================
+   SUPERFICIES
+===================================================== */
+
+function calcularSuperficies(){
+
+    const ambientes =
+    obtenerAmbientes();
+
+    let superficiePisos =
+    0;
+
+    let superficieMuros =
+    0;
+
+    let superficieCielorraso =
+    0;
+
+    ambientes.forEach(
+        function(ambiente){
+
+            const largo =
+            ambiente.largo;
+
+            const ancho =
+            ambiente.ancho;
+
+            const altura =
+            ambiente.altura ||
+            2.60;
+
+            if(
+                largo <= 0 ||
+                ancho <= 0
+            ){
+
+                return;
+
+            }
+
+            superficiePisos +=
+            largo * ancho;
+
+            superficieCielorraso +=
+            largo * ancho;
+
+            superficieMuros +=
+            (
+                2 *
+                (
+                    largo +
+                    ancho
+                ) *
+                altura
+            );
+
+        }
+    );
+
+
+    let superficieAberturas =
+    0;
+
+    obtenerAberturas().forEach(
+        function(abertura){
+
+            superficieAberturas +=
+            abertura.ancho *
+            abertura.alto *
+            abertura.cantidad;
+
+        }
+    );
+
+
+    const murosNetos =
+    Math.max(
+        0,
+        superficieMuros -
+        superficieAberturas
+    );
+
+
+    const superficieIngresada =
+    numero(
+        superficieTotal.value
+    );
+
+
+    return {
+
+        pisos:
+        superficieIngresada > 0
+            ? superficieIngresada
+            : superficiePisos,
+
+        cielorraso:
+        superficieCielorraso > 0
+            ? superficieCielorraso
+            : superficieIngresada,
+
+        muros:
+        murosNetos,
+
+        murosBrutos:
+        superficieMuros,
+
+        aberturas:
+        superficieAberturas
+
+    };
+
+}
+
+
+/* =====================================================
+   AGREGAR MATERIAL RESULTADO
+===================================================== */
+
+function agregarResultado(
+    lista,
+    nombre,
+    cantidadValor,
+    unidad
+){
+
+    const valor =
+    numero(
+        cantidadValor
+    );
+
+    if(
+        valor <= 0
+    ){
+
+        return;
+
+    }
+
+    const existente =
+    lista.find(
+        function(item){
+
+            return (
+                item.nombre === nombre &&
+                item.unidad === unidad
+            );
+
+        }
+    );
+
+    if(existente){
+
+        existente.cantidad +=
+        valor;
+
+    }
+    else{
+
+        lista.push({
+
+            nombre:nombre,
+
+            cantidad:valor,
+
+            unidad:unidad
+
+        });
+
+    }
+
+}
+
+
+/* =====================================================
+   CÁLCULO MAMPOSTERÍA
+===================================================== */
+
+function calcularMamposteria(
+    lista,
+    superficies,
+    factorDesperdicio
+){
+
+    if(
+        superficies.muros <= 0
+    ){
+
+        return;
+
+    }
+
+    const rendimiento =
+    RENDIMIENTOS[
+        tipoMamposteria.value
+    ];
+
+    if(!rendimiento){
+
+        return;
+
+    }
+
+    agregarResultado(
+        lista,
+        nombreMamposteria(
+            tipoMamposteria.value
+        ),
+        rendimiento.unidadesM2 *
+        superficies.muros *
+        factorDesperdicio,
+        "unidades"
+    );
+
+    agregarResultado(
+        lista,
+        "Cemento para mampostería",
+        rendimiento.cementoM2 *
+        superficies.muros *
+        factorDesperdicio,
+        "bolsas"
+    );
+
+    agregarResultado(
+        lista,
+        "Cal para mampostería",
+        rendimiento.calM2 *
+        superficies.muros *
+        factorDesperdicio,
+        "bolsas"
+    );
+
+    agregarResultado(
+        lista,
+        "Arena para mampostería",
+        rendimiento.arenaM2 *
+        superficies.muros *
+        factorDesperdicio,
+        "m³"
+    );
+
+}
+
+
+function nombreMamposteria(
+    tipo
+){
+
+    const nombres = {
+
+        ladrillo18:
+        "Ladrillo hueco 18 × 18 × 33",
+
+        ladrillo12:
+        "Ladrillo hueco 12 × 18 × 33",
+
+        ladrilloComun:
+        "Ladrillo común",
+
+        bloque:
+        "Bloque de hormigón"
+
+    };
+
+    return nombres[tipo] ||
+    "Unidad de mampostería";
+
+}
+
+
+/* =====================================================
+   CÁLCULO CIELORRASO
+===================================================== */
+
+function calcularCielorraso(
+    lista,
+    superficies,
+    factorDesperdicio
+){
+
+    const superficie =
+    superficies.cielorraso;
+
+    if(
+        superficie <= 0 ||
+        tipoCielorraso.value === "ninguno"
+    ){
+
+        return;
+
+    }
+
+    const tipo =
+    tipoCielorraso.value;
+
+    const r =
+    CIELORRASOS[tipo];
+
+    if(!r){
+
+        return;
+
+    }
+
+
+    if(tipo === "madera"){
+
+        agregarResultado(
+            lista,
+            "Madera para cielorraso",
+            superficie *
+            r.maderaM2 *
+            factorDesperdicio,
+            "m²"
+        );
+
+        agregarResultado(
+            lista,
+            "Tirantes / estructura de madera",
+            superficie *
+            r.tiranteMlM2 *
+            factorDesperdicio,
+            "m"
+        );
+
+        agregarResultado(
+            lista,
+            "Fijaciones para cielorraso",
+            superficie *
+            r.fijacionesM2 *
+            factorDesperdicio,
+            "unidades"
+        );
+
+        return;
+
+    }
+
+
+    if(
+        tipo === "durlockJunta" ||
+        tipo === "durlockSuspendido"
+    ){
+
+        agregarResultado(
+            lista,
+            "Placa de yeso Durlock",
+            superficie *
+            r.placasM2 *
+            factorDesperdicio,
+            "m²"
+        );
+
+        if(tipo === "durlockJunta"){
+
+            agregarResultado(
+                lista,
+                "Montante",
+                superficie *
+                r.montanteMlM2 *
+                factorDesperdicio,
+                "m"
+            );
+
+        }
+        else{
+
+            agregarResultado(
+                lista,
+                "Perfil para estructura suspendida",
+                superficie *
+                r.perfilMlM2 *
+                factorDesperdicio,
+                "m"
+            );
+
+            agregarResultado(
+                lista,
+                "Suspensiones",
+                superficie *
+                r.suspensionesM2 *
+                factorDesperdicio,
+                "unidades"
+            );
+
+        }
+
+        agregarResultado(
+            lista,
+            "Solera",
+            superficie *
+            r.soleraMlM2 *
+            factorDesperdicio,
+            "m"
+        );
+
+        agregarResultado(
+            lista,
+            "Tornillos",
+            superficie *
+            r.tornillosM2 *
+            factorDesperdicio,
+            "unidades"
+        );
+
+        agregarResultado(
+            lista,
+            "Masilla para juntas",
+            superficie *
+            r.masillaKgM2 *
+            factorDesperdicio,
+            "kg"
+        );
+
+        agregarResultado(
+            lista,
+            "Cinta para juntas",
+            superficie *
+            r.cintaMlM2 *
+            factorDesperdicio,
+            "m"
+        );
+
+        return;
+
+    }
+
+
+    if(tipo === "desmontable"){
+
+        agregarResultado(
+            lista,
+            "Placa desmontable 60 × 60",
+            superficie *
+            r.placasM2 *
+            factorDesperdicio,
+            "unidades"
+        );
+
+        agregarResultado(
+            lista,
+            "Perfil principal",
+            superficie *
+            r.perfilPrincipalMlM2 *
+            factorDesperdicio,
+            "m"
+        );
+
+        agregarResultado(
+            lista,
+            "Perfil secundario 1,20 m",
+            superficie *
+            r.perfilSec120MlM2 *
+            factorDesperdicio,
+            "m"
+        );
+
+        agregarResultado(
+            lista,
+            "Perfil secundario 0,60 m",
+            superficie *
+            r.perfilSec060MlM2 *
+            factorDesperdicio,
+            "m"
+        );
+
+        /*
+         * El perímetro se calcula
+         * ambiente por ambiente.
+         */
+
+        let perimetro =
+        0;
+
+        obtenerAmbientes().forEach(
+            function(ambiente){
+
+                if(
+                    ambiente.largo > 0 &&
+                    ambiente.ancho > 0
+                ){
+
+                    perimetro +=
+                    2 *
+                    (
+                        ambiente.largo +
+                        ambiente.ancho
+                    );
+
+                }
+
+            }
+        );
+
+        if(perimetro <= 0){
+
+            const lado =
+            Math.sqrt(
+                superficie
+            );
+
+            perimetro =
+            lado * 4;
+
+        }
+
+        agregarResultado(
+            lista,
+            "Perfil perimetral",
+            perimetro *
+            factorDesperdicio,
+            "m"
+        );
+
+        agregarResultado(
+            lista,
+            "Suspensiones",
+            superficie *
+            r.suspensionesM2 *
+            factorDesperdicio,
+            "unidades"
+        );
+
+        agregarResultado(
+            lista,
+            "Fijaciones",
+            superficie *
+            r.fijacionesM2 *
+            factorDesperdicio,
+            "unidades"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   AGUA
+===================================================== */
+
+function calcularAgua(
+    lista,
+    factorDesperdicio
+){
+
+    const puntos =
+    entero(
+        puntosAgua.value
+    );
+
+    const puntosCaliente =
+    entero(
+        puntosAguaCaliente.value
+    );
+
+    const metrosExtra =
+    numero(
+        metrosAgua.value
+    );
+
+    const llaves =
+    entero(
+        llavesPaso.value
+    );
+
+    /*
+     * Rendimiento base configurable:
+     * 5 metros por punto.
+     */
+
+    const metrosFria =
+    puntos *
+    5;
+
+    const metrosCaliente =
+    puntosCaliente *
+    5;
+
+    const totalFria =
+    (
+        metrosFria +
+        metrosExtra
+    ) *
+    factorDesperdicio;
+
+    const totalCaliente =
+    metrosCaliente *
+    factorDesperdicio;
+
+
+    agregarResultado(
+        lista,
+        "Caño de agua fría",
+        totalFria,
+        "m"
+    );
+
+    agregarResultado(
+        lista,
+        "Caño de agua caliente",
+        totalCaliente,
+        "m"
+    );
+
+    agregarResultado(
+        lista,
+        "Codos de agua",
+        (
+            puntos +
+            puntosCaliente
+        ) *
+        2 *
+        factorDesperdicio,
+        "unidades"
+    );
+
+    agregarResultado(
+        lista,
+        "Tees de agua",
+        (
+            puntos +
+            puntosCaliente
+        ) *
+        0.5 *
+        factorDesperdicio,
+        "unidades"
+    );
+
+    agregarResultado(
+        lista,
+        "Llaves de paso",
+        llaves,
+        "unidades"
+    );
+
+}
+
+
+/* =====================================================
+   CLOACA
+===================================================== */
+
+function calcularCloaca(
+    lista,
+    factorDesperdicio
+){
+
+    const nInodoros =
+    entero(
+        inodoros.value
+    );
+
+    const nDuchas =
+    entero(
+        duchas.value
+    );
+
+    const nLavamanos =
+    entero(
+        lavamanos.value
+    );
+
+    const nCocinas =
+    entero(
+        cocinas.value
+    );
+
+    const nLavaderos =
+    entero(
+        lavaderos.value
+    );
+
+    const metrosExtra =
+    numero(
+        metrosCloaca.value
+    );
+
+
+    /*
+     * Cañería base estimativa:
+     * 4 m por artefacto.
+     */
+
+    const artefactos =
+    nInodoros +
+    nDuchas +
+    nLavamanos +
+    nCocinas +
+    nLavaderos;
+
+
+    const metrosBase =
+    artefactos *
+    4;
+
+
+    const metrosTotal =
+    (
+        metrosBase +
+        metrosExtra
+    ) *
+    factorDesperdicio;
+
+
+    if(
+        artefactos <= 0 &&
+        metrosExtra <= 0
+    ){
+
+        return;
+
+    }
+
+
+    agregarResultado(
+        lista,
+        "Caño cloacal 110 mm",
+        (
+            nInodoros * 4 +
+            metrosExtra * 0.5
+        ) *
+        factorDesperdicio,
+        "m"
+    );
+
+
+    agregarResultado(
+        lista,
+        "Caño cloacal 50 mm",
+        (
+            (
+                nDuchas +
+                nLavamanos +
+                nCocinas +
+                nLavaderos
+            ) *
+            4 +
+            metrosExtra * 0.5
+        ) *
+        factorDesperdicio,
+        "m"
+    );
+
+
+    agregarResultado(
+        lista,
+        "Codos cloacales",
+        artefactos *
+        2 *
+        factorDesperdicio,
+        "unidades"
+    );
+
+
+    agregarResultado(
+        lista,
+        "Tees cloacales",
+        Math.max(
+            1,
+            artefactos * 0.5
+        ) *
+        factorDesperdicio,
+        "unidades"
+    );
+
+
+    agregarResultado(
+        lista,
+        "Ventilación cloacal",
+        nInodoros > 0
+            ? 1
+            : 0,
+        "unidad"
+    );
+
+}
+
+
+/* =====================================================
+   CÁLCULO GENERAL
+===================================================== */
+
+function calcularMaterialesAutomaticos(){
+
+    const superficies =
+    calcularSuperficies();
+
+    const porcentaje =
+    Math.max(
+        0,
+        numero(
+            desperdicio.value
+        )
+    );
+
+    const factor =
+    1 +
+    (
+        porcentaje / 100
+    );
+
+    const lista = [];
+
+
+    calcularMamposteria(
+        lista,
+        superficies,
+        factor
+    );
+
+
+    calcularCielorraso(
+        lista,
+        superficies,
+        factor
+    );
+
+
+    calcularAgua(
+        lista,
+        factor
+    );
+
+
+    calcularCloaca(
+        lista,
+        factor
+    );
+
+
+    calculoMaterialesActual = {
+
+        tipoObra:
+        "Casa",
+
+        superficieTotal:
+        numero(
+            superficieTotal.value
+        ) ||
+        superficies.pisos,
+
+        desperdicio:
+        porcentaje,
+
+        superficies:superficies,
+
+        ambientes:
+        obtenerAmbientes(),
+
+        aberturas:
+        obtenerAberturas(),
+
+        mamposteria:{
+            tipo:
+            tipoMamposteria.value
+        },
+
+        cielorraso:{
+            tipo:
+            tipoCielorraso.value
+        },
+
+        plomeria:{
+
+            agua:{
+                puntos:
+                entero(
+                    puntosAgua.value
+                ),
+
+                metros:
+                numero(
+                    metrosAgua.value
+                ),
+
+                puntosCaliente:
+                entero(
+                    puntosAguaCaliente.value
+                ),
+
+                llavesPaso:
+                entero(
+                    llavesPaso.value
+                )
+
+            },
+
+            cloaca:{
+
+                inodoros:
+                entero(
+                    inodoros.value
+                ),
+
+                duchas:
+                entero(
+                    duchas.value
+                ),
+
+                lavamanos:
+                entero(
+                    lavamanos.value
+                ),
+
+                cocinas:
+                entero(
+                    cocinas.value
+                ),
+
+                lavaderos:
+                entero(
+                    lavaderos.value
+                ),
+
+                metros:
+                numero(
+                    metrosCloaca.value
+                )
+
+            }
+
+        },
+
+        materiales:lista
+
+    };
+
+
+    mostrarMaterialesCalculados(
+        lista
+    );
+
+
+    return calculoMaterialesActual;
+
+}
+
+
+/* =====================================================
+   MOSTRAR RESULTADO
+===================================================== */
+
+function mostrarMaterialesCalculados(
+    lista
+){
+
+    listaMaterialesCalculados.innerHTML =
+    "";
+
+    if(
+        !lista.length
+    ){
+
+        listaMaterialesCalculados.innerHTML = `
+
+            <div class="aviso-calculo">
+
+                Ingresá medidas de ambientes y/o
+                instalaciones para generar el listado.
+
+            </div>
+
+        `;
+
+        resultadoMateriales.classList.add(
+            "visible"
+        );
+
+        btnPDFMateriales.disabled =
+        true;
+
+        return;
+
+    }
+
+
+    lista.forEach(
+        function(item){
+
+            const fila =
+            document.createElement(
+                "div"
+            );
+
+            fila.className =
+            "material-calculado";
+
+            fila.innerHTML = `
+
+                <span>
+                    ${escaparHTML(item.nombre)}
+                </span>
+
+                <strong>
+                    ${formatearCantidad(
+                        item.cantidad
+                    )}
+                </strong>
+
+                <span class="unidad">
+                    ${escaparHTML(item.unidad)}
+                </span>
+
+            `;
+
+            listaMaterialesCalculados.appendChild(
+                fila
+            );
+
+        }
+    );
+
+
+    resultadoMateriales.classList.add(
+        "visible"
+    );
+
+    btnPDFMateriales.disabled =
+    false;
+
+}
+
+
+function formatearCantidad(
+    valor
+){
+
+    const n =
+    numero(valor);
+
+    if(
+        n >= 100
+    ){
+
+        return Math.ceil(n)
+            .toLocaleString(
+                "es-AR"
+            );
+
+    }
+
+    return (
+        Math.ceil(
+            n * 10
+        ) / 10
+    ).toLocaleString(
+        "es-AR",
+        {
+            maximumFractionDigits:1
+        }
+    );
+
+}
+
+
+function escaparHTML(
+    valor
+){
+
+    return texto(valor)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+
+}
+
+
+btnCalcularMateriales.addEventListener(
+    "click",
+    function(){
+
+        calcularMaterialesAutomaticos();
+
+    }
+);
+
+
+/* =====================================================
+   RECALCULAR AL CAMBIAR CAMPOS
+===================================================== */
+
+[
+    superficieTotal,
+    desperdicio,
+    tipoMamposteria,
+    tipoCielorraso,
+    puntosAgua,
+    metrosAgua,
+    puntosAguaCaliente,
+    llavesPaso,
+    inodoros,
+    duchas,
+    lavamanos,
+    cocinas,
+    lavaderos,
+    metrosCloaca
+].forEach(
+    function(elemento){
+
+        elemento.addEventListener(
+            "input",
+            function(){
+
+                if(
+                    calculoMaterialesActual
+                ){
+
+                    calcularMaterialesAutomaticos();
+
+                }
+
+            }
+        );
+
+        elemento.addEventListener(
+            "change",
+            function(){
+
+                if(
+                    calculoMaterialesActual
+                ){
+
+                    calcularMaterialesAutomaticos();
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+/* =====================================================
+   PDF MATERIALES
+===================================================== */
+
+function generarPDFMateriales(){
+
+    if(
+        !calculoMaterialesActual ||
+        !calculoMaterialesActual.materiales?.length
+    ){
+
+        mostrarMensaje(
+            "Primero calculá los materiales.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(
+        !window.jspdf ||
+        !window.jspdf.jsPDF
+    ){
+
+        mostrarMensaje(
+            "No se pudo cargar el generador PDF.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const {
+        jsPDF
+    } =
+    window.jspdf;
+
+
+    const pdf =
+    new jsPDF();
+
+
+    let y =
+    18;
+
+
+    function textoPDF(
+        valor,
+        x,
+        yy,
+        opciones = {}
+    ){
+
+        pdf.setFont(
+            "helvetica",
+            opciones.bold
+                ? "bold"
+                : "normal"
+        );
+
+        pdf.setFontSize(
+            opciones.size ||
+            10
+        );
+
+        pdf.text(
+            String(valor),
+            x,
+            yy
+        );
+
+    }
+
+
+    function nuevaPagina(){
+
+        if(
+            y > 275
+        ){
+
+            pdf.addPage();
+
+            y = 18;
+
+        }
+
+    }
+
+
+    textoPDF(
+        "GESBASE",
+        15,
+        y,
+        {
+            bold:true,
+            size:20
+        }
+    );
+
+    y += 9;
+
+
+    textoPDF(
+        "LISTADO DE MATERIALES - OBRA",
+        15,
+        y,
+        {
+            bold:true,
+            size:13
+        }
+    );
+
+    y += 9;
+
+
+    textoPDF(
+        "Cliente: " +
+        (
+            texto(cliente.value) ||
+            "Sin informar"
+        ),
+        15,
+        y
+    );
+
+    y += 6;
+
+
+    textoPDF(
+        "Obra: " +
+        (
+            texto(lugarTrabajo.value) ||
+            "Sin informar"
+        ),
+        15,
+        y
+    );
+
+    y += 6;
+
+
+    textoPDF(
+        "Superficie: " +
+        formatearCantidad(
+            calculoMaterialesActual.superficieTotal
+        ) +
+        " m²",
+        15,
+        y
+    );
+
+    y += 6;
+
+
+    textoPDF(
+        "Fecha: " +
+        (
+            fecha.value ||
+            ""
+        ),
+        15,
+        y
+    );
+
+    y += 12;
+
+
+    pdf.line(
+        15,
+        y,
+        195,
+        y
+    );
+
+    y += 9;
+
+
+    calculoMaterialesActual.materiales.forEach(
+        function(item){
+
+            nuevaPagina();
+
+            textoPDF(
+                item.nombre,
+                15,
+                y,
+                {
+                    size:10
+                }
+            );
+
+            textoPDF(
+                formatearCantidad(
+                    item.cantidad
+                ),
+                145,
+                y,
+                {
+                    bold:true
+                }
+            );
+
+            textoPDF(
+                item.unidad,
+                175,
+                y
+            );
+
+            y += 7;
+
+        }
+    );
+
+
+    nuevaPagina();
+
+    y += 7;
+
+    pdf.line(
+        15,
+        y,
+        195,
+        y
+    );
+
+    y += 9;
+
+
+    pdf.setFontSize(
+        8
+    );
+
+    pdf.setFont(
+        "helvetica",
+        "normal"
+    );
+
+
+    const nota =
+    "Listado estimativo de materiales para compra. " +
+    "Las cantidades pueden variar según medidas definitivas, " +
+    "sistema constructivo, desperdicios y condiciones particulares de la obra.";
+
+
+    const lineas =
+    pdf.splitTextToSize(
+        nota,
+        175
+    );
+
+
+    pdf.text(
+        lineas,
+        15,
+        y
+    );
+
+
+    const nombreArchivo =
+    "GESBASE-materiales-" +
+    (
+        texto(
+            numeroAgenda.value
+        ) ||
+        "obra"
+    ) +
+    ".pdf";
+
+
+    pdf.save(
+        nombreArchivo
+    );
+
+}
+
+
+btnPDFMateriales.addEventListener(
+    "click",
+    generarPDFMateriales
+);
+
+
+/* =====================================================
+   MATERIALES MANUALES
 ===================================================== */
 
 function agregarMaterial(){
@@ -1586,22 +4035,22 @@ function agregarMaterial(){
     "Tipo de material";
 
 
-    const cantidad =
+    const cantidadCampo =
     document.createElement("input");
 
-    cantidad.type =
+    cantidadCampo.type =
     "number";
 
-    cantidad.className =
+    cantidadCampo.className =
     "material-cantidad";
 
-    cantidad.placeholder =
+    cantidadCampo.placeholder =
     "Cantidad";
 
-    cantidad.min =
+    cantidadCampo.min =
     "0";
 
-    cantidad.step =
+    cantidadCampo.step =
     "0.01";
 
 
@@ -1616,9 +4065,6 @@ function agregarMaterial(){
 
     quitar.textContent =
     "×";
-
-    quitar.title =
-    "Quitar material";
 
 
     quitar.addEventListener(
@@ -1636,7 +4082,7 @@ function agregarMaterial(){
     );
 
     fila.appendChild(
-        cantidad
+        cantidadCampo
     );
 
     fila.appendChild(
@@ -1648,15 +4094,10 @@ function agregarMaterial(){
         fila
     );
 
-
     tipo.focus();
 
 }
 
-
-/* =====================================================
-   BOTÓN AGREGAR MATERIAL
-===================================================== */
 
 btnAgregar.addEventListener(
     "click",
@@ -1665,46 +4106,31 @@ btnAgregar.addEventListener(
 
 
 /* =====================================================
-   OBTENER MATERIALES
+   OBTENER MATERIALES MANUALES
 ===================================================== */
 
 function obtenerMateriales(){
 
-    const filas =
-    listaMateriales.querySelectorAll(
-        ".material-item"
-    );
-
-
     const lista = [];
 
-
-    filas.forEach(
+    listaMateriales.querySelectorAll(
+        ".material-item"
+    ).forEach(
         function(fila){
-
-            const campoTipo =
-            fila.querySelector(
-                ".material-tipo"
-            );
-
-
-            const campoCantidad =
-            fila.querySelector(
-                ".material-cantidad"
-            );
-
 
             const tipo =
             texto(
-                campoTipo.value
+                fila.querySelector(
+                    ".material-tipo"
+                ).value
             );
-
 
             const cantidad =
             numero(
-                campoCantidad.value
+                fila.querySelector(
+                    ".material-cantidad"
+                ).value
             );
-
 
             if(tipo){
 
@@ -1721,14 +4147,13 @@ function obtenerMateriales(){
         }
     );
 
-
     return lista;
 
 }
 
 
 /* =====================================================
-   CALCULAR TOTAL DEL PRESUPUESTO
+   TOTAL PRESUPUESTO
 ===================================================== */
 
 function calcularTotal(){
@@ -1738,18 +4163,15 @@ function calcularTotal(){
         materiales.value
     );
 
-
     const valorManoObra =
     numero(
         manoObra.value
     );
 
-
     const valorViaticos =
     numero(
         viaticos.value
     );
-
 
     const totalGeneral =
     valorMateriales +
@@ -1762,27 +4184,22 @@ function calcularTotal(){
         valorMateriales
     );
 
-
     resumenManoObra.textContent =
     formatoDinero(
         valorManoObra
     );
-
 
     resumenViaticos.textContent =
     formatoDinero(
         valorViaticos
     );
 
-
     total.textContent =
     formatoDinero(
         totalGeneral
     );
 
-
     calcularAnalisisInterno();
-
 
     return totalGeneral;
 
@@ -1794,12 +4211,10 @@ materiales.addEventListener(
     calcularTotal
 );
 
-
 manoObra.addEventListener(
     "input",
     calcularTotal
 );
-
 
 viaticos.addEventListener(
     "input",
@@ -1808,7 +4223,7 @@ viaticos.addEventListener(
 
 
 /* =====================================================
-   CALCULAR ANÁLISIS INTERNO
+   ANÁLISIS INTERNO
 ===================================================== */
 
 function calcularAnalisisInterno(){
@@ -1819,72 +4234,54 @@ function calcularAnalisisInterno(){
 
     }
 
-
     const costoMaterial =
     numero(
         costoMaterialReal.value
     );
 
-
-    const costoManoObra =
+    const costoMano =
     numero(
         costoManoObraReal.value
     );
-
 
     const otros =
     numero(
         otrosCostos.value
     );
 
-
     const dias =
     numero(
         diasCobro.value
     );
 
-
-    const tasaMensual =
+    const tasa =
     numero(
         tasaFinanciera.value
     );
-
 
     const margen =
     numero(
         margenDeseado.value
     );
 
-
     const costoReal =
     costoMaterial +
-    costoManoObra +
+    costoMano +
     otros;
-
-
-    /*
-     * Cálculo financiero simple:
-     *
-     * costo × tasa mensual × meses
-     *
-     * Los días se convierten
-     * aproximadamente a meses.
-     */
 
     const meses =
     dias / 30;
 
-
     const financiacion =
     costoReal *
-    (tasaMensual / 100) *
+    (
+        tasa / 100
+    ) *
     meses;
-
 
     const costoProtegido =
     costoReal +
     financiacion;
-
 
     const precioActual =
     numero(
@@ -1897,11 +4294,9 @@ function calcularAnalisisInterno(){
         viaticos.value
     );
 
-
-    const gananciaActual =
+    const ganancia =
     precioActual -
     costoProtegido;
-
 
     const precioRecomendado =
     costoProtegido *
@@ -1912,43 +4307,25 @@ function calcularAnalisisInterno(){
 
 
     analisisCostoReal.textContent =
-    formatoDinero(
-        costoReal
-    );
-
+    formatoDinero(costoReal);
 
     analisisFinanciacion.textContent =
-    formatoDinero(
-        financiacion
-    );
-
+    formatoDinero(financiacion);
 
     analisisCostoProtegido.textContent =
-    formatoDinero(
-        costoProtegido
-    );
-
+    formatoDinero(costoProtegido);
 
     analisisPrecioActual.textContent =
-    formatoDinero(
-        precioActual
-    );
-
+    formatoDinero(precioActual);
 
     analisisGananciaActual.textContent =
-    formatoDinero(
-        gananciaActual
-    );
-
+    formatoDinero(ganancia);
 
     analisisMargen.textContent =
     margen.toFixed(0);
 
-
     analisisPrecioRecomendado.textContent =
-    formatoDinero(
-        precioRecomendado
-    );
+    formatoDinero(precioRecomendado);
 
 }
 
@@ -1957,29 +4334,21 @@ function calcularAnalisisInterno(){
    EVENTOS PANEL PRIVADO
 ===================================================== */
 
-costoMaterialReal.addEventListener(
-    "input",
-    calcularAnalisisInterno
-);
+[
+    costoMaterialReal,
+    costoManoObraReal,
+    otrosCostos,
+    diasCobro,
+    tasaFinanciera
+].forEach(
+    function(elemento){
 
-costoManoObraReal.addEventListener(
-    "input",
-    calcularAnalisisInterno
-);
+        elemento.addEventListener(
+            "input",
+            calcularAnalisisInterno
+        );
 
-otrosCostos.addEventListener(
-    "input",
-    calcularAnalisisInterno
-);
-
-diasCobro.addEventListener(
-    "input",
-    calcularAnalisisInterno
-);
-
-tasaFinanciera.addEventListener(
-    "input",
-    calcularAnalisisInterno
+    }
 );
 
 margenDeseado.addEventListener(
@@ -1989,7 +4358,7 @@ margenDeseado.addEventListener(
 
 
 /* =====================================================
-   GENERAR NÚMERO DE AGENDA
+   NÚMERO AGENDA
 ===================================================== */
 
 async function obtenerNumeroAgenda(){
@@ -1999,13 +4368,11 @@ async function obtenerNumeroAgenda(){
         numeroAgenda.value
     );
 
-
     if(ingresado){
 
         return ingresado;
 
     }
-
 
     if(!usuarioActual){
 
@@ -2015,21 +4382,19 @@ async function obtenerNumeroAgenda(){
 
     }
 
-
     for(
-        let intento = 0;
-        intento < 20;
+        let intento=0;
+        intento<20;
         intento++
     ){
 
-        const numeroGenerado =
+        const generado =
         String(
             Math.floor(
                 100000 +
-                Math.random() * 900000
+                Math.random()*900000
             )
         );
-
 
         const referencia =
         collection(
@@ -2037,41 +4402,35 @@ async function obtenerNumeroAgenda(){
             "presupuestos"
         );
 
-
         const consulta =
         query(
             referencia,
-
             where(
                 "uid",
                 "==",
                 usuarioActual.uid
             ),
-
             where(
                 "numeroAgenda",
                 "==",
-                numeroGenerado
+                generado
             )
         );
-
 
         const resultado =
         await getDocs(
             consulta
         );
 
-
         if(
             resultado.empty
         ){
 
-            return numeroGenerado;
+            return generado;
 
         }
 
     }
-
 
     throw new Error(
         "No se pudo generar un número de agenda disponible."
@@ -2081,7 +4440,7 @@ async function obtenerNumeroAgenda(){
 
 
 /* =====================================================
-   GUARDAR PRESUPUESTO
+   GUARDAR
 ===================================================== */
 
 btnGuardar.addEventListener(
@@ -2099,11 +4458,8 @@ btnGuardar.addEventListener(
 
         }
 
-
         if(
-            !texto(
-                cliente.value
-            )
+            !texto(cliente.value)
         ){
 
             mostrarMensaje(
@@ -2117,11 +4473,8 @@ btnGuardar.addEventListener(
 
         }
 
-
         if(
-            !texto(
-                lugarTrabajo.value
-            )
+            !texto(lugarTrabajo.value)
         ){
 
             mostrarMensaje(
@@ -2135,11 +4488,8 @@ btnGuardar.addEventListener(
 
         }
 
-
         if(
-            !texto(
-                descripcion.value
-            )
+            !texto(descripcion.value)
         ){
 
             mostrarMensaje(
@@ -2153,10 +4503,7 @@ btnGuardar.addEventListener(
 
         }
 
-
-        if(
-            !fecha.value
-        ){
+        if(!fecha.value){
 
             mostrarMensaje(
                 "Seleccioná la fecha del presupuesto.",
@@ -2170,27 +4517,51 @@ btnGuardar.addEventListener(
         }
 
 
-        const listaMateriales =
-        obtenerMateriales();
+        /*
+         * Si hay datos de construcción,
+         * se recalcula antes de guardar.
+         */
 
+        const hayDatosConstruccion =
+        numero(superficieTotal.value) > 0 ||
+        obtenerAmbientes().length > 0 ||
+        obtenerAberturas().length > 0 ||
+        numero(puntosAgua.value) > 0 ||
+        numero(puntosAguaCaliente.value) > 0 ||
+        numero(inodoros.value) > 0 ||
+        numero(duchas.value) > 0 ||
+        numero(lavamanos.value) > 0 ||
+        numero(cocinas.value) > 0 ||
+        numero(lavaderos.value) > 0 ||
+        tipoCielorraso.value !== "ninguno";
+
+
+        if(
+            hayDatosConstruccion
+        ){
+
+            calcularMaterialesAutomaticos();
+
+        }
+
+
+        const listaMaterialesManual =
+        obtenerMateriales();
 
         const valorMateriales =
         numero(
             materiales.value
         );
 
-
         const valorManoObra =
         numero(
             manoObra.value
         );
 
-
         const valorViaticos =
         numero(
             viaticos.value
         );
-
 
         const totalGeneral =
         valorMateriales +
@@ -2214,11 +4585,10 @@ btnGuardar.addEventListener(
 
             }
 
-
             if(!empresaIdActual){
 
                 throw new Error(
-                    "No se encontró la empresa asociada al usuario."
+                    "No se encontró la empresa asociada."
                 );
 
             }
@@ -2228,14 +4598,9 @@ btnGuardar.addEventListener(
             await obtenerNumeroAgenda();
 
 
-            /*
-             * ==========================================
-             * DATOS INTERNOS
-             * ==========================================
-             *
-             * Solamente se agregan si el usuario
-             * es el propietario.
-             */
+            /* ==========================================
+               ANÁLISIS INTERNO
+            ========================================== */
 
             let datosAnalisisInterno = {};
 
@@ -2247,62 +4612,52 @@ btnGuardar.addEventListener(
                     costoMaterialReal.value
                 );
 
-
-                const costoManoObra =
+                const costoMano =
                 numero(
                     costoManoObraReal.value
                 );
-
 
                 const otros =
                 numero(
                     otrosCostos.value
                 );
 
-
                 const dias =
                 numero(
                     diasCobro.value
                 );
 
-
-                const tasaMensual =
+                const tasa =
                 numero(
                     tasaFinanciera.value
                 );
-
 
                 const margen =
                 numero(
                     margenDeseado.value
                 );
 
-
                 const costoReal =
                 costoMaterial +
-                costoManoObra +
+                costoMano +
                 otros;
-
-
-                const meses =
-                dias / 30;
-
 
                 const financiacion =
                 costoReal *
-                (tasaMensual / 100) *
-                meses;
-
+                (
+                    tasa / 100
+                ) *
+                (
+                    dias / 30
+                );
 
                 const costoProtegido =
                 costoReal +
                 financiacion;
 
-
-                const gananciaActual =
+                const ganancia =
                 totalGeneral -
                 costoProtegido;
-
 
                 const precioRecomendado =
                 costoProtegido *
@@ -2323,7 +4678,7 @@ btnGuardar.addEventListener(
                     costoMaterial,
 
                     costoManoObraReal:
-                    costoManoObra,
+                    costoMano,
 
                     otrosCostos:
                     otros,
@@ -2332,7 +4687,7 @@ btnGuardar.addEventListener(
                     dias,
 
                     tasaFinancieraMensual:
-                    tasaMensual,
+                    tasa,
 
                     margenDeseado:
                     margen,
@@ -2350,7 +4705,7 @@ btnGuardar.addEventListener(
                     totalGeneral,
 
                     gananciaEstimada:
-                    gananciaActual,
+                    ganancia,
 
                     precioRecomendado:
                     precioRecomendado
@@ -2360,21 +4715,17 @@ btnGuardar.addEventListener(
             }
 
 
-            /*
-             * ==========================================
-             * PRESUPUESTO
-             * ==========================================
-             */
+            /* ==========================================
+               PRESUPUESTO
+            ========================================== */
 
             const presupuesto = {
 
                 uid:
                 usuarioActual.uid,
 
-
                 empresaId:
                 empresaIdActual,
-
 
                 empresaNombre:
                 texto(
@@ -2385,12 +4736,10 @@ btnGuardar.addEventListener(
                 ) ||
                 "",
 
-
                 empresaRazonSocial:
                 texto(
                     datosEmpresa.razonSocial
                 ),
-
 
                 empresaCuit:
                 texto(
@@ -2400,7 +4749,6 @@ btnGuardar.addEventListener(
                     datosEmpresa.CUIT
                 ),
 
-
                 empresaTelefono:
                 texto(
                     datosEmpresa.telefono
@@ -2408,7 +4756,6 @@ btnGuardar.addEventListener(
                 texto(
                     datosEmpresa.phone
                 ),
-
 
                 empresaEmail:
                 texto(
@@ -2418,12 +4765,10 @@ btnGuardar.addEventListener(
                     usuarioActual.email
                 ),
 
-
                 empresaDireccion:
                 texto(
                     datosEmpresa.direccion
                 ),
-
 
                 empresaLogo:
                 texto(
@@ -2433,56 +4778,61 @@ btnGuardar.addEventListener(
                     datosEmpresa.logo
                 ),
 
-
                 cliente:
                 texto(
                     cliente.value
                 ),
 
-
                 numeroAgenda:
                 numeroAgendaFinal,
 
-
                 fecha:
                 fecha.value,
-
 
                 lugarTrabajo:
                 texto(
                     lugarTrabajo.value
                 ),
 
-
                 descripcion:
                 texto(
                     descripcion.value
                 ),
 
-
                 materialesLista:
-                listaMateriales,
-
+                listaMaterialesManual,
 
                 materiales:
                 valorMateriales,
 
-
                 manoObra:
                 valorManoObra,
-
 
                 viaticos:
                 valorViaticos,
 
-
                 total:
                 totalGeneral,
-
 
                 estado:
                 "Pendiente",
 
+                /*
+                 * NUEVO:
+                 * Cómputo automático.
+                 *
+                 * No contiene precios.
+                 */
+
+                tieneCalculoMateriales:
+                !!(
+                    calculoMaterialesActual &&
+                    calculoMaterialesActual.materiales &&
+                    calculoMaterialesActual.materiales.length
+                ),
+
+                calculoMateriales:
+                calculoMaterialesActual || null,
 
                 creado:
                 serverTimestamp(),
@@ -2491,12 +4841,6 @@ btnGuardar.addEventListener(
 
             };
 
-
-            /*
-             * ==========================================
-             * GUARDAR FIRESTORE
-             * ==========================================
-             */
 
             const referencia =
             collection(
@@ -2536,62 +4880,45 @@ btnGuardar.addEventListener(
         catch(error){
 
             console.error(
-                "ERROR GUARDANDO PRESUPUESTO:",
+                "ERROR GUARDANDO:",
                 error
             );
-
 
             let textoError =
             "Error desconocido";
 
+            if(
+                error?.code ===
+                "permission-denied"
+            ){
 
-            if(error){
-
-                if(
-                    error.code ===
-                    "permission-denied"
-                ){
-
-                    textoError =
-                    "Firebase rechazó el acceso. Revisá las reglas de Firestore.";
-
-                }
-                else if(
-                    error.code ===
-                    "failed-precondition"
-                ){
-
-                    textoError =
-                    "Firebase requiere una configuración o índice adicional.";
-
-                }
-                else if(
-                    error.code ===
-                    "unauthenticated"
-                ){
-
-                    textoError =
-                    "La sesión expiró. Volvé a iniciar sesión.";
-
-                }
-                else if(
-                    error.message
-                ){
-
-                    textoError =
-                    error.message;
-
-                }
+                textoError =
+                "Firebase rechazó el acceso. Revisá las reglas de Firestore.";
 
             }
+            else if(
+                error?.code ===
+                "unauthenticated"
+            ){
 
+                textoError =
+                "La sesión expiró. Volvé a iniciar sesión.";
+
+            }
+            else if(
+                error?.message
+            ){
+
+                textoError =
+                error.message;
+
+            }
 
             mostrarMensaje(
                 "No se pudo guardar el presupuesto: " +
                 textoError,
                 "error"
             );
-
 
             btnGuardar.disabled =
             false;
@@ -2621,10 +4948,71 @@ btnVolver.addEventListener(
 
 
 /* =====================================================
+   AUTENTICACIÓN
+===================================================== */
+
+onAuthStateChanged(
+    auth,
+    async function(usuario){
+
+        if(!usuario){
+
+            window.location.replace(
+                "./login.html"
+            );
+
+            return;
+
+        }
+
+        usuarioActual =
+        usuario;
+
+        estadoSesion.textContent =
+        "Sesión activa: " +
+        (
+            usuario.email ||
+            "usuario autenticado"
+        );
+
+        verificarPropietario();
+
+        btnGuardar.disabled =
+        false;
+
+        try{
+
+            await cargarEmpresa();
+
+        }
+        catch(error){
+
+            console.error(error);
+
+        }
+
+        calcularTotal();
+
+        calcularAnalisisInterno();
+
+    }
+);
+
+
+/* =====================================================
    INICIO
 ===================================================== */
 
 colocarFechaActual();
+
+/*
+ * Agregamos un ambiente inicial
+ * para que el usuario pueda empezar
+ * directamente con las medidas.
+ */
+
+agregarAmbiente();
+
 
 calcularTotal();
 
