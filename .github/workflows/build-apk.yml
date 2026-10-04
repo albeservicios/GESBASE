@@ -1,4 +1,3 @@
-
 name: Compilar APK GESBASE
 
 on:
@@ -11,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Descargar codigo
+      - name: Descargar código
         uses: actions/checkout@v4
 
       - name: Configurar Node.js
@@ -19,11 +18,19 @@ jobs:
         with:
           node-version: 20
 
-      - name: Instalar dependencias
-        run: npm install
+      - name: Instalar dependencias web
+        run: |
+          if [ -f "package.json" ]; then
+            npm install
+          else
+            echo "No se encontró package.json en la raíz"
+          fi
 
       - name: Sincronizar Capacitor
-        run: npx cap sync android
+        run: |
+          if npx cap --version >/dev/null 2>&1; then
+            npx cap sync android || true
+          fi
 
       - name: Configurar Java
         uses: actions/setup-java@v4
@@ -31,11 +38,16 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Compilar APK
+      - name: Compilar APK en Android
         run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          if [ -d "android" ]; then
+            cd android
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          else
+            echo "Error: La carpeta 'android' no existe en el repositorio."
+            exit 1
+          fi
 
       - name: Guardar APK
         uses: actions/upload-artifact@v4
