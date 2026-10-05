@@ -20,25 +20,26 @@ jobs:
 
       - name: Preparar entorno Node e instalar Capacitor
         run: |
-          # Crear package.json inicial si el repositorio no lo tiene
           if [ ! -f package.json ]; then
             npm init -y
           fi
-
-          # Instalar dependencias de Capacitor
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
-          # Crear capacitor.config.json apuntando a dist
-          if [ ! -f capacitor.config.json ] && [ ! -f capacitor.config.ts ]; then
-            npx cap init "GESBASE" "com.gesbase.app" --web-dir "dist"
-          fi
+          # Configurar capacitor.config.json con el nombre GESBASE
+          cat << 'EOF' > capacitor.config.json
+          {
+            "appId": "com.gesbase.app",
+            "appName": "GESBASE",
+            "webDir": "dist",
+            "bundledWebRuntime": false
+          }
+          EOF
 
       - name: Preparar assets y build
         run: |
           npm run build || true
           mkdir -p dist
 
-          # Copiar archivos del repositorio a dist/
           cp -r *.html dist/ 2>/dev/null || true
           cp -r *.js dist/ 2>/dev/null || true
           cp -r *.css dist/ 2>/dev/null || true
@@ -57,9 +58,13 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      - name: Permitir tráfico de red y ajustar dependencias de Kotlin
+      - name: Personalizar Nombre de la App y Permisos en Android
         run: |
-          # Permitir HTTP / APIs en la app nativa
+          # Reemplazar el nombre de la app en strings.xml para Android
+          sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">GESBASE<\/string>/' android/app/src/main/res/values/strings.xml
+          sed -i 's/<string name="title_activity_main">.*<\/string>/<string name="title_activity_main">GESBASE<\/string>/' android/app/src/main/res/values/strings.xml
+
+          # Permitir tráfico HTTP/APIs
           sed -i 's/android:supportsRtl="true"/android:supportsRtl="true" android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
 
           cat << 'EOF' >> android/build.gradle
@@ -78,11 +83,12 @@ jobs:
           }
           EOF
 
-      - name: Configurar Java 21
+      - name: Configurar Java 21 (Temurin)
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '21'
+          cache: 'gradle'
 
       - name: Compilar APK en Android
         run: |
