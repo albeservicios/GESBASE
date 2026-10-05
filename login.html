@@ -65,10 +65,6 @@ header{
     color:#d1d5db;
 }
 
-/* ==========================================
-   SELECTOR DE IDIOMA
-========================================== */
-
 .selector-idioma{
     position:absolute;
     top:15px;
@@ -396,9 +392,9 @@ input:focus{
 
 <script type="module">
 
-/* ==========================================
+/* =========================================================
    FIREBASE
-========================================== */
+========================================================= */
 
 import {
     auth
@@ -407,14 +403,34 @@ import {
 import {
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
-    onAuthStateChanged
+    onAuthStateChanged,
+    signOut
 } from
 "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    collection,
+    query,
+    where,
+    getDocs
+} from
+"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-/* ==========================================
+
+/* =========================================================
+   FIRESTORE
+========================================================= */
+
+const db =
+    getFirestore(auth.app);
+
+
+/* =========================================================
    IDIOMAS
-========================================== */
+========================================================= */
 
 const traducciones = {
 
@@ -468,6 +484,24 @@ const traducciones = {
         loginCorrecto:
             "Inicio de sesión correcto. Ingresando...",
 
+        verificandoTipo:
+            "Identificando tipo de usuario...",
+
+        accesoEmpleado:
+            "Acceso de empleado detectado. Ingresando...",
+
+        accesoChofer:
+            "Acceso de chofer detectado. Ingresando...",
+
+        accesoEmpresa:
+            "Acceso empresarial detectado. Ingresando...",
+
+        empleadoInactivo:
+            "Tu acceso como empleado está deshabilitado por la empresa.",
+
+        usuarioSinConfiguracion:
+            "La cuenta está autenticada, pero no tiene un tipo de usuario configurado en GESBASE.",
+
         recuperarEnviado:
             "Te enviamos un correo para restablecer tu contraseña. Revisá también Spam.",
 
@@ -505,10 +539,7 @@ const traducciones = {
             "La API Key de Firebase no es válida.",
 
         accesoNoHabilitado:
-            "El acceso con email y contraseña no está habilitado en Firebase.",
-
-        cerrarSesionError:
-            "No se pudo completar la operación."
+            "El acceso con email y contraseña no está habilitado en Firebase."
 
     },
 
@@ -563,6 +594,24 @@ const traducciones = {
         loginCorrecto:
             "Sign in successful. Entering...",
 
+        verificandoTipo:
+            "Identifying user type...",
+
+        accesoEmpleado:
+            "Employee access detected. Entering...",
+
+        accesoChofer:
+            "Driver access detected. Entering...",
+
+        accesoEmpresa:
+            "Business access detected. Entering...",
+
+        empleadoInactivo:
+            "Your employee access has been disabled by the company.",
+
+        usuarioSinConfiguracion:
+            "The account is authenticated but has no user type configured in GESBASE.",
+
         recuperarEnviado:
             "We sent you an email to reset your password. Please also check your Spam folder.",
 
@@ -600,19 +649,16 @@ const traducciones = {
             "The Firebase API Key is not valid.",
 
         accesoNoHabilitado:
-            "Email and password sign-in is not enabled in Firebase.",
-
-        cerrarSesionError:
-            "The operation could not be completed."
+            "Email and password sign-in is not enabled in Firebase."
 
     }
 
 };
 
 
-/* ==========================================
-   DETECTAR IDIOMA
-========================================== */
+/* =========================================================
+   IDIOMA
+========================================================= */
 
 function obtenerIdiomaInicial(){
 
@@ -657,41 +703,41 @@ let idiomaActual =
     obtenerIdiomaInicial();
 
 
-/* ==========================================
+/* =========================================================
    ELEMENTOS
-========================================== */
+========================================================= */
 
 const formulario =
-document.getElementById("formLogin");
+    document.getElementById("formLogin");
 
 const emailInput =
-document.getElementById("email");
+    document.getElementById("email");
 
 const passwordInput =
-document.getElementById("password");
+    document.getElementById("password");
 
 const mensaje =
-document.getElementById("mensaje");
+    document.getElementById("mensaje");
 
 const diagnostico =
-document.getElementById("diagnostico");
+    document.getElementById("diagnostico");
 
 const botonLogin =
-document.getElementById("btnLogin");
+    document.getElementById("btnLogin");
 
 const botonRegistro =
-document.getElementById("btnRegistro");
+    document.getElementById("btnRegistro");
 
 const botonRecuperar =
-document.getElementById("btnRecuperar");
+    document.getElementById("btnRecuperar");
 
 const selectorIdioma =
-document.getElementById("selectorIdioma");
+    document.getElementById("selectorIdioma");
 
 
-/* ==========================================
-   FUNCIÓN TRADUCIR
-========================================== */
+/* =========================================================
+   TRADUCIR
+========================================================= */
 
 function traducirPagina(){
 
@@ -717,9 +763,7 @@ function traducirPagina(){
                 elemento.dataset.i18n;
 
 
-            if(
-                textos[clave]
-            ){
+            if(textos[clave]){
 
                 elemento.textContent =
                     textos[clave];
@@ -739,9 +783,7 @@ function traducirPagina(){
                 elemento.dataset.i18nPlaceholder;
 
 
-            if(
-                textos[clave]
-            ){
+            if(textos[clave]){
 
                 elemento.placeholder =
                     textos[clave];
@@ -757,9 +799,9 @@ function traducirPagina(){
 }
 
 
-/* ==========================================
+/* =========================================================
    CAMBIAR IDIOMA
-========================================== */
+========================================================= */
 
 selectorIdioma.addEventListener(
     "change",
@@ -781,9 +823,9 @@ selectorIdioma.addEventListener(
 );
 
 
-/* ==========================================
+/* =========================================================
    MENSAJES
-========================================== */
+========================================================= */
 
 function mostrarMensaje(
     texto,
@@ -805,6 +847,7 @@ function mostrarDiagnostico(
 
     diagnostico.style.display =
         "block";
+
 
     diagnostico.innerHTML =
         "<strong>Firebase diagnostic</strong><br><br>" +
@@ -834,9 +877,9 @@ function ocultarDiagnostico(){
 }
 
 
-/* ==========================================
-   OBTENER MENSAJE FIREBASE
-========================================== */
+/* =========================================================
+   ERROR FIREBASE
+========================================================= */
 
 function obtenerMensajeError(
     error,
@@ -844,48 +887,53 @@ function obtenerMensajeError(
 ){
 
     const t =
-        traducciones[
-            idiomaActual
-        ];
+        traducciones[idiomaActual];
 
 
-    if(
-        tipo === "login"
-    ){
+    if(tipo === "login"){
 
         switch(error.code){
 
             case "auth/invalid-credential":
-                return t.errorLogin ===
-                    traducciones.en.errorLogin
+
+                return idiomaActual === "en"
                     ? "Email or password is incorrect."
                     : "Email o contraseña incorrectos.";
 
             case "auth/invalid-email":
+
                 return t.emailInvalido;
 
             case "auth/user-not-found":
+
                 return t.usuarioNoEncontrado;
 
             case "auth/wrong-password":
+
                 return t.contraseñaIncorrecta;
 
             case "auth/user-disabled":
+
                 return t.cuentaDeshabilitada;
 
             case "auth/too-many-requests":
+
                 return t.demasiadosIntentos;
 
             case "auth/network-request-failed":
+
                 return t.errorRed;
 
             case "auth/api-key-not-valid":
+
                 return t.apiInvalida;
 
             case "auth/operation-not-allowed":
+
                 return t.accesoNoHabilitado;
 
             default:
+
                 return error.message ||
                     t.errorLogin;
 
@@ -897,21 +945,27 @@ function obtenerMensajeError(
     switch(error.code){
 
         case "auth/invalid-email":
+
             return t.emailInvalido;
 
         case "auth/user-not-found":
+
             return t.usuarioNoEncontrado;
 
         case "auth/too-many-requests":
+
             return t.demasiadosIntentos;
 
         case "auth/network-request-failed":
+
             return t.errorRed;
 
         case "auth/api-key-not-valid":
+
             return t.apiInvalida;
 
         default:
+
             return t.errorRecuperacion;
 
     }
@@ -919,9 +973,614 @@ function obtenerMensajeError(
 }
 
 
-/* ==========================================
+/* =========================================================
+   DETECTAR TIPO DE USUARIO
+========================================================= */
+
+async function detectarTipoUsuario(
+    usuario
+){
+
+    console.log(
+        "GESBASE: detectando tipo de usuario:",
+        usuario.uid
+    );
+
+
+    /*
+    ========================================================
+    1. BUSCAR USUARIOS/{UID}
+    ========================================================
+    */
+
+    const usuarioRef =
+        doc(
+            db,
+            "usuarios",
+            usuario.uid
+        );
+
+
+    const usuarioSnap =
+        await getDoc(
+            usuarioRef
+        );
+
+
+    if(usuarioSnap.exists()){
+
+        const datos =
+            usuarioSnap.data();
+
+
+        console.log(
+            "GESBASE: documento usuarios encontrado:",
+            datos
+        );
+
+
+        const tipo =
+            String(
+                datos.tipoUsuario ||
+                datos.tipo ||
+                ""
+            ).toLowerCase();
+
+
+        const rol =
+            String(
+                datos.rol ||
+                ""
+            ).toLowerCase();
+
+
+        /*
+        ====================================================
+        EMPLEADO
+        ====================================================
+        */
+
+        if(
+            tipo === "empleado" ||
+            rol === "empleado"
+        ){
+
+            return {
+                tipo: "empleado",
+                datos: datos
+            };
+
+        }
+
+
+        /*
+        ====================================================
+        CHOFER
+        ====================================================
+        */
+
+        if(
+            tipo === "chofer" ||
+            rol === "chofer"
+        ){
+
+            return {
+                tipo: "chofer",
+                datos: datos
+            };
+
+        }
+
+
+        /*
+        ====================================================
+        ADMINISTRADOR / EMPRESA
+        ====================================================
+        */
+
+        if(
+            tipo === "empresa" ||
+            tipo === "administrador" ||
+            tipo === "admin" ||
+            rol === "administrador" ||
+            rol === "admin"
+        ){
+
+            return {
+                tipo: "empresa",
+                datos: datos
+            };
+
+        }
+
+
+        /*
+        ====================================================
+        SI TIENE empresaId PERO NO TIENE TIPO
+        ====================================================
+        */
+
+        if(
+            datos.empresaId ||
+            datos.idEmpresa
+        ){
+
+            /*
+            Puede ser un usuario de empresa.
+            Si también existe empleadoId,
+            lo tratamos como empleado.
+            */
+
+            if(
+                datos.empleadoId
+            ){
+
+                return {
+                    tipo: "empleado",
+                    datos: datos
+                };
+
+            }
+
+
+            return {
+                tipo: "empresa",
+                datos: datos
+            };
+
+        }
+
+    }
+
+
+    /*
+    ========================================================
+    2. RESPALDO: BUSCAR EN empleados
+    ========================================================
+    */
+
+    console.log(
+        "GESBASE: buscando usuario en empleados..."
+    );
+
+
+    let empleadosSnap = null;
+
+
+    /*
+    Buscar por uid
+    */
+
+    try{
+
+        const consultaUid =
+            query(
+                collection(
+                    db,
+                    "empleados"
+                ),
+                where(
+                    "uid",
+                    "==",
+                    usuario.uid
+                )
+            );
+
+
+        empleadosSnap =
+            await getDocs(
+                consultaUid
+            );
+
+    }
+    catch(error){
+
+        console.log(
+            "GESBASE: búsqueda por uid no disponible:",
+            error
+        );
+
+    }
+
+
+    if(
+        empleadosSnap &&
+        !empleadosSnap.empty
+    ){
+
+        const empleado =
+            empleadosSnap.docs[0].data();
+
+
+        return {
+            tipo:
+                String(
+                    empleado.tipoEmpleado ||
+                    ""
+                ).toLowerCase() === "chofer"
+                    ? "chofer"
+                    : "empleado",
+
+            datos:
+                empleado
+        };
+
+    }
+
+
+    /*
+    ========================================================
+    Buscar por email
+    ========================================================
+    */
+
+    try{
+
+        const consultaEmail =
+            query(
+                collection(
+                    db,
+                    "empleados"
+                ),
+                where(
+                    "email",
+                    "==",
+                    usuario.email
+                )
+            );
+
+
+        empleadosSnap =
+            await getDocs(
+                consultaEmail
+            );
+
+
+        if(
+            !empleadosSnap.empty
+        ){
+
+            const empleado =
+                empleadosSnap.docs[0].data();
+
+
+            return {
+                tipo:
+                    String(
+                        empleado.tipoEmpleado ||
+                        ""
+                    ).toLowerCase() === "chofer"
+                        ? "chofer"
+                        : "empleado",
+
+                datos:
+                    empleado
+            };
+
+        }
+
+    }
+    catch(error){
+
+        console.log(
+            "GESBASE: búsqueda por email no disponible:",
+            error
+        );
+
+    }
+
+
+    /*
+    ========================================================
+    NO ENCONTRADO
+    ========================================================
+    */
+
+    return null;
+
+}
+
+
+/* =========================================================
+   VERIFICAR ESTADO DEL EMPLEADO
+========================================================= */
+
+function empleadoEstaActivo(
+    datos
+){
+
+    /*
+    Si no existe estado,
+    no bloqueamos por este campo.
+    Esto permite compatibilidad
+    con empleados antiguos.
+    */
+
+    if(
+        datos.estado === undefined ||
+        datos.estado === null ||
+        datos.estado === ""
+    ){
+
+        return true;
+
+    }
+
+
+    const estado =
+        String(
+            datos.estado
+        ).toLowerCase().trim();
+
+
+    return (
+        estado === "activo" ||
+        estado === "active"
+    );
+
+}
+
+
+/* =========================================================
+   REDIRECCIÓN INTELIGENTE
+========================================================= */
+
+async function redireccionarUsuario(
+    usuario
+){
+
+    const t =
+        traducciones[
+            idiomaActual
+        ];
+
+
+    mostrarMensaje(
+        t.verificandoTipo,
+        "exito"
+    );
+
+
+    try{
+
+        const resultado =
+            await detectarTipoUsuario(
+                usuario
+            );
+
+
+        /*
+        ====================================================
+        NO ENCONTRADO
+        ====================================================
+        */
+
+        if(!resultado){
+
+            console.warn(
+                "GESBASE: usuario sin clasificación."
+            );
+
+
+            mostrarMensaje(
+                t.usuarioSinConfiguracion,
+                "error"
+            );
+
+
+            botonLogin.disabled =
+                false;
+
+            botonLogin.textContent =
+                t.iniciarSesion;
+
+            return;
+
+        }
+
+
+        const datos =
+            resultado.datos;
+
+
+        /*
+        ====================================================
+        EMPLEADO / CHOFER
+        ====================================================
+        */
+
+        if(
+            resultado.tipo === "empleado" ||
+            resultado.tipo === "chofer"
+        ){
+
+            /*
+            Verificar que siga activo.
+            */
+
+            if(
+                !empleadoEstaActivo(
+                    datos
+                )
+            ){
+
+                await signOut(auth);
+
+
+                mostrarMensaje(
+                    t.empleadoInactivo,
+                    "error"
+                );
+
+
+                botonLogin.disabled =
+                    false;
+
+                botonLogin.textContent =
+                    t.iniciarSesion;
+
+                return;
+
+            }
+
+
+            /*
+            Guardamos información mínima
+            para que panel-empleado.html
+            pueda utilizarla.
+            */
+
+            try{
+
+                sessionStorage.setItem(
+                    "gesbaseTipoUsuario",
+                    resultado.tipo
+                );
+
+
+                if(
+                    datos.empresaId
+                ){
+
+                    sessionStorage.setItem(
+                        "gesbaseEmpresaId",
+                        datos.empresaId
+                    );
+
+                }
+
+
+                if(
+                    datos.empleadoId
+                ){
+
+                    sessionStorage.setItem(
+                        "gesbaseEmpleadoId",
+                        datos.empleadoId
+                    );
+
+                }
+
+            }
+            catch(error){
+
+                console.log(
+                    "GESBASE: no se pudo guardar sesión auxiliar.",
+                    error
+                );
+
+            }
+
+
+            mostrarMensaje(
+                resultado.tipo === "chofer"
+                    ? t.accesoChofer
+                    : t.accesoEmpleado,
+                "exito"
+            );
+
+
+            window.location.replace(
+                "panel-empleado.html"
+            );
+
+
+            return;
+
+        }
+
+
+        /*
+        ====================================================
+        EMPRESA
+        ====================================================
+        */
+
+        if(
+            resultado.tipo === "empresa"
+        ){
+
+            try{
+
+                sessionStorage.setItem(
+                    "gesbaseTipoUsuario",
+                    "empresa"
+                );
+
+
+                if(
+                    datos.empresaId
+                ){
+
+                    sessionStorage.setItem(
+                        "gesbaseEmpresaId",
+                        datos.empresaId
+                    );
+
+                }
+
+            }
+            catch(error){
+
+                console.log(
+                    "GESBASE: no se pudo guardar sesión auxiliar.",
+                    error
+                );
+
+            }
+
+
+            mostrarMensaje(
+                t.accesoEmpresa,
+                "exito"
+            );
+
+
+            window.location.replace(
+                "index.html"
+            );
+
+
+            return;
+
+        }
+
+    }
+    catch(error){
+
+        console.error(
+            "GESBASE: error detectando usuario:",
+            error
+        );
+
+
+        mostrarDiagnostico(
+            error
+        );
+
+
+        mostrarMensaje(
+            idiomaActual === "en"
+                ? "Could not verify the user type."
+                : "No se pudo verificar el tipo de usuario.",
+            "error"
+        );
+
+
+        botonLogin.disabled =
+            false;
+
+        botonLogin.textContent =
+            t.iniciarSesion;
+
+    }
+
+}
+
+
+/* =========================================================
    REGISTRO
-========================================== */
+========================================================= */
 
 botonRegistro.addEventListener(
     "click",
@@ -934,9 +1593,9 @@ botonRegistro.addEventListener(
 );
 
 
-/* ==========================================
+/* =========================================================
    RECUPERAR CONTRASEÑA
-========================================== */
+========================================================= */
 
 botonRecuperar.addEventListener(
     "click",
@@ -1023,13 +1682,16 @@ botonRecuperar.addEventListener(
 );
 
 
-/* ==========================================
+/* =========================================================
    SESIÓN EXISTENTE
-========================================== */
+========================================================= */
+
+let comprobandoSesion = false;
+
 
 onAuthStateChanged(
     auth,
-    function(usuario){
+    async function(usuario){
 
         if(!usuario){
 
@@ -1038,23 +1700,33 @@ onAuthStateChanged(
         }
 
 
+        if(comprobandoSesion){
+
+            return;
+
+        }
+
+
+        comprobandoSesion = true;
+
+
         console.log(
             "GESBASE - Usuario autenticado:",
             usuario.uid
         );
 
 
-        window.location.replace(
-            "index.html"
+        await redireccionarUsuario(
+            usuario
         );
 
     }
 );
 
 
-/* ==========================================
+/* =========================================================
    LOGIN
-========================================== */
+========================================================= */
 
 formulario.addEventListener(
     "submit",
@@ -1124,14 +1796,8 @@ formulario.addEventListener(
             );
 
 
-            mostrarMensaje(
-                t.loginCorrecto,
-                "exito"
-            );
-
-
-            window.location.replace(
-                "index.html"
+            await redireccionarUsuario(
+                resultado.user
             );
 
         }
@@ -1169,9 +1835,9 @@ formulario.addEventListener(
 );
 
 
-/* ==========================================
-   INICIAR IDIOMA
-========================================== */
+/* =========================================================
+   INICIAR
+========================================================= */
 
 traducirPagina();
 
