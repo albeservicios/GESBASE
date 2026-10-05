@@ -31,13 +31,9 @@ jobs:
 
       - name: Preparar carpeta web y assets
         run: |
-          # Intentar compilar la app si usa script de build
           npm run build || true
-
-          # Crear directorio www si no existe
           mkdir -p www
 
-          # Si index.html está en la raíz, copiarlo a www
           if [ -f index.html ]; then
             cp -r index.html www/
             cp -r *.js www/ 2>/dev/null || true
@@ -47,7 +43,6 @@ jobs:
             cp -r src www/ 2>/dev/null || true
           fi
 
-          # Si aún no hay index.html dentro de www, crear uno básico de contingencia
           if [ ! -f www/index.html ]; then
             echo '<!DOCTYPE html><html><head><title>GESBASE</title></head><body><h1>GESBASE App</h1></body></html>' > www/index.html
           fi
@@ -59,11 +54,11 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      - name: Configurar Java
+      - name: Configurar Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
       - name: Compilar APK en Android
         run: |
