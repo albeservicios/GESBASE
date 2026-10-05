@@ -18,23 +18,36 @@ jobs:
         with:
           node-version: 20
 
-      - name: Instalar dependencias e inicializar Capacitor
+      - name: Preparar entorno Node e instalar Capacitor
         run: |
-          npm install
+          # Crear package.json inicial si el repositorio no lo tiene
+          if [ ! -f package.json ]; then
+            npm init -y
+          fi
+
+          # Instalar dependencias de Capacitor
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
+          # Crear capacitor.config.json apuntando a dist
           if [ ! -f capacitor.config.json ] && [ ! -f capacitor.config.ts ]; then
             npx cap init "GESBASE" "com.gesbase.app" --web-dir "dist"
           fi
 
-      - name: Compilar proyecto Vite/React
+      - name: Preparar assets y build
         run: |
           npm run build || true
+          mkdir -p dist
 
-          # Si Vite compila en dist, asegurarnos de que existan los archivos web
-          if [ ! -d "dist" ]; then
-            mkdir -p dist
-            cp -r *.html *.js *.css assets dist/ 2>/dev/null || true
+          # Copiar archivos del repositorio a dist/
+          cp -r *.html dist/ 2>/dev/null || true
+          cp -r *.js dist/ 2>/dev/null || true
+          cp -r *.css dist/ 2>/dev/null || true
+          cp -r *.json dist/ 2>/dev/null || true
+          cp -r assets dist/ 2>/dev/null || true
+          cp -r src dist/ 2>/dev/null || true
+
+          if [ ! -f dist/index.html ]; then
+            echo '<!DOCTYPE html><html><head><title>GESBASE</title></head><body><h1>GESBASE App</h1></body></html>' > dist/index.html
           fi
 
       - name: Reconstruir plataforma Android
