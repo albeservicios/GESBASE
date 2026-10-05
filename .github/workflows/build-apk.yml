@@ -14,46 +14,46 @@ jobs:
 
     steps:
 
-      # ============================================================
+      # =========================================================
       # 1. DESCARGAR CÓDIGO
-      # ============================================================
+      # =========================================================
+
       - name: Descargar código
         uses: actions/checkout@v4
 
 
-      # ============================================================
-      # 2. CONFIGURAR NODE 22
-      # Capacitor 8 requiere Node >= 22
-      # ============================================================
+      # =========================================================
+      # 2. NODE 22
+      # =========================================================
+
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
 
-      # ============================================================
-      # 3. VERIFICAR NODE Y NPM
-      # ============================================================
+      # =========================================================
+      # 3. VERIFICAR NODE
+      # =========================================================
+
       - name: Verificar Node.js
         run: |
-
           echo "======================================"
-          echo "VERSIONES DEL ENTORNO"
+          echo "VERSIONES"
           echo "======================================"
 
           node --version
-
           npm --version
 
           echo "======================================"
 
 
-      # ============================================================
-      # 4. PREPARAR NODE Y CAPACITOR
-      # ============================================================
+      # =========================================================
+      # 4. INSTALAR CAPACITOR
+      # =========================================================
+
       - name: Preparar proyecto Node
         run: |
-
           if [ ! -f package.json ]; then
             npm init -y
           fi
@@ -65,6 +65,7 @@ jobs:
             @capacitor/app@8.1.2 \
             @capacitor/push-notifications@8.1.3
 
+          echo ""
           echo "======================================"
           echo "CAPACITOR INSTALADO"
           echo "======================================"
@@ -75,21 +76,21 @@ jobs:
           npm list @capacitor/push-notifications
 
 
-      # ============================================================
+      # =========================================================
       # 5. CREAR DIST
-      # ============================================================
+      # =========================================================
+
       - name: Preparar carpeta dist
         run: |
-
           rm -rf dist
-
           mkdir -p dist
 
 
-      # ============================================================
+      # =========================================================
       # 6. COPIAR ARCHIVOS WEB
-      # ============================================================
-      - name: Copiar archivos web a dist
+      # =========================================================
+
+      - name: Copiar archivos web
         run: |
 
           echo "Copiando HTML..."
@@ -121,6 +122,7 @@ jobs:
 
           echo "Copiando carpetas..."
 
+
           if [ -d "Js" ]; then
             cp -r Js dist/
           fi
@@ -147,7 +149,9 @@ jobs:
 
 
           echo ""
-          echo "Contenido de dist:"
+          echo "======================================"
+          echo "CONTENIDO DE DIST"
+          echo "======================================"
 
           find dist \
             -maxdepth 2 \
@@ -155,10 +159,11 @@ jobs:
             | sort
 
 
-      # ============================================================
-      # 7. CREAR CONTROLADOR DEL BOTÓN ATRÁS
-      # ============================================================
-      - name: Crear controlador de navegación Android
+      # =========================================================
+      # 7. CONTROLADOR WEB DE RESPALDO
+      # =========================================================
+
+      - name: Crear controlador web de navegación
         run: |
 
           cat > dist/gesbase-back.js <<'EOF'
@@ -167,124 +172,42 @@ jobs:
 
               "use strict";
 
-              function iniciarBotonAtras() {
+              console.log(
+                  "GESBASE: sistema de navegación cargado."
+              );
 
-                  if (!window.Capacitor) {
 
-                      console.log(
-                          "GESBASE: Capacitor no disponible."
-                      );
-
-                      return;
-
-                  }
-
-                  const plugins =
-                      window.Capacitor.Plugins || {};
-
-                  const App = plugins.App;
-
-                  if (!App) {
+              window.addEventListener(
+                  "popstate",
+                  function () {
 
                       console.log(
-                          "GESBASE: Plugin App no disponible."
+                          "GESBASE: navegación hacia atrás."
                       );
 
-                      return;
-
                   }
+              );
 
-                  console.log(
-                      "GESBASE: Control de botón atrás iniciado."
-                  );
-
-
-                  App.addListener(
-                      "backButton",
-                      function (event) {
-
-                          console.log(
-                              "GESBASE: Botón atrás presionado.",
-                              event
-                          );
-
-
-                          if (
-                              event &&
-                              event.canGoBack === true
-                          ) {
-
-                              window.history.back();
-
-                              return;
-
-                          }
-
-
-                          if (
-                              window.history.length > 1
-                          ) {
-
-                              window.history.back();
-
-                              return;
-
-                          }
-
-
-                          if (
-                              typeof App.exitApp === "function"
-                          ) {
-
-                              App.exitApp();
-
-                          }
-
-                      }
-                  );
-
-              }
-
-
-              if (
-                  document.readyState === "loading"
-              ) {
-
-                  document.addEventListener(
-                      "DOMContentLoaded",
-                      iniciarBotonAtras
-                  );
-
-              } else {
-
-                  iniciarBotonAtras();
-
-              }
 
           })();
 
           EOF
 
 
-          echo "Controlador creado correctamente."
+          echo "Controlador web creado."
 
 
-      # ============================================================
-      # 8. ACTIVAR CONTROLADOR EN TODOS LOS HTML
-      # ============================================================
-      - name: Activar botón atrás en todas las páginas
+      # =========================================================
+      # 8. INSERTAR CONTROLADOR
+      # =========================================================
+
+      - name: Activar controlador web
         run: |
-
-          echo "Insertando controlador..."
 
           for archivo in dist/*.html; do
 
             if grep -q "gesbase-back.js" "$archivo"; then
-
-              echo "Ya instalado: $archivo"
-
               continue
-
             fi
 
 
@@ -294,73 +217,65 @@ jobs:
                 's#</body>#<script src="./gesbase-back.js"></script>\n</body>#I' \
                 "$archivo"
 
-              echo "Activado: $archivo"
-
             else
 
               echo '<script src="./gesbase-back.js"></script>' \
                 >> "$archivo"
-
-              echo "Activado al final: $archivo"
 
             fi
 
           done
 
 
-          echo ""
-          echo "Páginas modificadas:"
-
-          grep -Rl \
-            "gesbase-back.js" \
-            dist/*.html \
-            | sort
+          echo "Controlador agregado a las páginas."
 
 
-      # ============================================================
-      # 9. VERIFICAR ARCHIVOS PRINCIPALES
-      # ============================================================
+      # =========================================================
+      # 9. VERIFICAR ARCHIVOS
+      # =========================================================
+
       - name: Verificar archivos principales
         run: |
 
-          echo "Verificando GESBASE..."
+          echo "======================================"
+          echo "VERIFICANDO GESBASE"
+          echo "======================================"
 
 
           if [ ! -f dist/index.html ]; then
-            echo "ERROR: No existe index.html"
+            echo "ERROR: falta index.html"
             exit 1
           fi
 
 
           if [ ! -f dist/login.html ]; then
-            echo "ERROR: No existe login.html"
+            echo "ERROR: falta login.html"
             exit 1
           fi
 
 
           if [ ! -f dist/Js/firebase.js ]; then
-            echo "ERROR: No existe Js/firebase.js"
+            echo "ERROR: falta Js/firebase.js"
             exit 1
           fi
 
 
           if [ ! -f dist/gesbase-back.js ]; then
-            echo "ERROR: No existe gesbase-back.js"
+            echo "ERROR: falta gesbase-back.js"
             exit 1
           fi
 
 
-          echo "--------------------------------"
-          echo "index.html .......... OK"
-          echo "login.html .......... OK"
-          echo "Js/firebase.js ...... OK"
-          echo "gesbase-back.js ..... OK"
-          echo "--------------------------------"
+          echo "index.html ............. OK"
+          echo "login.html ............. OK"
+          echo "Js/firebase.js ......... OK"
+          echo "gesbase-back.js ........ OK"
 
 
-      # ============================================================
+      # =========================================================
       # 10. CONFIGURAR CAPACITOR
-      # ============================================================
+      # =========================================================
+
       - name: Configurar Capacitor
         run: |
 
@@ -377,9 +292,13 @@ jobs:
           EOF
 
 
-      # ============================================================
+          echo "capacitor.config.json creado."
+
+
+      # =========================================================
       # 11. CREAR ANDROID
-      # ============================================================
+      # =========================================================
+
       - name: Crear plataforma Android
         run: |
 
@@ -392,42 +311,79 @@ jobs:
           npx cap sync android
 
 
-      # ============================================================
-      # 12. CONFIGURAR MAIN ACTIVITY
-      # ============================================================
+      # =========================================================
+      # 12. MAIN ACTIVITY
+      #
+      # AQUÍ ESTÁ EL CAMBIO IMPORTANTE
+      # =========================================================
+
       - name: Configurar MainActivity
         run: |
 
           MAIN_ACTIVITY="android/app/src/main/java/com/gesbase/app/MainActivity.java"
 
+
           mkdir -p "$(dirname "$MAIN_ACTIVITY")"
+
 
           cat > "$MAIN_ACTIVITY" <<'EOF'
           package com.gesbase.app;
 
+          import android.os.Bundle;
+          import android.webkit.WebView;
+
           import com.getcapacitor.BridgeActivity;
 
           public class MainActivity extends BridgeActivity {
+
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+              }
+
+              @Override
+              public void onBackPressed() {
+
+                  WebView webView = null;
+
+                  try {
+                      webView = this.bridge.getWebView();
+                  } catch (Exception e) {
+                      // Continuar con el comportamiento normal
+                  }
+
+                  if (webView != null && webView.canGoBack()) {
+
+                      webView.goBack();
+
+                  } else {
+
+                      super.onBackPressed();
+
+                  }
+              }
           }
           EOF
 
 
+          echo ""
           echo "======================================"
-          echo "MAIN ACTIVITY CONFIGURADA"
+          echo "MAIN ACTIVITY"
           echo "======================================"
 
           cat "$MAIN_ACTIVITY"
 
 
-      # ============================================================
+      # =========================================================
       # 13. FIREBASE
-      # ============================================================
+      # =========================================================
+
       - name: Copiar google-services.json
         run: |
 
           if [ ! -f google-services.json ]; then
 
-            echo "ERROR: Falta google-services.json"
+            echo "ERROR: falta google-services.json"
 
             exit 1
 
@@ -438,29 +394,43 @@ jobs:
             android/app/google-services.json
 
 
-          echo "google-services.json copiado correctamente."
+          echo "google-services.json copiado."
 
 
-      # ============================================================
+      # =========================================================
       # 14. GOOGLE SERVICES
-      # ============================================================
+      # =========================================================
+
       - name: Configurar Google Services
         run: |
 
-          sed -i '/dependencies {/a\
-              classpath "com.google.gms:google-services:4.4.2"' \
-              android/build.gradle
+          if ! grep -q \
+            'com.google.gms:google-services' \
+            android/build.gradle; then
+
+            sed -i '/dependencies {/a\
+                classpath "com.google.gms:google-services:4.4.2"' \
+                android/build.gradle
+
+          fi
 
 
-          echo "" >> android/app/build.gradle
+          if ! grep -q \
+            'com.google.gms.google-services' \
+            android/app/build.gradle; then
 
-          echo 'apply plugin: "com.google.gms.google-services"' \
-            >> android/app/build.gradle
+            echo "" >> android/app/build.gradle
+
+            echo 'apply plugin: "com.google.gms.google-services"' \
+              >> android/app/build.gradle
+
+          fi
 
 
-      # ============================================================
+      # =========================================================
       # 15. PERMISOS ANDROID
-      # ============================================================
+      # =========================================================
+
       - name: Configurar permisos Android
         run: |
 
@@ -489,9 +459,10 @@ jobs:
           fi
 
 
-      # ============================================================
+      # =========================================================
       # 16. JAVA 21
-      # ============================================================
+      # =========================================================
+
       - name: Configurar Java 21
         uses: actions/setup-java@v4
         with:
@@ -500,62 +471,66 @@ jobs:
           cache: gradle
 
 
-      # ============================================================
+      # =========================================================
       # 17. SINCRONIZAR CAPACITOR
-      # ============================================================
+      # =========================================================
+
       - name: Sincronizar Capacitor
         run: |
 
           npx cap sync android
 
 
-      # ============================================================
-      # 18. VERIFICAR SISTEMA
-      # ============================================================
+      # =========================================================
+      # 18. VERIFICACIÓN FINAL
+      # =========================================================
+
       - name: Verificar sistema
         run: |
 
+          echo ""
           echo "======================================"
-          echo "VERSIONES"
+          echo "VERIFICACIÓN FINAL"
           echo "======================================"
 
+
+          echo ""
+          echo "NODE:"
           node --version
 
+
+          echo ""
+          echo "NPM:"
           npm --version
 
+
+          echo ""
+          echo "CAPACITOR:"
           npm list @capacitor/core
           npm list @capacitor/android
           npm list @capacitor/app
-          npm list @capacitor/push-notifications
 
 
           echo ""
-          echo "======================================"
-          echo "NAVEGACIÓN"
-          echo "======================================"
-
-          test -f dist/gesbase-back.js
-
-          echo "gesbase-back.js ........ OK"
-
-
-          echo ""
-          echo "======================================"
-          echo "MAIN ACTIVITY"
-          echo "======================================"
-
+          echo "MAIN ACTIVITY:"
           cat android/app/src/main/java/com/gesbase/app/MainActivity.java
 
 
           echo ""
+          echo "CONTROLADOR WEB:"
+          test -f dist/gesbase-back.js
+
+
+          echo ""
           echo "======================================"
-          echo "SISTEMA VERIFICADO"
+          echo "SISTEMA LISTO"
           echo "======================================"
 
 
-      # ============================================================
+      # =========================================================
       # 19. COMPILAR APK
-      # ============================================================
+      # =========================================================
+
       - name: Compilar APK Debug
         run: |
 
@@ -566,9 +541,10 @@ jobs:
           ./gradlew assembleDebug --no-daemon
 
 
-      # ============================================================
-      # 20. COMPROBAR APK
-      # ============================================================
+      # =========================================================
+      # 20. VERIFICAR APK
+      # =========================================================
+
       - name: Verificar APK generado
         run: |
 
@@ -577,23 +553,26 @@ jobs:
 
           if [ ! -f "$APK" ]; then
 
-            echo "ERROR: No se generó el APK."
+            echo "ERROR: no se generó el APK."
 
             exit 1
 
           fi
 
 
+          echo ""
           echo "======================================"
-          echo "APK GESBASE GENERADO CORRECTAMENTE"
+          echo "APK GESBASE GENERADO"
           echo "======================================"
+
 
           ls -lh "$APK"
 
 
-      # ============================================================
+      # =========================================================
       # 21. GUARDAR APK
-      # ============================================================
+      # =========================================================
+
       - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
