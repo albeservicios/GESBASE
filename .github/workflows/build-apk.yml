@@ -29,19 +29,18 @@ jobs:
             npx cap init "GESBASE" "com.gesbase.app" --web-dir "www"
           fi
 
-      - name: Preparar carpeta web y assets
+      - name: Preparar carpeta web completa
         run: |
           npm run build || true
           mkdir -p www
 
-          if [ -f index.html ]; then
-            cp -r index.html www/
-            cp -r *.js www/ 2>/dev/null || true
-            cp -r *.css www/ 2>/dev/null || true
-            cp -r *.json www/ 2>/dev/null || true
-            cp -r assets www/ 2>/dev/null || true
-            cp -r src www/ 2>/dev/null || true
-          fi
+          # Copiar absolutamente todo el contenido web disponible a www
+          cp -r *.html www/ 2>/dev/null || true
+          cp -r *.js www/ 2>/dev/null || true
+          cp -r *.css www/ 2>/dev/null || true
+          cp -r *.json www/ 2>/dev/null || true
+          cp -r assets www/ 2>/dev/null || true
+          cp -r src www/ 2>/dev/null || true
 
           if [ ! -f www/index.html ]; then
             echo '<!DOCTYPE html><html><head><title>GESBASE</title></head><body><h1>GESBASE App</h1></body></html>' > www/index.html
@@ -54,8 +53,11 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      - name: Forzar sustitución global de Kotlin en Gradle
+      - name: Permitir tráfico de red y reemplazar Kotlin
         run: |
+          # Habilitar cleartext traffic para peticiones HTTP/API
+          sed -i 's/android:supportsRtl="true"/android:supportsRtl="true" android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
+
           cat << 'EOF' >> android/build.gradle
 
           allprojects {
