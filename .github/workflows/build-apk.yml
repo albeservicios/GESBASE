@@ -20,24 +20,43 @@ jobs:
 
       - name: Preparar entorno Node y Capacitor
         run: |
-          # 1. Crear package.json si no existe
           if [ ! -f package.json ]; then
             npm init -y
           fi
-
-          # 2. Instalar Capacitor y el plugin de Android
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
-          # 3. Inicializar capacitor.config.json si no existe
           if [ ! -f capacitor.config.json ] && [ ! -f capacitor.config.ts ]; then
             npx cap init "GESBASE" "com.gesbase.app" --web-dir "www"
           fi
 
+      - name: Preparar carpeta web y assets
+        run: |
+          # Intentar compilar la app si usa script de build
+          npm run build || true
+
+          # Crear directorio www si no existe
+          mkdir -p www
+
+          # Si index.html está en la raíz, copiarlo a www
+          if [ -f index.html ]; then
+            cp -r index.html www/
+            cp -r *.js www/ 2>/dev/null || true
+            cp -r *.css www/ 2>/dev/null || true
+            cp -r *.json www/ 2>/dev/null || true
+            cp -r assets www/ 2>/dev/null || true
+            cp -r src www/ 2>/dev/null || true
+          fi
+
+          # Si aún no hay index.html dentro de www, crear uno básico de contingencia
+          if [ ! -f www/index.html ]; then
+            echo '<!DOCTYPE html><html><head><title>GESBASE</title></head><body><h1>GESBASE App</h1></body></html>' > www/index.html
+          fi
+
       - name: Reconstruir plataforma Android
         run: |
-          mkdir -p www
           rm -rf android
           npx cap add android
+          npx cap copy android
           npx cap sync android
 
       - name: Configurar Java
