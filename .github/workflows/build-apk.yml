@@ -54,23 +54,20 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      - name: Forzar compatibilidad de Kotlin en Gradle
+      - name: Forzar sustitución global de Kotlin en Gradle
         run: |
-          cat << 'EOF' >> android/app/build.gradle
+          cat << 'EOF' >> android/build.gradle
 
-          android {
-              packagingOptions {
-                  pickFirst '**/kotlin/**'
-                  pickFirst '**/kotlinx/**'
-                  exclude 'META-INF/DEPENDENCIES'
-                  exclude 'META-INF/LICENSE'
-                  exclude 'META-INF/LICENSE.txt'
-                  exclude 'META-INF/license.txt'
-                  exclude 'META-INF/NOTICE'
-                  exclude 'META-INF/NOTICE.txt'
-                  exclude 'META-INF/notice.txt'
-                  exclude 'META-INF/ASL2.0'
-                  exclude 'META-INF/*.kotlin_module'
+          allprojects {
+              configurations.all {
+                  resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                      def requested = details.requested
+                      if (requested.group == 'org.jetbrains.kotlin') {
+                          if (requested.name == 'kotlin-stdlib-jdk7' || requested.name == 'kotlin-stdlib-jdk8') {
+                              details.useTarget "org.jetbrains.kotlin:kotlin-stdlib:${requested.version}"
+                          }
+                      }
+                  }
               }
           }
           EOF
