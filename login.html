@@ -224,13 +224,9 @@ aria-label="Idioma"
 
 <option value="es">
     🇦🇷 ES
-</option>
-
-<option value="en">
+</option><option value="en">
     🇺🇸 EN
-</option>
-
-</select><div class="logo">
+</option></select><div class="logo">
     GESBASE
 </div><div
     class="subtitulo"
@@ -472,7 +468,6 @@ const traducciones = {
             "El acceso con email y contraseña no está habilitado en Firebase."
 
     },
-
 
     en: {
 
@@ -863,15 +858,74 @@ function obtenerMensajeError(
 
 
 /* =========================================================
-   BUSCAR EMPLEADO DIRECTAMENTE
+   BUSCAR EMPLEADO
+   PRIORIDAD ABSOLUTA
 ========================================================= */
 
-async function buscarEmpleado(
-    usuario
-){
+async function buscarEmpleado(usuario){
+
+    console.log(
+        "GESBASE: buscando empleado para UID:",
+        usuario.uid
+    );
+
 
     /*
-    PRIMERO buscamos por UID.
+    ========================================================
+    1. PRIMERA OPCIÓN:
+       EL UID ES EL ID DEL DOCUMENTO
+    ========================================================
+    */
+
+    try{
+
+        const empleadoRef =
+            doc(
+                db,
+                "empleados",
+                usuario.uid
+            );
+
+        const empleadoSnap =
+            await getDoc(
+                empleadoRef
+            );
+
+        if(
+            empleadoSnap.exists()
+        ){
+
+            console.log(
+                "GESBASE: empleado encontrado por ID del documento."
+            );
+
+            return {
+
+                id:
+                    empleadoSnap.id,
+
+                datos:
+                    empleadoSnap.data()
+
+            };
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "GESBASE: error buscando empleado por ID:",
+            error
+        );
+
+    }
+
+
+    /*
+    ========================================================
+    2. BUSCAR POR CAMPO uid
+    ========================================================
     */
 
     try{
@@ -901,6 +955,10 @@ async function buscarEmpleado(
             const documento =
                 resultadoUid.docs[0];
 
+            console.log(
+                "GESBASE: empleado encontrado por campo uid."
+            );
+
             return {
 
                 id:
@@ -917,7 +975,7 @@ async function buscarEmpleado(
     catch(error){
 
         console.warn(
-            "GESBASE: no se pudo buscar empleado por UID:",
+            "GESBASE: error buscando empleado por uid:",
             error
         );
 
@@ -925,12 +983,20 @@ async function buscarEmpleado(
 
 
     /*
-    SI NO APARECE, BUSCAMOS POR EMAIL.
+    ========================================================
+    3. BUSCAR POR EMAIL
+    ========================================================
     */
 
     if(usuario.email){
 
         try{
+
+            const email =
+                usuario.email
+                    .trim()
+                    .toLowerCase();
+
 
             const consultaEmail =
                 query(
@@ -941,7 +1007,7 @@ async function buscarEmpleado(
                     where(
                         "email",
                         "==",
-                        usuario.email.toLowerCase()
+                        email
                     )
                 );
 
@@ -956,6 +1022,10 @@ async function buscarEmpleado(
 
                 const documento =
                     resultadoEmail.docs[0];
+
+                console.log(
+                    "GESBASE: empleado encontrado por email."
+                );
 
                 return {
 
@@ -973,7 +1043,7 @@ async function buscarEmpleado(
         catch(error){
 
             console.warn(
-                "GESBASE: no se pudo buscar empleado por email:",
+                "GESBASE: error buscando empleado por email:",
                 error
             );
 
@@ -981,6 +1051,16 @@ async function buscarEmpleado(
 
     }
 
+
+    /*
+    ========================================================
+    NO ES EMPLEADO
+    ========================================================
+    */
+
+    console.log(
+        "GESBASE: no se encontró empleado."
+    );
 
     return null;
 
@@ -991,15 +1071,7 @@ async function buscarEmpleado(
    ESTADO DEL EMPLEADO
 ========================================================= */
 
-function empleadoEstaHabilitado(
-    datos
-){
-
-    /*
-    ========================================================
-    CAMPO PRINCIPAL
-    ========================================================
-    */
+function empleadoEstaHabilitado(datos){
 
     if(
         datos.accesoHabilitado === false
@@ -1009,12 +1081,6 @@ function empleadoEstaHabilitado(
 
     }
 
-
-    /*
-    ========================================================
-    ESTADOS BLOQUEADOS
-    ========================================================
-    */
 
     const estado =
         String(
@@ -1038,12 +1104,6 @@ function empleadoEstaHabilitado(
     }
 
 
-    /*
-    ========================================================
-    TIPO BLOQUEADO
-    ========================================================
-    */
-
     const tipoAcceso =
         String(
             datos.tipoAcceso ||
@@ -1063,9 +1123,7 @@ function empleadoEstaHabilitado(
 
 
     /*
-    ========================================================
-    COMPATIBILIDAD
-    ========================================================
+    "habilitado" ES CORRECTO.
     */
 
     return true;
@@ -1074,12 +1132,10 @@ function empleadoEstaHabilitado(
 
 
 /* =========================================================
-   OBTENER TIPO DE EMPLEADO
+   TIPO EMPLEADO
 ========================================================= */
 
-function obtenerTipoEmpleado(
-    datos
-){
+function obtenerTipoEmpleado(datos){
 
     const tipoEmpleado =
         String(
@@ -1128,21 +1184,35 @@ function obtenerTipoEmpleado(
    DETECTAR TIPO DE USUARIO
 ========================================================= */
 
-async function detectarTipoUsuario(
-    usuario
-){
+async function detectarTipoUsuario(usuario){
 
     console.log(
-        "GESBASE: detectando usuario:",
-        usuario.uid,
+        "=========================================="
+    );
+
+    console.log(
+        "GESBASE: DETECCIÓN DE USUARIO"
+    );
+
+    console.log(
+        "UID:",
+        usuario.uid
+    );
+
+    console.log(
+        "EMAIL:",
         usuario.email
+    );
+
+    console.log(
+        "=========================================="
     );
 
 
     /*
     ========================================================
-    1. PRIORIDAD ABSOLUTA:
-       COLECCIÓN empleados
+    PASO 1
+    EMPLEADO TIENE PRIORIDAD ABSOLUTA
     ========================================================
     */
 
@@ -1165,8 +1235,21 @@ async function detectarTipoUsuario(
 
 
         console.log(
-            "GESBASE: EMPLEADO ENCONTRADO:",
-            empleado.id,
+            "GESBASE: >>> EMPLEADO DETECTADO <<<"
+        );
+
+        console.log(
+            "ID:",
+            empleado.id
+        );
+
+        console.log(
+            "TIPO:",
+            tipo
+        );
+
+        console.log(
+            "DATOS:",
             datos
         );
 
@@ -1180,7 +1263,10 @@ async function detectarTipoUsuario(
                 empleado.id,
 
             datos:
-                datos
+                datos,
+
+            esEmpleado:
+                true
 
         };
 
@@ -1189,8 +1275,9 @@ async function detectarTipoUsuario(
 
     /*
     ========================================================
-    2. SI NO ES EMPLEADO:
-       BUSCAR usuarios/{uid}
+    PASO 2
+    SOLAMENTE SI NO EXISTE EMPLEADO
+    BUSCAMOS usuarios/{uid}
     ========================================================
     */
 
@@ -1218,7 +1305,7 @@ async function detectarTipoUsuario(
 
 
             console.log(
-                "GESBASE: documento usuarios encontrado:",
+                "GESBASE: documento usuarios:",
                 datos
             );
 
@@ -1243,7 +1330,9 @@ async function detectarTipoUsuario(
 
 
             /*
+            =================================================
             EMPLEADO
+            =================================================
             */
 
             if(
@@ -1261,7 +1350,10 @@ async function detectarTipoUsuario(
                         "",
 
                     datos:
-                        datos
+                        datos,
+
+                    esEmpleado:
+                        true
 
                 };
 
@@ -1269,7 +1361,9 @@ async function detectarTipoUsuario(
 
 
             /*
+            =================================================
             CHOFER
+            =================================================
             */
 
             if(
@@ -1287,7 +1381,10 @@ async function detectarTipoUsuario(
                         "",
 
                     datos:
-                        datos
+                        datos,
+
+                    esEmpleado:
+                        true
 
                 };
 
@@ -1295,7 +1392,9 @@ async function detectarTipoUsuario(
 
 
             /*
+            =================================================
             EMPRESA / ADMIN
+            =================================================
             */
 
             if(
@@ -1312,7 +1411,10 @@ async function detectarTipoUsuario(
                         "empresa",
 
                     datos:
-                        datos
+                        datos,
+
+                    esEmpleado:
+                        false
 
                 };
 
@@ -1320,8 +1422,9 @@ async function detectarTipoUsuario(
 
 
             /*
-            SI TIENE empresaId PERO NO empleadoId,
-            LO TRATAMOS COMO EMPRESA.
+            =================================================
+            COMPATIBILIDAD
+            =================================================
             */
 
             if(
@@ -1342,7 +1445,10 @@ async function detectarTipoUsuario(
                             datos.empleadoId,
 
                         datos:
-                            datos
+                            datos,
+
+                        esEmpleado:
+                            true
 
                     };
 
@@ -1355,7 +1461,10 @@ async function detectarTipoUsuario(
                         "empresa",
 
                     datos:
-                        datos
+                        datos,
+
+                    esEmpleado:
+                        false
 
                 };
 
@@ -1380,12 +1489,10 @@ async function detectarTipoUsuario(
 
 
 /* =========================================================
-   REDIRECCIÓN INTELIGENTE
+   REDIRECCIÓN
 ========================================================= */
 
-async function redireccionarUsuario(
-    usuario
-){
+async function redireccionarUsuario(usuario){
 
     const t =
         traducciones[
@@ -1409,7 +1516,7 @@ async function redireccionarUsuario(
 
         /*
         ====================================================
-        NO ENCONTRADO
+        SIN CONFIGURACIÓN
         ====================================================
         */
 
@@ -1453,7 +1560,8 @@ async function redireccionarUsuario(
         ){
 
             /*
-            VERIFICAR ACCESO REAL
+            IMPORTANTE:
+            SI ES EMPLEADO, NUNCA SE ENVÍA A INDEX.
             */
 
             if(
@@ -1488,43 +1596,41 @@ async function redireccionarUsuario(
             GUARDAR SESIÓN
             */
 
-            try{
+            sessionStorage.setItem(
+                "gesbaseTipoUsuario",
+                resultado.tipo
+            );
+
+
+            if(
+                datos.empresaId
+            ){
 
                 sessionStorage.setItem(
-                    "gesbaseTipoUsuario",
-                    resultado.tipo
+                    "gesbaseEmpresaId",
+                    datos.empresaId
                 );
 
+            }
+            else if(
+                datos.idEmpresa
+            ){
 
-                if(
-                    datos.empresaId
-                ){
-
-                    sessionStorage.setItem(
-                        "gesbaseEmpresaId",
-                        datos.empresaId
-                    );
-
-                }
-
-
-                if(
-                    resultado.empleadoId
-                ){
-
-                    sessionStorage.setItem(
-                        "gesbaseEmpleadoId",
-                        resultado.empleadoId
-                    );
-
-                }
+                sessionStorage.setItem(
+                    "gesbaseEmpresaId",
+                    datos.idEmpresa
+                );
 
             }
-            catch(error){
 
-                console.warn(
-                    "GESBASE: error guardando sesión auxiliar:",
-                    error
+
+            if(
+                resultado.empleadoId
+            ){
+
+                sessionStorage.setItem(
+                    "gesbaseEmpleadoId",
+                    resultado.empleadoId
                 );
 
             }
@@ -1542,19 +1648,17 @@ async function redireccionarUsuario(
             );
 
 
+            console.log(
+                "GESBASE: REDIRECCIÓN A PANEL DE EMPLEADO"
+            );
+
+
             /*
-            DESTINO
+            DESTINO DEFINITIVO
             */
 
-            setTimeout(
-                () => {
-
-                    window.location.replace(
-                        "panel-empleado.html"
-                    );
-
-                },
-                150
+            window.location.replace(
+                "./panel-empleado.html"
             );
 
 
@@ -1573,36 +1677,24 @@ async function redireccionarUsuario(
             resultado.tipo === "empresa"
         ){
 
-            try{
+            sessionStorage.setItem(
+                "gesbaseTipoUsuario",
+                "empresa"
+            );
+
+
+            const empresaId =
+                datos.empresaId ||
+                datos.idEmpresa ||
+                datos.empresa ||
+                "";
+
+
+            if(empresaId){
 
                 sessionStorage.setItem(
-                    "gesbaseTipoUsuario",
-                    "empresa"
-                );
-
-
-                const empresaId =
-                    datos.empresaId ||
-                    datos.idEmpresa ||
-                    datos.empresa ||
-                    "";
-
-
-                if(empresaId){
-
-                    sessionStorage.setItem(
-                        "gesbaseEmpresaId",
-                        empresaId
-                    );
-
-                }
-
-            }
-            catch(error){
-
-                console.warn(
-                    "GESBASE: error guardando empresa:",
-                    error
+                    "gesbaseEmpresaId",
+                    empresaId
                 );
 
             }
@@ -1614,15 +1706,13 @@ async function redireccionarUsuario(
             );
 
 
-            setTimeout(
-                () => {
+            console.log(
+                "GESBASE: REDIRECCIÓN A PANEL EMPRESA"
+            );
 
-                    window.location.replace(
-                        "index.html"
-                    );
 
-                },
-                150
+            window.location.replace(
+                "./index.html"
             );
 
 
@@ -1634,7 +1724,7 @@ async function redireccionarUsuario(
     catch(error){
 
         console.error(
-            "GESBASE: error detectando usuario:",
+            "GESBASE: ERROR DETECTANDO USUARIO:",
             error
         );
 
@@ -1795,8 +1885,9 @@ onAuthStateChanged(
 
 
         console.log(
-            "GESBASE - Usuario autenticado:",
-            usuario.uid
+            "GESBASE: usuario autenticado:",
+            usuario.uid,
+            usuario.email
         );
 
 
@@ -1875,7 +1966,7 @@ formulario.addEventListener(
 
 
             console.log(
-                "GESBASE - Login correcto:",
+                "GESBASE: login correcto:",
                 resultado.user.uid
             );
 
