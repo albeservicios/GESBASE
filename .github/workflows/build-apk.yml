@@ -54,6 +54,7 @@ jobs:
 
       - name: Preparar proyecto Node
         run: |
+
           if [ ! -f package.json ]; then
             npm init -y
           fi
@@ -82,7 +83,9 @@ jobs:
 
       - name: Preparar carpeta dist
         run: |
+
           rm -rf dist
+
           mkdir -p dist
 
 
@@ -150,7 +153,7 @@ jobs:
 
           echo ""
           echo "======================================"
-          echo "CONTENIDO DE DIST"
+          echo "DIST"
           echo "======================================"
 
           find dist \
@@ -160,10 +163,10 @@ jobs:
 
 
       # =========================================================
-      # 7. CONTROLADOR WEB DE RESPALDO
+      # 7. CONTROLADOR ATRÁS
       # =========================================================
 
-      - name: Crear controlador web de navegación
+      - name: Crear controlador web
         run: |
 
           cat > dist/gesbase-back.js <<'EOF'
@@ -173,107 +176,389 @@ jobs:
               "use strict";
 
               console.log(
-                  "GESBASE: sistema de navegación cargado."
+                  "GESBASE: navegación cargada."
               );
-
-
-              window.addEventListener(
-                  "popstate",
-                  function () {
-
-                      console.log(
-                          "GESBASE: navegación hacia atrás."
-                      );
-
-                  }
-              );
-
 
           })();
 
           EOF
 
 
-          echo "Controlador web creado."
+      # =========================================================
+      # 8. CONTROLADOR PUSH
+      # =========================================================
+
+      - name: Crear sistema de notificaciones push
+        run: |
+
+          cat > dist/gesbase-push.js <<'EOF'
+
+          (function () {
+
+              "use strict";
+
+              console.log(
+                  "GESBASE: sistema push iniciado."
+              );
+
+
+              function iniciarPush() {
+
+                  try {
+
+                      if (!window.Capacitor) {
+
+                          console.log(
+                              "GESBASE: Capacitor no disponible."
+                          );
+
+                          return;
+
+                      }
+
+
+                      const plugins =
+                          window.Capacitor.Plugins || {};
+
+
+                      const Push =
+                          plugins.PushNotifications;
+
+
+                      if (!Push) {
+
+                          console.log(
+                              "GESBASE: PushNotifications no disponible."
+                          );
+
+                          return;
+
+                      }
+
+
+                      console.log(
+                          "GESBASE: PushNotifications encontrado."
+                      );
+
+
+                      // -------------------------------------------------
+                      // REGISTRAR TOKEN
+                      // -------------------------------------------------
+
+                      Push.addListener(
+                          "registration",
+                          function (token) {
+
+                              console.log(
+                                  "GESBASE FCM TOKEN:",
+                                  token.value
+                              );
+
+
+                              window.gesbaseFCMToken =
+                                  token.value;
+
+
+                              try {
+
+                                  localStorage.setItem(
+                                      "gesbase_fcm_token",
+                                      token.value
+                                  );
+
+                              } catch (e) {
+
+                                  console.log(
+                                      "No se pudo guardar el token."
+                                  );
+
+                              }
+
+
+                              // Evento para que GESBASE pueda
+                              // guardar el token en Firestore.
+
+                              window.dispatchEvent(
+                                  new CustomEvent(
+                                      "gesbaseFCMToken",
+                                      {
+                                          detail: {
+                                              token:
+                                                  token.value
+                                          }
+                                      }
+                                  )
+                              );
+
+                          }
+                      );
+
+
+                      // -------------------------------------------------
+                      // ERROR DE REGISTRO
+                      // -------------------------------------------------
+
+                      Push.addListener(
+                          "registrationError",
+                          function (error) {
+
+                              console.error(
+                                  "GESBASE PUSH ERROR:",
+                                  error
+                              );
+
+                          }
+                      );
+
+
+                      // -------------------------------------------------
+                      // NOTIFICACIÓN RECIBIDA
+                      // -------------------------------------------------
+
+                      Push.addListener(
+                          "pushNotificationReceived",
+                          function (notification) {
+
+                              console.log(
+                                  "GESBASE NOTIFICACIÓN:",
+                                  notification
+                              );
+
+
+                              window.dispatchEvent(
+                                  new CustomEvent(
+                                      "gesbasePushReceived",
+                                      {
+                                          detail:
+                                              notification
+                                      }
+                                  )
+                              );
+
+                          }
+                      );
+
+
+                      // -------------------------------------------------
+                      // USUARIO TOCÓ LA NOTIFICACIÓN
+                      // -------------------------------------------------
+
+                      Push.addListener(
+                          "pushNotificationActionPerformed",
+                          function (action) {
+
+                              console.log(
+                                  "GESBASE PUSH ACCIÓN:",
+                                  action
+                              );
+
+
+                              const data =
+                                  action.notification &&
+                                  action.notification.data
+                                      ? action.notification.data
+                                      : {};
+
+
+                              window.dispatchEvent(
+                                  new CustomEvent(
+                                      "gesbasePushAction",
+                                      {
+                                          detail: data
+                                      }
+                                  )
+                              );
+
+
+                              // Si viene de un mensaje
+
+                              if (
+                                  data.tipo === "mensaje" &&
+                                  data.url
+                              ) {
+
+                                  window.location.href =
+                                      data.url;
+
+                              }
+
+
+                              // Si viene de una llamada
+
+                              if (
+                                  data.tipo === "llamada" &&
+                                  data.url
+                              ) {
+
+                                  window.location.href =
+                                      data.url;
+
+                              }
+
+                          }
+                      );
+
+
+                      // -------------------------------------------------
+                      // PERMISO Y REGISTRO
+                      // -------------------------------------------------
+
+                      Push.checkPermissions()
+                          .then(function (permiso) {
+
+                              console.log(
+                                  "GESBASE permiso push:",
+                                  permiso
+                              );
+
+
+                              if (
+                                  permiso.receive === "granted"
+                              ) {
+
+                                  return Push.register();
+
+                              }
+
+
+                              return Push.requestPermissions();
+
+                          })
+                          .then(function (permiso) {
+
+                              if (
+                                  permiso &&
+                                  permiso.receive === "granted"
+                              ) {
+
+                                  return Push.register();
+
+                              }
+
+                          })
+                          .catch(function (error) {
+
+                              console.error(
+                                  "GESBASE error permisos push:",
+                                  error
+                              );
+
+                          });
+
+
+                  } catch (error) {
+
+                      console.error(
+                          "GESBASE PUSH:",
+                          error
+                      );
+
+                  }
+
+              }
+
+
+              if (
+                  document.readyState === "loading"
+              ) {
+
+                  document.addEventListener(
+                      "DOMContentLoaded",
+                      iniciarPush
+                  );
+
+              } else {
+
+                  iniciarPush();
+
+              }
+
+          })();
+
+          EOF
+
+
+          echo "Sistema push creado."
 
 
       # =========================================================
-      # 8. INSERTAR CONTROLADOR
+      # 9. INSERTAR SISTEMAS EN TODOS LOS HTML
       # =========================================================
 
-      - name: Activar controlador web
+      - name: Activar navegación y Push
         run: |
 
           for archivo in dist/*.html; do
 
-            if grep -q "gesbase-back.js" "$archivo"; then
-              continue
+            if ! grep -q "gesbase-back.js" "$archivo"; then
+
+              if grep -qi "</body>" "$archivo"; then
+
+                sed -i \
+                  's#</body>#<script src="./gesbase-back.js"></script>\n</body>#I' \
+                  "$archivo"
+
+              else
+
+                echo '<script src="./gesbase-back.js"></script>' \
+                  >> "$archivo"
+
+              fi
+
             fi
 
 
-            if grep -qi "</body>" "$archivo"; then
+            if ! grep -q "gesbase-push.js" "$archivo"; then
 
-              sed -i \
-                's#</body>#<script src="./gesbase-back.js"></script>\n</body>#I' \
-                "$archivo"
+              if grep -qi "</body>" "$archivo"; then
 
-            else
+                sed -i \
+                  's#</body>#<script src="./gesbase-push.js"></script>\n</body>#I' \
+                  "$archivo"
 
-              echo '<script src="./gesbase-back.js"></script>' \
-                >> "$archivo"
+              else
+
+                echo '<script src="./gesbase-push.js"></script>' \
+                  >> "$archivo"
+
+              fi
 
             fi
 
           done
 
 
-          echo "Controlador agregado a las páginas."
+          echo "Navegación y Push activados."
 
 
       # =========================================================
-      # 9. VERIFICAR ARCHIVOS
+      # 10. VERIFICAR ARCHIVOS
       # =========================================================
 
       - name: Verificar archivos principales
         run: |
 
           echo "======================================"
-          echo "VERIFICANDO GESBASE"
+          echo "VERIFICACIÓN"
           echo "======================================"
 
 
-          if [ ! -f dist/index.html ]; then
-            echo "ERROR: falta index.html"
-            exit 1
-          fi
-
-
-          if [ ! -f dist/login.html ]; then
-            echo "ERROR: falta login.html"
-            exit 1
-          fi
-
-
-          if [ ! -f dist/Js/firebase.js ]; then
-            echo "ERROR: falta Js/firebase.js"
-            exit 1
-          fi
-
-
-          if [ ! -f dist/gesbase-back.js ]; then
-            echo "ERROR: falta gesbase-back.js"
-            exit 1
-          fi
+          test -f dist/index.html
+          test -f dist/login.html
+          test -f dist/Js/firebase.js
+          test -f dist/gesbase-back.js
+          test -f dist/gesbase-push.js
 
 
           echo "index.html ............. OK"
           echo "login.html ............. OK"
-          echo "Js/firebase.js ......... OK"
+          echo "firebase.js ............ OK"
           echo "gesbase-back.js ........ OK"
+          echo "gesbase-push.js ........ OK"
 
 
       # =========================================================
-      # 10. CONFIGURAR CAPACITOR
+      # 11. CAPACITOR CONFIG
       # =========================================================
 
       - name: Configurar Capacitor
@@ -292,11 +577,8 @@ jobs:
           EOF
 
 
-          echo "capacitor.config.json creado."
-
-
       # =========================================================
-      # 11. CREAR ANDROID
+      # 12. CREAR ANDROID
       # =========================================================
 
       - name: Crear plataforma Android
@@ -312,9 +594,7 @@ jobs:
 
 
       # =========================================================
-      # 12. MAIN ACTIVITY
-      #
-      # AQUÍ ESTÁ EL CAMBIO IMPORTANTE
+      # 13. MAIN ACTIVITY
       # =========================================================
 
       - name: Configurar MainActivity
@@ -329,30 +609,95 @@ jobs:
           cat > "$MAIN_ACTIVITY" <<'EOF'
           package com.gesbase.app;
 
+          import android.Manifest;
+          import android.content.pm.PackageManager;
+          import android.os.Build;
           import android.os.Bundle;
           import android.webkit.WebView;
+
+          import androidx.activity.result.ActivityResultLauncher;
+          import androidx.activity.result.contract.ActivityResultContracts;
+          import androidx.core.content.ContextCompat;
 
           import com.getcapacitor.BridgeActivity;
 
           public class MainActivity extends BridgeActivity {
 
+              private final ActivityResultLauncher<String>
+                      notificationPermissionLauncher =
+                      registerForActivityResult(
+                          new ActivityResultContracts.RequestPermission(),
+                          isGranted -> {
+                              if (isGranted) {
+                                  System.out.println(
+                                      "GESBASE: permiso de notificaciones concedido."
+                                  );
+                              } else {
+                                  System.out.println(
+                                      "GESBASE: permiso de notificaciones rechazado."
+                                  );
+                              }
+                          }
+                      );
+
+
               @Override
               public void onCreate(Bundle savedInstanceState) {
+
                   super.onCreate(savedInstanceState);
+
+                  solicitarPermisoNotificaciones();
+
               }
+
+
+              private void solicitarPermisoNotificaciones() {
+
+                  if (
+                      Build.VERSION.SDK_INT >=
+                      Build.VERSION_CODES.TIRAMISU
+                  ) {
+
+                      if (
+                          ContextCompat.checkSelfPermission(
+                              this,
+                              Manifest.permission.POST_NOTIFICATIONS
+                          ) != PackageManager.PERMISSION_GRANTED
+                      ) {
+
+                          notificationPermissionLauncher.launch(
+                              Manifest.permission.POST_NOTIFICATIONS
+                          );
+
+                      }
+
+                  }
+
+              }
+
 
               @Override
               public void onBackPressed() {
 
                   WebView webView = null;
 
+
                   try {
-                      webView = this.bridge.getWebView();
+
+                      webView =
+                          this.bridge.getWebView();
+
                   } catch (Exception e) {
-                      // Continuar con el comportamiento normal
+
+                      // Continuar normalmente
+
                   }
 
-                  if (webView != null && webView.canGoBack()) {
+
+                  if (
+                      webView != null &&
+                      webView.canGoBack()
+                  ) {
 
                       webView.goBack();
 
@@ -361,21 +706,18 @@ jobs:
                       super.onBackPressed();
 
                   }
+
               }
+
           }
           EOF
 
 
-          echo ""
-          echo "======================================"
-          echo "MAIN ACTIVITY"
-          echo "======================================"
-
-          cat "$MAIN_ACTIVITY"
+          echo "MainActivity configurada."
 
 
       # =========================================================
-      # 13. FIREBASE
+      # 14. FIREBASE
       # =========================================================
 
       - name: Copiar google-services.json
@@ -394,11 +736,8 @@ jobs:
             android/app/google-services.json
 
 
-          echo "google-services.json copiado."
-
-
       # =========================================================
-      # 14. GOOGLE SERVICES
+      # 15. GOOGLE SERVICES
       # =========================================================
 
       - name: Configurar Google Services
@@ -428,7 +767,7 @@ jobs:
 
 
       # =========================================================
-      # 15. PERMISOS ANDROID
+      # 16. PERMISOS
       # =========================================================
 
       - name: Configurar permisos Android
@@ -460,7 +799,7 @@ jobs:
 
 
       # =========================================================
-      # 16. JAVA 21
+      # 17. JAVA 21
       # =========================================================
 
       - name: Configurar Java 21
@@ -472,7 +811,7 @@ jobs:
 
 
       # =========================================================
-      # 17. SINCRONIZAR CAPACITOR
+      # 18. SINCRONIZAR CAPACITOR
       # =========================================================
 
       - name: Sincronizar Capacitor
@@ -482,7 +821,7 @@ jobs:
 
 
       # =========================================================
-      # 18. VERIFICACIÓN FINAL
+      # 19. VERIFICACIÓN FINAL
       # =========================================================
 
       - name: Verificar sistema
@@ -490,45 +829,36 @@ jobs:
 
           echo ""
           echo "======================================"
-          echo "VERIFICACIÓN FINAL"
+          echo "CAPACITOR"
           echo "======================================"
 
-
-          echo ""
-          echo "NODE:"
-          node --version
-
-
-          echo ""
-          echo "NPM:"
-          npm --version
-
-
-          echo ""
-          echo "CAPACITOR:"
           npm list @capacitor/core
           npm list @capacitor/android
           npm list @capacitor/app
-
-
-          echo ""
-          echo "MAIN ACTIVITY:"
-          cat android/app/src/main/java/com/gesbase/app/MainActivity.java
-
-
-          echo ""
-          echo "CONTROLADOR WEB:"
-          test -f dist/gesbase-back.js
+          npm list @capacitor/push-notifications
 
 
           echo ""
           echo "======================================"
-          echo "SISTEMA LISTO"
+          echo "ARCHIVOS PUSH"
           echo "======================================"
+
+          test -f dist/gesbase-push.js
+
+          echo "gesbase-push.js ........ OK"
+
+
+          echo ""
+          echo "======================================"
+          echo "MAIN ACTIVITY"
+          echo "======================================"
+
+          cat \
+            android/app/src/main/java/com/gesbase/app/MainActivity.java
 
 
       # =========================================================
-      # 19. COMPILAR APK
+      # 20. COMPILAR APK
       # =========================================================
 
       - name: Compilar APK Debug
@@ -542,7 +872,7 @@ jobs:
 
 
       # =========================================================
-      # 20. VERIFICAR APK
+      # 21. VERIFICAR APK
       # =========================================================
 
       - name: Verificar APK generado
@@ -565,12 +895,11 @@ jobs:
           echo "APK GESBASE GENERADO"
           echo "======================================"
 
-
           ls -lh "$APK"
 
 
       # =========================================================
-      # 21. GUARDAR APK
+      # 22. GUARDAR APK
       # =========================================================
 
       - name: Guardar APK
