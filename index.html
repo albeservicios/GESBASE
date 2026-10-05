@@ -620,7 +620,7 @@ footer{
     id="cargando"
     class="cargando"
 >
-    Cargando GESBASE...
+    Verificando sesión...
 </div>
 
 
@@ -635,13 +635,9 @@ footer{
             Mi empresa
         </h2>
 
-        <p id="razonSocial">
-            -
-        </p>
+        <p id="razonSocial">-</p>
 
-        <p id="rubroEmpresa">
-            -
-        </p>
+        <p id="rubroEmpresa">-</p>
 
         <span
             id="estadoAcceso"
@@ -1106,8 +1102,6 @@ footer{
 
         <div class="botones-grid">
 
-            <!-- CORREGIDO: ahora apunta a empresa.html -->
-
             <button
                 class="modulo protegido"
                 data-url="./empresa.html"
@@ -1148,17 +1142,29 @@ footer{
 
         <div class="botones-grid">
 
-            <button class="modulo boton-control" data-url="./administrador.html" type="button">
+            <button
+                class="modulo boton-control"
+                data-url="./administrador.html"
+                type="button"
+            >
                 <span class="icono">⚙️</span>
                 Panel de Administrador
             </button>
 
-            <button class="modulo boton-control" data-url="./control-accesos.html" type="button">
+            <button
+                class="modulo boton-control"
+                data-url="./control-accesos.html"
+                type="button"
+            >
                 <span class="icono">🔐</span>
                 Control de accesos
             </button>
 
-            <button class="modulo boton-control" data-url="./atencion.html" type="button">
+            <button
+                class="modulo boton-control"
+                data-url="./atencion.html"
+                type="button"
+            >
                 <span class="icono">🎧</span>
                 Atención
             </button>
@@ -1211,17 +1217,29 @@ footer{
 
     <div class="empleado-acciones">
 
-        <button class="modulo" data-url="./fichaje.html" type="button">
+        <button
+            class="modulo"
+            data-url="./fichaje.html"
+            type="button"
+        >
             <span class="icono">⏱️</span>
             Fichaje
         </button>
 
-        <button class="modulo" data-url="./modo-chofer.html" type="button">
+        <button
+            class="modulo"
+            data-url="./modo-chofer.html"
+            type="button"
+        >
             <span class="icono">🚛</span>
             Modo chofer
         </button>
 
-        <button class="modulo" data-url="./comunicacion.html" type="button">
+        <button
+            class="modulo"
+            data-url="./comunicacion.html"
+            type="button"
+        >
             <span class="icono">💬</span>
             Comunicación
         </button>
@@ -1261,37 +1279,73 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-/* =====================================================
+/* =========================================================
    CONFIGURACIÓN
-===================================================== */
+========================================================= */
 
-const EMAIL_ADMIN = "julianbattauz006@gmail.com";
+const EMAIL_ADMIN =
+    "julianbattauz006@gmail.com";
 
 
-/* =====================================================
+/*
+ * Evita que el index se muestre aunque Firebase
+ * todavía esté verificando la sesión.
+ */
+document.documentElement.style.background =
+    "#f3f4f6";
+
+
+/* =========================================================
    ELEMENTOS
-===================================================== */
+========================================================= */
 
-const cargando = document.getElementById("cargando");
-const contenido = document.getElementById("contenido");
-const panelEmpleado = document.getElementById("panelEmpleado");
-const btnCerrarSesion = document.getElementById("btnCerrarSesion");
+const cargando =
+    document.getElementById("cargando");
 
-const nombreEmpresa = document.getElementById("nombreEmpresa");
-const razonSocial = document.getElementById("razonSocial");
-const rubroEmpresa = document.getElementById("rubroEmpresa");
+const contenido =
+    document.getElementById("contenido");
 
-const infoEmpresa = document.getElementById("infoEmpresa");
-const infoRazonSocial = document.getElementById("infoRazonSocial");
-const infoRubro = document.getElementById("infoRubro");
-const infoEmail = document.getElementById("infoEmail");
+const panelEmpleado =
+    document.getElementById("panelEmpleado");
 
-const estadoAcceso = document.getElementById("estadoAcceso");
-const alertaAcceso = document.getElementById("alertaAcceso");
+const btnCerrarSesion =
+    document.getElementById("btnCerrarSesion");
 
-const totalIngresos = document.getElementById("totalIngresos");
-const totalGastos = document.getElementById("totalGastos");
-const resultadoEmpresa = document.getElementById("resultadoEmpresa");
+const nombreEmpresa =
+    document.getElementById("nombreEmpresa");
+
+const razonSocial =
+    document.getElementById("razonSocial");
+
+const rubroEmpresa =
+    document.getElementById("rubroEmpresa");
+
+const infoEmpresa =
+    document.getElementById("infoEmpresa");
+
+const infoRazonSocial =
+    document.getElementById("infoRazonSocial");
+
+const infoRubro =
+    document.getElementById("infoRubro");
+
+const infoEmail =
+    document.getElementById("infoEmail");
+
+const estadoAcceso =
+    document.getElementById("estadoAcceso");
+
+const alertaAcceso =
+    document.getElementById("alertaAcceso");
+
+const totalIngresos =
+    document.getElementById("totalIngresos");
+
+const totalGastos =
+    document.getElementById("totalGastos");
+
+const resultadoEmpresa =
+    document.getElementById("resultadoEmpresa");
 
 const seccionServicios =
     document.getElementById("seccionServicios");
@@ -1327,44 +1381,57 @@ const notificacion =
     document.getElementById("notificacion");
 
 
-/* =====================================================
+/* =========================================================
    VARIABLES
-===================================================== */
+========================================================= */
 
 let empresaActual = null;
+
 let empresaIdActual = null;
+
 let usuarioActual = null;
+
 let accesoPermitido = true;
+
 let sesionEmpleado = null;
+
 let navegando = false;
 
+let autenticacionResuelta = false;
 
-/* =====================================================
+
+/* =========================================================
    NOTIFICACIÓN
-===================================================== */
+========================================================= */
 
 function mostrarNotificacion(mensaje){
 
-    notificacion.textContent = mensaje;
+    notificacion.textContent =
+        mensaje;
 
-    notificacion.classList.remove("oculto");
+    notificacion.classList.remove(
+        "oculto"
+    );
 
     setTimeout(() => {
 
-        notificacion.classList.add("oculto");
+        notificacion.classList.add(
+            "oculto"
+        );
 
     },3500);
 
 }
 
 
-/* =====================================================
+/* =========================================================
    DINERO
-===================================================== */
+========================================================= */
 
 function dinero(valor){
 
-    const numero = Number(valor) || 0;
+    const numero =
+        Number(valor) || 0;
 
     return numero.toLocaleString(
         "es-AR",
@@ -1377,9 +1444,9 @@ function dinero(valor){
 }
 
 
-/* =====================================================
+/* =========================================================
    NORMALIZAR RUBRO
-===================================================== */
+========================================================= */
 
 function normalizarRubro(rubro){
 
@@ -1387,18 +1454,22 @@ function normalizarRubro(rubro){
         .trim()
         .toLowerCase()
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g,"");
+        .replace(
+            /[\u0300-\u036f]/g,
+            ""
+        );
 
 }
 
 
-/* =====================================================
+/* =========================================================
    RUBROS
-===================================================== */
+========================================================= */
 
 function esRubroComercio(rubro){
 
-    const r = normalizarRubro(rubro);
+    const r =
+        normalizarRubro(rubro);
 
     return [
         "comercio",
@@ -1413,7 +1484,8 @@ function esRubroComercio(rubro){
 
 function esRubroTransporte(rubro){
 
-    const r = normalizarRubro(rubro);
+    const r =
+        normalizarRubro(rubro);
 
     return [
         "transporte",
@@ -1429,7 +1501,8 @@ function esRubroTransporte(rubro){
 
 function esRubroConstruccion(rubro){
 
-    const r = normalizarRubro(rubro);
+    const r =
+        normalizarRubro(rubro);
 
     return [
         "construccion",
@@ -1444,7 +1517,8 @@ function esRubroConstruccion(rubro){
 
 function esRubroAlquilerTemporal(rubro){
 
-    const r = normalizarRubro(rubro);
+    const r =
+        normalizarRubro(rubro);
 
     return [
 
@@ -1470,9 +1544,9 @@ function esRubroAlquilerTemporal(rubro){
 }
 
 
-/* =====================================================
+/* =========================================================
    CONFIGURAR VISTA
-===================================================== */
+========================================================= */
 
 function configurarVistaEmpresa(){
 
@@ -1482,10 +1556,17 @@ function configurarVistaEmpresa(){
         empresaActual?.tipoEmpresa ||
         "";
 
-    const comercio = esRubroComercio(rubro);
-    const transporte = esRubroTransporte(rubro);
-    const construccion = esRubroConstruccion(rubro);
-    const alquilerTemporal = esRubroAlquilerTemporal(rubro);
+    const comercio =
+        esRubroComercio(rubro);
+
+    const transporte =
+        esRubroTransporte(rubro);
+
+    const construccion =
+        esRubroConstruccion(rubro);
+
+    const alquilerTemporal =
+        esRubroAlquilerTemporal(rubro);
 
 
     seccionServicios.classList.toggle(
@@ -1528,9 +1609,9 @@ function configurarVistaEmpresa(){
 }
 
 
-/* =====================================================
+/* =========================================================
    OBTENER EMPRESA
-===================================================== */
+========================================================= */
 
 async function obtenerEmpresa(usuario){
 
@@ -1542,9 +1623,12 @@ async function obtenerEmpresa(usuario){
         );
 
     const usuarioSnap =
-        await getDoc(usuarioRef);
+        await getDoc(
+            usuarioRef
+        );
 
     let datosUsuario = {};
+
 
     if(usuarioSnap.exists()){
 
@@ -1552,6 +1636,7 @@ async function obtenerEmpresa(usuario){
             usuarioSnap.data() || {};
 
     }
+
 
     let empresaId =
         datosUsuario.empresaId ||
@@ -1564,7 +1649,10 @@ async function obtenerEmpresa(usuario){
 
         const q =
             query(
-                collection(db,"empresas"),
+                collection(
+                    db,
+                    "empresas"
+                ),
                 where(
                     "propietarioUid",
                     "==",
@@ -1572,8 +1660,10 @@ async function obtenerEmpresa(usuario){
                 )
             );
 
+
         const resultado =
             await getDocs(q);
+
 
         if(!resultado.empty){
 
@@ -1603,8 +1693,11 @@ async function obtenerEmpresa(usuario){
             empresaId
         );
 
+
     const empresaSnap =
-        await getDoc(empresaRef);
+        await getDoc(
+            empresaRef
+        );
 
 
     if(!empresaSnap.exists()){
@@ -1634,9 +1727,9 @@ async function obtenerEmpresa(usuario){
 }
 
 
-/* =====================================================
+/* =========================================================
    SESIÓN EMPLEADO
-===================================================== */
+========================================================= */
 
 async function cargarSesionEmpleado(){
 
@@ -1647,18 +1740,56 @@ async function cargarSesionEmpleado(){
                 "gesbaseEmpleado"
             );
 
+
         if(!almacenado){
+
             return null;
+
         }
 
+
         const datos =
-            JSON.parse(almacenado);
+            JSON.parse(
+                almacenado
+            );
+
+
+        if(!datos){
+
+            sessionStorage.removeItem(
+                "gesbaseEmpleado"
+            );
+
+            return null;
+
+        }
+
+
+        /*
+         * Aceptamos las diferentes formas
+         * que puede haber guardado la sesión.
+         */
+
+        const empleadoId =
+            datos.empleadoId ||
+            datos.id ||
+            datos.idEmpleado;
+
+
+        const empresaId =
+            datos.empresaId ||
+            datos.idEmpresa;
+
+
+        const uid =
+            datos.uid ||
+            auth.currentUser?.uid;
+
 
         if(
-            !datos ||
-            !datos.uid ||
-            !datos.empleadoId ||
-            !datos.empresaId
+            !empleadoId ||
+            !empresaId ||
+            !uid
         ){
 
             sessionStorage.removeItem(
@@ -1672,7 +1803,7 @@ async function cargarSesionEmpleado(){
 
         if(
             auth.currentUser &&
-            datos.uid !== auth.currentUser.uid
+            uid !== auth.currentUser.uid
         ){
 
             sessionStorage.removeItem(
@@ -1688,11 +1819,14 @@ async function cargarSesionEmpleado(){
             doc(
                 db,
                 "empleados",
-                datos.empleadoId
+                empleadoId
             );
 
+
         const empleadoSnap =
-            await getDoc(empleadoRef);
+            await getDoc(
+                empleadoRef
+            );
 
 
         if(!empleadoSnap.exists()){
@@ -1709,6 +1843,7 @@ async function cargarSesionEmpleado(){
         const empleado =
             empleadoSnap.data() || {};
 
+
         const empresaEmpleado =
             empleado.empresaId ||
             empleado.idEmpresa;
@@ -1717,7 +1852,7 @@ async function cargarSesionEmpleado(){
         if(
             empresaEmpleado &&
             String(empresaEmpleado) !==
-            String(datos.empresaId)
+            String(empresaId)
         ){
 
             sessionStorage.removeItem(
@@ -1732,6 +1867,12 @@ async function cargarSesionEmpleado(){
         return {
 
             ...datos,
+
+            uid,
+
+            empleadoId,
+
+            empresaId,
 
             empleado:{
                 id:empleadoSnap.id,
@@ -1759,17 +1900,23 @@ async function cargarSesionEmpleado(){
 }
 
 
-/* =====================================================
+/* =========================================================
    PANEL EMPLEADO
-===================================================== */
+========================================================= */
 
 function mostrarPanelEmpleado(sesion){
 
-    contenido.classList.add("oculto");
+    contenido.classList.add(
+        "oculto"
+    );
 
-    panelEmpleado.classList.remove("oculto");
+    panelEmpleado.classList.remove(
+        "oculto"
+    );
 
-    btnCerrarSesion.classList.remove("oculto");
+    btnCerrarSesion.classList.remove(
+        "oculto"
+    );
 
 
     const empleado =
@@ -1787,7 +1934,6 @@ function mostrarPanelEmpleado(sesion){
 
     empleadoNombre.textContent =
         nombre ||
-        sesion.nombre ||
         "Empleado";
 
 
@@ -1804,17 +1950,21 @@ function mostrarPanelEmpleado(sesion){
 }
 
 
-/* =====================================================
+/* =========================================================
    DATOS EMPRESA
-===================================================== */
+========================================================= */
 
 async function cargarDatosEmpresa(){
 
     if(!empresaActual){
+
         return;
+
     }
 
-    const empresa = empresaActual;
+
+    const empresa =
+        empresaActual;
 
 
     const nombre =
@@ -1837,25 +1987,32 @@ async function cargarDatosEmpresa(){
         "Sin definir";
 
 
-    nombreEmpresa.textContent = nombre;
+    nombreEmpresa.textContent =
+        nombre;
 
-    razonSocial.textContent = razon;
+    razonSocial.textContent =
+        razon;
 
     rubroEmpresa.textContent =
         "Rubro: " + rubro;
 
-    infoEmpresa.textContent = nombre;
+    infoEmpresa.textContent =
+        nombre;
 
-    infoRazonSocial.textContent = razon;
+    infoRazonSocial.textContent =
+        razon;
 
-    infoRubro.textContent = rubro;
+    infoRubro.textContent =
+        rubro;
 
     infoEmail.textContent =
         usuarioActual?.email || "-";
 
 
     const rol =
-        String(usuarioActual?.rol || "")
+        String(
+            usuarioActual?.rol || ""
+        )
         .trim()
         .toLowerCase();
 
@@ -1923,18 +2080,16 @@ async function cargarDatosEmpresa(){
 }
 
 
-/* =====================================================
+/* =========================================================
    INGRESOS
-===================================================== */
+========================================================= */
 
-async function cargarIngresos(){
-
-    totalIngresos.textContent =
-        dinero(0);
-
+async function obtenerTotalIngresos(){
 
     if(!empresaIdActual){
+
         return 0;
+
     }
 
 
@@ -1942,7 +2097,10 @@ async function cargarIngresos(){
 
         const q =
             query(
-                collection(db,"cobros"),
+                collection(
+                    db,
+                    "cobros"
+                ),
                 where(
                     "empresaId",
                     "==",
@@ -1958,39 +2116,38 @@ async function cargarIngresos(){
         let total = 0;
 
 
-        resultado.forEach(snap => {
+        resultado.forEach(
+            snap => {
 
-            const datos =
-                snap.data() || {};
-
-            const estado =
-                String(
-                    datos.estado || ""
-                )
-                .trim()
-                .toLowerCase();
+                const datos =
+                    snap.data() || {};
 
 
-            if(
-                !estado ||
-                estado === "cobrado"
-            ){
+                const estado =
+                    String(
+                        datos.estado || ""
+                    )
+                    .trim()
+                    .toLowerCase();
 
-                total +=
-                    Number(
-                        datos.importe ??
-                        datos.monto ??
-                        datos.total ??
-                        0
-                    );
+
+                if(
+                    !estado ||
+                    estado === "cobrado"
+                ){
+
+                    total +=
+                        Number(
+                            datos.importe ??
+                            datos.monto ??
+                            datos.total ??
+                            0
+                        );
+
+                }
 
             }
-
-        });
-
-
-        totalIngresos.textContent =
-            dinero(total);
+        );
 
 
         return total;
@@ -1999,12 +2156,9 @@ async function cargarIngresos(){
     catch(error){
 
         console.error(
-            "Error cargando cobros:",
+            "Error obteniendo ingresos:",
             error
         );
-
-        totalIngresos.textContent =
-            dinero(0);
 
         return 0;
 
@@ -2013,9 +2167,24 @@ async function cargarIngresos(){
 }
 
 
-/* =====================================================
+async function cargarIngresos(){
+
+    const total =
+        await obtenerTotalIngresos();
+
+
+    totalIngresos.textContent =
+        dinero(total);
+
+
+    return total;
+
+}
+
+
+/* =========================================================
    GASTOS
-===================================================== */
+========================================================= */
 
 async function cargarGastos(){
 
@@ -2027,7 +2196,9 @@ async function cargarGastos(){
 
 
     if(!empresaIdActual){
+
         return;
+
     }
 
 
@@ -2035,7 +2206,10 @@ async function cargarGastos(){
 
         const q =
             query(
-                collection(db,"gastos"),
+                collection(
+                    db,
+                    "gastos"
+                ),
                 where(
                     "empresaId",
                     "==",
@@ -2051,107 +2225,12 @@ async function cargarGastos(){
         let total = 0;
 
 
-        resultado.forEach(snap => {
+        resultado.forEach(
+            snap => {
 
-            const datos =
-                snap.data() || {};
+                const datos =
+                    snap.data() || {};
 
-
-            total +=
-                Number(
-                    datos.importe ??
-                    datos.monto ??
-                    datos.total ??
-                    0
-                );
-
-        });
-
-
-        totalGastos.textContent =
-            dinero(total);
-
-
-        /*
-         * Se obtiene el valor real de los ingresos
-         * directamente desde Firestore para evitar
-         * errores de interpretación del formato ARS.
-         */
-
-        const ingresos =
-            await obtenerTotalIngresos();
-
-
-        resultadoEmpresa.textContent =
-            dinero(ingresos - total);
-
-    }
-    catch(error){
-
-        console.error(
-            "Error cargando gastos:",
-            error
-        );
-
-        totalGastos.textContent =
-            dinero(0);
-
-        resultadoEmpresa.textContent =
-            dinero(0);
-
-    }
-
-}
-
-
-/* =====================================================
-   TOTAL INGRESOS PARA CÁLCULO
-===================================================== */
-
-async function obtenerTotalIngresos(){
-
-    if(!empresaIdActual){
-        return 0;
-    }
-
-
-    try{
-
-        const q =
-            query(
-                collection(db,"cobros"),
-                where(
-                    "empresaId",
-                    "==",
-                    empresaIdActual
-                )
-            );
-
-
-        const resultado =
-            await getDocs(q);
-
-
-        let total = 0;
-
-
-        resultado.forEach(snap => {
-
-            const datos =
-                snap.data() || {};
-
-            const estado =
-                String(
-                    datos.estado || ""
-                )
-                .trim()
-                .toLowerCase();
-
-
-            if(
-                !estado ||
-                estado === "cobrado"
-            ){
 
                 total +=
                     Number(
@@ -2162,50 +2241,49 @@ async function obtenerTotalIngresos(){
                     );
 
             }
+        );
 
-        });
+
+        totalGastos.textContent =
+            dinero(total);
 
 
-        return total;
+        const ingresos =
+            await obtenerTotalIngresos();
+
+
+        resultadoEmpresa.textContent =
+            dinero(
+                ingresos - total
+            );
 
     }
     catch(error){
 
         console.error(
-            "Error obteniendo total de ingresos:",
+            "Error cargando gastos:",
             error
         );
-
-        return 0;
 
     }
 
 }
 
 
-/* =====================================================
-   NAVEGACIÓN SEGURA
-===================================================== */
+/* =========================================================
+   NAVEGACIÓN
+========================================================= */
 
 function navegarGESBASE(url){
 
     if(!url){
+
         return;
+
     }
 
 
     try{
-
-        /*
-         * BASE REAL DEL INDEX.
-         *
-         * Esto permite que funcione aunque GESBASE
-         * esté publicado en:
-         *
-         * https://albeservicios.github.io/GESBASE/
-         *
-         * o en otra carpeta.
-         */
 
         const destino =
             new URL(
@@ -2213,11 +2291,6 @@ function navegarGESBASE(url){
                 document.baseURI
             );
 
-
-        /*
-         * Solo permitimos navegación dentro
-         * del mismo sitio.
-         */
 
         if(
             destino.origin !==
@@ -2258,68 +2331,83 @@ function navegarGESBASE(url){
 }
 
 
-/* =====================================================
+/* =========================================================
    BOTONES
-===================================================== */
+========================================================= */
 
 document
 .querySelectorAll("[data-url]")
-.forEach(boton => {
+.forEach(
+    boton => {
 
-    boton.addEventListener(
-        "click",
-        () => {
+        boton.addEventListener(
+            "click",
+            () => {
 
-            if(navegando){
-                return;
-            }
+                if(navegando){
 
+                    return;
 
-            const url =
-                boton.dataset.url;
-
-
-            if(!url){
-                return;
-            }
+                }
 
 
-            if(
-                !sesionEmpleado &&
-                boton.classList.contains("protegido") &&
-                !accesoPermitido
-            ){
+                const url =
+                    boton.dataset.url;
 
-                mostrarNotificacion(
-                    "El acceso de la empresa está bloqueado."
+
+                if(!url){
+
+                    return;
+
+                }
+
+
+                if(
+                    boton.classList.contains(
+                        "protegido"
+                    )
+                    &&
+                    !accesoPermitido
+                    &&
+                    !sesionEmpleado
+                ){
+
+                    mostrarNotificacion(
+                        "El acceso de la empresa está bloqueado."
+                    );
+
+                    return;
+
+                }
+
+
+                navegando = true;
+
+
+                navegarGESBASE(
+                    url
                 );
 
-                return;
+
+                setTimeout(
+                    () => {
+
+                        navegando = false;
+
+                    },
+                    1200
+                );
 
             }
+        );
+
+    }
+);
 
 
-            navegando = true;
-
-
-            navegarGESBASE(url);
-
-
-            setTimeout(() => {
-
-                navegando = false;
-
-            },1200);
-
-        }
-    );
-
-});
-
-
-/* =====================================================
-   VOLVER / PAGESHOW
-===================================================== */
+/* =========================================================
+   PAGESHOW
+========================================================= */
 
 window.addEventListener(
     "pageshow",
@@ -2331,9 +2419,9 @@ window.addEventListener(
 );
 
 
-/* =====================================================
+/* =========================================================
    CERRAR SESIÓN
-===================================================== */
+========================================================= */
 
 btnCerrarSesion.addEventListener(
     "click",
@@ -2341,12 +2429,34 @@ btnCerrarSesion.addEventListener(
 
         try{
 
+            btnCerrarSesion.disabled =
+                true;
+
+
             sessionStorage.removeItem(
                 "gesbaseEmpleado"
             );
 
+            sessionStorage.removeItem(
+                "gesbaseEmpresaId"
+            );
 
-            await signOut(auth);
+            sessionStorage.removeItem(
+                "gesbaseEmpresa"
+            );
+
+            sessionStorage.removeItem(
+                "gesbaseUsuario"
+            );
+
+            sessionStorage.removeItem(
+                "gesbaseTipoUsuario"
+            );
+
+
+            await signOut(
+                auth
+            );
 
 
             window.location.replace(
@@ -2361,6 +2471,9 @@ btnCerrarSesion.addEventListener(
                 error
             );
 
+            btnCerrarSesion.disabled =
+                false;
+
             mostrarNotificacion(
                 "No se pudo cerrar la sesión."
             );
@@ -2371,33 +2484,63 @@ btnCerrarSesion.addEventListener(
 );
 
 
-/* =====================================================
-   AUTENTICACIÓN
-===================================================== */
+/* =========================================================
+   CONTROL PRINCIPAL DE ENTRADA
+========================================================= */
 
 onAuthStateChanged(
     auth,
     async usuario => {
 
+        /*
+         * Mientras Firebase verifica la sesión,
+         * NO mostramos el panel.
+         */
+
+        if(autenticacionResuelta){
+
+            return;
+
+        }
+
+
+        /*
+         * SIN SESIÓN
+         *
+         * Este es el punto más importante:
+         * index.html ahora es una puerta de entrada.
+         */
+
+        if(!usuario){
+
+            autenticacionResuelta =
+                true;
+
+
+            window.location.replace(
+                "./login.html"
+            );
+
+            return;
+
+        }
+
+
+        /*
+         * HAY SESIÓN
+         */
+
+        usuarioActual =
+            usuario;
+
+
         try{
 
-            if(!usuario){
-
-                window.location.replace(
-                    "./login.html"
-                );
-
-                return;
-
-            }
-
-
-            usuarioActual = usuario;
-
-
-            /* =========================================
-               SESIÓN EMPLEADO
-            ========================================= */
+            /*
+             * =========================================
+             * EMPLEADO
+             * =========================================
+             */
 
             const sesion =
                 await cargarSesionEmpleado();
@@ -2405,31 +2548,38 @@ onAuthStateChanged(
 
             if(sesion){
 
+                autenticacionResuelta =
+                    true;
+
                 sesionEmpleado =
                     sesion;
+
+
+                cargando.classList.add(
+                    "oculto"
+                );
+
 
                 mostrarPanelEmpleado(
                     sesionEmpleado
                 );
 
-                cargando.classList.add(
-                    "oculto"
-                );
 
                 return;
 
             }
 
 
-            sesionEmpleado = null;
-
-
-            /* =========================================
-               EMPRESA
-            ========================================= */
+            /*
+             * =========================================
+             * EMPRESA
+             * =========================================
+             */
 
             const datos =
-                await obtenerEmpresa(usuario);
+                await obtenerEmpresa(
+                    usuario
+                );
 
 
             empresaActual =
@@ -2439,16 +2589,13 @@ onAuthStateChanged(
                 datos.empresaId;
 
 
-            /* =========================================
-               SIN EMPRESA
-            ========================================= */
+            /*
+             * =========================================
+             * SIN EMPRESA
+             * =========================================
+             */
 
             if(!empresaActual){
-
-                console.warn(
-                    "No se encontró una empresa asociada al usuario."
-                );
-
 
                 nombreEmpresa.textContent =
                     "Mi empresa";
@@ -2472,7 +2619,8 @@ onAuthStateChanged(
                     usuario.email || "-";
 
 
-                accesoPermitido = true;
+                accesoPermitido =
+                    true;
 
 
                 estadoAcceso.textContent =
@@ -2487,21 +2635,17 @@ onAuthStateChanged(
                 );
 
 
-                /*
-                 * Si es administrador GESBASE,
-                 * igual mostramos administración.
-                 */
-
                 const rol =
                     String(
-                        usuario?.rol || ""
+                        datos.usuario?.rol ||
+                        ""
                     )
                     .trim()
                     .toLowerCase();
 
 
                 const esAdmin =
-                    usuario?.email?.toLowerCase() ===
+                    usuario.email?.toLowerCase() ===
                     EMAIL_ADMIN.toLowerCase()
                     ||
                     rol === "admin"
@@ -2522,12 +2666,21 @@ onAuthStateChanged(
 
                 await cargarDatosEmpresa();
 
-                const ingresos =
-                    await cargarIngresos();
+                await cargarIngresos();
 
                 await cargarGastos();
 
             }
+
+
+            /*
+             * =========================================
+             * MOSTRAR PANEL SOLO DESPUÉS DE VALIDAR
+             * =========================================
+             */
+
+            autenticacionResuelta =
+                true;
 
 
             btnCerrarSesion.classList.remove(
@@ -2551,6 +2704,16 @@ onAuthStateChanged(
                 "Error iniciando GESBASE:",
                 error
             );
+
+
+            /*
+             * Si Firebase está autenticado pero
+             * Firestore falla, NO mandamos al login.
+             * Mostramos el error para poder identificarlo.
+             */
+
+            autenticacionResuelta =
+                true;
 
 
             cargando.innerHTML = `
@@ -2601,7 +2764,9 @@ onAuthStateChanged(
                 btnReintentar.addEventListener(
                     "click",
                     () => {
+
                         window.location.reload();
+
                     }
                 );
 
