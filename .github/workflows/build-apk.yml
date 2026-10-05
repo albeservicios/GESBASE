@@ -22,7 +22,7 @@ jobs:
 
 
       # ============================================================
-      # 2. NODE
+      # 2. CONFIGURAR NODE
       # ============================================================
       - name: Configurar Node.js
         uses: actions/setup-node@v4
@@ -31,7 +31,7 @@ jobs:
 
 
       # ============================================================
-      # 3. INSTALAR CAPACITOR 8
+      # 3. PREPARAR NODE Y CAPACITOR
       # ============================================================
       - name: Preparar proyecto Node
         run: |
@@ -44,8 +44,8 @@ jobs:
             @capacitor/core@8.5.2 \
             @capacitor/cli@8.5.2 \
             @capacitor/android@8.5.2 \
-            @capacitor/app@8.0.2 \
-            @capacitor/push-notifications@8.0.2
+            @capacitor/app@8.5.2 \
+            @capacitor/push-notifications@8.5.2
 
           echo "======================================"
           echo "CAPACITOR INSTALADO"
@@ -54,6 +54,7 @@ jobs:
           npm list @capacitor/core
           npm list @capacitor/android
           npm list @capacitor/app
+          npm list @capacitor/push-notifications
 
 
       # ============================================================
@@ -209,8 +210,7 @@ jobs:
 
 
                           /*
-                           * Seguridad adicional:
-                           * comprobamos el historial del navegador.
+                           * Comprobación adicional del historial.
                            */
 
                           if (
@@ -225,8 +225,7 @@ jobs:
 
 
                           /*
-                           * Si no existe ninguna página anterior,
-                           * cerramos la aplicación.
+                           * Si no hay historial, cerrar aplicación.
                            */
 
                           if (
@@ -263,12 +262,13 @@ jobs:
           EOF
 
 
-          echo "Controlador creado:"
+          echo "Controlador creado."
+
           cat dist/gesbase-back.js
 
 
       # ============================================================
-      # 7. INSERTAR CONTROLADOR EN TODOS LOS HTML
+      # 7. ACTIVAR CONTROLADOR EN TODAS LAS PÁGINAS
       # ============================================================
       - name: Activar botón atrás en todas las páginas
         run: |
@@ -278,8 +278,11 @@ jobs:
           for archivo in dist/*.html; do
 
             if grep -q "gesbase-back.js" "$archivo"; then
+
               echo "Ya instalado: $archivo"
+
               continue
+
             fi
 
 
@@ -354,7 +357,7 @@ jobs:
 
 
       # ============================================================
-      # 9. CAPACITOR
+      # 9. CONFIGURAR CAPACITOR
       # ============================================================
       - name: Configurar Capacitor
         run: |
@@ -373,7 +376,7 @@ jobs:
 
 
       # ============================================================
-      # 10. CREAR ANDROID
+      # 10. CREAR PLATAFORMA ANDROID
       # ============================================================
       - name: Crear plataforma Android
         run: |
@@ -389,11 +392,6 @@ jobs:
 
       # ============================================================
       # 11. CONFIGURAR MAIN ACTIVITY
-      #
-      # Capacitor 8 utiliza el manejo moderno del botón
-      # mediante el plugin App.
-      #
-      # No sobrescribimos onBackPressed().
       # ============================================================
       - name: Configurar MainActivity
         run: |
@@ -510,9 +508,9 @@ jobs:
 
 
       # ============================================================
-      # 17. VERIFICAR NAVEGACIÓN
+      # 17. VERIFICAR SISTEMA DE NAVEGACIÓN
       # ============================================================
-      - name: Verificar sistema de botón atrás
+      - name: Verificar botón atrás
         run: |
 
           echo "======================================"
@@ -520,7 +518,7 @@ jobs:
           echo "======================================"
 
           echo ""
-          echo "Capacitor:"
+          echo "Capacitor Core:"
           npm list @capacitor/core
 
           echo ""
@@ -530,6 +528,10 @@ jobs:
           echo ""
           echo "Capacitor App:"
           npm list @capacitor/app
+
+          echo ""
+          echo "Push Notifications:"
+          npm list @capacitor/push-notifications
 
           echo ""
           echo "Controlador:"
@@ -579,7 +581,6 @@ jobs:
           echo "======================================"
           echo "APK GESBASE GENERADO CORRECTAMENTE"
           echo "======================================"
-
 
           ls -lh "$APK"
 
