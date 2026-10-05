@@ -103,6 +103,51 @@ button{
     display:flex;
     align-items:center;
     gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+}
+
+/* =========================================================
+   BOTÓN NOTIFICACIONES ADMIN
+========================================================= */
+
+.btn-notificaciones{
+    position:relative;
+    border:1px solid #374151;
+    background:#1f2937;
+    color:white;
+    border-radius:10px;
+    min-width:45px;
+    height:42px;
+    padding:0 12px;
+    cursor:pointer;
+    font-size:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+}
+
+.btn-notificaciones:hover{
+    background:#374151;
+}
+
+.contador-solicitudes{
+    position:absolute;
+    top:-7px;
+    right:-7px;
+    min-width:21px;
+    height:21px;
+    padding:0 5px;
+    border-radius:50px;
+    background:#ef4444;
+    color:white;
+    font-size:11px;
+    font-weight:bold;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:2px solid #111827;
 }
 
 .btn{
@@ -329,6 +374,31 @@ button{
 }
 
 /* =========================================================
+   SOLICITUDES
+========================================================= */
+
+#seccionSolicitudes{
+    border-left:5px solid #2563eb;
+}
+
+.solicitudes-banner{
+    background:linear-gradient(
+        135deg,
+        #eff6ff,
+        #dbeafe
+    );
+    border-radius:14px;
+    padding:17px;
+    margin-bottom:16px;
+    color:#1e40af;
+}
+
+.solicitudes-banner strong{
+    display:block;
+    margin-bottom:5px;
+}
+
+/* =========================================================
    ALQUILERES
 ========================================================= */
 
@@ -518,6 +588,10 @@ footer{
         font-size:17px;
     }
 
+    .marca-texto p{
+        font-size:11px;
+    }
+
     .contenedor{
         width:calc(100% - 20px);
         margin-top:15px;
@@ -555,6 +629,17 @@ footer{
     .empleado-info,
     .empleado-acciones{
         grid-template-columns:1fr;
+    }
+
+    .btn-notificaciones{
+        min-width:42px;
+        height:40px;
+        padding:0 10px;
+    }
+
+    .btn-secondary{
+        padding:9px 10px;
+        font-size:12px;
     }
 
     body{
@@ -599,7 +684,29 @@ footer{
 
     </div>
 
+
     <div class="topbar-derecha">
+
+        <!-- NOTIFICACIONES DEL ADMINISTRADOR -->
+
+        <button
+            id="btnNotificacionesAdmin"
+            class="btn-notificaciones oculto"
+            type="button"
+            title="Solicitudes de acceso"
+        >
+
+            🔔
+
+            <span
+                id="contadorSolicitudes"
+                class="contador-solicitudes oculto"
+            >
+                0
+            </span>
+
+        </button>
+
 
         <button
             id="btnCerrarSesion"
@@ -764,8 +871,6 @@ footer{
                 <span class="icono">📜</span>
                 Certificación
             </button>
-
-            <!-- NUEVO: CONFORMIDAD -->
 
             <button class="modulo protegido" data-url="./conformidad.html" type="button">
                 <span class="icono">✅</span>
@@ -1169,6 +1274,15 @@ footer{
 
             <button
                 class="modulo boton-control"
+                data-url="./solicitudes-acceso.html"
+                type="button"
+            >
+                <span class="icono">📥</span>
+                Solicitudes de acceso
+            </button>
+
+            <button
+                class="modulo boton-control"
                 data-url="./atencion.html"
                 type="button"
             >
@@ -1282,7 +1396,8 @@ import {
     collection,
     query,
     where,
-    getDocs
+    getDocs,
+    onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
@@ -1313,6 +1428,16 @@ const panelEmpleado =
 
 const btnCerrarSesion =
     document.getElementById("btnCerrarSesion");
+
+const btnNotificacionesAdmin =
+    document.getElementById(
+        "btnNotificacionesAdmin"
+    );
+
+const contadorSolicitudes =
+    document.getElementById(
+        "contadorSolicitudes"
+    );
 
 const nombreEmpresa =
     document.getElementById("nombreEmpresa");
@@ -1394,6 +1519,8 @@ let empresaIdActual = null;
 
 let usuarioActual = null;
 
+let usuarioFirestore = {};
+
 let accesoPermitido = true;
 
 let sesionEmpleado = null;
@@ -1402,9 +1529,11 @@ let navegando = false;
 
 let autenticacionResuelta = false;
 
+let cancelarSolicitudes = null;
+
 
 /* =========================================================
-   NOTIFICACIÓN
+   NOTIFICACIÓN VISUAL
 ========================================================= */
 
 function mostrarNotificacion(mensaje){
@@ -1445,6 +1574,205 @@ function dinero(valor){
     );
 
 }
+
+
+/* =========================================================
+   ADMINISTRADOR
+========================================================= */
+
+function esAdministrador(){
+
+    const email =
+        String(
+            usuarioActual?.email ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    const rol =
+        String(
+            usuarioFirestore?.rol ||
+            usuarioFirestore?.role ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    return (
+        email ===
+        EMAIL_ADMIN.toLowerCase()
+        ||
+        rol === "admin"
+        ||
+        rol === "administrador"
+    );
+
+}
+
+
+/* =========================================================
+   SOLICITUDES DE ACCESO
+========================================================= */
+
+function actualizarContadorSolicitudes(cantidad){
+
+    const total =
+        Number(cantidad) || 0;
+
+
+    if(total <= 0){
+
+        contadorSolicitudes.textContent =
+            "0";
+
+        contadorSolicitudes.classList.add(
+            "oculto"
+        );
+
+        return;
+
+    }
+
+
+    contadorSolicitudes.textContent =
+        total > 99
+            ? "99+"
+            : String(total);
+
+
+    contadorSolicitudes.classList.remove(
+        "oculto"
+    );
+
+}
+
+
+function iniciarEscuchaSolicitudes(){
+
+    if(!esAdministrador()){
+
+        btnNotificacionesAdmin.classList.add(
+            "oculto"
+        );
+
+        actualizarContadorSolicitudes(0);
+
+        return;
+
+    }
+
+
+    btnNotificacionesAdmin.classList.remove(
+        "oculto"
+    );
+
+
+    try{
+
+        const solicitudesRef =
+            collection(
+                db,
+                "solicitudes_acceso"
+            );
+
+
+        const q =
+            query(
+                solicitudesRef,
+                where(
+                    "estado",
+                    "==",
+                    "PENDIENTE"
+                )
+            );
+
+
+        cancelarSolicitudes =
+            onSnapshot(
+                q,
+                snapshot => {
+
+                    const cantidad =
+                        snapshot.size;
+
+
+                    actualizarContadorSolicitudes(
+                        cantidad
+                    );
+
+
+                    if(
+                        cantidad > 0
+                        &&
+                        !document.hidden
+                    ){
+
+                        document.title =
+                            `(${cantidad}) Nuevo registro - GESBASE`;
+
+                    }
+                    else{
+
+                        document.title =
+                            "GESBASE - Panel principal";
+
+                    }
+
+                },
+                error => {
+
+                    console.error(
+                        "Error escuchando solicitudes:",
+                        error
+                    );
+
+                    actualizarContadorSolicitudes(
+                        0
+                    );
+
+                }
+            );
+
+    }
+    catch(error){
+
+        console.error(
+            "Error iniciando solicitudes:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   BOTÓN SOLICITUDES
+========================================================= */
+
+btnNotificacionesAdmin.addEventListener(
+    "click",
+    () => {
+
+        if(!esAdministrador()){
+
+            mostrarNotificacion(
+                "Acceso exclusivo del administrador."
+            );
+
+            return;
+
+        }
+
+
+        window.location.href =
+            "./solicitudes-acceso.html";
+
+    }
+);
 
 
 /* =========================================================
@@ -1559,6 +1887,7 @@ function configurarVistaEmpresa(){
         empresaActual?.tipoEmpresa ||
         "";
 
+
     const comercio =
         esRubroComercio(rubro);
 
@@ -1625,10 +1954,12 @@ async function obtenerEmpresa(usuario){
             usuario.uid
         );
 
+
     const usuarioSnap =
         await getDoc(
             usuarioRef
         );
+
 
     let datosUsuario = {};
 
@@ -1641,10 +1972,15 @@ async function obtenerEmpresa(usuario){
     }
 
 
+    usuarioFirestore =
+        datosUsuario;
+
+
     let empresaId =
         datosUsuario.empresaId ||
         datosUsuario.idEmpresa ||
         datosUsuario.empresa ||
+        datosUsuario.companyId ||
         null;
 
 
@@ -1917,6 +2253,11 @@ function mostrarPanelEmpleado(sesion){
     );
 
 
+    btnNotificacionesAdmin.classList.add(
+        "oculto"
+    );
+
+
     const empleado =
         sesion.empleado || {};
 
@@ -2007,26 +2348,15 @@ async function cargarDatosEmpresa(){
         usuarioActual?.email || "-";
 
 
-    const rol =
-        String(
-            usuarioActual?.rol || ""
-        )
-        .trim()
-        .toLowerCase();
+    const admin =
+        esAdministrador();
 
 
-    const esAdmin =
-        usuarioActual?.email?.toLowerCase() ===
-        EMAIL_ADMIN.toLowerCase()
-        ||
-        rol === "admin"
-        ||
-        rol === "administrador";
+    if(admin){
 
+        accesoPermitido =
+            true;
 
-    if(esAdmin){
-
-        accesoPermitido = true;
 
         seccionAdministrador.classList.remove(
             "oculto"
@@ -2038,6 +2368,7 @@ async function cargarDatosEmpresa(){
         seccionAdministrador.classList.add(
             "oculto"
         );
+
 
         accesoPermitido =
             empresa.accesoHabilitado !== false;
@@ -2074,6 +2405,15 @@ async function cargarDatosEmpresa(){
 
 
     configurarVistaEmpresa();
+
+
+    if(admin){
+
+        iniciarEscuchaSolicitudes();
+
+        iniciarNotificacionesFCM();
+
+    }
 
 }
 
@@ -2431,6 +2771,16 @@ btnCerrarSesion.addEventListener(
                 true;
 
 
+            if(cancelarSolicitudes){
+
+                cancelarSolicitudes();
+
+                cancelarSolicitudes =
+                    null;
+
+            }
+
+
             sessionStorage.removeItem(
                 "gesbaseEmpleado"
             );
@@ -2480,6 +2830,57 @@ btnCerrarSesion.addEventListener(
 
     }
 );
+
+
+/* =========================================================
+   FCM ADMINISTRADOR
+========================================================= */
+
+async function iniciarNotificacionesFCM(){
+
+    try{
+
+        /*
+         * Este archivo se encarga de:
+         *
+         * 1. Pedir permiso para notificaciones.
+         * 2. Obtener el token FCM.
+         * 3. Guardarlo para el administrador.
+         * 4. Escuchar mensajes cuando GESBASE
+         *    está abierto.
+         *
+         * Si todavía no existe el archivo,
+         * el resto de GESBASE continúa funcionando.
+         */
+
+        const modulo =
+            await import(
+                "./Js/notificaciones-admin.js"
+            );
+
+
+        if(
+            typeof modulo.iniciarNotificacionesAdmin ===
+            "function"
+        ){
+
+            await modulo.iniciarNotificacionesAdmin(
+                usuarioActual.uid
+            );
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "Notificaciones FCM todavía no configuradas:",
+            error
+        );
+
+    }
+
+}
 
 
 /* =========================================================
@@ -2558,6 +2959,9 @@ onAuthStateChanged(
             empresaIdActual =
                 datos.empresaId;
 
+            usuarioFirestore =
+                datos.usuario || {};
+
 
             if(!empresaActual){
 
@@ -2599,29 +3003,16 @@ onAuthStateChanged(
                 );
 
 
-                const rol =
-                    String(
-                        datos.usuario?.rol ||
-                        ""
-                    )
-                    .trim()
-                    .toLowerCase();
-
-
-                const esAdmin =
-                    usuario.email?.toLowerCase() ===
-                    EMAIL_ADMIN.toLowerCase()
-                    ||
-                    rol === "admin"
-                    ||
-                    rol === "administrador";
-
-
-                if(esAdmin){
+                if(esAdministrador()){
 
                     seccionAdministrador.classList.remove(
                         "oculto"
                     );
+
+
+                    iniciarEscuchaSolicitudes();
+
+                    iniciarNotificacionesFCM();
 
                 }
 
@@ -2733,4 +3124,4 @@ onAuthStateChanged(
 
 </body>
 
-    </html>
+</html>
