@@ -25,7 +25,6 @@ jobs:
           fi
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
-          # Configurar capacitor.config.json con el nombre GESBASE
           cat << 'EOF' > capacitor.config.json
           {
             "appId": "com.gesbase.app",
@@ -35,20 +34,24 @@ jobs:
           }
           EOF
 
-      - name: Preparar assets y build
+      - name: Empaquetar proyecto web en dist/
         run: |
-          npm run build || true
           mkdir -p dist
 
+          # Copiar todo el contenido web del repositorio a dist/
           cp -r *.html dist/ 2>/dev/null || true
           cp -r *.js dist/ 2>/dev/null || true
           cp -r *.css dist/ 2>/dev/null || true
           cp -r *.json dist/ 2>/dev/null || true
           cp -r assets dist/ 2>/dev/null || true
+          cp -r public dist/ 2>/dev/null || true
           cp -r src dist/ 2>/dev/null || true
+          cp -r Js dist/ 2>/dev/null || true
+          cp -r js dist/ 2>/dev/null || true
 
-          if [ ! -f dist/index.html ]; then
-            echo '<!DOCTYPE html><html><head><title>GESBASE</title></head><body><h1>GESBASE App</h1></body></html>' > dist/index.html
+          # Insertar manejador de errores de inicio en index.html
+          if [ -f dist/index.html ]; then
+            sed -i 's/<head>/<head><script>window.onerror=function(m,u,l){alert("Error JS: "+m+" en linea "+l);};setTimeout(function(){var c=document.getElementById("cargando");if(c\&!c.classList.contains("oculto")){c.innerHTML="<div style=\"padding:20px;text-align:center;\"><h3>No se pudo conectar con Firebase<\/h3><p>Verifica tu conexion a internet<\/p><button onclick=\"location.reload()\" style=\"padding:10px 15px;\">Reintentar<\/button><\/div>";}},5000);<\/script>/' dist/index.html
           fi
 
       - name: Reconstruir plataforma Android
@@ -58,13 +61,12 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      - name: Personalizar Nombre de la App y Permisos en Android
+      - name: Configurar Permisos y Nombre en Android
         run: |
-          # Reemplazar el nombre de la app en strings.xml para Android
           sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">GESBASE<\/string>/' android/app/src/main/res/values/strings.xml
           sed -i 's/<string name="title_activity_main">.*<\/string>/<string name="title_activity_main">GESBASE<\/string>/' android/app/src/main/res/values/strings.xml
 
-          # Permitir tráfico HTTP/APIs
+          # Permitir tráfico HTTP / Firebase
           sed -i 's/android:supportsRtl="true"/android:supportsRtl="true" android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
 
           cat << 'EOF' >> android/build.gradle
