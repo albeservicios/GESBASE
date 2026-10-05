@@ -144,6 +144,7 @@ messaging.onBackgroundMessage(
                 data.title ||
                 "📞 Llamada entrante";
 
+
             cuerpo =
                 notification.body ||
                 data.body ||
@@ -180,6 +181,7 @@ messaging.onBackgroundMessage(
                 data.title ||
                 "📹 Videollamada entrante";
 
+
             cuerpo =
                 notification.body ||
                 data.body ||
@@ -215,6 +217,7 @@ messaging.onBackgroundMessage(
                 data.title ||
                 "💬 Nuevo mensaje";
 
+
             cuerpo =
                 notification.body ||
                 data.body ||
@@ -225,6 +228,38 @@ messaging.onBackgroundMessage(
 
                 url =
                     "/GESBASE/comunicacion.html";
+
+            }
+
+        }
+
+
+        /* ====================================================
+           NUEVO REGISTRO DE EMPRESA
+        ==================================================== */
+
+        if (
+            tipo === "nuevo_registro" ||
+            tipo === "NUEVO_REGISTRO" ||
+            tipo === "registro_empresa"
+        ) {
+
+            titulo =
+                notification.title ||
+                data.title ||
+                "🔔 Nuevo registro en GESBASE";
+
+
+            cuerpo =
+                notification.body ||
+                data.body ||
+                "Una empresa solicitó acceso a GESBASE.";
+
+
+            if (!url) {
+
+                url =
+                    "/GESBASE/solicitudes-acceso.html";
 
             }
 
@@ -259,6 +294,14 @@ messaging.onBackgroundMessage(
                 data.empresaId ||
                 "",
 
+            solicitudId:
+                data.solicitudId ||
+                "",
+
+            nombreEmpresa:
+                data.nombreEmpresa ||
+                "",
+
             url:
                 url ||
                 "/GESBASE/comunicacion.html"
@@ -290,6 +333,7 @@ messaging.onBackgroundMessage(
                     (
                         salaId ||
                         data.mensajeId ||
+                        data.solicitudId ||
                         Date.now()
                     )
                 ),
@@ -302,7 +346,10 @@ messaging.onBackgroundMessage(
                     tipo === "llamada" ||
                     tipo === "audio" ||
                     tipo === "videollamada" ||
-                    tipo === "video"
+                    tipo === "video" ||
+                    tipo === "nuevo_registro" ||
+                    tipo === "NUEVO_REGISTRO" ||
+                    tipo === "registro_empresa"
                 ),
 
             data:
@@ -409,6 +456,23 @@ self.addEventListener(
             url =
                 data.url ||
                 "/GESBASE/comunicacion.html";
+
+        }
+
+
+        /* ====================================================
+           NUEVO REGISTRO
+        ==================================================== */
+
+        if (
+            tipo === "nuevo_registro" ||
+            tipo === "NUEVO_REGISTRO" ||
+            tipo === "registro_empresa"
+        ) {
+
+            url =
+                data.url ||
+                "/GESBASE/solicitudes-acceso.html";
 
         }
 
