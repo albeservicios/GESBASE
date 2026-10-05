@@ -2,7 +2,10 @@ name: Compilar APK GESBASE
 
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+      - master
+
   workflow_dispatch:
 
 jobs:
@@ -10,88 +13,311 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # ============================================================
+      # 1. DESCARGAR EL REPOSITORIO
+      # ============================================================
       - name: Descargar código
         uses: actions/checkout@v4
 
+
+      # ============================================================
+      # 2. CONFIGURAR NODE
+      # ============================================================
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
-      - name: Preparar entorno Node e instalar Capacitor y FCM
+
+      # ============================================================
+      # 3. PREPARAR PACKAGE.JSON
+      # ============================================================
+      - name: Preparar proyecto Node
         run: |
           if [ ! -f package.json ]; then
             npm init -y
           fi
-          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/push-notifications
 
-          cat << 'EOF' > capacitor.config.json
+          npm install \
+            @capacitor/core \
+            @capacitor/cli \
+            @capacitor/android \
+            @capacitor/push-notifications
+
+
+      # ============================================================
+      # 4. CREAR DIST
+      # ============================================================
+      - name: Preparar carpeta dist
+        run: |
+          rm -rf dist
+          mkdir -p dist
+
+
+      # ============================================================
+      # 5. COPIAR PROYECTO WEB
+      #
+      # IMPORTANTE:
+      # Se utiliza la raíz del repositorio.
+      #
+      # NO se utiliza www/ porque tu proyecto tiene actualmente
+      # index.html y los demás módulos principales en la raíz.
+      # ============================================================
+      - name: Copiar archivos web a dist
+        run: |
+
+          # HTML
+          find . -maxdepth 1 -type f -name "*.html" \
+            -exec cp {} dist/ \;
+
+          # JavaScript
+          find . -maxdepth 1 -type f -name "*.js" \
+            -exec cp {} dist/ \;
+
+          # CSS
+          find . -maxdepth 1 -type f -name "*.css" \
+            -exec cp {} dist/ \;
+
+          # JSON necesarios para la aplicación
+          find . -maxdepth 1 -type f -name "*.json" \
+            ! -name "package-lock.json" \
+            ! -name "package.json" \
+            -exec cp {} dist/ \;
+
+          # Carpetas web
+          if [ -d "Js" ]; then
+            cp -r Js dist/Js
+          fi
+
+          if [ -d "js" ]; then
+            cp -r js dist/js
+          fi
+
+          if [ -d "assets" ]; then
+            cp -r assets dist/assets
+          fi
+
+          if [ -d "public" ]; then
+            cp -r public dist/public
+          fi
+
+          if [ -d "src" ]; then
+            cp -r src dist/src
+          fi
+
+          # Service Worker / Manifest
+          if [ -f "manifest.json" ]; then
+            cp manifest.json dist/
+          fi
+
+          if [ -f "service-worker.js" ]; then
+            cp service-worker.js dist/
+          fi
+
+          if [ -f "sw.js" ]; then
+            cp sw.js dist/
+          fi
+
+          if [ -f "firebase-messaging-sw.js" ]; then
+            cp firebase-messaging-sw.js dist/
+          fi
+
+
+      # ============================================================
+      # 6. VERIFICAR INDEX
+      # ============================================================
+      - name: Verificar archivos principales
+        run: |
+          echo "======================================"
+          echo "ARCHIVOS PRINCIPALES DE GESBASE"
+          echo "======================================"
+
+          test -f dist/index.html \
+            || { echo "ERROR: Falta index.html"; exit 1; }
+
+          test -f dist/login.html \
+            || { echo "ERROR: Falta login.html"; exit 1; }
+
+          test -f dist/Js/firebase.js \
+            || { echo "ERROR: Falta Js/firebase.js"; exit 1; }
+
+          echo ""
+          echo "index.html ........ OK"
+          echo "login.html ......... OK"
+          echo "Js/firebase.js ..... OK"
+
+          echo ""
+          echo "======================================"
+          echo "CONTENIDO DE DIST"
+          echo "======================================"
+
+          find dist -maxdepth 2 -type f | sort
+
+
+      # ============================================================
+      # 7. CONFIGURAR CAPACITOR
+      # ============================================================
+      - name: Crear configuración de Capacitor
+        run: |
+          cat > capacitor.config.json <<'EOF'
           {
             "appId": "com.gesbase.app",
             "appName": "GESBASE",
             "webDir": "dist",
-            "bundledWebRuntime": false
+            "bundledWebRuntime": false,
+            "server": {
+              "androidScheme": "https"
+            }
           }
           EOF
 
-      - name: Empaquetar proyecto web en dist/
-        run: |
-          mkdir -p dist
 
-          # Copiar contenido web al directorio dist/
-          cp -r *.html dist/ 2>/dev/null || true
-          cp -r *.js dist/ 2>/dev/null || true
-          cp -r *.css dist/ 2>/dev/null || true
-          cp -r *.json dist/ 2>/dev/null || true
-          cp -r assets dist/ 2>/dev/null || true
-          cp -r public dist/ 2>/dev/null || true
-          cp -r src dist/ 2>/dev/null || true
-          cp -r Js dist/ 2>/dev/null || true
-          cp -r js dist/ 2>/dev/null || true
-
-      - name: Reconstruir plataforma Android
+      # ============================================================
+      # 8. CREAR ANDROID DESDE CERO
+      # ============================================================
+      - name: Crear plataforma Android
         run: |
           rm -rf android
+
           npx cap add android
+
           npx cap copy android
+
           npx cap sync android
 
-      - name: Copiar google-services.json a android/app/
+
+      # ============================================================
+      # 9. COPIAR FIREBASE
+      # ============================================================
+      - name: Copiar google-services.json
         run: |
+
           if [ -f google-services.json ]; then
-            cp google-services.json android/app/google-services.json
-            echo "google-services.json copiado exitosamente a android/app/"
+
+            cp google-services.json \
+              android/app/google-services.json
+
+            echo "google-services.json copiado correctamente."
+
           else
-            echo "ERROR: No se encontró google-services.json en la raíz del repositorio."
+
+            echo "ERROR:"
+            echo "No se encontró google-services.json"
+            echo "en la raíz del repositorio."
+
             exit 1
+
           fi
 
-      - name: Configurar Gradle para Firebase Cloud Messaging (google-services)
+
+      # ============================================================
+      # 10. CONFIGURAR FIREBASE CLOUD MESSAGING
+      # ============================================================
+      - name: Configurar Google Services
         run: |
-          # 1. Agregar la dependencia del plugin en android/build.gradle
-          sed -i '/dependencies {/a \        classpath "com.google.gms:google-services:4.4.0"' android/build.gradle
 
-          # 2. Aplicar el plugin al final de android/app/build.gradle
-          echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
+          # Agregar plugin Google Services al proyecto Android
+          sed -i '/dependencies {/a\
+              classpath "com.google.gms:google-services:4.4.2"' \
+              android/build.gradle
 
-          # 3. Permisos de red en AndroidManifest.xml
-          sed -i 's/android:supportsRtl="true"/android:supportsRtl="true" android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
+          # Aplicar plugin en la aplicación
+          echo "" >> android/app/build.gradle
+          echo 'apply plugin: "com.google.gms.google-services"' \
+            >> android/app/build.gradle
 
-      - name: Configurar Java 21 (Temurin)
+
+      # ============================================================
+      # 11. PERMISOS ANDROID
+      # ============================================================
+      - name: Configurar permisos Android
+        run: |
+
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+
+          # Internet
+          if ! grep -q 'android.permission.INTERNET' "$MANIFEST"; then
+
+            sed -i '/<manifest/a\
+              <uses-permission android:name="android.permission.INTERNET" />' \
+              "$MANIFEST"
+
+          fi
+
+          # Notificaciones Android 13+
+          if ! grep -q 'android.permission.POST_NOTIFICATIONS' "$MANIFEST"; then
+
+            sed -i '/<manifest/a\
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />' \
+              "$MANIFEST"
+
+          fi
+
+
+      # ============================================================
+      # 12. CONFIGURAR JAVA
+      # ============================================================
+      - name: Configurar Java 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'gradle'
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
 
-      - name: Compilar APK en Android
+
+      # ============================================================
+      # 13. SINCRONIZAR CAPACITOR
+      # ============================================================
+      - name: Sincronizar Capacitor
         run: |
+          npx cap sync android
+
+
+      # ============================================================
+      # 14. COMPILAR APK
+      # ============================================================
+      - name: Compilar APK Debug
+        run: |
+
           cd android
+
           chmod +x gradlew
+
           ./gradlew assembleDebug --no-daemon
 
+
+      # ============================================================
+      # 15. VERIFICAR APK
+      # ============================================================
+      - name: Verificar APK generado
+        run: |
+
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+
+          if [ ! -f "$APK" ]; then
+
+            echo "ERROR: No se generó el APK."
+
+            exit 1
+
+          fi
+
+          echo ""
+          echo "======================================"
+          echo "APK GENERADO CORRECTAMENTE"
+          echo "======================================"
+
+          ls -lh "$APK"
+
+
+      # ============================================================
+      # 16. GUARDAR APK COMO ARTIFACT
+      # ============================================================
       - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
           name: gesbase-app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
