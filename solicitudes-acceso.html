@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<title>Solicitudes de acceso - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:18px;
+    position:sticky;
+    top:0;
+    z-index:10;
+}
+
+.header-inner{
+    max-width:1150px;
+    margin:auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:bold;
+    font-size:20px;
+}
+
+.logo-g{
+    width:40px;
+    height:40px;
+    border-radius:12px;
+    background:#2563eb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+}
+
+.btn-volver{
+    border:0;
+    background:#374151;
+    color:white;
+    padding:10px 15px;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+main{
+    max-width:1150px;
+    margin:25px auto;
+    padding:0 15px;
+}
+
+.titulo{
+    margin-bottom:20px;
+}
+
+.titulo h1{
+    margin:0 0 7px;
+}
+
+.titulo p{
+    margin:0;
+    color:#6b7280;
+}
+
+.contador{
+    display:inline-block;
+    margin-top:12px;
+    background:#f59e0b;
+    color:white;
+    padding:7px 12px;
+    border-radius:20px;
+    font-weight:bold;
+}
+
+.lista{
+    display:grid;
+    gap:15px;
+}
+
+.card{
+    background:white;
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,.07);
+    border-left:5px solid #f59e0b;
+}
+
+.card.aprobada{
+    border-left-color:#16a34a;
+}
+
+.card.rechazada{
+    border-left-color:#dc2626;
+}
+
+.card-head{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.empresa{
+    font-size:20px;
+    font-weight:bold;
+}
+
+.fecha{
+    color:#6b7280;
+    font-size:13px;
+}
+
+.datos{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:10px;
+    margin-top:15px;
+}
+
+.dato{
+    background:#f9fafb;
+    padding:10px;
+    border-radius:9px;
+}
+
+.dato strong{
+    display:block;
+    font-size:12px;
+    color:#6b7280;
+    margin-bottom:4px;
+}
+
+.estado{
+    display:inline-block;
+    margin-top:15px;
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.estado.pendiente{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.estado.aprobada{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado.rechazada{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.acciones{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:18px;
+}
+
+.btn{
+    border:0;
+    border-radius:10px;
+    padding:11px 16px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn-acceso{
+    background:#16a34a;
+    color:white;
+}
+
+.btn-rechazar{
+    background:#dc2626;
+    color:white;
+}
+
+.btn-detalle{
+    background:#2563eb;
+    color:white;
+}
+
+.vacio{
+    background:white;
+    border-radius:16px;
+    padding:35px;
+    text-align:center;
+    color:#6b7280;
+}
+
+.cargando{
+    text-align:center;
+    padding:40px;
+    color:#6b7280;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<div class="header-inner">
+
+<div class="logo">
+
+<div class="logo-g">G</div>
+
+GESBASE
+
+</div>
+
+<button
+    class="btn-volver"
+    onclick="location.href='./index.html'"
+>
+← Volver
+</button>
+
+</div>
+
+</header>
+
+
+<main>
+
+<div class="titulo">
+
+<h1>Solicitudes de acceso</h1>
+
+<p>
+Empresas registradas que esperan autorización para utilizar GESBASE.
+</p>
+
+<div
+    id="contador"
+    class="contador"
+>
+Solicitudes pendientes: 0
+</div>
+
+</div>
+
+
+<div
+    id="lista"
+    class="lista"
+>
+
+<div class="cargando">
+Cargando solicitudes...
+</div>
+
+</div>
+
+</main>
+
+
+<script type="module">
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+import {
+    collection,
+    query,
+    orderBy,
+    onSnapshot,
+    doc,
+    updateDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+
+const ADMIN_EMAIL =
+    "julianbattauz006@gmail.com";
+
+
+const lista =
+    document.getElementById("lista");
+
+const contador =
+    document.getElementById("contador");
+
+
+function esAdministrador(user){
+
+    if(!user){
+        return false;
+    }
+
+    if(
+        user.email &&
+        user.email.toLowerCase() ===
+        ADMIN_EMAIL.toLowerCase()
+    ){
+        return true;
+    }
+
+    return true;
+}
+
+
+function escapar(texto){
+
+    if(texto === null ||
+       texto === undefined){
+
+        return "";
+    }
+
+    return String(texto)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+}
+
+
+function fechaTexto(fecha){
+
+    if(!fecha){
+        return "Sin fecha";
+    }
+
+    try{
+
+        const fechaReal =
+            fecha.toDate
+                ? fecha.toDate()
+                : new Date(fecha);
+
+        return fechaReal.toLocaleString(
+            "es-AR"
+        );
+
+    }catch(e){
+
+        return "Sin fecha";
+
+    }
+
+}
+
+
+function renderSolicitud(
+    id,
+    data
+){
+
+    const estado =
+        data.estado || "PENDIENTE";
+
+    const estadoClase =
+        estado.toLowerCase();
+
+    const card =
+        document.createElement("div");
+
+    card.className =
+        "card " + estadoClase;
+
+
+    card.innerHTML = `
+
+        <div class="card-head">
+
+            <div>
+
+                <div class="empresa">
+                    ${escapar(
+                        data.nombreEmpresa ||
+                        "Empresa sin nombre"
+                    )}
+                </div>
+
+                <div class="fecha">
+                    Registro:
+                    ${fechaTexto(
+                        data.fechaRegistro
+                    )}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="datos">
+
+            <div class="dato">
+
+                <strong>RESPONSABLE</strong>
+
+                ${escapar(
+                    data.responsable ||
+                    "No informado"
+                )}
+
+            </div>
+
+
+            <div class="dato">
+
+                <strong>EMAIL</strong>
+
+                ${escapar(
+                    data.email ||
+                    "No informado"
+                )}
+
+            </div>
+
+
+            <div class="dato">
+
+                <strong>TELÉFONO</strong>
+
+                ${escapar(
+                    data.telefono ||
+                    "No informado"
+                )}
+
+            </div>
+
+
+            <div class="dato">
+
+                <strong>RUBRO</strong>
+
+                ${escapar(
+                    data.rubro ||
+                    "No informado"
+                )}
+
+            </div>
+
+        </div>
+
+
+        <div class="estado ${estadoClase}">
+            ${escapar(estado)}
+        </div>
+
+
+        ${
+            estado === "PENDIENTE"
+            ?
+            `
+
+            <div class="acciones">
+
+                <button
+                    class="btn btn-acceso"
+                    data-accion="aprobar"
+                >
+                    ✅ DAR ACCESO
+                </button>
+
+
+                <button
+                    class="btn btn-rechazar"
+                    data-accion="rechazar"
+                >
+                    ❌ RECHAZAR
+                </button>
+
+            </div>
+
+            `
+            :
+            ""
+        }
+
+    `;
+
+
+    const btnAprobar =
+        card.querySelector(
+            '[data-accion="aprobar"]'
+        );
+
+
+    const btnRechazar =
+        card.querySelector(
+            '[data-accion="rechazar"]'
+        );
+
+
+    if(btnAprobar){
+
+        btnAprobar.onclick =
+            () => aprobar(
+                id,
+                data
+            );
+
+    }
+
+
+    if(btnRechazar){
+
+        btnRechazar.onclick =
+            () => rechazar(
+                id,
+                data
+            );
+
+    }
+
+
+    return card;
+
+}
+
+
+async function aprobar(
+    id,
+    data
+){
+
+    const confirmar =
+        confirm(
+            "¿Dar acceso a " +
+            (data.nombreEmpresa || "esta empresa") +
+            "?"
+        );
+
+    if(!confirmar){
+        return;
+    }
+
+
+    try{
+
+        btnBloqueo(true);
+
+
+        const solicitudRef =
+            doc(
+                db,
+                "solicitudes_acceso",
+                id
+            );
+
+
+        await updateDoc(
+            solicitudRef,
+            {
+
+                estado:
+                    "APROBADA",
+
+                accesoHabilitado:
+                    true,
+
+                revisadoPor:
+                    auth.currentUser.email,
+
+                fechaRevision:
+                    serverTimestamp()
+
+            }
+        );
+
+
+        if(data.empresaId){
+
+            const empresaRef =
+                doc(
+                    db,
+                    "empresas",
+                    data.empresaId
+                );
+
+
+            await updateDoc(
+                empresaRef,
+                {
+
+                    accesoHabilitado:
+                        true,
+
+                    estado:
+                        "ACTIVO",
+
+                    fechaActivacion:
+                        serverTimestamp(),
+
+                    activadoPor:
+                        auth.currentUser.email
+
+                }
+            );
+
+        }
+
+
+        alert(
+            "✅ Acceso otorgado correctamente."
+        );
+
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(
+            "No se pudo otorgar el acceso.\n\n" +
+            error.message
+        );
+
+    }finally{
+
+        btnBloqueo(false);
+
+    }
+
+}
+
+
+async function rechazar(
+    id,
+    data
+){
+
+    const motivo =
+        prompt(
+            "Motivo del rechazo (opcional):"
+        );
+
+
+    if(motivo === null){
+        return;
+    }
+
+
+    const confirmar =
+        confirm(
+            "¿Rechazar el registro de " +
+            (data.nombreEmpresa || "esta empresa") +
+            "?"
+        );
+
+
+    if(!confirmar){
+        return;
+    }
+
+
+    try{
+
+        btnBloqueo(true);
+
+
+        const solicitudRef =
+            doc(
+                db,
+                "solicitudes_acceso",
+                id
+            );
+
+
+        await updateDoc(
+            solicitudRef,
+            {
+
+                estado:
+                    "RECHAZADA",
+
+                motivoRechazo:
+                    motivo.trim(),
+
+                accesoHabilitado:
+                    false,
+
+                revisadoPor:
+                    auth.currentUser.email,
+
+                fechaRevision:
+                    serverTimestamp()
+
+            }
+        );
+
+
+        if(data.empresaId){
+
+            const empresaRef =
+                doc(
+                    db,
+                    "empresas",
+                    data.empresaId
+                );
+
+
+            await updateDoc(
+                empresaRef,
+                {
+
+                    accesoHabilitado:
+                        false,
+
+                    estado:
+                        "RECHAZADA"
+
+                }
+            );
+
+        }
+
+
+        alert(
+            "Registro rechazado."
+        );
+
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(
+            "No se pudo rechazar.\n\n" +
+            error.message
+        );
+
+    }finally{
+
+        btnBloqueo(false);
+
+    }
+
+}
+
+
+function btnBloqueo(bloquear){
+
+    document
+        .querySelectorAll("button")
+        .forEach(btn => {
+
+            btn.disabled =
+                bloquear;
+
+        });
+
+}
+
+
+function escucharSolicitudes(){
+
+    const ref =
+        collection(
+            db,
+            "solicitudes_acceso"
+        );
+
+
+    const q =
+        query(
+            ref,
+            orderBy(
+                "fechaRegistro",
+                "desc"
+            )
+        );
+
+
+    onSnapshot(
+        q,
+        snapshot => {
+
+            lista.innerHTML = "";
+
+
+            let pendientes = 0;
+
+
+            snapshot.forEach(
+                solicitud => {
+
+                    const data =
+                        solicitud.data();
+
+
+                    if(
+                        data.estado ===
+                        "PENDIENTE"
+                    ){
+
+                        pendientes++;
+
+                    }
+
+
+                    lista.appendChild(
+                        renderSolicitud(
+                            solicitud.id,
+                            data
+                        )
+                    );
+
+                }
+            );
+
+
+            contador.textContent =
+                "Solicitudes pendientes: " +
+                pendientes;
+
+
+            if(snapshot.empty){
+
+                lista.innerHTML = `
+
+                    <div class="vacio">
+
+                        <h3>
+                            No hay solicitudes
+                        </h3>
+
+                        <p>
+                            Cuando una empresa se registre,
+                            aparecerá aquí.
+                        </p>
+
+                    </div>
+
+                `;
+
+            }
+
+        },
+        error => {
+
+            console.error(error);
+
+            lista.innerHTML = `
+
+                <div class="vacio">
+
+                    No se pudieron cargar
+                    las solicitudes.
+
+                </div>
+
+            `;
+
+        }
+    );
+
+}
+
+
+onAuthStateChanged(
+    auth,
+    user => {
+
+        if(!user){
+
+            location.href =
+                "./login.html";
+
+            return;
+
+        }
+
+
+        if(!esAdministrador(user)){
+
+            alert(
+                "No tienes autorización."
+            );
+
+            location.href =
+                "./index.html";
+
+            return;
+
+        }
+
+
+        escucharSolicitudes();
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
