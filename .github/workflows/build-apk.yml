@@ -18,19 +18,18 @@ jobs:
         with:
           node-version: 20
 
-      - name: Instalar dependencias web
+      - name: Instalar Capacitor y dependencias
         run: |
-          if [ -f "package.json" ]; then
-            npm install
-          else
-            echo "No se encontró package.json en la raíz"
-          fi
+          npm install -g @capacitor/cli @capacitor/core
+          npm install || true
 
-      - name: Sincronizar Capacitor
+      - name: Reconstruir proyecto Android completo
         run: |
-          if npx cap --version >/dev/null 2>&1; then
-            npx cap sync android || true
-          fi
+          mkdir -p www
+          rm -rf android
+          npx cap add android
+          npx cap copy android
+          npx cap sync android
 
       - name: Configurar Java
         uses: actions/setup-java@v4
@@ -40,14 +39,9 @@ jobs:
 
       - name: Compilar APK en Android
         run: |
-          if [ -d "android" ]; then
-            cd android
-            chmod +x gradlew
-            ./gradlew assembleDebug
-          else
-            echo "Error: La carpeta 'android' no existe en el repositorio."
-            exit 1
-          fi
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Guardar APK
         uses: actions/upload-artifact@v4
