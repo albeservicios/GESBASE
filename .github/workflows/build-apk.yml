@@ -18,32 +18,23 @@ jobs:
         with:
           node-version: 20
 
-      - name: Preparar entorno Node y Capacitor
+      - name: Instalar dependencias e inicializar Capacitor
         run: |
-          if [ ! -f package.json ]; then
-            npm init -y
-          fi
+          npm install
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
           if [ ! -f capacitor.config.json ] && [ ! -f capacitor.config.ts ]; then
-            npx cap init "GESBASE" "com.gesbase.app" --web-dir "www"
+            npx cap init "GESBASE" "com.gesbase.app" --web-dir "dist"
           fi
 
-      - name: Preparar carpeta web completa
+      - name: Compilar proyecto Vite/React
         run: |
           npm run build || true
-          mkdir -p www
 
-          # Copiar absolutamente todo el contenido web disponible a www
-          cp -r *.html www/ 2>/dev/null || true
-          cp -r *.js www/ 2>/dev/null || true
-          cp -r *.css www/ 2>/dev/null || true
-          cp -r *.json www/ 2>/dev/null || true
-          cp -r assets www/ 2>/dev/null || true
-          cp -r src www/ 2>/dev/null || true
-
-          if [ ! -f www/index.html ]; then
-            echo '<!DOCTYPE html><html><head><title>GESBASE</title></head><body><h1>GESBASE App</h1></body></html>' > www/index.html
+          # Si Vite compila en dist, asegurarnos de que existan los archivos web
+          if [ ! -d "dist" ]; then
+            mkdir -p dist
+            cp -r *.html *.js *.css assets dist/ 2>/dev/null || true
           fi
 
       - name: Reconstruir plataforma Android
@@ -53,9 +44,9 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      - name: Permitir tráfico de red y reemplazar Kotlin
+      - name: Permitir tráfico de red y ajustar dependencias de Kotlin
         run: |
-          # Habilitar cleartext traffic para peticiones HTTP/API
+          # Permitir HTTP / APIs en la app nativa
           sed -i 's/android:supportsRtl="true"/android:supportsRtl="true" android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
 
           cat << 'EOF' >> android/build.gradle
