@@ -120,8 +120,8 @@ jobs:
           fi
 
 
-          echo "Contenido copiado:"
-
+          echo ""
+          echo "Contenido de dist:"
 
           find dist \
             -maxdepth 2 \
@@ -198,7 +198,57 @@ jobs:
 
 
       # ============================================================
-      # 9. FIREBASE
+      # 9. CONFIGURAR BOTON ATRAS DE ANDROID
+      #
+      # Si WebView tiene historial:
+      #     vuelve a la página anterior.
+      #
+      # Si no tiene historial:
+      #     Android continúa con el comportamiento normal.
+      # ============================================================
+      - name: Configurar boton atras Android
+        run: |
+
+          MAIN_ACTIVITY="android/app/src/main/java/com/gesbase/app/MainActivity.java"
+
+          mkdir -p "$(dirname "$MAIN_ACTIVITY")"
+
+          cat > "$MAIN_ACTIVITY" <<'EOF'
+          package com.gesbase.app;
+
+          import android.os.Bundle;
+
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+
+              @Override
+              public void onBackPressed() {
+
+                  if (getBridge() != null &&
+                      getBridge().getWebView() != null &&
+                      getBridge().getWebView().canGoBack()) {
+
+                      getBridge().getWebView().goBack();
+
+                  } else {
+
+                      super.onBackPressed();
+
+                  }
+              }
+          }
+          EOF
+
+          echo "======================================"
+          echo "BOTON ATRAS ANDROID CONFIGURADO"
+          echo "======================================"
+
+          cat "$MAIN_ACTIVITY"
+
+
+      # ============================================================
+      # 10. FIREBASE
       # ============================================================
       - name: Copiar google-services.json
         run: |
@@ -220,7 +270,7 @@ jobs:
 
 
       # ============================================================
-      # 10. GOOGLE SERVICES
+      # 11. GOOGLE SERVICES
       # ============================================================
       - name: Configurar Google Services
         run: |
@@ -237,7 +287,7 @@ jobs:
 
 
       # ============================================================
-      # 11. PERMISOS ANDROID
+      # 12. PERMISOS ANDROID
       # ============================================================
       - name: Configurar permisos Android
         run: |
@@ -268,7 +318,7 @@ jobs:
 
 
       # ============================================================
-      # 12. JAVA 21
+      # 13. JAVA 21
       # ============================================================
       - name: Configurar Java 21
         uses: actions/setup-java@v4
@@ -279,7 +329,7 @@ jobs:
 
 
       # ============================================================
-      # 13. SINCRONIZAR CAPACITOR
+      # 14. SINCRONIZAR CAPACITOR
       # ============================================================
       - name: Sincronizar Capacitor
         run: |
@@ -288,7 +338,30 @@ jobs:
 
 
       # ============================================================
-      # 14. COMPILAR APK
+      # 15. VERIFICAR MAINACTIVITY
+      # ============================================================
+      - name: Verificar boton atras
+        run: |
+
+          MAIN_ACTIVITY="android/app/src/main/java/com/gesbase/app/MainActivity.java"
+
+          if [ ! -f "$MAIN_ACTIVITY" ]; then
+
+            echo "ERROR: No existe MainActivity.java"
+
+            exit 1
+
+          fi
+
+
+          echo "MainActivity encontrada:"
+          echo ""
+
+          cat "$MAIN_ACTIVITY"
+
+
+      # ============================================================
+      # 16. COMPILAR APK
       # ============================================================
       - name: Compilar APK Debug
         run: |
@@ -301,7 +374,7 @@ jobs:
 
 
       # ============================================================
-      # 15. COMPROBAR APK
+      # 17. COMPROBAR APK
       # ============================================================
       - name: Verificar APK generado
         run: |
@@ -319,9 +392,7 @@ jobs:
 
 
           echo "======================================"
-
           echo "APK GESBASE GENERADO CORRECTAMENTE"
-
           echo "======================================"
 
 
@@ -329,7 +400,7 @@ jobs:
 
 
       # ============================================================
-      # 16. GUARDAR APK
+      # 18. GUARDAR APK
       # ============================================================
       - name: Guardar APK
         uses: actions/upload-artifact@v4
