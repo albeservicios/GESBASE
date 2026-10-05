@@ -6,10 +6,13 @@
 <meta charset="UTF-8">
 
 <meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <meta name="theme-color"
       content="#111827">
+
+<meta name="description"
+      content="GESBASE - Conformidad de trabajos">
 
 <title>GESBASE - Conformidad de trabajo</title>
 
@@ -150,15 +153,15 @@ h1{
     outline:none;
 }
 
-.campo textarea{
-    min-height:100px;
-    resize:vertical;
-}
-
 .campo input:focus,
 .campo select:focus,
 .campo textarea:focus{
-    border-color:#111827;
+    border-color:#2563eb;
+}
+
+.campo textarea{
+    min-height:100px;
+    resize:vertical;
 }
 
 .grid{
@@ -206,9 +209,9 @@ button{
     color:white;
 }
 
-.btn-firma{
-    background:#374151;
-    color:white;
+.btn-borrar-firma{
+    background:#fee2e2;
+    color:#991b1b;
 }
 
 .firma-container{
@@ -239,11 +242,6 @@ button{
     grid-template-columns:1fr;
     gap:8px;
     margin-top:10px;
-}
-
-.btn-borrar-firma{
-    background:#fee2e2;
-    color:#991b1b;
 }
 
 .lista{
@@ -280,6 +278,11 @@ button{
     font-size:11px;
     font-weight:bold;
     white-space:nowrap;
+}
+
+.badge.sin-firma{
+    background:#fee2e2;
+    color:#991b1b;
 }
 
 .datos{
@@ -350,8 +353,19 @@ button{
     border-top:1px solid #e5e7eb;
 }
 
-#listaSection{
-    margin-top:25px;
+.info-trabajo{
+    display:none;
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    color:#1e40af;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-size:13px;
+}
+
+.info-trabajo.visible{
+    display:block;
 }
 
 /* MODAL */
@@ -511,17 +525,22 @@ Tu empresa. Todo organizado.
 </h1>
 
 <p class="descripcion">
-Registrá la conformidad del cliente, completá la información del trabajo y obtené una constancia empresarial firmada desde el celular.
+Registrá la conformidad del cliente, dejá constancia del trabajo realizado y obtené una constancia firmada desde el celular.
 </p>
 
 <div
     id="estado"
     class="estado"
+></div>
+
+<div
+    id="infoTrabajo"
+    class="info-trabajo"
 >
 </div>
 
 
-<!-- FORMULARIO -->
+<!-- DATOS -->
 
 <div class="card">
 
@@ -546,7 +565,6 @@ Cargando clientes...
 </select>
 
 </div>
-
 
 <div class="campo">
 
@@ -648,12 +666,9 @@ Observaciones de conformidad
 El cliente puede firmar directamente sobre la pantalla del celular.
 </p>
 
-
 <div class="firma-container">
 
-<canvas
-    id="canvasFirma"
-></canvas>
+<canvas id="canvasFirma"></canvas>
 
 <div class="firma-info">
 Firmá dentro del recuadro utilizando el dedo.
@@ -661,12 +676,11 @@ Firmá dentro del recuadro utilizando el dedo.
 
 </div>
 
-
 <div class="firma-botones">
 
 <button
     id="btnBorrarFirma"
-    class="btn"
+    class="btn btn-borrar-firma"
     type="button"
 >
 🧹 Borrar firma
@@ -691,7 +705,6 @@ Firmá dentro del recuadro utilizando el dedo.
 ➕ Nueva conformidad
 </button>
 
-
 <button
     id="btnGuardar"
     class="btn btn-guardar"
@@ -710,7 +723,7 @@ Firmá dentro del recuadro utilizando el dedo.
 
 <!-- LISTA -->
 
-<section id="listaSection">
+<section>
 
 <div
     style="
@@ -821,8 +834,7 @@ import {
 
 import {
     onAuthStateChanged
-} from
-"https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
     collection,
@@ -832,9 +844,10 @@ import {
     updateDoc,
     deleteDoc,
     doc,
+    query,
+    where,
     serverTimestamp
-} from
-"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
 // ======================================================
@@ -846,6 +859,9 @@ document.getElementById("btnVolver");
 
 const estado =
 document.getElementById("estado");
+
+const infoTrabajo =
+document.getElementById("infoTrabajo");
 
 const cliente =
 document.getElementById("cliente");
@@ -914,9 +930,29 @@ let conformidades = [];
 
 let editandoId = "";
 
+let firmaOriginal = "";
+
 
 // ======================================================
-// CANVAS DE FIRMA
+// URL
+// ======================================================
+
+const parametrosURL =
+new URLSearchParams(
+    window.location.search
+);
+
+const trabajoIdURL =
+parametrosURL.get("trabajoId") ||
+"";
+
+const clienteIdURL =
+parametrosURL.get("clienteId") ||
+"";
+
+
+// ======================================================
+// CANVAS
 // ======================================================
 
 const ctx =
@@ -936,26 +972,33 @@ function prepararCanvas(){
     window.devicePixelRatio || 1;
 
     canvas.width =
-    rect.width * dpr;
+    Math.max(
+        1,
+        Math.floor(rect.width * dpr)
+    );
 
     canvas.height =
-    rect.height * dpr;
+    Math.max(
+        1,
+        Math.floor(rect.height * dpr)
+    );
 
-    ctx.scale(
+    ctx.setTransform(
         dpr,
-        dpr
+        0,
+        0,
+        dpr,
+        0,
+        0
     );
 
     ctx.lineWidth = 2;
 
-    ctx.lineCap =
-    "round";
+    ctx.lineCap = "round";
 
-    ctx.lineJoin =
-    "round";
+    ctx.lineJoin = "round";
 
-    ctx.strokeStyle =
-    "#111827";
+    ctx.strokeStyle = "#111827";
 
 }
 
@@ -988,8 +1031,7 @@ canvas.addEventListener(
 
         dibujando = true;
 
-        firmaTieneContenido =
-        true;
+        firmaTieneContenido = true;
 
         const p =
         posicion(evento);
@@ -1014,9 +1056,7 @@ canvas.addEventListener(
     function(evento){
 
         if(!dibujando){
-
             return;
-
         }
 
         evento.preventDefault();
@@ -1042,13 +1082,11 @@ canvas.addEventListener(
         dibujando = false;
 
         try{
-
             canvas.releasePointerCapture(
                 evento.pointerId
             );
-
         }
-        catch(e){}
+        catch(error){}
 
     }
 );
@@ -1073,8 +1111,9 @@ function borrarFirma(){
         canvas.height
     );
 
-    firmaTieneContenido =
-    false;
+    firmaTieneContenido = false;
+
+    firmaOriginal = "";
 
 }
 
@@ -1085,11 +1124,22 @@ btnBorrarFirma.addEventListener(
 );
 
 
+// Al cambiar el tamaño se reinicia el lienzo.
+// Si existe una firma guardada, se vuelve a cargar.
 window.addEventListener(
     "resize",
     function(){
 
+        const firma =
+        firmaOriginal;
+
         prepararCanvas();
+
+        if(firma){
+            cargarFirmaDesdeImagen(
+                firma
+            );
+        }
 
     }
 );
@@ -1109,13 +1159,19 @@ function fechaLocal(){
 
     const mes =
     String(
-        ahora.getMonth()+1
-    ).padStart(2,"0");
+        ahora.getMonth() + 1
+    ).padStart(
+        2,
+        "0"
+    );
 
     const dia =
     String(
         ahora.getDate()
-    ).padStart(2,"0");
+    ).padStart(
+        2,
+        "0"
+    );
 
     return (
         año +
@@ -1152,7 +1208,7 @@ function mostrarEstado(
 
 
 // ======================================================
-// ESCAPE HTML
+// ESCAPE
 // ======================================================
 
 function escapar(
@@ -1187,7 +1243,7 @@ function escapar(
 
 
 // ======================================================
-// FECHA FORMATO
+// FECHA
 // ======================================================
 
 function formatoFecha(
@@ -1195,9 +1251,7 @@ function formatoFecha(
 ){
 
     if(!valor){
-
         return "-";
-
     }
 
     if(
@@ -1223,15 +1277,15 @@ function formatoFecha(
         )
     ){
 
-        const p =
+        const partes =
         texto.split("-");
 
         return (
-            p[2] +
+            partes[2] +
             "/" +
-            p[1] +
+            partes[1] +
             "/" +
-            p[0]
+            partes[0]
         );
 
     }
@@ -1247,38 +1301,46 @@ function formatoFecha(
 
 async function cargarEmpresa(){
 
-    empresaIdActual =
-    "";
+    empresaIdActual = "";
 
-    empresaActual =
-    {};
+    empresaActual = {};
 
-    const referenciaUsuario =
+
+    const usuarioRef =
     doc(
         db,
         "usuarios",
         usuarioActual.uid
     );
 
-    const usuarioDoc =
+
+    const usuarioSnap =
     await getDoc(
-        referenciaUsuario
+        usuarioRef
     );
 
-    if(usuarioDoc.exists()){
+
+    if(usuarioSnap.exists()){
 
         const datos =
-        usuarioDoc.data();
+        usuarioSnap.data();
+
 
         empresaIdActual =
         String(
             datos.empresaId ||
+            datos.idEmpresa ||
             datos.empresa ||
+            datos.companyId ||
             ""
         ).trim();
 
     }
 
+
+    // ------------------------------------------
+    // EMPRESA POR ID
+    // ------------------------------------------
 
     if(empresaIdActual){
 
@@ -1289,55 +1351,113 @@ async function cargarEmpresa(){
             empresaIdActual
         );
 
-        const empresaDoc =
+
+        const empresaSnap =
         await getDoc(
             empresaRef
         );
 
-        if(empresaDoc.exists()){
+
+        if(empresaSnap.exists()){
 
             empresaActual =
-            empresaDoc.data();
+            empresaSnap.data();
+
+            return;
 
         }
-
-        return;
 
     }
 
 
-    /*
-     * Compatibilidad con cuentas antiguas.
-     */
+    // ------------------------------------------
+    // EMPRESA POR PROPIETARIO UID
+    // ------------------------------------------
 
-    const empresasRef =
-    collection(
-        db,
-        "empresas"
-    );
-
-    const snapshot =
+    const empresasSnapshot =
     await getDocs(
-        empresasRef
+        collection(
+            db,
+            "empresas"
+        )
     );
+
 
     for(
         const documento
-        of snapshot.docs
+        of empresasSnapshot.docs
     ){
 
         const datos =
         documento.data();
 
+
         if(
             documento.id ===
             usuarioActual.uid
-            ||
-            datos.uid ===
-            usuarioActual.uid
-            ||
-            datos.usuarioId ===
-            usuarioActual.uid
+        ){
+
+            empresaIdActual =
+            documento.id;
+
+            empresaActual =
+            datos;
+
+            return;
+
+        }
+
+
+        if(
+            String(
+                datos.propietarioUid ||
+                ""
+            ) ===
+            String(
+                usuarioActual.uid
+            )
+        ){
+
+            empresaIdActual =
+            documento.id;
+
+            empresaActual =
+            datos;
+
+            return;
+
+        }
+
+
+        if(
+            String(
+                datos.uid ||
+                ""
+            ) ===
+            String(
+                usuarioActual.uid
+            )
+        ){
+
+            empresaIdActual =
+            documento.id;
+
+            empresaActual =
+            datos;
+
+            return;
+
+        }
+
+
+        if(
+            String(
+                datos.usuarioId ||
+                ""
+            ) ===
+            String(
+                usuarioActual.uid
+            )
         ){
 
             empresaIdActual =
@@ -1353,11 +1473,12 @@ async function cargarEmpresa(){
     }
 
 
-    /*
-     * Última compatibilidad.
-     */
+    // ------------------------------------------
+    // ÚLTIMO RECURSO
+    // ------------------------------------------
 
     empresaIdActual =
+    empresaIdActual ||
     usuarioActual.uid;
 
 }
@@ -1371,35 +1492,62 @@ function pertenece(
     datos
 ){
 
+    if(!datos){
+        return false;
+    }
+
+
+    const empresa =
+    String(
+        datos.empresaId ||
+        datos.idEmpresa ||
+        datos.empresa ||
+        datos.companyId ||
+        ""
+    ).trim();
+
+
     if(
-        datos.empresaId &&
-        String(datos.empresaId) ===
-        String(empresaIdActual)
+        empresa &&
+        String(empresaIdActual) ===
+        empresa
     ){
 
         return true;
 
     }
 
+
+    const uid =
+    String(
+        usuarioActual?.uid ||
+        ""
+    );
+
+
     if(
-        datos.usuarioId &&
-        String(datos.usuarioId) ===
-        String(usuarioActual.uid)
+        String(
+            datos.usuarioId ||
+            ""
+        ) === uid
     ){
 
         return true;
 
     }
 
+
     if(
-        datos.uid &&
-        String(datos.uid) ===
-        String(usuarioActual.uid)
+        String(
+            datos.uid ||
+            ""
+        ) === uid
     ){
 
         return true;
 
     }
+
 
     return false;
 
@@ -1415,11 +1563,13 @@ async function cargarClientes(){
     cliente.innerHTML =
     `
     <option value="">
-    Cargando clientes...
+        Cargando clientes...
     </option>
     `;
 
+
     clientes = [];
+
 
     const snapshot =
     await getDocs(
@@ -1429,11 +1579,13 @@ async function cargarClientes(){
         )
     );
 
+
     snapshot.forEach(
         function(documento){
 
             const datos =
             documento.data();
+
 
             if(
                 !pertenece(
@@ -1445,20 +1597,25 @@ async function cargarClientes(){
 
             }
 
-            const nombre =
+
+            const nombrePersona =
             [
                 datos.nombre,
                 datos.apellido
             ]
             .filter(Boolean)
-            .join(" ");
+            .join(" ")
+            .trim();
 
-            const nombreFinal =
-            nombre ||
+
+            const nombre =
+            nombrePersona ||
             datos.empresa ||
             datos.razonSocial ||
             datos.razon_social ||
+            datos.nombreCliente ||
             "Cliente";
+
 
             clientes.push({
 
@@ -1466,7 +1623,7 @@ async function cargarClientes(){
                 documento.id,
 
                 nombre:
-                nombreFinal,
+                nombre,
 
                 datos:
                 datos
@@ -1492,7 +1649,7 @@ async function cargarClientes(){
     cliente.innerHTML =
     `
     <option value="">
-    Seleccionar cliente
+        Seleccionar cliente
     </option>
     `;
 
@@ -1526,7 +1683,7 @@ async function cargarClientes(){
         cliente.innerHTML =
         `
         <option value="">
-        No hay clientes disponibles
+            No hay clientes disponibles
         </option>
         `;
 
@@ -1544,11 +1701,13 @@ async function cargarTrabajos(){
     trabajo.innerHTML =
     `
     <option value="">
-    Seleccioná primero un cliente
+        Cargando trabajos...
     </option>
     `;
 
+
     trabajos = [];
+
 
     const snapshot =
     await getDocs(
@@ -1565,6 +1724,7 @@ async function cargarTrabajos(){
             const datos =
             documento.data();
 
+
             if(
                 !pertenece(
                     datos
@@ -1577,9 +1737,28 @@ async function cargarTrabajos(){
 
 
             const clienteId =
-            datos.clienteId ||
-            datos.cliente ||
-            datos.cliente_id ||
+            String(
+                datos.clienteId ||
+                datos.cliente ||
+                datos.cliente_id ||
+                datos.idCliente ||
+                ""
+            );
+
+
+            const descripcion =
+            datos.descripcion ||
+            datos.descripcionTrabajo ||
+            datos.nombre ||
+            datos.titulo ||
+            datos.trabajo ||
+            "Trabajo";
+
+
+            const lugarTrabajo =
+            datos.lugar ||
+            datos.direccion ||
+            datos.direccionTrabajo ||
             "";
 
 
@@ -1589,19 +1768,13 @@ async function cargarTrabajos(){
                 documento.id,
 
                 clienteId:
-                String(
-                    clienteId
-                ),
+                clienteId,
 
                 descripcion:
-                datos.descripcion ||
-                datos.nombre ||
-                datos.titulo ||
-                "Trabajo",
+                descripcion,
 
                 lugar:
-                datos.lugar ||
-                "",
+                lugarTrabajo,
 
                 datos:
                 datos
@@ -1611,22 +1784,30 @@ async function cargarTrabajos(){
         }
     );
 
+
+    actualizarTrabajos();
+
 }
 
+
+// ======================================================
+// MOSTRAR TRABAJOS DEL CLIENTE
+// ======================================================
 
 function actualizarTrabajos(){
 
     trabajo.innerHTML =
     `
     <option value="">
-    Seleccioná un trabajo
+        Seleccioná un trabajo
     </option>
     `;
 
 
     const clienteId =
     String(
-        cliente.value || ""
+        cliente.value ||
+        ""
     );
 
 
@@ -1635,7 +1816,7 @@ function actualizarTrabajos(){
         trabajo.innerHTML =
         `
         <option value="">
-        Seleccioná primero un cliente
+            Seleccioná primero un cliente
         </option>
         `;
 
@@ -1650,7 +1831,8 @@ function actualizarTrabajos(){
 
             return String(
                 item.clienteId
-            ) === clienteId;
+            ) ===
+            clienteId;
 
         }
     );
@@ -1685,7 +1867,7 @@ function actualizarTrabajos(){
         trabajo.innerHTML =
         `
         <option value="">
-        No hay trabajos para este cliente
+            No hay trabajos para este cliente
         </option>
         `;
 
@@ -1694,15 +1876,27 @@ function actualizarTrabajos(){
 }
 
 
+// ======================================================
+// CAMBIO CLIENTE
+// ======================================================
+
 cliente.addEventListener(
     "change",
     function(){
 
         actualizarTrabajos();
 
+        lugar.value = "";
+
+        descripcionTrabajo.value = "";
+
     }
 );
 
+
+// ======================================================
+// CAMBIO TRABAJO
+// ======================================================
 
 trabajo.addEventListener(
     "change",
@@ -1720,14 +1914,11 @@ trabajo.addEventListener(
 
 
         if(!seleccionado){
-
             return;
-
         }
 
 
         if(
-            !lugar.value &&
             seleccionado.lugar
         ){
 
@@ -1738,7 +1929,6 @@ trabajo.addEventListener(
 
 
         if(
-            !descripcionTrabajo.value &&
             seleccionado.descripcion
         ){
 
@@ -1747,8 +1937,62 @@ trabajo.addEventListener(
 
         }
 
+
+        mostrarInfoTrabajo(
+            seleccionado
+        );
+
     }
 );
+
+
+// ======================================================
+// INFORMACIÓN TRABAJO
+// ======================================================
+
+function mostrarInfoTrabajo(
+    item
+){
+
+    if(!item){
+        infoTrabajo.className =
+        "info-trabajo";
+        return;
+    }
+
+
+    const datos =
+    item.datos || {};
+
+
+    const presupuesto =
+    datos.presupuestoId ||
+    datos.presupuesto ||
+    datos.idPresupuesto ||
+    "";
+
+
+    let texto =
+    "Trabajo seleccionado correctamente.";
+
+
+    if(presupuesto){
+
+        texto +=
+        " Presupuesto asociado: " +
+        presupuesto;
+
+    }
+
+
+    infoTrabajo.textContent =
+    "🔗 " + texto;
+
+
+    infoTrabajo.className =
+    "info-trabajo visible";
+
+}
 
 
 // ======================================================
@@ -1768,6 +2012,7 @@ function nombreCliente(
 
         }
     );
+
 
     return encontrado
     ? encontrado.nombre
@@ -1794,6 +2039,7 @@ function nombreTrabajo(
         }
     );
 
+
     return encontrado
     ? encontrado.descripcion
     : "Sin trabajo";
@@ -1807,11 +2053,13 @@ function nombreTrabajo(
 
 async function cargarConformidades(){
 
-    lista.innerHTML =
-    "";
+    lista.innerHTML = "";
 
     vacio.style.display =
     "none";
+
+
+    conformidades = [];
 
 
     const snapshot =
@@ -1823,14 +2071,12 @@ async function cargarConformidades(){
     );
 
 
-    conformidades = [];
-
-
     snapshot.forEach(
         function(documento){
 
             const datos =
             documento.data();
+
 
             if(
                 !pertenece(
@@ -1907,6 +2153,7 @@ function crearTarjeta(
         "div"
     );
 
+
     tarjeta.className =
     "conformidad";
 
@@ -1919,10 +2166,15 @@ function crearTarjeta(
 
 
     const trabajoNombreTexto =
+    item.trabajoDescripcion ||
     item.trabajo ||
     nombreTrabajo(
         item.trabajoId
     );
+
+
+    const firmada =
+    !!item.firma;
 
 
     tarjeta.innerHTML = `
@@ -1937,10 +2189,13 @@ function crearTarjeta(
 
         </div>
 
-        <div class="badge">
+        <div class="
+            badge
+            ${firmada ? "" : "sin-firma"}
+        ">
 
             ${
-                item.firma
+                firmada
                 ? "FIRMADA"
                 : "SIN FIRMA"
             }
@@ -2003,15 +2258,14 @@ function crearTarjeta(
         <div class="dato">
 
             <small>
-            FIRMA
+            ESTADO
             </small>
 
             <strong>
-            ${
-                item.firma
-                ? "✍️ Guardada"
-                : "⚠️ No registrada"
-            }
+            ${escapar(
+                item.estado ||
+                "CONFORME"
+            )}
             </strong>
 
         </div>
@@ -2108,42 +2362,41 @@ function crearTarjeta(
 
 
 // ======================================================
-// NUEVA CONFORMIDAD
+// NUEVA
 // ======================================================
 
 function nuevaConformidad(){
 
-    editandoId =
-    "";
+    editandoId = "";
 
-    cliente.value =
-    "";
+    firmaOriginal = "";
+
+    cliente.value = "";
 
     actualizarTrabajos();
 
     fechaTrabajo.value =
     fechaLocal();
 
-    lugar.value =
-    "";
+    lugar.value = "";
 
-    descripcionTrabajo.value =
-    "";
+    descripcionTrabajo.value = "";
 
-    observaciones.value =
-    "";
+    observaciones.value = "";
 
     borrarFirma();
+
+    infoTrabajo.className =
+    "info-trabajo";
 
     btnGuardar.textContent =
     "💾 Guardar conformidad";
 
-    window.scrollTo(
-        {
-            top:0,
-            behavior:"smooth"
-        }
-    );
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
 
 }
 
@@ -2166,6 +2419,11 @@ function editarConformidad(
     item.id;
 
 
+    firmaOriginal =
+    item.firma ||
+    "";
+
+
     cliente.value =
     item.clienteId ||
     "";
@@ -2174,16 +2432,9 @@ function editarConformidad(
     actualizarTrabajos();
 
 
-    setTimeout(
-        function(){
-
-            trabajo.value =
-            item.trabajoId ||
-            "";
-
-        },
-        50
-    );
+    trabajo.value =
+    item.trabajoId ||
+    "";
 
 
     fechaTrabajo.value =
@@ -2197,6 +2448,7 @@ function editarConformidad(
 
 
     descripcionTrabajo.value =
+    item.trabajoDescripcion ||
     item.trabajo ||
     item.descripcionTrabajo ||
     "";
@@ -2213,6 +2465,9 @@ function editarConformidad(
 
     if(item.firma){
 
+        firmaOriginal =
+        item.firma;
+
         cargarFirmaDesdeImagen(
             item.firma
         );
@@ -2224,12 +2479,30 @@ function editarConformidad(
     "💾 Actualizar conformidad";
 
 
-    window.scrollTo(
-        {
-            top:0,
-            behavior:"smooth"
+    const trabajoSeleccionado =
+    trabajos.find(
+        function(x){
+
+            return x.id ===
+            item.trabajoId;
+
         }
     );
+
+
+    if(trabajoSeleccionado){
+
+        mostrarInfoTrabajo(
+            trabajoSeleccionado
+        );
+
+    }
+
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
 
 
     mostrarEstado(
@@ -2241,7 +2514,7 @@ function editarConformidad(
 
 
 // ======================================================
-// CARGAR FIRMA EXISTENTE
+// CARGAR FIRMA
 // ======================================================
 
 function cargarFirmaDesdeImagen(
@@ -2251,11 +2524,17 @@ function cargarFirmaDesdeImagen(
     const imagen =
     new Image();
 
+
     imagen.onload =
     function(){
 
         const rect =
         canvas.getBoundingClientRect();
+
+
+        const dpr =
+        window.devicePixelRatio || 1;
+
 
         ctx.clearRect(
             0,
@@ -2265,20 +2544,13 @@ function cargarFirmaDesdeImagen(
         );
 
 
-        const dpr =
-        window.devicePixelRatio || 1;
-
-        const ancho =
-        rect.width;
-
-        const alto =
-        rect.height;
-
-
         const escala =
         Math.min(
-            ancho / imagen.width,
-            alto / imagen.height
+            rect.width /
+            imagen.width,
+
+            rect.height /
+            imagen.height
         );
 
 
@@ -2293,11 +2565,11 @@ function cargarFirmaDesdeImagen(
 
 
         const x =
-        (ancho - w) / 2;
+        (rect.width - w) / 2;
 
 
         const y =
-        (alto - h) / 2;
+        (rect.height - h) / 2;
 
 
         ctx.drawImage(
@@ -2401,17 +2673,19 @@ btnGuardar.addEventListener(
         }
 
 
-        if(!firmaTieneContenido){
+        if(
+            !firmaTieneContenido &&
+            !firmaOriginal
+        ){
 
             const continuar =
             confirm(
                 "La conformidad no tiene firma.\n\n¿Querés guardarla igualmente?"
             );
 
+
             if(!continuar){
-
                 return;
-
             }
 
         }
@@ -2463,17 +2737,33 @@ btnGuardar.addEventListener(
         }
 
 
-        const firma =
-        firmaTieneContenido
-        ? canvas.toDataURL(
-            "image/png"
-        )
-        : "";
+        let firma = "";
+
+
+        if(firmaTieneContenido){
+
+            firma =
+            canvas.toDataURL(
+                "image/png"
+            );
+
+        }
+        else if(
+            firmaOriginal
+        ){
+
+            firma =
+            firmaOriginal;
+
+        }
 
 
         const datos = {
 
             usuarioId:
+            usuarioActual.uid,
+
+            uid:
             usuarioActual.uid,
 
             empresaId:
@@ -2487,6 +2777,9 @@ btnGuardar.addEventListener(
 
             trabajoId:
             trabajo.value,
+
+            trabajoDescripcion:
+            descripcionTrabajo.value.trim(),
 
             trabajo:
             descripcionTrabajo.value.trim(),
@@ -2517,6 +2810,7 @@ btnGuardar.addEventListener(
         btnGuardar.disabled =
         true;
 
+
         btnGuardar.textContent =
         editandoId
         ? "Actualizando..."
@@ -2527,12 +2821,44 @@ btnGuardar.addEventListener(
 
             if(editandoId){
 
+                const referencia =
+                doc(
+                    db,
+                    "conformidades",
+                    editandoId
+                );
+
+
+                const existente =
+                await getDoc(
+                    referencia
+                );
+
+
+                if(!existente.exists()){
+
+                    throw new Error(
+                        "La conformidad ya no existe."
+                    );
+
+                }
+
+
+                if(
+                    !pertenece(
+                        existente.data()
+                    )
+                ){
+
+                    throw new Error(
+                        "No tenés permiso para modificar esta conformidad."
+                    );
+
+                }
+
+
                 await updateDoc(
-                    doc(
-                        db,
-                        "conformidades",
-                        editandoId
-                    ),
+                    referencia,
                     {
 
                         ...datos,
@@ -2576,8 +2902,9 @@ btnGuardar.addEventListener(
             }
 
 
-            editandoId =
-            "";
+            editandoId = "";
+
+            firmaOriginal = "";
 
             btnGuardar.textContent =
             "💾 Guardar conformidad";
@@ -2586,29 +2913,23 @@ btnGuardar.addEventListener(
             await cargarConformidades();
 
 
-            /*
-             * Limpiamos el formulario después
-             * de guardar.
-             */
-
-            cliente.value =
-            "";
+            cliente.value = "";
 
             actualizarTrabajos();
 
-            lugar.value =
-            "";
+            fechaTrabajo.value =
+            fechaLocal();
 
-            descripcionTrabajo.value =
-            "";
+            lugar.value = "";
 
-            observaciones.value =
-            "";
+            descripcionTrabajo.value = "";
+
+            observaciones.value = "";
 
             borrarFirma();
 
-            fechaTrabajo.value =
-            fechaLocal();
+            infoTrabajo.className =
+            "info-trabajo";
 
         }
         catch(error){
@@ -2630,6 +2951,7 @@ btnGuardar.addEventListener(
 
             btnGuardar.disabled =
             false;
+
 
             if(!editandoId){
 
@@ -2660,6 +2982,7 @@ function mostrarDetalle(
 
 
     const trabajoNombreTexto =
+    item.trabajoDescripcion ||
     item.trabajo ||
     nombreTrabajo(
         item.trabajoId
@@ -2757,6 +3080,22 @@ function mostrarDetalle(
         ${escapar(
             item.observacionesConformidad ||
             "Sin observaciones"
+        )}
+        </strong>
+
+    </div>
+
+
+    <div class="detalle">
+
+        <small>
+        ESTADO
+        </small>
+
+        <strong>
+        ${escapar(
+            item.estado ||
+            "CONFORME"
         )}
         </strong>
 
@@ -2862,7 +3201,7 @@ function mostrarDetalle(
 
 
 // ======================================================
-// CERRAR MODAL
+// MODAL
 // ======================================================
 
 function cerrarModal(){
@@ -2885,7 +3224,8 @@ modal.addEventListener(
     function(evento){
 
         if(
-            evento.target === modal
+            evento.target ===
+            modal
         ){
 
             cerrarModal();
@@ -2911,9 +3251,7 @@ async function eliminarConformidad(
 
 
     if(!confirmar){
-
         return;
-
     }
 
 
@@ -2940,6 +3278,7 @@ async function eliminarConformidad(
                 "error"
             );
 
+
             await cargarConformidades();
 
             return;
@@ -2947,13 +3286,9 @@ async function eliminarConformidad(
         }
 
 
-        const datos =
-        documento.data();
-
-
         if(
             !pertenece(
-                datos
+                documento.data()
             )
         ){
 
@@ -3001,7 +3336,7 @@ async function eliminarConformidad(
 
 
 // ======================================================
-// PDF EMPRESARIAL
+// PDF
 // ======================================================
 
 function generarPDF(
@@ -3030,6 +3365,7 @@ function generarPDF(
     const empresaNombre =
     empresaActual.nombreEmpresa ||
     empresaActual.nombre ||
+    empresaActual.razonSocial ||
     "GESBASE";
 
 
@@ -3073,15 +3409,11 @@ function generarPDF(
 
 
     const trabajoTexto =
+    datos.trabajoDescripcion ||
     datos.trabajo ||
     nombreTrabajo(
         datos.trabajoId
     );
-
-
-    const firma =
-    datos.firma ||
-    "";
 
 
     const empresaDatos = [
@@ -3417,12 +3749,12 @@ FIRMA DEL CLIENTE
 </strong>
 
 ${
-    firma
+    datos.firma
     ?
     `
     <img
         src="${escapePDF(
-            firma
+            datos.firma
         )}"
         alt="Firma del cliente"
     >
@@ -3516,12 +3848,146 @@ function escapePDF(
 
 
 // ======================================================
+// ABRIR TRABAJO DESDE URL
+// ======================================================
+
+async function seleccionarTrabajoDesdeURL(){
+
+    if(!trabajoIdURL){
+        return;
+    }
+
+
+    const seleccionado =
+    trabajos.find(
+        function(item){
+
+            return item.id ===
+            trabajoIdURL;
+
+        }
+    );
+
+
+    if(!seleccionado){
+
+        mostrarEstado(
+            "El trabajo indicado no pertenece a esta empresa o ya no existe.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    cliente.value =
+    seleccionado.clienteId ||
+    "";
+
+
+    actualizarTrabajos();
+
+
+    trabajo.value =
+    seleccionado.id;
+
+
+    if(
+        seleccionado.lugar
+    ){
+
+        lugar.value =
+        seleccionado.lugar;
+
+    }
+
+
+    if(
+        seleccionado.descripcion
+    ){
+
+        descripcionTrabajo.value =
+        seleccionado.descripcion;
+
+    }
+
+
+    mostrarInfoTrabajo(
+        seleccionado
+    );
+
+
+    mostrarEstado(
+        "Trabajo cargado automáticamente para generar su conformidad.",
+        "info"
+    );
+
+}
+
+
+// ======================================================
+// CLIENTE DESDE URL
+// ======================================================
+
+function seleccionarClienteDesdeURL(){
+
+    if(
+        !clienteIdURL ||
+        trabajoIdURL
+    ){
+
+        return;
+
+    }
+
+
+    const encontrado =
+    clientes.find(
+        function(item){
+
+            return item.id ===
+            clienteIdURL;
+
+        }
+    );
+
+
+    if(!encontrado){
+        return;
+    }
+
+
+    cliente.value =
+    encontrado.id;
+
+
+    actualizarTrabajos();
+
+}
+
+
+// ======================================================
 // VOLVER
 // ======================================================
 
 btnVolver.addEventListener(
     "click",
     function(){
+
+        if(
+            document.referrer &&
+            document.referrer.includes(
+                "albeservicios.github.io"
+            )
+        ){
+
+            history.back();
+
+            return;
+
+        }
+
 
         window.location.href =
         "index.html";
@@ -3564,37 +4030,32 @@ onAuthStateChanged(
             );
 
 
-            /*
-             * 1. Empresa
-             */
-
+            // 1. Empresa
             await cargarEmpresa();
 
 
-            /*
-             * 2. Clientes
-             */
-
+            // 2. Clientes
             await cargarClientes();
 
 
-            /*
-             * 3. Trabajos
-             */
-
+            // 3. Trabajos
             await cargarTrabajos();
 
 
-            /*
-             * 4. Conformidades
-             */
+            // 4. Cliente indicado por URL
+            seleccionarClienteDesdeURL();
 
+
+            // 5. Trabajo indicado por URL
+            await seleccionarTrabajoDesdeURL();
+
+
+            // 6. Conformidades
             await cargarConformidades();
 
 
             estado.className =
             "estado";
-
 
         }
         catch(error){
