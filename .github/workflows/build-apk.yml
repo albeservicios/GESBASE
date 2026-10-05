@@ -18,12 +18,12 @@ jobs:
         with:
           node-version: 20
 
-      - name: Preparar entorno Node e instalar Capacitor
+      - name: Preparar entorno Node e instalar Capacitor y FCM
         run: |
           if [ ! -f package.json ]; then
             npm init -y
           fi
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/push-notifications
 
           cat << 'EOF' > capacitor.config.json
           {
@@ -38,7 +38,7 @@ jobs:
         run: |
           mkdir -p dist
 
-          # Copiar todo el contenido web del repositorio a dist/
+          # Copiar contenido web al directorio dist/
           cp -r *.html dist/ 2>/dev/null || true
           cp -r *.js dist/ 2>/dev/null || true
           cp -r *.css dist/ 2>/dev/null || true
@@ -49,11 +49,6 @@ jobs:
           cp -r Js dist/ 2>/dev/null || true
           cp -r js dist/ 2>/dev/null || true
 
-          # Insertar manejador de errores de inicio en index.html
-          if [ -f dist/index.html ]; then
-            sed -i 's/<head>/<head><script>window.onerror=function(m,u,l){alert("Error JS: "+m+" en linea "+l);};setTimeout(function(){var c=document.getElementById("cargando");if(c\&!c.classList.contains("oculto")){c.innerHTML="<div style=\"padding:20px;text-align:center;\"><h3>No se pudo conectar con Firebase<\/h3><p>Verifica tu conexion a internet<\/p><button onclick=\"location.reload()\" style=\"padding:10px 15px;\">Reintentar<\/button><\/div>";}},5000);<\/script>/' dist/index.html
-          fi
-
       - name: Reconstruir plataforma Android
         run: |
           rm -rf android
@@ -61,29 +56,27 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      - name: Configurar Permisos y Nombre en Android
+      - name: Injectar google-services.json desde GitHub Secrets
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
-          sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">GESBASE<\/string>/' android/app/src/main/res/values/strings.xml
-          sed -i 's/<string name="title_activity_main">.*<\/string>/<string name="title_activity_main">GESBASE<\/string>/' android/app/src/main/res/values/strings.xml
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            echo "google-services.json creado exitosamente."
+          else
+            echo "WARNING: No se encontró el secret GOOGLE_SERVICES_JSON."
+          fi
 
-          # Permitir tráfico HTTP / Firebase
+      - name: Configurar Gradle para Firebase Cloud Messaging (google-services)
+        run: |
+          # 1. Agregar la dependencia del plugin en android/build.gradle
+          sed -i '/dependencies {/a \        classpath "com.google.gms:google-services:4.4.0"' android/build.gradle
+
+          # 2. Aplicar el plugin al final de android/app/build.gradle
+          echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
+
+          # 3. Permisos de red e Internet en AndroidManifest.xml
           sed -i 's/android:supportsRtl="true"/android:supportsRtl="true" android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
-
-          cat << 'EOF' >> android/build.gradle
-
-          allprojects {
-              configurations.all {
-                  resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                      def requested = details.requested
-                      if (requested.group == 'org.jetbrains.kotlin') {
-                          if (requested.name == 'kotlin-stdlib-jdk7' || requested.name == 'kotlin-stdlib-jdk8') {
-                              details.useTarget "org.jetbrains.kotlin:kotlin-stdlib:${requested.version}"
-                          }
-                      }
-                  }
-              }
-          }
-          EOF
 
       - name: Configurar Java 21 (Temurin)
         uses: actions/setup-java@v4
