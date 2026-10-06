@@ -171,7 +171,7 @@ main{
 
 table{
     width:100%;
-    min-width:900px;
+    min-width:1050px;
     border-collapse:collapse;
 }
 
@@ -286,6 +286,17 @@ button:disabled{
 .btn-gris{
     background:#e5e7eb;
     color:#111827;
+}
+
+/* NUEVO: BOTÓN TRABAJOS */
+
+.btn-trabajos{
+    background:#f97316;
+    color:#fff;
+}
+
+.btn-trabajos:hover{
+    background:#ea580c;
 }
 
 .cargando,
@@ -499,6 +510,12 @@ button:disabled{
 
         Desde acá podés consultar y administrar
         la información de los empleados de tu empresa.
+
+        <br><br>
+
+        📋 Desde <strong>TRABAJOS</strong> podés asignar
+        tareas específicas a cada empleado y realizar
+        su seguimiento.
 
         <br><br>
 
@@ -962,12 +979,6 @@ async function obtenerEmpresa(){
         texto(empresaId);
 
 
-    /*
-       Si no existe empresaId en el usuario,
-       buscamos la empresa cuyo propietarioUid
-       sea el usuario actual.
-    */
-
     if(!empresaId){
 
         const q =
@@ -1045,7 +1056,6 @@ async function obtenerEmpresa(){
         ||
         "Empresa";
 
-
 }
 
 
@@ -1068,12 +1078,6 @@ async function cargarEmpleados(){
 
 
     try{
-
-        /*
-           IMPORTANTE:
-           Solo buscamos empleados de la empresa
-           actualmente asociada al administrador.
-        */
 
         const q =
             query(
@@ -1135,8 +1139,6 @@ async function cargarEmpleados(){
 
         }
 
-
-        /* ORDEN ALFABÉTICO */
 
         empleados.sort(
             (a,b) => {
@@ -1258,20 +1260,16 @@ async function cargarEmpleados(){
                         <td>
 
                             <div class="nombre">
-
                                 ${escapar(
                                     nombreCompleto
                                 )}
-
                             </div>
 
                             <div class="subdato">
-
                                 DNI:
                                 ${escapar(
                                     datos.dni || "-"
                                 )}
-
                             </div>
 
                         </td>
@@ -1286,22 +1284,18 @@ async function cargarEmpleados(){
                             </div>
 
                             <div class="subdato">
-
                                 ${escapar(
                                     telefonoEmpleado
                                 )}
-
                             </div>
 
                         </td>
 
 
                         <td>
-
                             ${escapar(
                                 puesto
                             )}
-
                         </td>
 
 
@@ -1363,12 +1357,25 @@ async function cargarEmpleados(){
                             <div class="acciones-tabla">
 
 
+                                <!-- EDITAR -->
+
                                 <button
                                     type="button"
                                     class="btn-azul"
                                     data-editar="${escapar(id)}"
                                 >
                                     ✏️ EDITAR
+                                </button>
+
+
+                                <!-- NUEVO: TRABAJOS -->
+
+                                <button
+                                    type="button"
+                                    class="btn-trabajos"
+                                    data-trabajos="${escapar(id)}"
+                                >
+                                    📋 TRABAJOS
                                 </button>
 
 
@@ -1504,6 +1511,8 @@ function actualizarResumen(){
 
 function conectarBotones(){
 
+    /* EDITAR */
+
     document
         .querySelectorAll(
             "[data-editar]"
@@ -1525,6 +1534,32 @@ function conectarBotones(){
             }
         );
 
+
+    /* TRABAJOS */
+
+    document
+        .querySelectorAll(
+            "[data-trabajos]"
+        )
+        .forEach(
+            boton => {
+
+                boton.addEventListener(
+                    "click",
+                    () => {
+
+                        abrirTrabajos(
+                            boton.dataset.trabajos
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    /* DAR ACCESO */
 
     document
         .querySelectorAll(
@@ -1548,6 +1583,8 @@ function conectarBotones(){
             }
         );
 
+
+    /* BLOQUEAR */
 
     document
         .querySelectorAll(
@@ -1575,26 +1612,47 @@ function conectarBotones(){
 
 
 /* =====================================================
+   ABRIR TRABAJOS DEL EMPLEADO
+===================================================== */
+
+function abrirTrabajos(id){
+
+    if(!id){
+
+        mostrarMensaje(
+            "No se pudo identificar al empleado.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Enviamos el ID del empleado a la pantalla
+       de trabajos.
+
+       Ejemplo:
+
+       trabajos-empleado.html?empleado=ABC123
+    */
+
+    window.location.href =
+        "trabajos-empleado.html?empleado=" +
+        encodeURIComponent(id);
+
+}
+
+
+/* =====================================================
    EDITAR EMPLEADO
 ===================================================== */
 
 function editarEmpleado(id){
 
-    /*
-       La ficha completa ya se carga desde
-       registro-empleado.html.
-
-       Acá por ahora llevamos al administrador
-       a la pantalla de registro existente,
-       pasando el ID para la futura edición.
-
-       Si registro-empleado.html todavía no soporta
-       edición, mostramos un aviso para no modificar
-       datos accidentalmente.
-    */
-
     mostrarMensaje(
-        "La edición de la ficha del empleado la agregaremos en la siguiente etapa. Por ahora podés administrar su acceso desde esta pantalla.",
+        "La edición de la ficha del empleado la agregaremos en la siguiente etapa. Por ahora podés administrar sus trabajos y su acceso desde esta pantalla.",
         "aviso"
     );
 
@@ -1701,11 +1759,6 @@ async function darAcceso(
         );
 
 
-        /*
-           ESTA ES LA CLOUD FUNCTION QUE YA
-           TENEMOS DESPLEGADA Y FUNCIONANDO.
-        */
-
         const respuesta =
             await crearAccesoEmpleado({
 
@@ -1730,10 +1783,6 @@ async function darAcceso(
 
         }
 
-
-        /*
-           Actualizamos la ficha localmente.
-        */
 
         const empleadoActualizado =
             empleados.find(
@@ -1812,11 +1861,6 @@ async function darAcceso(
             ||
             "No se pudo crear el acceso.";
 
-
-        /*
-           Firebase Callable Functions
-           puede devolver errores con code/details.
-        */
 
         if(
             error.code
@@ -1910,17 +1954,6 @@ async function bloquearAcceso(
 
 
     try{
-
-        /*
-           IMPORTANTE:
-
-           Por ahora el bloqueo se guarda en la ficha
-           del empleado.
-
-           La próxima capa de seguridad será bloquear
-           también Firebase Authentication mediante
-           una Cloud Function.
-        */
 
         await updateDoc(
             doc(
