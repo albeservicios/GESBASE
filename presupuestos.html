@@ -179,13 +179,6 @@ main{
     color:#fff;
 }
 
-.materiales{
-    background:#ea580c;
-    color:#fff;
-    border:0;
-    cursor:pointer;
-}
-
 @media(max-width:600px){
 
     .barra{
@@ -249,7 +242,7 @@ main{
     id="cargando"
     class="estado"
 >
-    ⏳ Cargando presupuestos...
+    ⏳ Identificando empresa...
 </div>
 
 <div
@@ -265,6 +258,7 @@ main{
 </main>
 
 </div>
+
 
 <script type="module">
 
@@ -285,7 +279,9 @@ import {
     collection,
     getDocs,
     query,
-    where
+    where,
+    doc,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
@@ -306,13 +302,19 @@ const buscar =
 document.getElementById("buscar");
 
 
+/* =====================================================
+   VARIABLES
+===================================================== */
+
 let todos = [];
 
 let usuarioActual = null;
 
+let empresaIdActual = null;
+
 
 /* =====================================================
-   FUNCIONES
+   FUNCIONES GENERALES
 ===================================================== */
 
 function texto(valor){
@@ -369,6 +371,10 @@ function dinero(valor){
 }
 
 
+/* =====================================================
+   DATOS DEL CLIENTE
+===================================================== */
+
 function cliente(datos){
 
     return (
@@ -382,6 +388,10 @@ function cliente(datos){
 
 }
 
+
+/* =====================================================
+   NÚMERO DEL PRESUPUESTO
+===================================================== */
 
 function numeroPresupuesto(datos,id){
 
@@ -397,6 +407,10 @@ function numeroPresupuesto(datos,id){
 }
 
 
+/* =====================================================
+   DESCRIPCIÓN
+===================================================== */
+
 function descripcion(datos){
 
     return (
@@ -410,6 +424,10 @@ function descripcion(datos){
 
 }
 
+
+/* =====================================================
+   TOTAL
+===================================================== */
 
 function total(datos){
 
@@ -446,8 +464,136 @@ function total(datos){
     return (
         numero(datos.materiales) +
         numero(datos.manoObra) +
-        numero(datos.viaticos)
+        numero(datos.viaticos) +
+        numero(datos.flete)
     );
+
+}
+
+
+/* =====================================================
+   OBTENER EMPRESA DEL USUARIO
+===================================================== */
+
+async function obtenerEmpresaId(uid){
+
+    console.log(
+        "GESBASE: buscando empresa para UID:",
+        uid
+    );
+
+
+    try{
+
+        /* ---------------------------------------------
+           1. BUSCAR USUARIO
+        --------------------------------------------- */
+
+        const usuarioRef =
+        doc(
+            db,
+            "usuarios",
+            uid
+        );
+
+
+        const usuarioSnap =
+        await getDoc(
+            usuarioRef
+        );
+
+
+        if(
+            usuarioSnap.exists()
+        ){
+
+            const data =
+            usuarioSnap.data();
+
+
+            console.log(
+                "GESBASE: datos del usuario:",
+                data
+            );
+
+
+            const id =
+                data.empresaId ||
+                data.idEmpresa ||
+                data.empresa ||
+                data.companyId;
+
+
+            if(id){
+
+                console.log(
+                    "GESBASE: empresa encontrada:",
+                    id
+                );
+
+                return id;
+
+            }
+
+        }
+
+
+        /* ---------------------------------------------
+           2. BUSCAR EMPRESA POR PROPIETARIO
+        --------------------------------------------- */
+
+        const empresasQuery =
+        query(
+            collection(
+                db,
+                "empresas"
+            ),
+            where(
+                "propietarioUid",
+                "==",
+                uid
+            )
+        );
+
+
+        const empresasSnap =
+        await getDocs(
+            empresasQuery
+        );
+
+
+        if(
+            !empresasSnap.empty
+        ){
+
+            const empresa =
+            empresasSnap.docs[0];
+
+
+            console.log(
+                "GESBASE: empresa encontrada por propietario:",
+                empresa.id
+            );
+
+
+            return empresa.id;
+
+        }
+
+
+    }catch(error){
+
+        console.error(
+            "Error obteniendo empresa:",
+            error
+        );
+
+        throw error;
+
+    }
+
+
+    return null;
 
 }
 
@@ -463,20 +609,26 @@ function mostrarError(error){
         error
     );
 
+
     cargando.style.display =
     "none";
 
+
     errorBox.style.display =
     "block";
+
 
     let mensaje =
     error?.message ||
     String(error);
 
+
     errorBox.textContent =
+
         "❌ No se pudieron cargar los presupuestos.\n\n" +
 
         "Código: " +
+
         (
             error?.code ||
             "sin código"
@@ -489,9 +641,19 @@ function mostrarError(error){
         "\n\n" +
 
         "Usuario: " +
+
         (
             usuarioActual?.email ||
             "sin usuario"
+        ) +
+
+        "\n\n" +
+
+        "Empresa detectada: " +
+
+        (
+            empresaIdActual ||
+            "no encontrada"
         );
 
 }
@@ -507,6 +669,7 @@ async function cargarPresupuestos(){
         "GESBASE: iniciando carga de presupuestos..."
     );
 
+
     try{
 
         if(
@@ -520,9 +683,26 @@ async function cargarPresupuestos(){
         }
 
 
+        if(
+            !empresaIdActual
+        ){
+
+            throw new Error(
+                "No se encontró una empresa asociada al usuario."
+            );
+
+        }
+
+
         console.log(
             "GESBASE UID:",
             usuarioActual.uid
+        );
+
+
+        console.log(
+            "GESBASE EMPRESA:",
+            empresaIdActual
         );
 
 
@@ -533,18 +713,24 @@ async function cargarPresupuestos(){
         );
 
 
-        console.log(
-            "GESBASE: consultando colección presupuestos..."
-        );
+        /* =================================================
+           CONSULTA CORRECTA
+           
+           Los presupuestos nuevos se guardan con:
+           
+           empresaId: empresaIdActual
+           
+           Por eso la lista debe buscar por empresaId.
+        ================================================= */
 
 
         const consulta =
         query(
             referencia,
             where(
-                "uid",
+                "empresaId",
                 "==",
-                usuarioActual.uid
+                empresaIdActual
             )
         );
 
@@ -581,16 +767,26 @@ async function cargarPresupuestos(){
         );
 
 
+        /* =================================================
+           ORDENAR
+        ================================================= */
+
         todos.sort(
             (a,b) => {
 
                 const fechaA =
-                a.datos.creado?.seconds ||
-                0;
+                    a.datos.creadoEn?.seconds ||
+                    a.datos.creado?.seconds ||
+                    a.datos.actualizadoEn?.seconds ||
+                    0;
+
 
                 const fechaB =
-                b.datos.creado?.seconds ||
-                0;
+                    b.datos.creadoEn?.seconds ||
+                    b.datos.creado?.seconds ||
+                    b.datos.actualizadoEn?.seconds ||
+                    0;
+
 
                 return fechaB - fechaA;
 
@@ -606,8 +802,8 @@ async function cargarPresupuestos(){
             todos
         );
 
-    }
-    catch(error){
+
+    }catch(error){
 
         mostrarError(
             error
@@ -636,7 +832,8 @@ function mostrarLista(items){
 
             <div class="estado">
 
-                📋 No tenés presupuestos registrados.
+                📋 No tenés presupuestos registrados
+                en esta empresa.
 
                 <br><br>
 
@@ -717,6 +914,7 @@ function mostrarLista(items){
                     ${escapar(numero)}
                 </h2>
 
+
                 <div class="dato">
 
                     <strong>
@@ -726,6 +924,7 @@ function mostrarLista(items){
                     ${escapar(nombreCliente)}
 
                 </div>
+
 
                 <div class="dato">
 
@@ -737,6 +936,7 @@ function mostrarLista(items){
 
                 </div>
 
+
                 <div class="dato">
 
                     <strong>
@@ -746,6 +946,7 @@ function mostrarLista(items){
                     ${escapar(lugar)}
 
                 </div>
+
 
                 <div class="dato">
 
@@ -757,6 +958,7 @@ function mostrarLista(items){
 
                 </div>
 
+
                 <div class="total">
 
                     Total:
@@ -764,7 +966,9 @@ function mostrarLista(items){
 
                 </div>
 
+
                 <div class="acciones">
+
 
                     <a
                         class="accion ver"
@@ -773,6 +977,7 @@ function mostrarLista(items){
                         👁️ VER
                     </a>
 
+
                     <a
                         class="accion editar"
                         href="editar-presupuesto.html?id=${encodeURIComponent(item.id)}"
@@ -780,9 +985,6 @@ function mostrarLista(items){
                         ✏️ EDITAR
                     </a>
 
-                    <!--
-                        ESTA ES LA CORRECCIÓN DEL 404
-                    -->
 
                     <a
                         class="accion trabajo"
@@ -790,6 +992,7 @@ function mostrarLista(items){
                     >
                         🔧 CREAR TRABAJO
                     </a>
+
 
                 </div>
 
@@ -858,6 +1061,8 @@ buscar.addEventListener(
 
                     datos.lugarTrabajo,
 
+                    datos.lugar,
+
                     datos.estado
 
                 ]
@@ -910,6 +1115,7 @@ onAuthStateChanged(
             cargando.textContent =
             "⚠️ No hay una sesión iniciada.";
 
+
             setTimeout(
                 () => {
 
@@ -920,6 +1126,7 @@ onAuthStateChanged(
                 1000
             );
 
+
             return;
 
         }
@@ -929,7 +1136,43 @@ onAuthStateChanged(
         usuario;
 
 
-        await cargarPresupuestos();
+        try{
+
+            cargando.textContent =
+            "⏳ Identificando empresa...";
+
+
+            empresaIdActual =
+            await obtenerEmpresaId(
+                usuario.uid
+            );
+
+
+            if(
+                !empresaIdActual
+            ){
+
+                throw new Error(
+                    "No se pudo identificar la empresa del usuario."
+                );
+
+            }
+
+
+            cargando.textContent =
+            "⏳ Cargando presupuestos...";
+
+
+            await cargarPresupuestos();
+
+
+        }catch(error){
+
+            mostrarError(
+                error
+            );
+
+        }
 
     }
 );
@@ -948,10 +1191,12 @@ setTimeout(
         ){
 
             mostrarError(
+
                 new Error(
                     "Firebase no respondió dentro del tiempo esperado. " +
                     "Revisá Js/firebase.js y la conexión con Firebase."
                 )
+
             );
 
         }
