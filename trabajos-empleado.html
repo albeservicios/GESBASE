@@ -1,0 +1,3191 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<meta
+    name="description"
+    content="Gestión de trabajos y tareas de empleados - GESBASE"
+>
+
+<title>Trabajos de empleados - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+    min-height:100vh;
+}
+
+.app{
+    width:100%;
+    max-width:1100px;
+    min-height:100vh;
+    margin:auto;
+    background:#fff;
+}
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+header{
+    background:#111827;
+    color:#fff;
+    padding:20px 18px;
+}
+
+.header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.btn-volver{
+    width:44px;
+    height:44px;
+    border:0;
+    border-radius:10px;
+    background:#374151;
+    color:#fff;
+    font-size:22px;
+    cursor:pointer;
+    flex-shrink:0;
+}
+
+header h1{
+    font-size:23px;
+}
+
+header p{
+    margin-top:5px;
+    color:#d1d5db;
+    font-size:13px;
+}
+
+/* =====================================================
+   MAIN
+===================================================== */
+
+main{
+    padding:20px;
+}
+
+.tarjeta{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:18px;
+    box-shadow:0 4px 15px rgba(0,0,0,.04);
+}
+
+.titulo{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.descripcion{
+    color:#6b7280;
+    font-size:14px;
+    line-height:1.5;
+    margin-bottom:18px;
+}
+
+/* =====================================================
+   INFORMACIÓN EMPRESA
+===================================================== */
+
+.info-empresa{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    color:#1e40af;
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:18px;
+    line-height:1.5;
+}
+
+.info-empresa strong{
+    color:#1e3a8a;
+}
+
+/* =====================================================
+   MENSAJES
+===================================================== */
+
+.mensaje{
+    display:none;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:18px;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.mensaje.ok{
+    display:block;
+    background:#dcfce7;
+    color:#166534;
+}
+
+.mensaje.error{
+    display:block;
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.mensaje.aviso{
+    display:block;
+    background:#fef3c7;
+    color:#92400e;
+}
+
+/* =====================================================
+   FORMULARIO
+===================================================== */
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.grupo{
+    margin-bottom:15px;
+}
+
+label{
+    display:block;
+    font-weight:bold;
+    font-size:14px;
+    margin-bottom:7px;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:12px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    font-family:Arial,sans-serif;
+    font-size:15px;
+    background:#fff;
+    color:#111827;
+}
+
+textarea{
+    min-height:110px;
+    resize:vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+    outline:none;
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+
+/* =====================================================
+   BOTONES
+===================================================== */
+
+.acciones{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+button{
+    border:0;
+    border-radius:10px;
+    padding:11px 14px;
+    font-size:13px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+.btn-principal{
+    background:#111827;
+    color:#fff;
+}
+
+.btn-azul{
+    background:#2563eb;
+    color:#fff;
+}
+
+.btn-verde{
+    background:#16a34a;
+    color:#fff;
+}
+
+.btn-rojo{
+    background:#dc2626;
+    color:#fff;
+}
+
+.btn-naranja{
+    background:#ea580c;
+    color:#fff;
+}
+
+.btn-gris{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+/* =====================================================
+   FILTROS
+===================================================== */
+
+.filtros{
+    display:grid;
+    grid-template-columns:1.5fr 1fr 1fr;
+    gap:12px;
+    margin-bottom:18px;
+}
+
+/* =====================================================
+   RESUMEN
+===================================================== */
+
+.resumen{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.resumen-item{
+    background:#f3f4f6;
+    border-radius:12px;
+    padding:16px;
+    text-align:center;
+}
+
+.resumen-item strong{
+    display:block;
+    font-size:25px;
+}
+
+.resumen-item span{
+    display:block;
+    margin-top:4px;
+    font-size:12px;
+    color:#6b7280;
+}
+
+/* =====================================================
+   TRABAJOS
+===================================================== */
+
+.lista-trabajos{
+    display:grid;
+    gap:14px;
+}
+
+.trabajo{
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:17px;
+    background:#fff;
+}
+
+.trabajo-cabecera{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+}
+
+.trabajo-titulo{
+    font-size:17px;
+    font-weight:bold;
+}
+
+.trabajo-empleado{
+    margin-top:5px;
+    color:#6b7280;
+    font-size:13px;
+}
+
+.trabajo-descripcion{
+    margin-top:13px;
+    line-height:1.5;
+    color:#374151;
+    white-space:pre-wrap;
+}
+
+.trabajo-info{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-top:15px;
+}
+
+.info-item{
+    background:#f9fafb;
+    border-radius:10px;
+    padding:10px;
+}
+
+.info-item strong{
+    display:block;
+    font-size:11px;
+    color:#6b7280;
+    margin-bottom:4px;
+}
+
+.info-item span{
+    font-size:13px;
+    font-weight:bold;
+}
+
+.trabajo-observacion{
+    margin-top:13px;
+    padding:12px;
+    background:#fefce8;
+    border:1px solid #fde68a;
+    border-radius:10px;
+    font-size:13px;
+    line-height:1.5;
+}
+
+.trabajo-acciones{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+    margin-top:15px;
+}
+
+/* =====================================================
+   ESTADOS
+===================================================== */
+
+.estado{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.estado-pendiente{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.estado-proceso{
+    background:#dbeafe;
+    color:#1e40af;
+}
+
+.estado-finalizado{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.estado-cancelado{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.prioridad{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.prioridad-baja{
+    background:#e5e7eb;
+    color:#374151;
+}
+
+.prioridad-media{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.prioridad-alta{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+/* =====================================================
+   CARGANDO / VACÍO
+===================================================== */
+
+.cargando,
+.vacio{
+    text-align:center;
+    padding:30px;
+    color:#6b7280;
+}
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.modal-fondo{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:9999;
+    overflow:auto;
+}
+
+.modal{
+    width:100%;
+    max-width:620px;
+    background:#fff;
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+}
+
+.modal h2{
+    margin-bottom:10px;
+}
+
+.modal p{
+    color:#6b7280;
+    line-height:1.5;
+    margin-bottom:18px;
+}
+
+.modal-acciones{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+}
+
+.modal-acciones button{
+    flex:1;
+}
+
+/* =====================================================
+   OCULTO
+===================================================== */
+
+.oculto{
+    display:none !important;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media(max-width:750px){
+
+    main{
+        padding:14px;
+    }
+
+    .grid{
+        grid-template-columns:1fr;
+        gap:0;
+    }
+
+    .filtros{
+        grid-template-columns:1fr;
+    }
+
+    .resumen{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .trabajo-info{
+        grid-template-columns:1fr;
+    }
+
+    .trabajo-cabecera{
+        flex-direction:column;
+    }
+
+    header h1{
+        font-size:20px;
+    }
+
+}
+
+@media(max-width:450px){
+
+    .resumen{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+<header>
+
+    <div class="header">
+
+        <button
+            id="btnVolver"
+            class="btn-volver"
+            type="button"
+        >
+            ←
+        </button>
+
+        <div>
+
+            <h1>
+                📋 Trabajos de empleados
+            </h1>
+
+            <p>
+                Asigná tareas y controlá su avance.
+            </p>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main>
+
+<!-- =====================================================
+     MENSAJE
+===================================================== -->
+
+<div
+    id="mensaje"
+    class="mensaje"
+></div>
+
+
+<!-- =====================================================
+     EMPRESA
+===================================================== -->
+
+<div class="info-empresa">
+
+    🏢 <strong>Empresa:</strong>
+
+    <span id="nombreEmpresa">
+        Cargando...
+    </span>
+
+    <br>
+
+    👷 Los trabajos pertenecen exclusivamente
+    a los empleados de esta empresa.
+
+</div>
+
+
+<!-- =====================================================
+     RESUMEN
+===================================================== -->
+
+<div class="resumen">
+
+    <div class="resumen-item">
+
+        <strong id="totalTrabajos">
+            0
+        </strong>
+
+        <span>
+            Total
+        </span>
+
+    </div>
+
+
+    <div class="resumen-item">
+
+        <strong id="totalPendientes">
+            0
+        </strong>
+
+        <span>
+            Pendientes
+        </span>
+
+    </div>
+
+
+    <div class="resumen-item">
+
+        <strong id="totalProceso">
+            0
+        </strong>
+
+        <span>
+            En proceso
+        </span>
+
+    </div>
+
+
+    <div class="resumen-item">
+
+        <strong id="totalFinalizados">
+            0
+        </strong>
+
+        <span>
+            Finalizados
+        </span>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     NUEVO TRABAJO
+===================================================== -->
+
+<div class="tarjeta">
+
+    <div class="titulo">
+        ➕ Asignar nuevo trabajo
+    </div>
+
+    <div class="descripcion">
+
+        Seleccioná un empleado y cargá la tarea que
+        deberá realizar. El empleado podrá verla
+        posteriormente desde su acceso a GESBASE.
+
+    </div>
+
+
+    <div class="grid">
+
+        <div class="grupo">
+
+            <label for="empleadoId">
+                👷 Empleado
+            </label>
+
+            <select id="empleadoId">
+
+                <option value="">
+                    Cargando empleados...
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="grupo">
+
+            <label for="prioridad">
+                ⚠️ Prioridad
+            </label>
+
+            <select id="prioridad">
+
+                <option value="baja">
+                    Baja
+                </option>
+
+                <option
+                    value="media"
+                    selected
+                >
+                    Media
+                </option>
+
+                <option value="alta">
+                    Alta
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <div class="grupo">
+
+        <label for="tituloTrabajo">
+            📋 Título del trabajo
+        </label>
+
+        <input
+            id="tituloTrabajo"
+            type="text"
+            maxlength="150"
+            placeholder="Ej.: Reparar bomba de agua"
+        >
+
+    </div>
+
+
+    <div class="grupo">
+
+        <label for="descripcionTrabajo">
+            📝 Descripción / tareas a realizar
+        </label>
+
+        <textarea
+            id="descripcionTrabajo"
+            maxlength="3000"
+            placeholder="Describí detalladamente qué debe realizar el empleado..."
+        ></textarea>
+
+    </div>
+
+
+    <div class="grid">
+
+        <div class="grupo">
+
+            <label for="fechaAsignacion">
+                📅 Fecha de asignación
+            </label>
+
+            <input
+                id="fechaAsignacion"
+                type="date"
+            >
+
+        </div>
+
+
+        <div class="grupo">
+
+            <label for="fechaLimite">
+                📅 Fecha límite
+            </label>
+
+            <input
+                id="fechaLimite"
+                type="date"
+            >
+
+        </div>
+
+    </div>
+
+
+    <div class="grupo">
+
+        <label for="observaciones">
+            📝 Observaciones del patrón
+        </label>
+
+        <textarea
+            id="observaciones"
+            maxlength="3000"
+            placeholder="Indicaciones adicionales..."
+        ></textarea>
+
+    </div>
+
+
+    <div class="acciones">
+
+        <button
+            id="btnGuardar"
+            class="btn-principal"
+            type="button"
+        >
+            💾 ASIGNAR TRABAJO
+        </button>
+
+
+        <button
+            id="btnLimpiar"
+            class="btn-gris"
+            type="button"
+        >
+            🧹 LIMPIAR
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     FILTROS
+===================================================== -->
+
+<div class="tarjeta">
+
+    <div class="titulo">
+        🔎 Trabajos asignados
+    </div>
+
+    <div class="descripcion">
+
+        Consultá las tareas asignadas y controlá
+        su estado.
+
+    </div>
+
+
+    <div class="filtros">
+
+        <select id="filtroEmpleado">
+
+            <option value="">
+                Todos los empleados
+            </option>
+
+        </select>
+
+
+        <select id="filtroEstado">
+
+            <option value="">
+                Todos los estados
+            </option>
+
+            <option value="pendiente">
+                Pendiente
+            </option>
+
+            <option value="en_proceso">
+                En proceso
+            </option>
+
+            <option value="finalizado">
+                Finalizado
+            </option>
+
+            <option value="cancelado">
+                Cancelado
+            </option>
+
+        </select>
+
+
+        <select id="filtroPrioridad">
+
+            <option value="">
+                Todas las prioridades
+            </option>
+
+            <option value="baja">
+                Baja
+            </option>
+
+            <option value="media">
+                Media
+            </option>
+
+            <option value="alta">
+                Alta
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div
+        id="listaTrabajos"
+        class="lista-trabajos"
+    >
+
+        <div class="cargando">
+            Cargando trabajos...
+        </div>
+
+    </div>
+
+</div>
+
+</main>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL EDITAR TRABAJO
+===================================================== -->
+
+<div
+    id="modalEditar"
+    class="modal-fondo"
+>
+
+    <div class="modal">
+
+        <h2>
+            ✏️ Editar trabajo
+        </h2>
+
+        <p>
+            Podés modificar la información de la tarea
+            asignada al empleado.
+        </p>
+
+
+        <input
+            id="editarId"
+            type="hidden"
+        >
+
+
+        <div class="grupo">
+
+            <label for="editarTitulo">
+                Título
+            </label>
+
+            <input
+                id="editarTitulo"
+                type="text"
+                maxlength="150"
+            >
+
+        </div>
+
+
+        <div class="grupo">
+
+            <label for="editarDescripcion">
+                Descripción
+            </label>
+
+            <textarea
+                id="editarDescripcion"
+                maxlength="3000"
+            ></textarea>
+
+        </div>
+
+
+        <div class="grid">
+
+            <div class="grupo">
+
+                <label for="editarPrioridad">
+                    Prioridad
+                </label>
+
+                <select id="editarPrioridad">
+
+                    <option value="baja">
+                        Baja
+                    </option>
+
+                    <option value="media">
+                        Media
+                    </option>
+
+                    <option value="alta">
+                        Alta
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label for="editarEstado">
+                    Estado
+                </label>
+
+                <select id="editarEstado">
+
+                    <option value="pendiente">
+                        Pendiente
+                    </option>
+
+                    <option value="en_proceso">
+                        En proceso
+                    </option>
+
+                    <option value="finalizado">
+                        Finalizado
+                    </option>
+
+                    <option value="cancelado">
+                        Cancelado
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <div class="grid">
+
+            <div class="grupo">
+
+                <label for="editarFechaAsignacion">
+                    Fecha de asignación
+                </label>
+
+                <input
+                    id="editarFechaAsignacion"
+                    type="date"
+                >
+
+            </div>
+
+
+            <div class="grupo">
+
+                <label for="editarFechaLimite">
+                    Fecha límite
+                </label>
+
+                <input
+                    id="editarFechaLimite"
+                    type="date"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="grupo">
+
+            <label for="editarObservaciones">
+                Observaciones
+            </label>
+
+            <textarea
+                id="editarObservaciones"
+                maxlength="3000"
+            ></textarea>
+
+        </div>
+
+
+        <div class="modal-acciones">
+
+            <button
+                id="btnGuardarEdicion"
+                class="btn-azul"
+                type="button"
+            >
+                💾 GUARDAR CAMBIOS
+            </button>
+
+
+            <button
+                id="btnCerrarEditar"
+                class="btn-gris"
+                type="button"
+            >
+                CERRAR
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script type="module">
+
+/* =====================================================
+   FIREBASE
+===================================================== */
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+
+import {
+    collection,
+    getDocs,
+    query,
+    where,
+    doc,
+    getDoc,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+
+/* =====================================================
+   VARIABLES
+===================================================== */
+
+let usuarioActual = null;
+
+let empresaActualId = null;
+
+let empresaActual = null;
+
+let datosUsuarioActual = null;
+
+let empleados = [];
+
+let trabajos = [];
+
+
+/* =====================================================
+   ELEMENTOS
+===================================================== */
+
+const mensaje =
+    document.getElementById("mensaje");
+
+const nombreEmpresa =
+    document.getElementById("nombreEmpresa");
+
+const empleadoId =
+    document.getElementById("empleadoId");
+
+const filtroEmpleado =
+    document.getElementById("filtroEmpleado");
+
+const filtroEstado =
+    document.getElementById("filtroEstado");
+
+const filtroPrioridad =
+    document.getElementById("filtroPrioridad");
+
+const listaTrabajos =
+    document.getElementById("listaTrabajos");
+
+const tituloTrabajo =
+    document.getElementById("tituloTrabajo");
+
+const descripcionTrabajo =
+    document.getElementById("descripcionTrabajo");
+
+const fechaAsignacion =
+    document.getElementById("fechaAsignacion");
+
+const fechaLimite =
+    document.getElementById("fechaLimite");
+
+const prioridad =
+    document.getElementById("prioridad");
+
+const observaciones =
+    document.getElementById("observaciones");
+
+const btnGuardar =
+    document.getElementById("btnGuardar");
+
+
+const totalTrabajos =
+    document.getElementById("totalTrabajos");
+
+const totalPendientes =
+    document.getElementById("totalPendientes");
+
+const totalProceso =
+    document.getElementById("totalProceso");
+
+const totalFinalizados =
+    document.getElementById("totalFinalizados");
+
+
+const modalEditar =
+    document.getElementById("modalEditar");
+
+const editarId =
+    document.getElementById("editarId");
+
+const editarTitulo =
+    document.getElementById("editarTitulo");
+
+const editarDescripcion =
+    document.getElementById("editarDescripcion");
+
+const editarPrioridad =
+    document.getElementById("editarPrioridad");
+
+const editarEstado =
+    document.getElementById("editarEstado");
+
+const editarFechaAsignacion =
+    document.getElementById("editarFechaAsignacion");
+
+const editarFechaLimite =
+    document.getElementById("editarFechaLimite");
+
+const editarObservaciones =
+    document.getElementById("editarObservaciones");
+
+
+/* =====================================================
+   UTILIDADES
+===================================================== */
+
+function texto(valor){
+
+    return String(
+        valor ?? ""
+    ).trim();
+
+}
+
+
+function escapar(valor){
+
+    return String(
+        valor ?? ""
+    )
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+function mostrarMensaje(
+    textoMensaje,
+    tipo = "ok"
+){
+
+    mensaje.textContent =
+        textoMensaje;
+
+    mensaje.className =
+        "mensaje " + tipo;
+
+    mensaje.style.display =
+        "block";
+
+}
+
+
+function ocultarMensaje(){
+
+    mensaje.style.display =
+        "none";
+
+}
+
+
+function fechaHoy(){
+
+    const ahora =
+        new Date();
+
+    const año =
+        ahora.getFullYear();
+
+    const mes =
+        String(
+            ahora.getMonth() + 1
+        ).padStart(2,"0");
+
+    const dia =
+        String(
+            ahora.getDate()
+        ).padStart(2,"0");
+
+    return `${año}-${mes}-${dia}`;
+
+}
+
+
+function nombreEmpleado(
+    empleado
+){
+
+    if(!empleado){
+
+        return "Empleado";
+
+    }
+
+
+    return (
+        texto(empleado.nombre) +
+        " " +
+        texto(empleado.apellido)
+    ).trim()
+    ||
+    "Empleado";
+
+}
+
+
+/* =====================================================
+   OBTENER EMPRESA
+===================================================== */
+
+async function obtenerEmpresa(){
+
+    if(!usuarioActual){
+
+        throw new Error(
+            "No hay una sesión iniciada."
+        );
+
+    }
+
+
+    const usuarioRef =
+        doc(
+            db,
+            "usuarios",
+            usuarioActual.uid
+        );
+
+
+    const usuarioSnap =
+        await getDoc(
+            usuarioRef
+        );
+
+
+    if(!usuarioSnap.exists()){
+
+        throw new Error(
+            "No se encontró tu usuario en GESBASE."
+        );
+
+    }
+
+
+    datosUsuarioActual =
+        usuarioSnap.data();
+
+
+    const rol =
+        texto(
+            datosUsuarioActual.rol
+        )
+        .toLowerCase();
+
+
+    const esAdmin =
+        usuarioActual.email ===
+            "julianbattauz006@gmail.com"
+        ||
+        rol === "admin"
+        ||
+        rol === "administrador";
+
+
+    if(!esAdmin){
+
+        throw new Error(
+            "Solo un administrador puede gestionar trabajos."
+        );
+
+    }
+
+
+    let empresaId =
+        datosUsuarioActual.empresaId
+        ||
+        datosUsuarioActual.idEmpresa
+        ||
+        datosUsuarioActual.empresa
+        ||
+        "";
+
+
+    empresaId =
+        texto(empresaId);
+
+
+    if(!empresaId){
+
+        const q =
+            query(
+                collection(
+                    db,
+                    "empresas"
+                ),
+                where(
+                    "propietarioUid",
+                    "==",
+                    usuarioActual.uid
+                )
+            );
+
+
+        const snap =
+            await getDocs(q);
+
+
+        if(!snap.empty){
+
+            empresaId =
+                snap.docs[0].id;
+
+        }
+
+    }
+
+
+    if(!empresaId){
+
+        throw new Error(
+            "No se encontró una empresa asociada a tu cuenta."
+        );
+
+    }
+
+
+    empresaActualId =
+        empresaId;
+
+
+    const empresaSnap =
+        await getDoc(
+            doc(
+                db,
+                "empresas",
+                empresaActualId
+            )
+        );
+
+
+    if(!empresaSnap.exists()){
+
+        throw new Error(
+            "La empresa asociada no existe."
+        );
+
+    }
+
+
+    empresaActual =
+        empresaSnap.data();
+
+
+    nombreEmpresa.textContent =
+        empresaActual.nombreEmpresa
+        ||
+        empresaActual.nombre
+        ||
+        empresaActual.razonSocial
+        ||
+        "Empresa";
+
+}
+
+
+/* =====================================================
+   CARGAR EMPLEADOS
+===================================================== */
+
+async function cargarEmpleados(){
+
+    empleadoId.innerHTML = `
+        <option value="">
+            Seleccionar empleado
+        </option>
+    `;
+
+
+    filtroEmpleado.innerHTML = `
+        <option value="">
+            Todos los empleados
+        </option>
+    `;
+
+
+    const q =
+        query(
+            collection(
+                db,
+                "empleados"
+            ),
+            where(
+                "empresaId",
+                "==",
+                empresaActualId
+            )
+        );
+
+
+    const snapshot =
+        await getDocs(q);
+
+
+    empleados = [];
+
+
+    snapshot.forEach(
+        documento => {
+
+            empleados.push({
+
+                id:
+                    documento.id,
+
+                datos:
+                    documento.data()
+
+            });
+
+        }
+    );
+
+
+    empleados.sort(
+        (a,b) => {
+
+            return nombreEmpleado(
+                a.datos
+            ).localeCompare(
+                nombreEmpleado(
+                    b.datos
+                )
+            );
+
+        }
+    );
+
+
+    empleados.forEach(
+        empleado => {
+
+            const nombre =
+                nombreEmpleado(
+                    empleado.datos
+                );
+
+
+            const estado =
+                texto(
+                    empleado.datos.estado
+                )
+                .toLowerCase();
+
+
+            /*
+               Los inactivos siguen apareciendo
+               para poder consultar sus trabajos,
+               pero no se seleccionan automáticamente.
+            */
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                empleado.id;
+
+            option.textContent =
+                nombre +
+                (
+                    estado === "inactivo"
+                    ? " — INACTIVO"
+                    : ""
+                );
+
+
+            empleadoId.appendChild(
+                option
+            );
+
+
+            const optionFiltro =
+                document.createElement(
+                    "option"
+                );
+
+
+            optionFiltro.value =
+                empleado.id;
+
+            optionFiltro.textContent =
+                nombre;
+
+
+            filtroEmpleado.appendChild(
+                optionFiltro
+            );
+
+        }
+    );
+
+
+    if(
+        empleados.length === 0
+    ){
+
+        mostrarMensaje(
+            "No hay empleados registrados. Primero registrá un empleado.",
+            "aviso"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   CARGAR TRABAJOS
+===================================================== */
+
+async function cargarTrabajos(){
+
+    listaTrabajos.innerHTML = `
+        <div class="cargando">
+            ⏳ Cargando trabajos...
+        </div>
+    `;
+
+
+    try{
+
+        const q =
+            query(
+                collection(
+                    db,
+                    "trabajos"
+                ),
+                where(
+                    "empresaId",
+                    "==",
+                    empresaActualId
+                )
+            );
+
+
+        const snapshot =
+            await getDocs(q);
+
+
+        trabajos = [];
+
+
+        snapshot.forEach(
+            documento => {
+
+                trabajos.push({
+
+                    id:
+                        documento.id,
+
+                    datos:
+                        documento.data()
+
+                });
+
+            }
+        );
+
+
+        trabajos.sort(
+            (a,b) => {
+
+                const fechaA =
+                    texto(
+                        a.datos.fechaAsignacion
+                    );
+
+                const fechaB =
+                    texto(
+                        b.datos.fechaAsignacion
+                    );
+
+                return fechaB.localeCompare(
+                    fechaA
+                );
+
+            }
+        );
+
+
+        actualizarResumen();
+
+        renderizarTrabajos();
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cargando trabajos:",
+            error
+        );
+
+
+        listaTrabajos.innerHTML = `
+            <div class="vacio">
+                ❌ No se pudieron cargar los trabajos.
+                <br><br>
+                ${escapar(error.message)}
+            </div>
+        `;
+
+    }
+
+}
+
+
+/* =====================================================
+   RESUMEN
+===================================================== */
+
+function actualizarResumen(){
+
+    let pendientes = 0;
+
+    let proceso = 0;
+
+    let finalizados = 0;
+
+
+    trabajos.forEach(
+        trabajo => {
+
+            const estado =
+                texto(
+                    trabajo.datos.estado
+                )
+                .toLowerCase();
+
+
+            if(
+                estado === "pendiente"
+            ){
+
+                pendientes++;
+
+            }
+
+
+            if(
+                estado === "en_proceso"
+            ){
+
+                proceso++;
+
+            }
+
+
+            if(
+                estado === "finalizado"
+            ){
+
+                finalizados++;
+
+            }
+
+        }
+    );
+
+
+    totalTrabajos.textContent =
+        trabajos.length;
+
+    totalPendientes.textContent =
+        pendientes;
+
+    totalProceso.textContent =
+        proceso;
+
+    totalFinalizados.textContent =
+        finalizados;
+
+}
+
+
+/* =====================================================
+   RENDERIZAR TRABAJOS
+===================================================== */
+
+function renderizarTrabajos(){
+
+    const empleadoFiltro =
+        filtroEmpleado.value;
+
+    const estadoFiltro =
+        filtroEstado.value;
+
+    const prioridadFiltro =
+        filtroPrioridad.value;
+
+
+    const trabajosFiltrados =
+        trabajos.filter(
+            trabajo => {
+
+                const datos =
+                    trabajo.datos || {};
+
+
+                if(
+                    empleadoFiltro &&
+                    datos.empleadoId !==
+                        empleadoFiltro
+                ){
+
+                    return false;
+
+                }
+
+
+                if(
+                    estadoFiltro &&
+                    datos.estado !==
+                        estadoFiltro
+                ){
+
+                    return false;
+
+                }
+
+
+                if(
+                    prioridadFiltro &&
+                    datos.prioridad !==
+                        prioridadFiltro
+                ){
+
+                    return false;
+
+                }
+
+
+                return true;
+
+            }
+        );
+
+
+    if(
+        trabajosFiltrados.length === 0
+    ){
+
+        listaTrabajos.innerHTML = `
+            <div class="vacio">
+                📋 No hay trabajos que coincidan con el filtro.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    let html = "";
+
+
+    trabajosFiltrados.forEach(
+        trabajo => {
+
+            const datos =
+                trabajo.datos || {};
+
+
+            const empleado =
+                empleados.find(
+                    item =>
+                        item.id ===
+                        datos.empleadoId
+                );
+
+
+            const nombre =
+                empleado
+                ? nombreEmpleado(
+                    empleado.datos
+                )
+                : texto(
+                    datos.empleadoNombre
+                ) || "Empleado";
+
+
+            const estado =
+                texto(
+                    datos.estado
+                )
+                .toLowerCase();
+
+
+            const prioridadTrabajo =
+                texto(
+                    datos.prioridad
+                )
+                .toLowerCase();
+
+
+            let textoEstado =
+                "PENDIENTE";
+
+            let claseEstado =
+                "estado-pendiente";
+
+
+            if(
+                estado === "en_proceso"
+            ){
+
+                textoEstado =
+                    "EN PROCESO";
+
+                claseEstado =
+                    "estado-proceso";
+
+            }
+
+
+            if(
+                estado === "finalizado"
+            ){
+
+                textoEstado =
+                    "FINALIZADO";
+
+                claseEstado =
+                    "estado-finalizado";
+
+            }
+
+
+            if(
+                estado === "cancelado"
+            ){
+
+                textoEstado =
+                    "CANCELADO";
+
+                claseEstado =
+                    "estado-cancelado";
+
+            }
+
+
+            let textoPrioridad =
+                "MEDIA";
+
+            let clasePrioridad =
+                "prioridad-media";
+
+
+            if(
+                prioridadTrabajo ===
+                "baja"
+            ){
+
+                textoPrioridad =
+                    "BAJA";
+
+                clasePrioridad =
+                    "prioridad-baja";
+
+            }
+
+
+            if(
+                prioridadTrabajo ===
+                "alta"
+            ){
+
+                textoPrioridad =
+                    "ALTA";
+
+                clasePrioridad =
+                    "prioridad-alta";
+
+            }
+
+
+            html += `
+
+                <div class="trabajo">
+
+                    <div class="trabajo-cabecera">
+
+                        <div>
+
+                            <div class="trabajo-titulo">
+
+                                ${escapar(
+                                    datos.titulo
+                                    ||
+                                    "Trabajo sin título"
+                                )}
+
+                            </div>
+
+                            <div class="trabajo-empleado">
+
+                                👷
+                                ${escapar(
+                                    nombre
+                                )}
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <span class="estado ${claseEstado}">
+
+                                ${textoEstado}
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="trabajo-descripcion">
+
+                        ${escapar(
+                            datos.descripcion
+                            ||
+                            "Sin descripción."
+                        )}
+
+                    </div>
+
+
+                    <div class="trabajo-info">
+
+                        <div class="info-item">
+
+                            <strong>
+                                PRIORIDAD
+                            </strong>
+
+                            <span>
+
+                                <span class="prioridad ${clasePrioridad}">
+
+                                    ${textoPrioridad}
+
+                                </span>
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <strong>
+                                ASIGNACIÓN
+                            </strong>
+
+                            <span>
+
+                                ${escapar(
+                                    datos.fechaAsignacion
+                                    ||
+                                    "-"
+                                )}
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <strong>
+                                FECHA LÍMITE
+                            </strong>
+
+                            <span>
+
+                                ${escapar(
+                                    datos.fechaLimite
+                                    ||
+                                    "Sin límite"
+                                )}
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    ${
+                        datos.observaciones
+                        ?
+
+                        `
+                        <div class="trabajo-observacion">
+
+                            📝 <strong>Observaciones:</strong>
+
+                            <br><br>
+
+                            ${escapar(
+                                datos.observaciones
+                            )}
+
+                        </div>
+                        `
+
+                        :
+
+                        ""
+                    }
+
+
+                    <div class="trabajo-acciones">
+
+                        <button
+                            type="button"
+                            class="btn-azul"
+                            data-editar="${escapar(
+                                trabajo.id
+                            )}"
+                        >
+                            ✏️ EDITAR
+                        </button>
+
+
+                        ${
+                            estado !== "finalizado"
+
+                            ?
+
+                            `
+                            <button
+                                type="button"
+                                class="btn-verde"
+                                data-finalizar="${escapar(
+                                    trabajo.id
+                                )}"
+                            >
+                                ✅ FINALIZAR
+                            </button>
+                            `
+
+                            :
+
+                            ""
+                        }
+
+
+                        ${
+                            estado !== "cancelado"
+
+                            ?
+
+                            `
+                            <button
+                                type="button"
+                                class="btn-naranja"
+                                data-cancelar="${escapar(
+                                    trabajo.id
+                                )}"
+                            >
+                                🚫 CANCELAR
+                            </button>
+                            `
+
+                            :
+
+                            ""
+                        }
+
+
+                        <button
+                            type="button"
+                            class="btn-rojo"
+                            data-eliminar="${escapar(
+                                trabajo.id
+                            )}"
+                        >
+                            🗑️ ELIMINAR
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+    );
+
+
+    listaTrabajos.innerHTML =
+        html;
+
+
+    conectarBotonesTrabajos();
+
+}
+
+
+/* =====================================================
+   CONECTAR BOTONES DE TRABAJOS
+===================================================== */
+
+function conectarBotonesTrabajos(){
+
+    document
+        .querySelectorAll(
+            "[data-editar]"
+        )
+        .forEach(
+            boton => {
+
+                boton.addEventListener(
+                    "click",
+                    () => {
+
+                        abrirEditar(
+                            boton.dataset.editar
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            "[data-finalizar]"
+        )
+        .forEach(
+            boton => {
+
+                boton.addEventListener(
+                    "click",
+                    () => {
+
+                        cambiarEstado(
+                            boton.dataset.finalizar,
+                            "finalizado"
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            "[data-cancelar]"
+        )
+        .forEach(
+            boton => {
+
+                boton.addEventListener(
+                    "click",
+                    () => {
+
+                        cambiarEstado(
+                            boton.dataset.cancelar,
+                            "cancelado"
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            "[data-eliminar]"
+        )
+        .forEach(
+            boton => {
+
+                boton.addEventListener(
+                    "click",
+                    () => {
+
+                        eliminarTrabajo(
+                            boton.dataset.eliminar
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+/* =====================================================
+   CREAR TRABAJO
+===================================================== */
+
+async function guardarTrabajo(){
+
+    ocultarMensaje();
+
+
+    const empleadoSeleccionado =
+        texto(
+            empleadoId.value
+        );
+
+
+    const titulo =
+        texto(
+            tituloTrabajo.value
+        );
+
+
+    const descripcion =
+        texto(
+            descripcionTrabajo.value
+        );
+
+
+    if(!empleadoSeleccionado){
+
+        mostrarMensaje(
+            "Seleccioná un empleado.",
+            "error"
+        );
+
+        empleadoId.focus();
+
+        return;
+
+    }
+
+
+    if(!titulo){
+
+        mostrarMensaje(
+            "Ingresá un título para el trabajo.",
+            "error"
+        );
+
+        tituloTrabajo.focus();
+
+        return;
+
+    }
+
+
+    if(!descripcion){
+
+        mostrarMensaje(
+            "Ingresá la descripción de las tareas a realizar.",
+            "error"
+        );
+
+        descripcionTrabajo.focus();
+
+        return;
+
+    }
+
+
+    const empleado =
+        empleados.find(
+            item =>
+                item.id ===
+                empleadoSeleccionado
+        );
+
+
+    if(!empleado){
+
+        mostrarMensaje(
+            "No se encontró el empleado seleccionado.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    btnGuardar.disabled =
+        true;
+
+    btnGuardar.textContent =
+        "⏳ GUARDANDO...";
+
+
+    try{
+
+        const datosTrabajo = {
+
+            empresaId:
+                empresaActualId,
+
+            empleadoId:
+                empleadoSeleccionado,
+
+            empleadoNombre:
+                nombreEmpleado(
+                    empleado.datos
+                ),
+
+            titulo:
+                titulo,
+
+            descripcion:
+                descripcion,
+
+            fechaAsignacion:
+                texto(
+                    fechaAsignacion.value
+                )
+                ||
+                fechaHoy(),
+
+            fechaLimite:
+                texto(
+                    fechaLimite.value
+                ),
+
+            prioridad:
+                texto(
+                    prioridad.value
+                )
+                ||
+                "media",
+
+            estado:
+                "pendiente",
+
+            observaciones:
+                texto(
+                    observaciones.value
+                ),
+
+            fotos:
+                [],
+
+            creadoPor:
+                usuarioActual.uid,
+
+            creadoEn:
+                serverTimestamp(),
+
+            actualizadoPor:
+                usuarioActual.uid,
+
+            actualizadoEn:
+                serverTimestamp()
+
+        };
+
+
+        await addDoc(
+            collection(
+                db,
+                "trabajos"
+            ),
+            datosTrabajo
+        );
+
+
+        mostrarMensaje(
+            "✅ Trabajo asignado correctamente.",
+            "ok"
+        );
+
+
+        limpiarFormulario();
+
+        await cargarTrabajos();
+
+    }
+    catch(error){
+
+        console.error(
+            "Error creando trabajo:",
+            error
+        );
+
+
+        mostrarMensaje(
+            "❌ No se pudo asignar el trabajo: " +
+            error.message,
+            "error"
+        );
+
+    }
+    finally{
+
+        btnGuardar.disabled =
+            false;
+
+        btnGuardar.textContent =
+            "💾 ASIGNAR TRABAJO";
+
+    }
+
+}
+
+
+/* =====================================================
+   LIMPIAR FORMULARIO
+===================================================== */
+
+function limpiarFormulario(){
+
+    empleadoId.value =
+        "";
+
+    tituloTrabajo.value =
+        "";
+
+    descripcionTrabajo.value =
+        "";
+
+    fechaAsignacion.value =
+        fechaHoy();
+
+    fechaLimite.value =
+        "";
+
+    prioridad.value =
+        "media";
+
+    observaciones.value =
+        "";
+
+}
+
+
+/* =====================================================
+   EDITAR TRABAJO
+===================================================== */
+
+function abrirEditar(id){
+
+    const trabajo =
+        trabajos.find(
+            item =>
+                item.id === id
+        );
+
+
+    if(!trabajo){
+
+        mostrarMensaje(
+            "No se encontró el trabajo.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const datos =
+        trabajo.datos || {};
+
+
+    editarId.value =
+        id;
+
+    editarTitulo.value =
+        datos.titulo || "";
+
+    editarDescripcion.value =
+        datos.descripcion || "";
+
+    editarPrioridad.value =
+        datos.prioridad || "media";
+
+    editarEstado.value =
+        datos.estado || "pendiente";
+
+    editarFechaAsignacion.value =
+        datos.fechaAsignacion || "";
+
+    editarFechaLimite.value =
+        datos.fechaLimite || "";
+
+    editarObservaciones.value =
+        datos.observaciones || "";
+
+
+    modalEditar.style.display =
+        "flex";
+
+}
+
+
+async function guardarEdicion(){
+
+    const id =
+        texto(
+            editarId.value
+        );
+
+
+    if(!id){
+
+        return;
+
+    }
+
+
+    const titulo =
+        texto(
+            editarTitulo.value
+        );
+
+
+    const descripcion =
+        texto(
+            editarDescripcion.value
+        );
+
+
+    if(!titulo){
+
+        mostrarMensaje(
+            "El trabajo necesita un título.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(!descripcion){
+
+        mostrarMensaje(
+            "El trabajo necesita una descripción.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const boton =
+        document.getElementById(
+            "btnGuardarEdicion"
+        );
+
+
+    boton.disabled =
+        true;
+
+    boton.textContent =
+        "⏳ GUARDANDO...";
+
+
+    try{
+
+        await updateDoc(
+            doc(
+                db,
+                "trabajos",
+                id
+            ),
+            {
+
+                titulo:
+                    titulo,
+
+                descripcion:
+                    descripcion,
+
+                prioridad:
+                    texto(
+                        editarPrioridad.value
+                    ),
+
+                estado:
+                    texto(
+                        editarEstado.value
+                    ),
+
+                fechaAsignacion:
+                    texto(
+                        editarFechaAsignacion.value
+                    ),
+
+                fechaLimite:
+                    texto(
+                        editarFechaLimite.value
+                    ),
+
+                observaciones:
+                    texto(
+                        editarObservaciones.value
+                    ),
+
+                actualizadoPor:
+                    usuarioActual.uid,
+
+                actualizadoEn:
+                    serverTimestamp()
+
+            }
+        );
+
+
+        modalEditar.style.display =
+            "none";
+
+
+        mostrarMensaje(
+            "✅ Trabajo actualizado correctamente.",
+            "ok"
+        );
+
+
+        await cargarTrabajos();
+
+    }
+    catch(error){
+
+        console.error(
+            "Error editando trabajo:",
+            error
+        );
+
+
+        mostrarMensaje(
+            "❌ No se pudo actualizar el trabajo: " +
+            error.message,
+            "error"
+        );
+
+    }
+    finally{
+
+        boton.disabled =
+            false;
+
+        boton.textContent =
+            "💾 GUARDAR CAMBIOS";
+
+    }
+
+}
+
+
+/* =====================================================
+   CAMBIAR ESTADO
+===================================================== */
+
+async function cambiarEstado(
+    id,
+    nuevoEstado
+){
+
+    const trabajo =
+        trabajos.find(
+            item =>
+                item.id === id
+        );
+
+
+    if(!trabajo){
+
+        mostrarMensaje(
+            "No se encontró el trabajo.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const nombre =
+        texto(
+            trabajo.datos.titulo
+        )
+        ||
+        "este trabajo";
+
+
+    const textoConfirmacion =
+        nuevoEstado ===
+            "finalizado"
+
+        ?
+
+        `¿Confirmás que "${nombre}" fue finalizado?`
+
+        :
+
+        `¿Querés cancelar "${nombre}"?`;
+
+
+    if(
+        !confirm(
+            textoConfirmacion
+        )
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        await updateDoc(
+            doc(
+                db,
+                "trabajos",
+                id
+            ),
+            {
+
+                estado:
+                    nuevoEstado,
+
+                actualizadoPor:
+                    usuarioActual.uid,
+
+                actualizadoEn:
+                    serverTimestamp()
+
+            }
+        );
+
+
+        mostrarMensaje(
+            nuevoEstado === "finalizado"
+            ? "✅ Trabajo marcado como finalizado."
+            : "🚫 Trabajo cancelado.",
+            "ok"
+        );
+
+
+        await cargarTrabajos();
+
+    }
+    catch(error){
+
+        console.error(
+            "Error cambiando estado:",
+            error
+        );
+
+
+        mostrarMensaje(
+            "❌ No se pudo cambiar el estado: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   ELIMINAR TRABAJO
+===================================================== */
+
+async function eliminarTrabajo(id){
+
+    const trabajo =
+        trabajos.find(
+            item =>
+                item.id === id
+        );
+
+
+    if(!trabajo){
+
+        return;
+
+    }
+
+
+    const titulo =
+        texto(
+            trabajo.datos.titulo
+        )
+        ||
+        "este trabajo";
+
+
+    const confirmar =
+        confirm(
+            `¿Seguro que querés eliminar "${titulo}"?\n\nEsta acción no se puede deshacer.`
+        );
+
+
+    if(!confirmar){
+
+        return;
+
+    }
+
+
+    try{
+
+        await deleteDoc(
+            doc(
+                db,
+                "trabajos",
+                id
+            )
+        );
+
+
+        mostrarMensaje(
+            "🗑️ Trabajo eliminado correctamente.",
+            "ok"
+        );
+
+
+        await cargarTrabajos();
+
+    }
+    catch(error){
+
+        console.error(
+            "Error eliminando trabajo:",
+            error
+        );
+
+
+        mostrarMensaje(
+            "❌ No se pudo eliminar el trabajo: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   EVENTOS
+===================================================== */
+
+btnGuardar.addEventListener(
+    "click",
+    guardarTrabajo
+);
+
+
+document
+.getElementById("btnLimpiar")
+.addEventListener(
+    "click",
+    limpiarFormulario
+);
+
+
+filtroEmpleado.addEventListener(
+    "change",
+    renderizarTrabajos
+);
+
+
+filtroEstado.addEventListener(
+    "change",
+    renderizarTrabajos
+);
+
+
+filtroPrioridad.addEventListener(
+    "change",
+    renderizarTrabajos
+);
+
+
+document
+.getElementById("btnGuardarEdicion")
+.addEventListener(
+    "click",
+    guardarEdicion
+);
+
+
+document
+.getElementById("btnCerrarEditar")
+.addEventListener(
+    "click",
+    () => {
+
+        modalEditar.style.display =
+            "none";
+
+    }
+);
+
+
+modalEditar.addEventListener(
+    "click",
+    event => {
+
+        if(
+            event.target ===
+            modalEditar
+        ){
+
+            modalEditar.style.display =
+                "none";
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   VOLVER
+===================================================== */
+
+document
+.getElementById("btnVolver")
+.addEventListener(
+    "click",
+    () => {
+
+        window.location.href =
+            "administrar-empleados.html";
+
+    }
+);
+
+
+/* =====================================================
+   INICIO
+===================================================== */
+
+fechaAsignacion.value =
+    fechaHoy();
+
+
+onAuthStateChanged(
+    auth,
+    async usuario => {
+
+        if(!usuario){
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        usuarioActual =
+            usuario;
+
+
+        try{
+
+            await obtenerEmpresa();
+
+            await cargarEmpleados();
+
+            await cargarTrabajos();
+
+        }
+        catch(error){
+
+            console.error(
+                "Error inicializando trabajos:",
+                error
+            );
+
+
+            mostrarMensaje(
+                "❌ " +
+                error.message,
+                "error"
+            );
+
+
+            listaTrabajos.innerHTML = `
+                <div class="vacio">
+
+                    ❌ No se puede acceder
+                    a la gestión de trabajos.
+
+                    <br><br>
+
+                    ${escapar(
+                        error.message
+                    )}
+
+                </div>
+            `;
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+  </html>
