@@ -2,6 +2,7 @@
 <html lang="es-AR">
 
 <head>
+
 <meta charset="UTF-8">
 
 <meta
@@ -94,6 +95,12 @@ header{
 
 .btn:hover{
     transform:translateY(-1px);
+}
+
+.btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+    transform:none;
 }
 
 .btn-volver{
@@ -271,6 +278,15 @@ textarea:focus{
     box-shadow:0 0 0 3px rgba(37,99,235,.12);
 }
 
+input:disabled,
+select:disabled{
+    opacity:1;
+    color:#cbd5e1;
+    background:#172033;
+    border-color:#334155;
+    cursor:not-allowed;
+}
+
 textarea{
     min-height:105px;
     resize:vertical;
@@ -335,15 +351,97 @@ select option{
     margin-bottom:12px;
 }
 
+.item.congelado{
+    border-color:#2563eb;
+    background:#111c2e;
+}
+
+.item-bloqueado{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    color:#60a5fa;
+    font-size:11px;
+    font-weight:bold;
+    margin-bottom:12px;
+}
+
 .item-grid{
     display:grid;
-    grid-template-columns:1.2fr .7fr .7fr .8fr .8fr auto;
+    grid-template-columns:1.4fr .65fr .65fr .85fr .85fr .85fr;
     gap:10px;
     align-items:end;
 }
 
-.item-boton{
-    height:43px;
+.resultado-item{
+    background:#052e16;
+    border:1px solid #166534;
+    color:#86efac;
+    min-height:43px;
+    padding:12px;
+    border-radius:9px;
+    display:flex;
+    align-items:center;
+    font-weight:bold;
+}
+
+.certificado-box{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid #263449;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+}
+
+.mini-box{
+    background:#172033;
+    border:1px solid #334155;
+    border-radius:9px;
+    padding:10px;
+}
+
+.mini-box span{
+    display:block;
+    color:#94a3b8;
+    font-size:11px;
+    margin-bottom:5px;
+}
+
+.mini-box strong{
+    color:#fff;
+    font-size:14px;
+}
+
+.total-trabajo{
+    margin-top:18px;
+    background:#172033;
+    border:1px solid #334155;
+    border-radius:12px;
+    padding:16px;
+}
+
+.total-linea{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    padding:7px 0;
+    color:#cbd5e1;
+}
+
+.total-linea strong{
+    color:#fff;
+}
+
+.total-final{
+    margin-top:8px;
+    padding-top:12px;
+    border-top:1px solid #334155;
+    font-size:18px;
+}
+
+.total-final strong{
+    color:#60a5fa;
 }
 
 .acciones{
@@ -441,16 +539,22 @@ tr:hover td{
     padding:30px;
 }
 
-.cargando{
-    opacity:.65;
-    pointer-events:none;
-}
-
 .badge-presupuesto{
     display:inline-block;
     background:#1e3a8a;
     color:#bfdbfe;
     border:1px solid #2563eb;
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.badge-congelado{
+    display:inline-block;
+    background:#052e16;
+    color:#86efac;
+    border:1px solid #166534;
     padding:6px 10px;
     border-radius:20px;
     font-size:11px;
@@ -464,6 +568,22 @@ footer{
     font-size:12px;
 }
 
+@media(max-width:900px){
+
+    .item-grid{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+
+    .item-grid .campo:first-child{
+        grid-column:1/-1;
+    }
+
+    .certificado-box{
+        grid-template-columns:1fr;
+    }
+
+}
+
 @media(max-width:800px){
 
     .grid{
@@ -474,17 +594,6 @@ footer{
         grid-column:auto;
     }
 
-    .item-grid{
-        grid-template-columns:1fr 1fr;
-    }
-
-    .item-grid .denominacion{
-        grid-column:1/-1;
-    }
-
-    .item-grid .item-boton{
-        width:100%;
-    }
 }
 
 @media(max-width:600px){
@@ -523,7 +632,7 @@ footer{
         grid-template-columns:1fr;
     }
 
-    .item-grid .denominacion{
+    .item-grid .campo:first-child{
         grid-column:auto;
     }
 
@@ -534,6 +643,7 @@ footer{
     .acciones .btn{
         width:100%;
     }
+
 }
 
 </style>
@@ -570,473 +680,568 @@ footer{
 
 <main>
 
-    <div class="estado-cuenta">
+<div class="estado-cuenta">
 
-        <div class="estado-info">
+    <div class="estado-info">
 
-            <strong id="nombreEmpresa">
-                Cargando empresa...
-            </strong>
+        <strong id="nombreEmpresa">
+            Cargando empresa...
+        </strong>
 
-            <span id="emailUsuario">
-                Cargando usuario...
-            </span>
+        <span id="emailUsuario">
+            Cargando usuario...
+        </span>
 
-            <span id="empresaIdTexto">
-                ID empresa: -
-            </span>
-
-        </div>
-
-        <div class="estado-ok">
-            ● SESIÓN ACTIVA
-        </div>
+        <span id="empresaIdTexto">
+            ID empresa: -
+        </span>
 
     </div>
 
+    <div class="estado-ok">
+        ● SESIÓN ACTIVA
+    </div>
 
-    <div
-        id="mensaje"
-        class="mensaje"
-    ></div>
+</div>
 
 
-    <!-- NUEVO TRABAJO -->
+<div
+    id="mensaje"
+    class="mensaje"
+></div>
 
-    <section class="card">
 
-        <div class="card-titulo">
+<!-- =====================================================
+     NUEVO TRABAJO
+===================================================== -->
 
-            <div>
+<section class="card">
 
-                <h2 id="tituloFormulario">
-                    🔧 Crear trabajo
-                </h2>
+<div class="card-titulo">
 
-                <p>
-                    Registra y administra los trabajos de tu empresa.
-                </p>
+    <div>
 
-            </div>
+        <h2 id="tituloFormulario">
+            🔧 Crear trabajo
+        </h2>
 
-            <span
-                id="badgePresupuesto"
-                class="badge-presupuesto"
-                style="display:none;"
-            >
-                PRESUPUESTO SELECCIONADO
-            </span>
+        <p>
+            El trabajo se genera a partir del presupuesto aprobado.
+        </p>
 
-        </div>
+    </div>
 
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
 
-        <div class="grid">
-
-
-            <div class="campo">
-
-                <label for="numeroTrabajo">
-                    Número de trabajo
-                </label>
-
-                <input
-                    type="text"
-                    id="numeroTrabajo"
-                    readonly
-                >
-
-            </div>
-
-
-            <div class="campo">
-
-                <label for="estadoTrabajo">
-                    Estado
-                </label>
-
-                <select id="estadoTrabajo">
-
-                    <option value="Pendiente">
-                        Pendiente
-                    </option>
-
-                    <option value="En proceso">
-                        En proceso
-                    </option>
-
-                    <option value="Finalizado">
-                        Finalizado
-                    </option>
-
-                    <option value="Cancelado">
-                        Cancelado
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div class="campo">
-
-                <label for="cliente">
-                    Cliente
-                </label>
-
-                <select id="cliente">
-
-                    <option value="">
-                        Seleccionar cliente...
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div class="campo">
-
-                <label for="presupuesto">
-                    Presupuesto relacionado
-                </label>
-
-                <select id="presupuesto">
-
-                    <option value="">
-                        Seleccionar presupuesto...
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div
-                class="campo campo-full"
-            >
-
-                <label for="nombreTrabajo">
-                    Nombre del trabajo
-                </label>
-
-                <input
-                    type="text"
-                    id="nombreTrabajo"
-                    placeholder="Ej.: Instalación eléctrica, reparación, obra..."
-                >
-
-            </div>
-
-
-            <div
-                class="campo campo-full"
-            >
-
-                <label for="descripcion">
-                    Descripción
-                </label>
-
-                <textarea
-                    id="descripcion"
-                    placeholder="Describe el trabajo a realizar..."
-                ></textarea>
-
-            </div>
-
-
-            <div class="campo">
-
-                <label for="fechaInicio">
-                    Fecha de inicio
-                </label>
-
-                <input
-                    type="date"
-                    id="fechaInicio"
-                >
-
-            </div>
-
-
-            <div class="campo">
-
-                <label for="fechaFin">
-                    Fecha estimada de finalización
-                </label>
-
-                <input
-                    type="date"
-                    id="fechaFin"
-                >
-
-            </div>
-
-
-            <div class="campo campo-full">
-
-                <label for="responsable">
-                    Responsable
-                </label>
-
-                <input
-                    type="text"
-                    id="responsable"
-                    placeholder="Persona responsable del trabajo"
-                >
-
-            </div>
-
-        </div>
-
-
-        <div
-            id="infoPresupuesto"
-            class="info-presupuesto"
+        <span
+            id="badgePresupuesto"
+            class="badge-presupuesto"
+            style="display:none;"
         >
+            PRESUPUESTO SELECCIONADO
+        </span>
 
-            <strong>
-                📋 Presupuesto seleccionado
-            </strong>
+        <span
+            id="badgeCongelado"
+            class="badge-congelado"
+            style="display:none;"
+        >
+            🔒 VALORES CONGELADOS
+        </span>
 
-            <div
-                class="info-linea"
-                id="infoPresupuestoNumero"
-            ></div>
+    </div>
 
-            <div
-                class="info-linea"
-                id="infoPresupuestoCliente"
-            ></div>
+</div>
 
-            <div
-                class="info-linea"
-                id="infoPresupuestoTotal"
-            ></div>
 
-        </div>
+<div class="grid">
 
 
-        <!-- CERTIFICACIÓN -->
+<div class="campo">
 
-        <div class="certificacion">
+<label for="numeroTrabajo">
+Número de trabajo
+</label>
 
-            <h3>
-                📑 Certificación del trabajo
-            </h3>
+<input
+    type="text"
+    id="numeroTrabajo"
+    readonly
+>
 
-            <div class="grid">
+</div>
 
-                <div class="campo">
 
-                    <label for="certificable">
-                        ¿Es certificable?
-                    </label>
+<div class="campo">
 
-                    <select id="certificable">
+<label for="estadoTrabajo">
+Estado
+</label>
 
-                        <option value="no">
-                            No
-                        </option>
+<select id="estadoTrabajo">
 
-                        <option value="si">
-                            Sí
-                        </option>
+<option value="Pendiente">
+Pendiente
+</option>
 
-                    </select>
+<option value="En proceso">
+En proceso
+</option>
 
-                </div>
+<option value="Finalizado">
+Finalizado
+</option>
 
+<option value="Cancelado">
+Cancelado
+</option>
 
-                <div class="campo">
+</select>
 
-                    <label for="tipoCertificacion">
-                        Tipo de certificación
-                    </label>
+</div>
 
-                    <select id="tipoCertificacion">
 
-                        <option value="">
-                            Seleccionar...
-                        </option>
+<div class="campo">
 
-                        <option value="Por avance">
-                            Por avance
-                        </option>
+<label for="cliente">
+Cliente
+</label>
 
-                        <option value="Por porcentaje">
-                            Por porcentaje
-                        </option>
+<select id="cliente">
 
-                        <option value="Por etapas">
-                            Por etapas
-                        </option>
+<option value="">
+Seleccionar cliente...
+</option>
 
-                        <option value="Mensual">
-                            Mensual
-                        </option>
+</select>
 
-                        <option value="Otra">
-                            Otra
-                        </option>
+</div>
 
-                    </select>
 
-                </div>
+<div class="campo">
 
-            </div>
+<label for="presupuesto">
+Presupuesto relacionado
+</label>
 
-        </div>
+<select id="presupuesto">
 
+<option value="">
+Seleccionar presupuesto...
+</option>
 
-        <!-- ITEMS -->
+</select>
 
-        <div style="margin-top:22px;">
+</div>
 
-            <div class="items-header">
 
-                <div>
+<div class="campo campo-full">
 
-                    <strong>
-                        🧾 Ítems del trabajo
-                    </strong>
+<label for="nombreTrabajo">
+Nombre del trabajo
+</label>
 
-                    <div
-                        style="
-                        color:#64748b;
-                        font-size:12px;
-                        margin-top:4px;
-                        "
-                    >
-                        Agrega materiales, servicios o tareas.
-                    </div>
+<input
+    type="text"
+    id="nombreTrabajo"
+    placeholder="Ej.: Construcción de mampostería"
+>
 
-                </div>
+</div>
 
-                <button
-                    type="button"
-                    class="btn btn-secondary"
-                    id="btnAgregarItem"
-                >
-                    + Agregar ítem
-                </button>
 
-            </div>
+<div class="campo campo-full">
 
-            <div id="listaItems"></div>
+<label for="descripcion">
+Descripción
+</label>
 
-        </div>
+<textarea
+    id="descripcion"
+    placeholder="Descripción del trabajo..."
+></textarea>
 
+</div>
 
-        <div class="acciones">
 
-            <button
-                type="button"
-                class="btn btn-success"
-                id="btnGuardar"
-            >
-                💾 Guardar trabajo
-            </button>
+<div class="campo">
 
-            <button
-                type="button"
-                class="btn btn-secondary"
-                id="btnLimpiar"
-            >
-                Limpiar
-            </button>
+<label for="fechaInicio">
+Fecha de inicio
+</label>
 
-        </div>
+<input
+    type="date"
+    id="fechaInicio"
+>
 
-    </section>
+</div>
 
 
-    <!-- TRABAJOS REGISTRADOS -->
+<div class="campo">
 
-    <section class="card">
+<label for="fechaFin">
+Fecha estimada de finalización
+</label>
 
-        <div class="card-titulo">
+<input
+    type="date"
+    id="fechaFin"
+>
 
-            <div>
+</div>
 
-                <h2>
-                    📋 Trabajos registrados
-                </h2>
 
-                <p>
-                    Trabajos creados dentro de tu empresa.
-                </p>
+<div class="campo campo-full">
 
-            </div>
+<label for="responsable">
+Responsable
+</label>
 
-        </div>
+<input
+    type="text"
+    id="responsable"
+    placeholder="Persona responsable del trabajo"
+>
 
+</div>
 
-        <div class="tabla-contenedor">
+</div>
 
-            <table>
 
-                <thead>
+<!-- INFORMACIÓN PRESUPUESTO -->
 
-                    <tr>
+<div
+    id="infoPresupuesto"
+    class="info-presupuesto"
+>
 
-                        <th>
-                            Número
-                        </th>
+<strong>
+📋 Presupuesto seleccionado
+</strong>
 
-                        <th>
-                            Trabajo
-                        </th>
+<div
+    class="info-linea"
+    id="infoPresupuestoNumero"
+></div>
 
-                        <th>
-                            Cliente
-                        </th>
+<div
+    class="info-linea"
+    id="infoPresupuestoCliente"
+></div>
 
-                        <th>
-                            Presupuesto
-                        </th>
+<div
+    class="info-linea"
+    id="infoPresupuestoTotal"
+></div>
 
-                        <th>
-                            Inicio
-                        </th>
+</div>
 
-                        <th>
-                            Estado
-                        </th>
 
-                        <th>
-                            Acciones
-                        </th>
+<!-- =====================================================
+     CERTIFICACIÓN
+===================================================== -->
 
-                    </tr>
+<div class="certificacion">
 
-                </thead>
+<h3>
+📑 Configuración de certificación
+</h3>
 
-                <tbody id="tablaTrabajos">
+<div class="grid">
 
-                    <tr>
+<div class="campo">
 
-                        <td
-                            colspan="7"
-                            class="sin-datos"
-                        >
-                            Cargando trabajos...
-                        </td>
+<label for="certificable">
+¿Es certificable?
+</label>
 
-                    </tr>
+<select id="certificable">
 
-                </tbody>
+<option value="no">
+No
+</option>
 
-            </table>
+<option value="si">
+Sí
+</option>
 
-        </div>
+</select>
 
-    </section>
+</div>
+
+
+<div class="campo">
+
+<label for="tipoCertificacion">
+Tipo de certificación
+</label>
+
+<select id="tipoCertificacion">
+
+<option value="">
+Seleccionar...
+</option>
+
+<option value="Por avance">
+Por avance
+</option>
+
+<option value="Por porcentaje">
+Por porcentaje
+</option>
+
+<option value="Por etapas">
+Por etapas
+</option>
+
+<option value="Mensual">
+Mensual
+</option>
+
+<option value="Otra">
+Otra
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     ITEMS CONGELADOS
+===================================================== -->
+
+<div style="margin-top:22px;">
+
+<div class="items-header">
+
+<div>
+
+<strong>
+🧾 Ítems contratados
+</strong>
+
+<div
+style="
+color:#64748b;
+font-size:12px;
+margin-top:4px;
+"
+>
+Los valores provienen del presupuesto y quedan bloqueados.
+</div>
+
+</div>
+
+</div>
+
+
+<div id="listaItems"></div>
+
+
+<div
+id="sinItems"
+class="sin-datos"
+style="
+border:1px dashed #334155;
+border-radius:10px;
+display:none;
+"
+>
+Seleccioná un presupuesto para cargar sus ítems.
+</div>
+
+</div>
+
+
+<!-- TOTAL -->
+
+<div class="total-trabajo">
+
+<div class="total-linea">
+
+<span>
+Materiales
+</span>
+
+<strong id="totalMaterialesTrabajo">
+$ 0,00
+</strong>
+
+</div>
+
+
+<div class="total-linea">
+
+<span>
+Mano de obra
+</span>
+
+<strong id="totalManoObraTrabajo">
+$ 0,00
+</strong>
+
+</div>
+
+
+<div class="total-linea">
+
+<span>
+Viáticos
+</span>
+
+<strong id="totalViaticosTrabajo">
+$ 0,00
+</strong>
+
+</div>
+
+
+<div class="total-linea">
+
+<span>
+Flete
+</span>
+
+<strong id="totalFleteTrabajo">
+$ 0,00
+</strong>
+
+</div>
+
+
+<div class="total-linea total-final">
+
+<span>
+TOTAL CONTRATADO
+</span>
+
+<strong id="totalTrabajo">
+$ 0,00
+</strong>
+
+</div>
+
+</div>
+
+
+<div class="acciones">
+
+<button
+    type="button"
+    class="btn btn-success"
+    id="btnGuardar"
+>
+💾 Guardar trabajo
+</button>
+
+<button
+    type="button"
+    class="btn btn-secondary"
+    id="btnLimpiar"
+>
+Limpiar
+</button>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     TRABAJOS REGISTRADOS
+===================================================== -->
+
+<section class="card">
+
+<div class="card-titulo">
+
+<div>
+
+<h2>
+📋 Trabajos registrados
+</h2>
+
+<p>
+Trabajos creados dentro de tu empresa.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="tabla-contenedor">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>
+Número
+</th>
+
+<th>
+Trabajo
+</th>
+
+<th>
+Cliente
+</th>
+
+<th>
+Presupuesto
+</th>
+
+<th>
+Inicio
+</th>
+
+<th>
+Estado
+</th>
+
+<th>
+Acciones
+</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tablaTrabajos">
+
+<tr>
+
+<td
+colspan="7"
+class="sin-datos"
+>
+Cargando trabajos...
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
 
 </main>
 
 
 <footer>
-    GESBASE · Tu empresa. Todo organizado.
+GESBASE · Tu empresa. Todo organizado.
 </footer>
 
 
@@ -1079,6 +1284,8 @@ let trabajos = [];
 let trabajoEditandoId = null;
 
 let items = [];
+
+let valoresPresupuestoCongelados = false;
 
 const parametrosURL =
     new URLSearchParams(window.location.search);
@@ -1145,6 +1352,9 @@ const tituloFormulario =
 const badgePresupuesto =
     document.getElementById("badgePresupuesto");
 
+const badgeCongelado =
+    document.getElementById("badgeCongelado");
+
 const infoPresupuesto =
     document.getElementById("infoPresupuesto");
 
@@ -1157,14 +1367,18 @@ const infoPresupuestoCliente =
 const infoPresupuestoTotal =
     document.getElementById("infoPresupuestoTotal");
 
+const sinItems =
+    document.getElementById("sinItems");
+
 
 /* =========================================================
    MENSAJES
 ========================================================= */
 
-function mostrarMensaje(texto, tipo = "info") {
+function mostrarMensaje(texto,tipo="info"){
 
-    mensaje.textContent = texto;
+    mensaje.textContent =
+        texto;
 
     mensaje.className =
         "mensaje " + tipo;
@@ -1179,8 +1393,46 @@ function mostrarMensaje(texto, tipo = "info") {
 
 function ocultarMensaje(){
 
-    mensaje.style.display = "none";
-    mensaje.className = "mensaje";
+    mensaje.style.display =
+        "none";
+
+    mensaje.className =
+        "mensaje";
+
+}
+
+
+/* =========================================================
+   DINERO
+========================================================= */
+
+function dinero(valor){
+
+    return Number(valor || 0)
+        .toLocaleString(
+            "es-AR",
+            {
+                style:"currency",
+                currency:"ARS",
+                minimumFractionDigits:2
+            }
+        );
+
+}
+
+
+/* =========================================================
+   ESCAPE
+========================================================= */
+
+function escaparHTML(valor){
+
+    return String(valor ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
 
 }
 
@@ -1194,16 +1446,24 @@ async function obtenerEmpresa(uid){
     try{
 
         const usuarioRef =
-            doc(db,"usuarios",uid);
+            doc(
+                db,
+                "usuarios",
+                uid
+            );
 
         const usuarioSnap =
-            await getDoc(usuarioRef);
+            await getDoc(
+                usuarioRef
+            );
 
         let datosUsuario = {};
 
         if(usuarioSnap.exists()){
+
             datosUsuario =
                 usuarioSnap.data();
+
         }
 
         let empresaId =
@@ -1215,30 +1475,35 @@ async function obtenerEmpresa(uid){
 
         let empresaSnap = null;
 
+
         if(
             empresaId &&
             typeof empresaId === "string"
         ){
 
-            const ref =
-                doc(db,"empresas",empresaId);
-
             empresaSnap =
-                await getDoc(ref);
+                await getDoc(
+                    doc(
+                        db,
+                        "empresas",
+                        empresaId
+                    )
+                );
 
         }
+
 
         if(
             !empresaSnap ||
             !empresaSnap.exists()
         ){
 
-            const empresasRef =
-                collection(db,"empresas");
-
             const q =
                 query(
-                    empresasRef,
+                    collection(
+                        db,
+                        "empresas"
+                    ),
                     where(
                         "propietarioUid",
                         "==",
@@ -1261,8 +1526,10 @@ async function obtenerEmpresa(uid){
 
         }
 
+
         const nombreEmpresa =
-            empresaSnap && empresaSnap.exists()
+            empresaSnap &&
+            empresaSnap.exists()
                 ? (
                     empresaSnap.data().nombreEmpresa ||
                     empresaSnap.data().nombre ||
@@ -1274,28 +1541,39 @@ async function obtenerEmpresa(uid){
                     "Mi empresa"
                 );
 
+
         empresaActual = {
 
-            id:empresaId || "",
-            nombre:nombreEmpresa
+            id:
+                empresaId || "",
+
+            nombre:
+                nombreEmpresa
 
         };
+
 
         document.getElementById(
             "nombreEmpresa"
         ).textContent =
             nombreEmpresa;
 
+
         document.getElementById(
             "emailUsuario"
         ).textContent =
             usuarioActual.email || "";
 
+
         document.getElementById(
             "empresaIdTexto"
         ).textContent =
             "ID empresa: " +
-            (empresaId || "No disponible");
+            (
+                empresaId ||
+                "No disponible"
+            );
+
 
     }catch(error){
 
@@ -1327,9 +1605,13 @@ async function cargarClientes(){
     try{
 
         const ref =
-            collection(db,"clientes");
+            collection(
+                db,
+                "clientes"
+            );
 
         let snapshot;
+
 
         if(empresaActual?.id){
 
@@ -1363,6 +1645,7 @@ async function cargarClientes(){
 
         }
 
+
         clientes =
             snapshot.docs.map(
                 item => ({
@@ -1371,7 +1654,9 @@ async function cargarClientes(){
                 })
             );
 
+
         cargarSelectClientes();
+
 
     }catch(error){
 
@@ -1395,7 +1680,10 @@ function obtenerNombreCliente(cliente){
         cliente.razonSocial ||
         cliente.empresa ||
         (
-            [cliente.nombre,cliente.apellido]
+            [
+                cliente.nombre,
+                cliente.apellido
+            ]
             .filter(Boolean)
             .join(" ")
         ) ||
@@ -1408,7 +1696,10 @@ function obtenerNombreCliente(cliente){
 function cargarSelectClientes(){
 
     clienteSelect.innerHTML =
-        `<option value="">Seleccionar cliente...</option>`;
+        `<option value="">
+            Seleccionar cliente...
+        </option>`;
+
 
     clientes
         .sort(
@@ -1418,20 +1709,28 @@ function cargarSelectClientes(){
                     obtenerNombreCliente(b)
                 )
         )
-        .forEach(cliente => {
+        .forEach(
+            cliente => {
 
-            const option =
-                document.createElement("option");
+                const option =
+                    document.createElement(
+                        "option"
+                    );
 
-            option.value =
-                cliente.id;
+                option.value =
+                    cliente.id;
 
-            option.textContent =
-                obtenerNombreCliente(cliente);
+                option.textContent =
+                    obtenerNombreCliente(
+                        cliente
+                    );
 
-            clienteSelect.appendChild(option);
+                clienteSelect.appendChild(
+                    option
+                );
 
-        });
+            }
+        );
 
 }
 
@@ -1449,9 +1748,13 @@ async function cargarPresupuestos(){
     try{
 
         const ref =
-            collection(db,"presupuestos");
+            collection(
+                db,
+                "presupuestos"
+            );
 
         let snapshot;
+
 
         if(empresaActual?.id){
 
@@ -1485,6 +1788,7 @@ async function cargarPresupuestos(){
 
         }
 
+
         presupuestos =
             snapshot.docs.map(
                 item => ({
@@ -1492,6 +1796,7 @@ async function cargarPresupuestos(){
                     ...item.data()
                 })
             );
+
 
     }catch(error){
 
@@ -1507,7 +1812,13 @@ async function cargarPresupuestos(){
 }
 
 
-function obtenerClienteIdPresupuesto(presupuesto){
+/* =========================================================
+   DATOS DEL PRESUPUESTO
+========================================================= */
+
+function obtenerClienteIdPresupuesto(
+    presupuesto
+){
 
     return (
         presupuesto.clienteId ||
@@ -1528,7 +1839,9 @@ function obtenerClienteIdPresupuesto(presupuesto){
 }
 
 
-function obtenerNumeroPresupuesto(presupuesto){
+function obtenerNumeroPresupuesto(
+    presupuesto
+){
 
     return (
         presupuesto.numero ||
@@ -1541,7 +1854,9 @@ function obtenerNumeroPresupuesto(presupuesto){
 }
 
 
-function obtenerNombrePresupuesto(presupuesto){
+function obtenerNombrePresupuesto(
+    presupuesto
+){
 
     return (
         presupuesto.nombre ||
@@ -1553,31 +1868,20 @@ function obtenerNombrePresupuesto(presupuesto){
 }
 
 
-function obtenerTotalPresupuesto(presupuesto){
+function obtenerTotalPresupuesto(
+    presupuesto
+){
 
     const total =
-        presupuesto.total ||
-        presupuesto.importeTotal ||
-        presupuesto.montoTotal ||
-        presupuesto.totalPresupuesto ||
-        0;
+        Number(
+            presupuesto.total ||
+            presupuesto.importeTotal ||
+            presupuesto.montoTotal ||
+            presupuesto.totalPresupuesto ||
+            0
+        );
 
-    const numero =
-        Number(total);
-
-    if(
-        Number.isNaN(numero)
-    ){
-        return total;
-    }
-
-    return numero.toLocaleString(
-        "es-AR",
-        {
-            style:"currency",
-            currency:"ARS"
-        }
-    );
+    return dinero(total);
 
 }
 
@@ -1588,17 +1892,21 @@ function obtenerTotalPresupuesto(presupuesto){
 
 function cargarPresupuestosDelCliente(
     clienteId,
-    presupuestoSeleccionado = ""
+    presupuestoSeleccionado=""
 ){
 
     presupuestoSelect.innerHTML =
-        `<option value="">Seleccionar presupuesto...</option>`;
+        `<option value="">
+            Seleccionar presupuesto...
+        </option>`;
+
 
     if(!clienteId){
 
         return;
 
     }
+
 
     const lista =
         presupuestos.filter(
@@ -1608,17 +1916,24 @@ function cargarPresupuestosDelCliente(
                 ) === clienteId
         );
 
+
     lista.forEach(
         presupuesto => {
 
             const option =
-                document.createElement("option");
+                document.createElement(
+                    "option"
+                );
 
             option.value =
                 presupuesto.id;
 
             option.textContent =
-                `${obtenerNumeroPresupuesto(presupuesto)} · ${obtenerNombrePresupuesto(presupuesto)}`;
+                `${obtenerNumeroPresupuesto(
+                    presupuesto
+                )} · ${obtenerNombrePresupuesto(
+                    presupuesto
+                )}`;
 
             presupuestoSelect.appendChild(
                 option
@@ -1626,6 +1941,7 @@ function cargarPresupuestosDelCliente(
 
         }
     );
+
 
     if(presupuestoSeleccionado){
 
@@ -1638,7 +1954,7 @@ function cargarPresupuestosDelCliente(
 
 
 /* =========================================================
-   SELECCIONAR PRESUPUESTO
+   INFORMACIÓN PRESUPUESTO
 ========================================================= */
 
 function mostrarInformacionPresupuesto(
@@ -1654,9 +1970,13 @@ function mostrarInformacionPresupuesto(
         badgePresupuesto.style.display =
             "none";
 
+        badgeCongelado.style.display =
+            "none";
+
         return;
 
     }
+
 
     infoPresupuestoNumero.textContent =
         "Número: " +
@@ -1664,30 +1984,604 @@ function mostrarInformacionPresupuesto(
             presupuesto
         );
 
+
     infoPresupuestoCliente.textContent =
         "Cliente: " +
         (
             presupuesto.nombreCliente ||
             presupuesto.clienteNombre ||
             presupuesto.nombreEmpresaCliente ||
-            "Sin especificar"
+            "Seleccionado"
         );
 
+
     infoPresupuestoTotal.textContent =
-        "Total: " +
+        "Total contratado: " +
         obtenerTotalPresupuesto(
             presupuesto
         );
 
+
     infoPresupuesto.classList.add(
         "visible"
     );
+
 
     badgePresupuesto.style.display =
         "inline-block";
 
 }
 
+
+/* =========================================================
+   CONSTRUIR ITEMS DEL PRESUPUESTO
+========================================================= */
+
+function construirItemsDesdePresupuesto(
+    presupuesto
+){
+
+    const resultado = [];
+
+
+    /* -----------------------------------------
+       MATERIALES
+    ----------------------------------------- */
+
+    if(
+        Array.isArray(
+            presupuesto.materiales
+        )
+    ){
+
+        presupuesto.materiales.forEach(
+            material => {
+
+                const cantidad =
+                    Number(
+                        material.cantidad
+                    ) || 0;
+
+                const precio =
+                    Number(
+                        material.precioUnitario ??
+                        material.precio ??
+                        0
+                    ) || 0;
+
+                const importe =
+                    cantidad * precio;
+
+
+                if(
+                    material.descripcion ||
+                    cantidad ||
+                    precio
+                ){
+
+                    resultado.push({
+
+                        tipo:
+                            "Material",
+
+                        denominacion:
+                            material.descripcion ||
+                            material.nombre ||
+                            "Material",
+
+                        unidad:
+                            material.unidad ||
+                            "un",
+
+                        cantidadContratada:
+                            cantidad,
+
+                        precioUnitario:
+                            precio,
+
+                        importeContratado:
+                            importe,
+
+                        certificadoCantidad:
+                            0,
+
+                        certificadoImporte:
+                            0,
+
+                        cantidadCertificada:
+                            0,
+
+                        importeCertificado:
+                            0,
+
+                        pendienteCantidad:
+                            cantidad,
+
+                        origen:
+                            "presupuesto",
+
+                        bloqueado:
+                            true
+
+                    });
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* -----------------------------------------
+       MANO DE OBRA
+    ----------------------------------------- */
+
+    if(
+        Array.isArray(
+            presupuesto.manoObraItems
+        )
+    ){
+
+        presupuesto.manoObraItems.forEach(
+            mano => {
+
+                const cantidad =
+                    Number(
+                        mano.cantidad
+                    ) || 0;
+
+                const precio =
+                    Number(
+                        mano.precioUnitario ??
+                        mano.precio ??
+                        0
+                    ) || 0;
+
+                const importe =
+                    Number(
+                        mano.resultado
+                    ) || (
+                        cantidad * precio
+                    );
+
+
+                if(
+                    mano.descripcion ||
+                    cantidad ||
+                    precio
+                ){
+
+                    resultado.push({
+
+                        tipo:
+                            "Mano de obra",
+
+                        denominacion:
+                            mano.descripcion ||
+                            "Mano de obra",
+
+                        unidad:
+                            mano.unidad ||
+                            "un",
+
+                        cantidadContratada:
+                            cantidad,
+
+                        precioUnitario:
+                            precio,
+
+                        importeContratado:
+                            importe,
+
+                        certificadoCantidad:
+                            0,
+
+                        certificadoImporte:
+                            0,
+
+                        cantidadCertificada:
+                            0,
+
+                        importeCertificado:
+                            0,
+
+                        pendienteCantidad:
+                            cantidad,
+
+                        origen:
+                            "presupuesto",
+
+                        categoria:
+                            mano.categoria ||
+                            "",
+
+                        bloqueado:
+                            true
+
+                    });
+
+                }
+
+            }
+        );
+
+    }
+
+
+    return resultado;
+
+}
+
+
+/* =========================================================
+   RENDER ITEMS
+========================================================= */
+
+function renderizarItems(){
+
+    listaItems.innerHTML = "";
+
+    sinItems.style.display =
+        "none";
+
+
+    if(!items.length){
+
+        sinItems.style.display =
+            "block";
+
+        actualizarTotalesTrabajo();
+
+        return;
+
+    }
+
+
+    items.forEach(
+        (item,index) => {
+
+            const cantidad =
+                Number(
+                    item.cantidadContratada ??
+                    item.cantidad ??
+                    0
+                ) || 0;
+
+            const precio =
+                Number(
+                    item.precioUnitario ??
+                    item.precio ??
+                    0
+                ) || 0;
+
+            const importe =
+                Number(
+                    item.importeContratado ??
+                    item.resultado
+                ) || (
+                    cantidad * precio
+                );
+
+
+            const certificado =
+                Number(
+                    item.certificadoCantidad ??
+                    item.cantidadCertificada ??
+                    0
+                ) || 0;
+
+
+            const pendiente =
+                Math.max(
+                    cantidad - certificado,
+                    0
+                );
+
+
+            const importeCertificado =
+                Number(
+                    item.certificadoImporte ??
+                    item.importeCertificado ??
+                    0
+                ) || (
+                    certificado * precio
+                );
+
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "item congelado";
+
+
+            div.innerHTML = `
+
+                <div class="item-bloqueado">
+                    🔒 VALORES DEL PRESUPUESTO BLOQUEADOS
+                </div>
+
+                <div class="item-grid">
+
+                    <div class="campo">
+
+                        <label>
+                            ${escaparHTML(
+                                item.tipo ||
+                                "Ítem"
+                            )}
+                        </label>
+
+                        <input
+                            type="text"
+                            value="${escaparHTML(
+                                item.denominacion ||
+                                ""
+                            )}"
+                            disabled
+                        >
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <label>
+                            Unidad
+                        </label>
+
+                        <input
+                            type="text"
+                            value="${escaparHTML(
+                                item.unidad ||
+                                "un"
+                            )}"
+                            disabled
+                        >
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <label>
+                            Cantidad contratada
+                        </label>
+
+                        <input
+                            type="text"
+                            value="${cantidad}"
+                            disabled
+                        >
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <label>
+                            Precio unitario
+                        </label>
+
+                        <input
+                            type="text"
+                            value="${dinero(precio)}"
+                            disabled
+                        >
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <label>
+                            Total contratado
+                        </label>
+
+                        <div class="resultado-item">
+                            ${dinero(importe)}
+                        </div>
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <label>
+                            Pendiente
+                        </label>
+
+                        <div class="resultado-item">
+                            ${pendiente}
+                            ${escaparHTML(
+                                item.unidad ||
+                                ""
+                            )}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="certificado-box">
+
+                    <div class="mini-box">
+
+                        <span>
+                            Certificado acumulado
+                        </span>
+
+                        <strong>
+                            ${certificado}
+                            ${escaparHTML(
+                                item.unidad ||
+                                ""
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="mini-box">
+
+                        <span>
+                            Importe certificado
+                        </span>
+
+                        <strong>
+                            ${dinero(
+                                importeCertificado
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="mini-box">
+
+                        <span>
+                            Saldo pendiente
+                        </span>
+
+                        <strong>
+                            ${dinero(
+                                Math.max(
+                                    importe -
+                                    importeCertificado,
+                                    0
+                                )
+                            )}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            listaItems.appendChild(
+                div
+            );
+
+        }
+    );
+
+
+    actualizarTotalesTrabajo();
+
+}
+
+
+/* =========================================================
+   TOTALES
+========================================================= */
+
+function calcularTotalItemsTipo(
+    tipo
+){
+
+    return items
+        .filter(
+            item =>
+                item.tipo === tipo
+        )
+        .reduce(
+            (total,item) =>
+                total +
+                (
+                    Number(
+                        item.importeContratado ??
+                        item.resultado ??
+                        0
+                    ) || 0
+                ),
+            0
+        );
+
+}
+
+
+function actualizarTotalesTrabajo(){
+
+    const materiales =
+        calcularTotalItemsTipo(
+            "Material"
+        );
+
+    const manoObra =
+        calcularTotalItemsTipo(
+            "Mano de obra"
+        );
+
+
+    const presupuesto =
+        presupuestos.find(
+            item =>
+                item.id ===
+                presupuestoSelect.value
+        );
+
+
+    const viaticos =
+        Number(
+            presupuesto?.viaticos
+        ) || 0;
+
+
+    const flete =
+        Number(
+            presupuesto?.flete
+        ) || 0;
+
+
+    const total =
+        materiales +
+        manoObra +
+        viaticos +
+        flete;
+
+
+    document.getElementById(
+        "totalMaterialesTrabajo"
+    ).textContent =
+        dinero(materiales);
+
+
+    document.getElementById(
+        "totalManoObraTrabajo"
+    ).textContent =
+        dinero(manoObra);
+
+
+    document.getElementById(
+        "totalViaticosTrabajo"
+    ).textContent =
+        dinero(viaticos);
+
+
+    document.getElementById(
+        "totalFleteTrabajo"
+    ).textContent =
+        dinero(flete);
+
+
+    document.getElementById(
+        "totalTrabajo"
+    ).textContent =
+        dinero(total);
+
+}
+
+
+/* =========================================================
+   CARGAR DATOS DEL PRESUPUESTO
+========================================================= */
 
 function cargarDatosPresupuesto(
     presupuestoId
@@ -1699,6 +2593,7 @@ function cargarDatosPresupuesto(
                 item.id === presupuestoId
         );
 
+
     if(!presupuesto){
 
         mostrarInformacionPresupuesto(
@@ -1709,18 +2604,13 @@ function cargarDatosPresupuesto(
 
     }
 
+
     mostrarInformacionPresupuesto(
         presupuesto
     );
 
-    /*
-       Solo completamos los campos si están vacíos.
-       Así no pisamos información escrita por el usuario.
-    */
 
-    if(
-        !nombreTrabajo.value.trim()
-    ){
+    if(!nombreTrabajo.value.trim()){
 
         nombreTrabajo.value =
             obtenerNombrePresupuesto(
@@ -1729,16 +2619,42 @@ function cargarDatosPresupuesto(
 
     }
 
-    if(
-        !descripcion.value.trim()
-    ){
+
+    if(!descripcion.value.trim()){
 
         descripcion.value =
-            presupuesto.descripcionTrabajo ||
             presupuesto.descripcion ||
             "";
 
     }
+
+
+    /*
+     * COPIA CONGELADA
+     *
+     * Esta es la parte importante:
+     * los valores salen del presupuesto
+     * y quedan guardados como una fotografía
+     * del presupuesto al momento de otorgar
+     * el trabajo.
+     */
+
+    items =
+        construirItemsDesdePresupuesto(
+            presupuesto
+        );
+
+
+    valoresPresupuestoCongelados =
+        true;
+
+
+    badgeCongelado.style.display =
+        "inline-block";
+
+
+    renderizarItems();
+
 
     return presupuesto;
 
@@ -1746,108 +2662,7 @@ function cargarDatosPresupuesto(
 
 
 /* =========================================================
-   CARGA AUTOMÁTICA DESDE URL
-========================================================= */
-
-async function seleccionarPresupuestoDesdeURL(){
-
-    if(!presupuestoIdURL){
-
-        return;
-
-    }
-
-    const presupuesto =
-        presupuestos.find(
-            item =>
-                item.id === presupuestoIdURL
-        );
-
-    if(!presupuesto){
-
-        mostrarMensaje(
-            "El presupuesto indicado no fue encontrado.",
-            "error"
-        );
-
-        return;
-
-    }
-
-    const clienteId =
-        obtenerClienteIdPresupuesto(
-            presupuesto
-        );
-
-    if(clienteId){
-
-        const existeCliente =
-            clientes.some(
-                cliente =>
-                    cliente.id === clienteId
-            );
-
-        if(existeCliente){
-
-            clienteSelect.value =
-                clienteId;
-
-            cargarPresupuestosDelCliente(
-                clienteId,
-                presupuesto.id
-            );
-
-        }else{
-
-            /*
-              Si el presupuesto tiene clienteId
-              pero ese cliente no está en la lista,
-              mostramos igualmente el presupuesto.
-            */
-
-            presupuestoSelect.innerHTML =
-                `<option value="${presupuesto.id}">
-                    ${obtenerNumeroPresupuesto(presupuesto)}
-                    · ${obtenerNombrePresupuesto(presupuesto)}
-                </option>`;
-
-            presupuestoSelect.value =
-                presupuesto.id;
-
-        }
-
-    }else{
-
-        /*
-          Presupuesto sin clienteId.
-          Lo mostramos directamente.
-        */
-
-        presupuestoSelect.innerHTML =
-            `<option value="${presupuesto.id}">
-                ${obtenerNumeroPresupuesto(presupuesto)}
-                · ${obtenerNombrePresupuesto(presupuesto)}
-            </option>`;
-
-        presupuestoSelect.value =
-            presupuesto.id;
-
-    }
-
-    cargarDatosPresupuesto(
-        presupuesto.id
-    );
-
-    mostrarMensaje(
-        "📋 Presupuesto cargado correctamente. Podés convertirlo en un trabajo.",
-        "ok"
-    );
-
-}
-
-
-/* =========================================================
-   EVENTOS CLIENTE / PRESUPUESTO
+   CLIENTE / PRESUPUESTO
 ========================================================= */
 
 clienteSelect.addEventListener(
@@ -1865,6 +2680,16 @@ clienteSelect.addEventListener(
             null
         );
 
+        items = [];
+
+        valoresPresupuestoCongelados =
+            false;
+
+        badgeCongelado.style.display =
+            "none";
+
+        renderizarItems();
+
     }
 );
 
@@ -1876,320 +2701,61 @@ presupuestoSelect.addEventListener(
         const id =
             presupuestoSelect.value;
 
-        cargarDatosPresupuesto(
-            id
-        );
+        if(id){
 
-    }
-);
-
-
-/* =========================================================
-   ITEMS
-========================================================= */
-
-function renderizarItems(){
-
-    listaItems.innerHTML = "";
-
-    if(items.length === 0){
-
-        listaItems.innerHTML = `
-            <div
-                class="sin-datos"
-                style="
-                    border:1px dashed #334155;
-                    border-radius:10px;
-                "
-            >
-                No hay ítems agregados.
-            </div>
-        `;
-
-        return;
-
-    }
-
-    items.forEach(
-        (item,index) => {
-
-            const div =
-                document.createElement("div");
-
-            div.className =
-                "item";
-
-            div.innerHTML = `
-
-                <div class="item-grid">
-
-                    <div class="campo">
-                        <label>Tipo</label>
-
-                        <select
-                            data-index="${index}"
-                            data-campo="tipo"
-                        >
-
-                            <option value="Servicio"
-                                ${item.tipo === "Servicio" ? "selected" : ""}>
-                                Servicio
-                            </option>
-
-                            <option value="Material"
-                                ${item.tipo === "Material" ? "selected" : ""}>
-                                Material
-                            </option>
-
-                            <option value="Tarea"
-                                ${item.tipo === "Tarea" ? "selected" : ""}>
-                                Tarea
-                            </option>
-
-                            <option value="Otro"
-                                ${item.tipo === "Otro" ? "selected" : ""}>
-                                Otro
-                            </option>
-
-                        </select>
-                    </div>
-
-
-                    <div
-                        class="campo denominacion"
-                    >
-
-                        <label>
-                            Denominación
-                        </label>
-
-                        <input
-                            type="text"
-                            value="${escaparHTML(item.denominacion || "")}"
-                            data-index="${index}"
-                            data-campo="denominacion"
-                            placeholder="Descripción"
-                        >
-
-                    </div>
-
-
-                    <div class="campo">
-
-                        <label>
-                            Unidad
-                        </label>
-
-                        <input
-                            type="text"
-                            value="${escaparHTML(item.unidad || "")}"
-                            data-index="${index}"
-                            data-campo="unidad"
-                            placeholder="un."
-                        >
-
-                    </div>
-
-
-                    <div class="campo">
-
-                        <label>
-                            Cantidad
-                        </label>
-
-                        <input
-                            type="number"
-                            step="0.01"
-                            value="${item.cantidad || ""}"
-                            data-index="${index}"
-                            data-campo="cantidad"
-                        >
-
-                    </div>
-
-
-                    <div class="campo">
-
-                        <label>
-                            Precio unitario
-                        </label>
-
-                        <input
-                            type="number"
-                            step="0.01"
-                            value="${item.precioUnitario || ""}"
-                            data-index="${index}"
-                            data-campo="precioUnitario"
-                        >
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        class="btn btn-danger item-boton"
-                        data-eliminar="${index}"
-                    >
-                        🗑
-                    </button>
-
-                </div>
-
-            `;
-
-            listaItems.appendChild(
-                div
+            cargarDatosPresupuesto(
+                id
             );
 
+        }else{
+
+            items = [];
+
+            valoresPresupuestoCongelados =
+                false;
+
+            badgeCongelado.style.display =
+                "none";
+
+            mostrarInformacionPresupuesto(
+                null
+            );
+
+            renderizarItems();
+
         }
-    );
-
-    listaItems
-        .querySelectorAll(
-            "[data-campo]"
-        )
-        .forEach(
-            elemento => {
-
-                elemento.addEventListener(
-                    "input",
-                    actualizarItem
-                );
-
-                elemento.addEventListener(
-                    "change",
-                    actualizarItem
-                );
-
-            }
-        );
-
-    listaItems
-        .querySelectorAll(
-            "[data-eliminar]"
-        )
-        .forEach(
-            boton => {
-
-                boton.addEventListener(
-                    "click",
-                    () => {
-
-                        const index =
-                            Number(
-                                boton.dataset.eliminar
-                            );
-
-                        items.splice(
-                            index,
-                            1
-                        );
-
-                        renderizarItems();
-
-                    }
-                );
-
-            }
-        );
-
-}
-
-
-function actualizarItem(event){
-
-    const index =
-        Number(
-            event.target.dataset.index
-        );
-
-    const campo =
-        event.target.dataset.campo;
-
-    if(
-        !items[index]
-    ){
-        return;
-    }
-
-    let valor =
-        event.target.value;
-
-    if(
-        campo === "cantidad" ||
-        campo === "precioUnitario"
-    ){
-
-        valor =
-            Number(valor) || 0;
 
     }
-
-    items[index][campo] =
-        valor;
-
-}
-
-
-function agregarItem(){
-
-    items.push({
-
-        tipo:"Servicio",
-        denominacion:"",
-        unidad:"",
-        cantidad:1,
-        precioUnitario:0
-
-    });
-
-    renderizarItems();
-
-}
-
-
-document.getElementById(
-    "btnAgregarItem"
-).addEventListener(
-    "click",
-    agregarItem
 );
 
 
 /* =========================================================
-   UTILIDADES
+   NÚMERO TRABAJO
 ========================================================= */
 
-function escaparHTML(valor){
+function normalizarNumeroTrabajo(
+    numero
+){
 
-    return String(valor)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-
-}
-
-
-function normalizarNumeroTrabajo(numero){
-
-    return String(numero || "")
-        .trim()
-        .toUpperCase();
+    return String(
+        numero || ""
+    )
+    .trim()
+    .toUpperCase();
 
 }
 
 
 function numeroTrabajoExiste(
     numero,
-    excluirId = ""
+    excluirId=""
 ){
 
     const normalizado =
         normalizarNumeroTrabajo(
             numero
         );
+
 
     return trabajos.some(
         trabajo =>
@@ -2206,26 +2772,35 @@ function generarNumeroTrabajo(){
 
     let maximo = 0;
 
+
     trabajos.forEach(
         trabajo => {
 
             const numero =
                 String(
-                    trabajo.numeroTrabajo || ""
+                    trabajo.numeroTrabajo ||
+                    ""
                 );
+
 
             const match =
                 numero.match(
                     /TR-(\d+)/i
                 );
 
+
             if(match){
 
                 const n =
-                    Number(match[1]);
+                    Number(
+                        match[1]
+                    );
+
 
                 if(n > maximo){
+
                     maximo = n;
+
                 }
 
             }
@@ -2233,10 +2808,15 @@ function generarNumeroTrabajo(){
         }
     );
 
+
     return (
         "TR-" +
-        String(maximo + 1)
-            .padStart(5,"0")
+        String(
+            maximo + 1
+        ).padStart(
+            5,
+            "0"
+        )
     );
 
 }
@@ -2252,12 +2832,17 @@ async function cargarTrabajos(){
 
     if(!usuarioActual) return;
 
+
     try{
 
         const ref =
-            collection(db,"trabajos");
+            collection(
+                db,
+                "trabajos"
+            );
 
         let snapshot;
+
 
         if(empresaActual?.id){
 
@@ -2291,6 +2876,7 @@ async function cargarTrabajos(){
 
         }
 
+
         trabajos =
             snapshot.docs.map(
                 item => ({
@@ -2299,7 +2885,9 @@ async function cargarTrabajos(){
                 })
             );
 
+
         renderizarTabla();
+
 
         if(!trabajoEditandoId){
 
@@ -2307,6 +2895,7 @@ async function cargarTrabajos(){
                 generarNumeroTrabajo();
 
         }
+
 
     }catch(error){
 
@@ -2351,6 +2940,7 @@ function renderizarTabla(){
 
     tablaTrabajos.innerHTML = "";
 
+
     if(trabajos.length === 0){
 
         tablaTrabajos.innerHTML = `
@@ -2372,14 +2962,15 @@ function renderizarTabla(){
 
     }
 
+
     trabajos
         .sort(
             (a,b) =>
-                String(
+                Number(
                     b.creadoEn?.seconds ||
                     0
                 ) -
-                String(
+                Number(
                     a.creadoEn?.seconds ||
                     0
                 )
@@ -2388,7 +2979,10 @@ function renderizarTabla(){
             trabajo => {
 
                 const tr =
-                    document.createElement("tr");
+                    document.createElement(
+                        "tr"
+                    );
+
 
                 tr.innerHTML = `
 
@@ -2401,6 +2995,7 @@ function renderizarTabla(){
                         </strong>
                     </td>
 
+
                     <td>
                         ${escaparHTML(
                             trabajo.nombreTrabajo ||
@@ -2409,12 +3004,14 @@ function renderizarTabla(){
                         )}
                     </td>
 
+
                     <td>
                         ${escaparHTML(
                             trabajo.clienteNombre ||
                             "-"
                         )}
                     </td>
+
 
                     <td>
                         ${escaparHTML(
@@ -2423,6 +3020,7 @@ function renderizarTabla(){
                         )}
                     </td>
 
+
                     <td>
                         ${escaparHTML(
                             trabajo.fechaInicio ||
@@ -2430,7 +3028,9 @@ function renderizarTabla(){
                         )}
                     </td>
 
+
                     <td>
+
                         <span
                             class="estado ${claseEstado(
                                 trabajo.estado
@@ -2441,7 +3041,9 @@ function renderizarTabla(){
                                 "Pendiente"
                             )}
                         </span>
+
                     </td>
+
 
                     <td>
 
@@ -2466,6 +3068,7 @@ function renderizarTabla(){
                     </td>
 
                 `;
+
 
                 tablaTrabajos.appendChild(
                     tr
@@ -2522,22 +3125,29 @@ function renderizarTabla(){
 async function guardarTrabajo(){
 
     if(!usuarioActual){
+
         return;
+
     }
+
 
     const numero =
         normalizarNumeroTrabajo(
             numeroTrabajo.value
         );
 
+
     const clienteId =
         clienteSelect.value;
+
 
     const presupuestoId =
         presupuestoSelect.value;
 
+
     const nombre =
         nombreTrabajo.value.trim();
+
 
     if(!numero){
 
@@ -2549,6 +3159,7 @@ async function guardarTrabajo(){
         return;
 
     }
+
 
     if(
         numeroTrabajoExiste(
@@ -2566,6 +3177,31 @@ async function guardarTrabajo(){
 
     }
 
+
+    if(!clienteId){
+
+        mostrarMensaje(
+            "Seleccioná el cliente.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(!presupuestoId){
+
+        mostrarMensaje(
+            "Seleccioná el presupuesto aprobado para generar el trabajo.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
     if(!nombre){
 
         mostrarMensaje(
@@ -2577,17 +3213,118 @@ async function guardarTrabajo(){
 
     }
 
+
+    if(!items.length){
+
+        mostrarMensaje(
+            "El presupuesto seleccionado no tiene ítems para cargar en el trabajo.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
     const cliente =
         clientes.find(
             item =>
                 item.id === clienteId
         );
 
+
     const presupuesto =
         presupuestos.find(
             item =>
                 item.id === presupuestoId
         );
+
+
+    if(!presupuesto){
+
+        mostrarMensaje(
+            "No se encontró el presupuesto seleccionado.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * MUY IMPORTANTE:
+     *
+     * Si ya existe un trabajo, NO tomamos
+     * valores editables de la pantalla para
+     * modificar los importes congelados.
+     *
+     * Los ítems son la copia del presupuesto.
+     */
+
+    const itemsCongelados =
+        JSON.parse(
+            JSON.stringify(items)
+        );
+
+
+    const totalMateriales =
+        itemsCongelados
+        .filter(
+            item =>
+                item.tipo === "Material"
+        )
+        .reduce(
+            (total,item) =>
+                total +
+                Number(
+                    item.importeContratado ||
+                    0
+                ),
+            0
+        );
+
+
+    const totalManoObra =
+        itemsCongelados
+        .filter(
+            item =>
+                item.tipo === "Mano de obra"
+        )
+        .reduce(
+            (total,item) =>
+                total +
+                Number(
+                    item.importeContratado ||
+                    0
+                ),
+            0
+        );
+
+
+    const viaticos =
+        Number(
+            presupuesto.viaticos
+        ) || 0;
+
+
+    const flete =
+        Number(
+            presupuesto.flete
+        ) || 0;
+
+
+    const totalContratado =
+        Number(
+            presupuesto.total
+        ) ||
+        (
+            totalMateriales +
+            totalManoObra +
+            viaticos +
+            flete
+        );
+
 
     const datos = {
 
@@ -2607,22 +3344,22 @@ async function guardarTrabajo(){
             numero,
 
         clienteId:
-            clienteId || "",
+            clienteId,
 
         clienteNombre:
             cliente
-                ? obtenerNombreCliente(cliente)
+                ? obtenerNombreCliente(
+                    cliente
+                )
                 : "",
 
         presupuestoId:
-            presupuestoId || "",
+            presupuestoId,
 
         presupuestoNumero:
-            presupuesto
-                ? obtenerNumeroPresupuesto(
-                    presupuesto
-                )
-                : "",
+            obtenerNumeroPresupuesto(
+                presupuesto
+            ),
 
         nombre:
             nombre,
@@ -2648,17 +3385,59 @@ async function guardarTrabajo(){
         responsable:
             responsable.value.trim(),
 
+        /*
+         * COPIA CONGELADA DEL PRESUPUESTO
+         */
+
         items:
-            items,
+            itemsCongelados,
+
+        itemsPresupuesto:
+            itemsCongelados,
+
+        valoresPresupuestoCongelados:
+            true,
+
+        presupuestoCongeladoEn:
+            serverTimestamp(),
 
         cantidadItems:
-            items.length,
+            itemsCongelados.length,
+
+        totalMateriales:
+            totalMateriales,
+
+        totalManoObra:
+            totalManoObra,
+
+        viaticos:
+            viaticos,
+
+        flete:
+            flete,
+
+        totalContratado:
+            totalContratado,
 
         certificable:
             certificable.value,
 
         tipoCertificacion:
             tipoCertificacion.value,
+
+        /*
+         * Datos iniciales para futuras
+         * certificaciones.
+         */
+
+        certificacionAcumulada:
+            0,
+
+        importeCertificadoAcumulado:
+            0,
+
+        creadoPor:
+            usuarioActual.uid,
 
         actualizadoEn:
             serverTimestamp()
@@ -2668,9 +3447,57 @@ async function guardarTrabajo(){
 
     try{
 
-        btnGuardar.disabled = true;
+        btnGuardar.disabled =
+            true;
+
+        btnGuardar.textContent =
+            "Guardando...";
+
 
         if(trabajoEditandoId){
+
+            /*
+             * Al editar un trabajo existente,
+             * mantenemos los valores congelados.
+             */
+
+            const datosActualizacion = {
+
+                estado:
+                    estadoTrabajo.value,
+
+                fechaInicio:
+                    fechaInicio.value || "",
+
+                fechaFin:
+                    fechaFin.value || "",
+
+                responsable:
+                    responsable.value.trim(),
+
+                certificable:
+                    certificable.value,
+
+                tipoCertificacion:
+                    tipoCertificacion.value,
+
+                nombre:
+                    nombre,
+
+                nombreTrabajo:
+                    nombre,
+
+                descripcion:
+                    descripcion.value.trim(),
+
+                descripcionTrabajo:
+                    descripcion.value.trim(),
+
+                actualizadoEn:
+                    serverTimestamp()
+
+            };
+
 
             await updateDoc(
                 doc(
@@ -2678,18 +3505,21 @@ async function guardarTrabajo(){
                     "trabajos",
                     trabajoEditandoId
                 ),
-                datos
+                datosActualizacion
             );
 
+
             mostrarMensaje(
-                "Trabajo actualizado correctamente.",
+                "Trabajo actualizado. Los valores contratados permanecen congelados.",
                 "ok"
             );
+
 
         }else{
 
             datos.creadoEn =
                 serverTimestamp();
+
 
             await addDoc(
                 collection(
@@ -2699,18 +3529,24 @@ async function guardarTrabajo(){
                 datos
             );
 
+
             mostrarMensaje(
-                "Trabajo creado correctamente.",
+                "Trabajo creado correctamente con los valores del presupuesto congelados.",
                 "ok"
             );
 
         }
 
-        trabajoEditandoId = null;
+
+        trabajoEditandoId =
+            null;
+
 
         limpiarFormulario();
 
+
         await cargarTrabajos();
+
 
     }catch(error){
 
@@ -2719,15 +3555,21 @@ async function guardarTrabajo(){
             error
         );
 
+
         mostrarMensaje(
             "No se pudo guardar el trabajo: " +
             error.message,
             "error"
         );
 
+
     }finally{
 
-        btnGuardar.disabled = false;
+        btnGuardar.disabled =
+            false;
+
+        btnGuardar.textContent =
+            "💾 Guardar trabajo";
 
     }
 
@@ -2735,7 +3577,7 @@ async function guardarTrabajo(){
 
 
 /* =========================================================
-   EDITAR
+   EDITAR TRABAJO
 ========================================================= */
 
 async function editarTrabajo(id){
@@ -2745,6 +3587,7 @@ async function editarTrabajo(id){
             item =>
                 item.id === id
         );
+
 
     if(!trabajo){
 
@@ -2757,11 +3600,14 @@ async function editarTrabajo(id){
 
     }
 
+
     trabajoEditandoId =
         id;
 
+
     tituloFormulario.textContent =
         "✏️ Editar trabajo";
+
 
     btnGuardar.textContent =
         "💾 Actualizar trabajo";
@@ -2820,23 +3666,62 @@ async function editarTrabajo(id){
         "";
 
 
+    /*
+     * IMPORTANTE:
+     *
+     * Recuperamos la copia congelada.
+     */
+
     items =
         Array.isArray(
-            trabajo.items
+            trabajo.itemsPresupuesto
         )
             ? JSON.parse(
                 JSON.stringify(
-                    trabajo.items
+                    trabajo.itemsPresupuesto
                 )
             )
-            : [];
+            : (
+                Array.isArray(
+                    trabajo.items
+                )
+                    ? JSON.parse(
+                        JSON.stringify(
+                            trabajo.items
+                        )
+                    )
+                    : []
+            );
+
+
+    valoresPresupuestoCongelados =
+        trabajo.valoresPresupuestoCongelados !== false;
+
+
+    badgeCongelado.style.display =
+        valoresPresupuestoCongelados
+            ? "inline-block"
+            : "none";
 
 
     renderizarItems();
 
-    cargarDatosPresupuesto(
-        trabajo.presupuestoId || ""
-    );
+
+    const presupuesto =
+        presupuestos.find(
+            item =>
+                item.id ===
+                trabajo.presupuestoId
+        );
+
+
+    if(presupuesto){
+
+        mostrarInformacionPresupuesto(
+            presupuesto
+        );
+
+    }
 
 
     window.scrollTo({
@@ -2858,9 +3743,13 @@ async function eliminarTrabajo(id){
             "¿Querés eliminar este trabajo?"
         );
 
+
     if(!confirmar){
+
         return;
+
     }
+
 
     try{
 
@@ -2872,16 +3761,20 @@ async function eliminarTrabajo(id){
             )
         );
 
+
         mostrarMensaje(
             "Trabajo eliminado correctamente.",
             "ok"
         );
 
+
         await cargarTrabajos();
+
 
     }catch(error){
 
         console.error(error);
+
 
         mostrarMensaje(
             "No se pudo eliminar el trabajo.",
@@ -2894,7 +3787,7 @@ async function eliminarTrabajo(id){
 
 
 /* =========================================================
-   LIMPIAR FORMULARIO
+   LIMPIAR
 ========================================================= */
 
 function limpiarFormulario(){
@@ -2902,51 +3795,201 @@ function limpiarFormulario(){
     trabajoEditandoId =
         null;
 
+
     tituloFormulario.textContent =
         "🔧 Crear trabajo";
+
 
     btnGuardar.textContent =
         "💾 Guardar trabajo";
 
+
     numeroTrabajo.value =
         generarNumeroTrabajo();
+
 
     clienteSelect.value =
         "";
 
+
     presupuestoSelect.innerHTML =
-        `<option value="">Seleccionar presupuesto...</option>`;
+        `<option value="">
+            Seleccionar presupuesto...
+        </option>`;
+
 
     nombreTrabajo.value =
         "";
 
+
     descripcion.value =
         "";
+
 
     fechaInicio.value =
         "";
 
+
     fechaFin.value =
         "";
+
 
     responsable.value =
         "";
 
+
     estadoTrabajo.value =
         "Pendiente";
+
 
     certificable.value =
         "no";
 
+
     tipoCertificacion.value =
         "";
 
+
     items = [];
+
+
+    valoresPresupuestoCongelados =
+        false;
+
+
+    badgePresupuesto.style.display =
+        "none";
+
+
+    badgeCongelado.style.display =
+        "none";
+
 
     renderizarItems();
 
+
     mostrarInformacionPresupuesto(
         null
+    );
+
+}
+
+
+/* =========================================================
+   CARGAR PRESUPUESTO DESDE URL
+========================================================= */
+
+async function seleccionarPresupuestoDesdeURL(){
+
+    if(!presupuestoIdURL){
+
+        return;
+
+    }
+
+
+    const presupuesto =
+        presupuestos.find(
+            item =>
+                item.id ===
+                presupuestoIdURL
+        );
+
+
+    if(!presupuesto){
+
+        mostrarMensaje(
+            "El presupuesto indicado no fue encontrado.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const clienteId =
+        obtenerClienteIdPresupuesto(
+            presupuesto
+        );
+
+
+    if(clienteId){
+
+        const existeCliente =
+            clientes.some(
+                cliente =>
+                    cliente.id ===
+                    clienteId
+            );
+
+
+        if(existeCliente){
+
+            clienteSelect.value =
+                clienteId;
+
+
+            cargarPresupuestosDelCliente(
+                clienteId,
+                presupuesto.id
+            );
+
+        }else{
+
+            presupuestoSelect.innerHTML =
+                `<option value="${presupuesto.id}">
+                    ${escaparHTML(
+                        obtenerNumeroPresupuesto(
+                            presupuesto
+                        )
+                    )}
+                    ·
+                    ${escaparHTML(
+                        obtenerNombrePresupuesto(
+                            presupuesto
+                        )
+                    )}
+                </option>`;
+
+
+            presupuestoSelect.value =
+                presupuesto.id;
+
+        }
+
+    }else{
+
+        presupuestoSelect.innerHTML =
+            `<option value="${presupuesto.id}">
+                ${escaparHTML(
+                    obtenerNumeroPresupuesto(
+                        presupuesto
+                    )
+                )}
+                ·
+                ${escaparHTML(
+                    obtenerNombrePresupuesto(
+                        presupuesto
+                    )
+                )}
+            </option>`;
+
+
+        presupuestoSelect.value =
+            presupuesto.id;
+
+    }
+
+
+    cargarDatosPresupuesto(
+        presupuesto.id
+    );
+
+
+    mostrarMensaje(
+        "📋 Presupuesto cargado. Los ítems y valores quedaron preparados para crear el trabajo.",
+        "ok"
     );
 
 }
@@ -3007,7 +4050,7 @@ document.getElementById(
 
 onAuthStateChanged(
     auth,
-    async (user) => {
+    async user => {
 
         if(!user){
 
@@ -3018,8 +4061,10 @@ onAuthStateChanged(
 
         }
 
+
         usuarioActual =
             user;
+
 
         try{
 
@@ -3027,25 +4072,15 @@ onAuthStateChanged(
                 user.uid
             );
 
+
             await cargarClientes();
+
 
             await cargarPresupuestos();
 
+
             await cargarTrabajos();
 
-            /*
-             * IMPORTANTE:
-             * Si venimos desde:
-             *
-             * presupuestos.html
-             *
-             * con:
-             *
-             * trabajos.html?presupuestoId=XXXXX
-             *
-             * cargamos automáticamente
-             * ese presupuesto.
-             */
 
             if(presupuestoIdURL){
 
@@ -3057,7 +4092,9 @@ onAuthStateChanged(
 
             }
 
+
             renderizarItems();
+
 
         }catch(error){
 
@@ -3065,6 +4102,7 @@ onAuthStateChanged(
                 "Error iniciando GESBASE:",
                 error
             );
+
 
             mostrarMensaje(
                 "Ocurrió un error al cargar Gestión de trabajos.",
