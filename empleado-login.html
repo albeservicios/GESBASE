@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-AR">
 
 <head>
 
@@ -32,14 +32,14 @@
 
 body{
     font-family:Arial,sans-serif;
-    background:#f3f4f6;
+    background:#111827;
     color:#111827;
     min-height:100vh;
 }
 
 .contenedor{
     width:100%;
-    max-width:500px;
+    max-width:520px;
     min-height:100vh;
     margin:auto;
     display:flex;
@@ -50,16 +50,29 @@ body{
 
 .tarjeta{
     width:100%;
-    background:white;
-    border:1px solid #e5e7eb;
-    border-radius:18px;
-    padding:28px;
-    box-shadow:0 8px 30px rgba(0,0,0,.08);
+    background:#fff;
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 15px 45px rgba(0,0,0,.25);
 }
 
 .logo{
     text-align:center;
-    margin-bottom:25px;
+    margin-bottom:28px;
+}
+
+.logoMarca{
+    width:64px;
+    height:64px;
+    margin:0 auto 14px;
+    border-radius:16px;
+    background:#111827;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+    font-weight:900;
 }
 
 .logo h1{
@@ -70,14 +83,14 @@ body{
 .logo p{
     margin-top:7px;
     color:#6b7280;
-    font-size:15px;
+    font-size:14px;
 }
 
 .titulo{
-    font-size:21px;
-    font-weight:bold;
-    margin-bottom:18px;
     text-align:center;
+    font-size:21px;
+    font-weight:800;
+    margin-bottom:20px;
 }
 
 .campo{
@@ -87,7 +100,7 @@ body{
 .campo label{
     display:block;
     font-size:14px;
-    font-weight:bold;
+    font-weight:700;
     margin-bottom:7px;
 }
 
@@ -95,7 +108,7 @@ body{
     width:100%;
     padding:15px;
     border:1px solid #d1d5db;
-    border-radius:10px;
+    border-radius:11px;
     font-size:16px;
     outline:none;
     background:#fff;
@@ -103,7 +116,7 @@ body{
 
 .campo input:focus{
     border-color:#2563eb;
-    box-shadow:0 0 0 3px rgba(37,99,235,.10);
+    box-shadow:0 0 0 3px rgba(37,99,235,.12);
 }
 
 .boton{
@@ -112,14 +125,14 @@ body{
     border-radius:11px;
     padding:16px;
     font-size:16px;
-    font-weight:bold;
+    font-weight:800;
     cursor:pointer;
     margin-top:8px;
 }
 
 .boton-principal{
     background:#111827;
-    color:white;
+    color:#fff;
 }
 
 .boton-principal:hover{
@@ -127,7 +140,7 @@ body{
 }
 
 .boton-principal:disabled{
-    opacity:.6;
+    opacity:.55;
     cursor:not-allowed;
 }
 
@@ -142,7 +155,7 @@ body{
 
 .mensaje{
     padding:13px;
-    border-radius:10px;
+    border-radius:11px;
     margin-bottom:16px;
     font-size:14px;
     line-height:1.5;
@@ -161,25 +174,26 @@ body{
 
 .info{
     margin-top:20px;
-    padding:12px;
+    padding:13px;
     background:#eff6ff;
     color:#1e40af;
-    border-radius:10px;
+    border-radius:11px;
     font-size:13px;
     line-height:1.5;
     text-align:center;
 }
 
 .cargando{
+    display:none;
     text-align:center;
     color:#6b7280;
-    padding:10px;
-    display:none;
+    margin-bottom:15px;
+    font-size:14px;
 }
 
 .pie{
     text-align:center;
-    margin-top:20px;
+    margin-top:22px;
     color:#9ca3af;
     font-size:12px;
 }
@@ -195,6 +209,10 @@ body{
     <div class="tarjeta">
 
         <div class="logo">
+
+            <div class="logoMarca">
+                G
+            </div>
 
             <h1>GESBASE</h1>
 
@@ -278,13 +296,13 @@ body{
         <div class="info">
 
             🔐 Utilizá el email y contraseña
-            que te proporcionó el administrador.
+            proporcionados por el administrador de tu empresa.
 
         </div>
 
         <div class="pie">
 
-            GESBASE · Acceso empleado
+            GESBASE · Tu empresa. Todo organizado.
 
         </div>
 
@@ -292,56 +310,8 @@ body{
 
 </div>
 
+
 <script type="module">
-
-/*
-=========================================================
- GESBASE
- ACCESO DE EMPLEADOS
-=========================================================
-
- FLUJO CORRECTO:
-
- acceso-empleado.html
-        ↓
- Firebase Authentication
-        ↓
- empleados
-        ↓
- validar empleado
-        ↓
- ¿contraseña temporal?
-        ↓
-   ┌───────────────┐
-   │               │
-  SÍ              NO
-   │               │
-   ↓               ↓
-cambiar-       index-empleado.html
-password.html
-                   ↓
-          NUEVO MENÚ DEL EMPLEADO
-
- IMPORTANTE:
-
- El empleado NO entra al index.html de la empresa.
-
- El empleado NO entra directamente a fichaje.html.
-
- El empleado NO entra directamente a ningún módulo.
-
- TODO pasa primero por:
-
- index-empleado.html
-=========================================================
-*/
-
-
-/*
-=========================================================
- FIREBASE
-=========================================================
-*/
 
 import {
     auth,
@@ -349,7 +319,8 @@ import {
 } from "./Js/firebase.js";
 
 import {
-    signInWithEmailAndPassword
+    signInWithEmailAndPassword,
+    signOut
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
@@ -357,20 +328,16 @@ import {
     query,
     where,
     getDocs,
+    doc,
+    getDoc,
     limit
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-/*
-=========================================================
- ELEMENTOS
-=========================================================
-*/
-
-const email =
+const emailInput =
     document.getElementById("email");
 
-const password =
+const passwordInput =
     document.getElementById("password");
 
 const btnIngresar =
@@ -389,45 +356,47 @@ const cargando =
     document.getElementById("cargando");
 
 
-/*
-=========================================================
- MENSAJES
-=========================================================
-*/
+function texto(valor){
+
+    if(
+        valor === undefined ||
+        valor === null
+    ){
+        return "";
+    }
+
+    return String(valor);
+
+}
+
 
 function mostrarError(mensaje){
 
     mensajeError.textContent = mensaje;
-
     mensajeError.style.display = "block";
 
     mensajeExito.style.display = "none";
+
 }
 
 
 function mostrarExito(mensaje){
 
     mensajeExito.textContent = mensaje;
-
     mensajeExito.style.display = "block";
 
     mensajeError.style.display = "none";
+
 }
 
 
 function limpiarMensajes(){
 
     mensajeError.style.display = "none";
-
     mensajeExito.style.display = "none";
+
 }
 
-
-/*
-=========================================================
- CARGANDO
-=========================================================
-*/
 
 function iniciarCarga(){
 
@@ -435,7 +404,9 @@ function iniciarCarga(){
 
     btnIngresar.disabled = true;
 
-    btnIngresar.textContent = "INGRESANDO...";
+    btnIngresar.textContent =
+        "INGRESANDO...";
+
 }
 
 
@@ -445,67 +416,74 @@ function terminarCarga(){
 
     btnIngresar.disabled = false;
 
-    btnIngresar.textContent = "INGRESAR";
+    btnIngresar.textContent =
+        "INGRESAR";
+
 }
 
 
 /*
 =========================================================
- TEXTO SEGURO
+ NORMALIZAR RUBRO
 =========================================================
 */
 
-function texto(valor){
+function normalizarRubro(valor){
+
+    const r =
+        texto(valor)
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"");
+
+    if(!r){
+        return "";
+    }
 
     if(
-        valor === undefined ||
-        valor === null
+        r.includes("constru")
     ){
-
-        return "";
-
+        return "construccion";
     }
 
-    return String(valor);
-
-}
-
-
-/*
-=========================================================
- TIPO DE EMPLEADO
-=========================================================
-*/
-
-function obtenerTipoEmpleado(empleado){
-
-    const tipo1 =
-        texto(
-            empleado.tipoEmpleado
-        )
-        .trim()
-        .toLowerCase();
-
-    const tipo2 =
-        texto(
-            empleado.tipo
-        )
-        .trim()
-        .toLowerCase();
-
-    if(tipo1){
-
-        return tipo1;
-
+    if(
+        r.includes("comerc")
+    ){
+        return "comercio";
     }
 
-    if(tipo2){
-
-        return tipo2;
-
+    if(
+        r.includes("transport")
+    ){
+        return "transporte";
     }
 
-    return "empleado";
+    if(
+        r.includes("manten")
+    ){
+        return "mantenimiento";
+    }
+
+    if(
+        r.includes("alquiler")
+    ){
+        return "alquileres";
+    }
+
+    if(
+        r.includes("concesion")
+    ){
+        return "concesionaria";
+    }
+
+    if(
+        r.includes("servicio")
+    ){
+        return "servicios";
+    }
+
+    return r;
 
 }
 
@@ -518,16 +496,13 @@ function obtenerTipoEmpleado(empleado){
 
 async function buscarEmpleado(usuario){
 
-    const referencia =
-        collection(
-            db,
-            "empleados"
-        );
-
     const consulta =
         query(
 
-            referencia,
+            collection(
+                db,
+                "empleados"
+            ),
 
             where(
                 "authUid",
@@ -539,6 +514,7 @@ async function buscarEmpleado(usuario){
 
         );
 
+
     const resultados =
         await getDocs(
             consulta
@@ -548,7 +524,7 @@ async function buscarEmpleado(usuario){
     if(resultados.empty){
 
         throw new Error(
-            "No encontramos el perfil del empleado. El administrador debe vincular esta cuenta desde GESBASE."
+            "No encontramos tu perfil de empleado. El administrador debe vincular esta cuenta desde GESBASE."
         );
 
     }
@@ -568,12 +544,6 @@ async function buscarEmpleado(usuario){
     };
 
 
-    /*
-    =====================================================
-     ESTADO
-    =====================================================
-    */
-
     const estado =
         texto(
             empleado.estado
@@ -588,17 +558,11 @@ async function buscarEmpleado(usuario){
     ){
 
         throw new Error(
-            "El empleado está inactivo. Contactá al administrador."
+            "Tu acceso está inactivo. Comunicate con el administrador de la empresa."
         );
 
     }
 
-
-    /*
-    =====================================================
-     EMPRESA
-    =====================================================
-    */
 
     const empresaId =
         texto(
@@ -610,28 +574,20 @@ async function buscarEmpleado(usuario){
     if(!empresaId){
 
         throw new Error(
-            "El empleado no tiene una empresa asignada."
+            "Tu perfil no tiene una empresa asignada."
         );
 
     }
 
-
-    /*
-    =====================================================
-     VALIDAR UID
-    =====================================================
-    */
 
     if(
         texto(
             empleado.authUid
-        )
-        .trim() !==
-        usuario.uid
+        ).trim() !== usuario.uid
     ){
 
         throw new Error(
-            "La cuenta no está vinculada correctamente con el empleado."
+            "La cuenta no está vinculada correctamente con tu perfil de empleado."
         );
 
     }
@@ -639,24 +595,77 @@ async function buscarEmpleado(usuario){
 
     /*
     =====================================================
-     TIPO
+     EMPRESA
     =====================================================
     */
 
-    const tipoEmpleado =
-        obtenerTipoEmpleado(
-            empleado
+    let empresa = {};
+
+    try{
+
+        const empresaSnap =
+            await getDoc(
+                doc(
+                    db,
+                    "empresas",
+                    empresaId
+                )
+            );
+
+
+        if(empresaSnap.exists()){
+
+            empresa =
+                empresaSnap.data() || {};
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "No se pudo cargar la empresa:",
+            error
         );
 
-
-    const esChofer =
-        tipoEmpleado === "chofer" ||
-        tipoEmpleado === "conductor";
+    }
 
 
     /*
     =====================================================
-     SESIÓN DEL EMPLEADO
+     RUBRO
+    =====================================================
+    */
+
+    const rubro =
+        normalizarRubro(
+
+            empleado.rubro ||
+            empleado.tipoRubro ||
+            empresa.rubro ||
+            empresa.tipoRubro ||
+            empresa.tipoNegocio ||
+            empresa.actividad
+
+        );
+
+
+    /*
+    =====================================================
+     PERMISOS
+    =====================================================
+    */
+
+    const permisos =
+        empleado.permisos &&
+        typeof empleado.permisos === "object"
+        ? empleado.permisos
+        : {};
+
+
+    /*
+    =====================================================
+     SESIÓN
     =====================================================
     */
 
@@ -673,14 +682,6 @@ async function buscarEmpleado(usuario){
 
         perfil:
             "empleado",
-
-        tipoEmpleado:
-            esChofer
-            ? "chofer"
-            : "empleado",
-
-        esChofer:
-            esChofer,
 
         nombre:
             texto(
@@ -703,6 +704,26 @@ async function buscarEmpleado(usuario){
                 empleado.puesto
             ),
 
+        rol:
+            texto(
+                empleado.rol
+            ),
+
+        rubro:
+            rubro,
+
+        tipoEmpleado:
+            texto(
+                empleado.tipoEmpleado ||
+                empleado.tipo
+            ) || "empleado",
+
+        permisos:
+            permisos,
+
+        permisosConfigurados:
+            empleado.permisosConfigurados === true,
+
         pagoDiario:
             Number(
                 empleado.pagoDiario || 0
@@ -723,44 +744,24 @@ async function buscarEmpleado(usuario){
                 empleado.categoriaLicencia
             ),
 
-        /*
-        =================================================
-         PERMISOS
-        =================================================
-        */
-
-        permisos:
-            empleado.permisos &&
-            typeof empleado.permisos === "object"
-            ? empleado.permisos
-            : {},
-
-        /*
-        =================================================
-         CONTRASEÑA TEMPORAL
-        =================================================
-        */
-
         passwordTemporal:
             empleado.passwordTemporal === true
 
     };
 
 
-    /*
-    =====================================================
-     GUARDAR SESIÓN
-    =====================================================
-    */
+    sesion.esChofer =
+        sesion.tipoEmpleado
+        .toLowerCase()
+        .includes("chofer") ||
+        sesion.tipoEmpleado
+        .toLowerCase()
+        .includes("conductor");
+
 
     sessionStorage.setItem(
-
         "gesbaseEmpleado",
-
-        JSON.stringify(
-            sesion
-        )
-
+        JSON.stringify(sesion)
     );
 
 
@@ -775,11 +776,11 @@ async function buscarEmpleado(usuario){
 =========================================================
 */
 
-async function buscarDatosChofer(sesion){
+async function cargarDatosChofer(sesion){
 
     if(!sesion.esChofer){
 
-        return null;
+        return;
 
     }
 
@@ -819,7 +820,7 @@ async function buscarDatosChofer(sesion){
 
         if(resultados.empty){
 
-            return null;
+            return;
 
         }
 
@@ -828,18 +829,12 @@ async function buscarDatosChofer(sesion){
             resultados.docs[0];
 
 
-        const chofer = {
-
-            id:
-                documento.id,
-
-            ...documento.data()
-
-        };
+        const chofer =
+            documento.data() || {};
 
 
         sesion.choferId =
-            chofer.id;
+            documento.id;
 
 
         sesion.unidadId =
@@ -864,27 +859,17 @@ async function buscarDatosChofer(sesion){
 
 
         sessionStorage.setItem(
-
             "gesbaseEmpleado",
-
-            JSON.stringify(
-                sesion
-            )
-
+            JSON.stringify(sesion)
         );
-
-
-        return chofer;
 
     }
     catch(error){
 
         console.warn(
-            "No se pudo cargar el perfil de chofer:",
+            "Datos de chofer no disponibles:",
             error
         );
-
-        return null;
 
     }
 
@@ -893,7 +878,7 @@ async function buscarDatosChofer(sesion){
 
 /*
 =========================================================
- INICIAR SESIÓN
+ LOGIN
 =========================================================
 */
 
@@ -902,42 +887,36 @@ async function iniciarSesion(){
     limpiarMensajes();
 
 
-    const emailValor =
-        email.value
+    const email =
+        emailInput.value
         .trim()
         .toLowerCase();
 
 
-    const passwordValor =
-        password.value;
+    const password =
+        passwordInput.value;
 
 
-    /*
-    =====================================================
-     VALIDACIONES
-    =====================================================
-    */
-
-    if(!emailValor){
+    if(!email){
 
         mostrarError(
-            "Ingresá el email."
+            "Ingresá tu email."
         );
 
-        email.focus();
+        emailInput.focus();
 
         return;
 
     }
 
 
-    if(!passwordValor){
+    if(!password){
 
         mostrarError(
-            "Ingresá la contraseña."
+            "Ingresá tu contraseña."
         );
 
-        password.focus();
+        passwordInput.focus();
 
         return;
 
@@ -951,19 +930,26 @@ async function iniciarSesion(){
 
         /*
         =================================================
-         1. FIREBASE AUTH
+         LIMPIAR SESIÓN ANTERIOR
+        =================================================
+        */
+
+        sessionStorage.removeItem(
+            "gesbaseEmpleado"
+        );
+
+
+        /*
+        =================================================
+         FIREBASE AUTH
         =================================================
         */
 
         const resultado =
             await signInWithEmailAndPassword(
-
                 auth,
-
-                emailValor,
-
-                passwordValor
-
+                email,
+                password
             );
 
 
@@ -973,7 +959,7 @@ async function iniciarSesion(){
 
         /*
         =================================================
-         2. BUSCAR EMPLEADO
+         BUSCAR PERFIL
         =================================================
         */
 
@@ -985,27 +971,21 @@ async function iniciarSesion(){
 
         /*
         =================================================
-         3. CONTRASEÑA TEMPORAL
+         CONTRASEÑA TEMPORAL
         =================================================
         */
 
         if(
-            empleado.passwordTemporal === true
+            empleado.passwordTemporal
         ){
 
             mostrarExito(
-                "Primer acceso detectado. Tenés que cambiar tu contraseña."
+                "Primer acceso detectado. Debés cambiar tu contraseña."
             );
 
 
             setTimeout(
                 () => {
-
-                    /*
-                    =====================================
-                     REDIRECCIÓN EXPLÍCITA
-                    =====================================
-                    */
 
                     window.location.replace(
                         "./cambiar-password.html"
@@ -1023,64 +1003,40 @@ async function iniciarSesion(){
 
         /*
         =================================================
-         4. DATOS DE CHOFER
+         CHOFER
         =================================================
         */
 
-        if(
-            empleado.esChofer
-        ){
-
-            await buscarDatosChofer(
-                empleado
-            );
-
-        }
+        await cargarDatosChofer(
+            empleado
+        );
 
 
         /*
         =================================================
-         5. PANEL PRINCIPAL DEL EMPLEADO
+         ACCESO CORRECTO
         =================================================
         */
 
         mostrarExito(
-
             "Bienvenido " +
             (
                 empleado.nombre ||
                 "empleado"
             ) +
-            ". Abriendo tu menú de trabajo..."
-
+            ". Preparando tu panel..."
         );
 
 
         setTimeout(
             () => {
 
-                /*
-                =========================================
-                 IMPORTANTE
-                 
-                 TODOS LOS EMPLEADOS VAN AQUÍ.
-                 
-                 NO FICHaje
-                 NO INDEX EMPRESA
-                 NO OTRO MÓDULO
-                 
-                 PRIMERO:
-                 
-                 index-empleado.html
-                ==========================================
-                */
-
                 window.location.replace(
                     "./index-empleado.html"
                 );
 
             },
-            700
+            500
         );
 
     }
@@ -1092,99 +1048,83 @@ async function iniciarSesion(){
         );
 
 
+        sessionStorage.removeItem(
+            "gesbaseEmpleado"
+        );
+
+
         let mensaje =
             "No se pudo iniciar sesión.";
 
 
-        if(
-            error.code ===
-            "auth/invalid-credential"
-        ){
+        switch(error.code){
 
-            mensaje =
-                "Email o contraseña incorrectos.";
+            case "auth/invalid-credential":
 
-        }
+                mensaje =
+                    "Email o contraseña incorrectos.";
 
-        else if(
-            error.code ===
-            "auth/user-not-found"
-        ){
+                break;
 
-            mensaje =
-                "No existe un usuario con ese email.";
 
-        }
+            case "auth/user-not-found":
 
-        else if(
-            error.code ===
-            "auth/wrong-password"
-        ){
+                mensaje =
+                    "No existe un usuario con ese email.";
 
-            mensaje =
-                "La contraseña es incorrecta.";
+                break;
 
-        }
 
-        else if(
-            error.code ===
-            "auth/invalid-email"
-        ){
+            case "auth/wrong-password":
 
-            mensaje =
-                "El email no es válido.";
+                mensaje =
+                    "La contraseña es incorrecta.";
 
-        }
+                break;
 
-        else if(
-            error.code ===
-            "auth/user-disabled"
-        ){
 
-            mensaje =
-                "Este usuario está deshabilitado.";
+            case "auth/invalid-email":
 
-        }
+                mensaje =
+                    "El email no es válido.";
 
-        else if(
-            error.code ===
-            "auth/too-many-requests"
-        ){
+                break;
 
-            mensaje =
-                "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
 
-        }
+            case "auth/user-disabled":
 
-        else if(
-            error.code ===
-            "permission-denied"
-        ){
+                mensaje =
+                    "Este usuario está deshabilitado.";
 
-            mensaje =
-                "Firebase rechazó el acceso a los empleados. Hay que revisar las reglas de Firestore.";
+                break;
 
-        }
 
-        else if(
-            error.message
-        ){
+            case "auth/too-many-requests":
 
-            mensaje =
-                error.message;
+                mensaje =
+                    "Demasiados intentos. Esperá unos minutos e intentá nuevamente.";
+
+                break;
+
+
+            case "permission-denied":
+
+                mensaje =
+                    "Firebase rechazó la consulta de empleados. Revisá las reglas de Firestore.";
+
+                break;
+
+
+            default:
+
+                if(error.message){
+
+                    mensaje =
+                        error.message;
+
+                }
 
         }
-
-
-        /*
-        =================================================
-         LIMPIAR SESIÓN
-        =================================================
-        */
-
-        sessionStorage.removeItem(
-            "gesbaseEmpleado"
-        );
 
 
         mostrarError(
@@ -1203,7 +1143,7 @@ async function iniciarSesion(){
 
 /*
 =========================================================
- BOTÓN INGRESAR
+ BOTONES
 =========================================================
 */
 
@@ -1213,19 +1153,11 @@ btnIngresar.addEventListener(
 );
 
 
-/*
-=========================================================
- ENTER EN CONTRASEÑA
-=========================================================
-*/
-
-password.addEventListener(
+passwordInput.addEventListener(
     "keydown",
-    function(event){
+    event => {
 
-        if(
-            event.key === "Enter"
-        ){
+        if(event.key === "Enter"){
 
             iniciarSesion();
 
@@ -1235,21 +1167,13 @@ password.addEventListener(
 );
 
 
-/*
-=========================================================
- ENTER EN EMAIL
-=========================================================
-*/
-
-email.addEventListener(
+emailInput.addEventListener(
     "keydown",
-    function(event){
+    event => {
 
-        if(
-            event.key === "Enter"
-        ){
+        if(event.key === "Enter"){
 
-            password.focus();
+            passwordInput.focus();
 
         }
 
@@ -1257,15 +1181,9 @@ email.addEventListener(
 );
 
 
-/*
-=========================================================
- VOLVER
-=========================================================
-*/
-
 btnVolver.addEventListener(
     "click",
-    function(){
+    () => {
 
         window.history.back();
 
