@@ -188,9 +188,7 @@ body{
 
 </head>
 
-
 <body>
-
 
 <div class="contenedor">
 
@@ -206,18 +204,15 @@ body{
 
         </div>
 
-
         <div
             id="mensajeError"
             class="mensaje error"
         ></div>
 
-
         <div
             id="mensajeExito"
             class="mensaje exito"
         ></div>
-
 
         <div
             id="cargando"
@@ -226,13 +221,11 @@ body{
             Verificando acceso...
         </div>
 
-
         <div id="formularioLogin">
 
             <div class="titulo">
                 Iniciar sesión
             </div>
-
 
             <div class="campo">
 
@@ -249,7 +242,6 @@ body{
 
             </div>
 
-
             <div class="campo">
 
                 <label for="password">
@@ -265,7 +257,6 @@ body{
 
             </div>
 
-
             <button
                 type="button"
                 id="btnIngresar"
@@ -273,7 +264,6 @@ body{
             >
                 INGRESAR
             </button>
-
 
             <button
                 type="button"
@@ -285,14 +275,12 @@ body{
 
         </div>
 
-
         <div class="info">
 
             🔐 Utilizá el email y contraseña
             que te proporcionó el administrador.
 
         </div>
-
 
         <div class="pie">
 
@@ -304,41 +292,47 @@ body{
 
 </div>
 
-
 <script type="module">
-
 
 /*
 =========================================================
- GESBASE - ACCESO DE EMPLEADOS
+ GESBASE
+ ACCESO DE EMPLEADOS
 =========================================================
 
- FLUJO:
+ FLUJO CORRECTO:
 
- Empleado
-     ↓
  acceso-empleado.html
-     ↓
+        ↓
  Firebase Authentication
-     ↓
- empleados/{empleadoId}
-     ↓
- ¿passwordTemporal?
-     ↓
- ┌───────────────────────────────┐
- │                               │
- SÍ                              NO
- │                               │
- ↓                               ↓
-cambiar-password.html       index-empleado.html
-                                 │
-                                 ↓
-                         Panel del empleado
-                                 │
-              ┌──────────────────┼─────────────────┐
-              ↓                  ↓                 ↓
-           Fichaje          Trabajos          Comunicación
+        ↓
+ empleados
+        ↓
+ validar empleado
+        ↓
+ ¿contraseña temporal?
+        ↓
+   ┌───────────────┐
+   │               │
+  SÍ              NO
+   │               │
+   ↓               ↓
+cambiar-       index-empleado.html
+password.html
+                   ↓
+          NUEVO MENÚ DEL EMPLEADO
 
+ IMPORTANTE:
+
+ El empleado NO entra al index.html de la empresa.
+
+ El empleado NO entra directamente a fichaje.html.
+
+ El empleado NO entra directamente a ningún módulo.
+
+ TODO pasa primero por:
+
+ index-empleado.html
 =========================================================
 */
 
@@ -354,11 +348,9 @@ import {
     db
 } from "./Js/firebase.js";
 
-
 import {
     signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-
 
 import {
     collection,
@@ -376,45 +368,25 @@ import {
 */
 
 const email =
-    document.getElementById(
-        "email"
-    );
-
+    document.getElementById("email");
 
 const password =
-    document.getElementById(
-        "password"
-    );
-
+    document.getElementById("password");
 
 const btnIngresar =
-    document.getElementById(
-        "btnIngresar"
-    );
-
+    document.getElementById("btnIngresar");
 
 const btnVolver =
-    document.getElementById(
-        "btnVolver"
-    );
-
+    document.getElementById("btnVolver");
 
 const mensajeError =
-    document.getElementById(
-        "mensajeError"
-    );
-
+    document.getElementById("mensajeError");
 
 const mensajeExito =
-    document.getElementById(
-        "mensajeExito"
-    );
-
+    document.getElementById("mensajeExito");
 
 const cargando =
-    document.getElementById(
-        "cargando"
-    );
+    document.getElementById("cargando");
 
 
 /*
@@ -423,46 +395,31 @@ const cargando =
 =========================================================
 */
 
-function mostrarError(
-    mensaje
-){
+function mostrarError(mensaje){
 
-    mensajeError.textContent =
-        mensaje;
+    mensajeError.textContent = mensaje;
 
-    mensajeError.style.display =
-        "block";
+    mensajeError.style.display = "block";
 
-    mensajeExito.style.display =
-        "none";
-
+    mensajeExito.style.display = "none";
 }
 
 
-function mostrarExito(
-    mensaje
-){
+function mostrarExito(mensaje){
 
-    mensajeExito.textContent =
-        mensaje;
+    mensajeExito.textContent = mensaje;
 
-    mensajeExito.style.display =
-        "block";
+    mensajeExito.style.display = "block";
 
-    mensajeError.style.display =
-        "none";
-
+    mensajeError.style.display = "none";
 }
 
 
 function limpiarMensajes(){
 
-    mensajeError.style.display =
-        "none";
+    mensajeError.style.display = "none";
 
-    mensajeExito.style.display =
-        "none";
-
+    mensajeExito.style.display = "none";
 }
 
 
@@ -474,29 +431,21 @@ function limpiarMensajes(){
 
 function iniciarCarga(){
 
-    cargando.style.display =
-        "block";
+    cargando.style.display = "block";
 
-    btnIngresar.disabled =
-        true;
+    btnIngresar.disabled = true;
 
-    btnIngresar.textContent =
-        "INGRESANDO...";
-
+    btnIngresar.textContent = "INGRESANDO...";
 }
 
 
 function terminarCarga(){
 
-    cargando.style.display =
-        "none";
+    cargando.style.display = "none";
 
-    btnIngresar.disabled =
-        false;
+    btnIngresar.disabled = false;
 
-    btnIngresar.textContent =
-        "INGRESAR";
-
+    btnIngresar.textContent = "INGRESAR";
 }
 
 
@@ -506,9 +455,7 @@ function terminarCarga(){
 =========================================================
 */
 
-function texto(
-    valor
-){
+function texto(valor){
 
     if(
         valor === undefined ||
@@ -519,22 +466,18 @@ function texto(
 
     }
 
-    return String(
-        valor
-    );
+    return String(valor);
 
 }
 
 
 /*
 =========================================================
- NORMALIZAR TIPO DE EMPLEADO
+ TIPO DE EMPLEADO
 =========================================================
 */
 
-function obtenerTipoEmpleado(
-    empleado
-){
+function obtenerTipoEmpleado(empleado){
 
     const tipo1 =
         texto(
@@ -543,7 +486,6 @@ function obtenerTipoEmpleado(
         .trim()
         .toLowerCase();
 
-
     const tipo2 =
         texto(
             empleado.tipo
@@ -551,20 +493,17 @@ function obtenerTipoEmpleado(
         .trim()
         .toLowerCase();
 
-
     if(tipo1){
 
         return tipo1;
 
     }
 
-
     if(tipo2){
 
         return tipo2;
 
     }
-
 
     return "empleado";
 
@@ -577,16 +516,13 @@ function obtenerTipoEmpleado(
 =========================================================
 */
 
-async function buscarEmpleado(
-    usuario
-){
+async function buscarEmpleado(usuario){
 
     const referencia =
         collection(
             db,
             "empleados"
         );
-
 
     const consulta =
         query(
@@ -603,16 +539,13 @@ async function buscarEmpleado(
 
         );
 
-
     const resultados =
         await getDocs(
             consulta
         );
 
 
-    if(
-        resultados.empty
-    ){
+    if(resultados.empty){
 
         throw new Error(
             "No encontramos el perfil del empleado. El administrador debe vincular esta cuenta desde GESBASE."
@@ -641,7 +574,7 @@ async function buscarEmpleado(
     =====================================================
     */
 
-    const estadoEmpleado =
+    const estado =
         texto(
             empleado.estado
         )
@@ -650,8 +583,8 @@ async function buscarEmpleado(
 
 
     if(
-        estadoEmpleado &&
-        estadoEmpleado !== "activo"
+        estado &&
+        estado !== "activo"
     ){
 
         throw new Error(
@@ -674,9 +607,7 @@ async function buscarEmpleado(
         .trim();
 
 
-    if(
-        !empresaId
-    ){
+    if(!empresaId){
 
         throw new Error(
             "El empleado no tiene una empresa asignada."
@@ -687,7 +618,7 @@ async function buscarEmpleado(
 
     /*
     =====================================================
-     AUTH UID
+     VALIDAR UID
     =====================================================
     */
 
@@ -708,7 +639,7 @@ async function buscarEmpleado(
 
     /*
     =====================================================
-     TIPO DE EMPLEADO
+     TIPO
     =====================================================
     */
 
@@ -725,7 +656,7 @@ async function buscarEmpleado(
 
     /*
     =====================================================
-     SESIÓN
+     SESIÓN DEL EMPLEADO
     =====================================================
     */
 
@@ -793,18 +724,22 @@ async function buscarEmpleado(
             ),
 
         /*
-         * PERMISOS
-         *
-         * Los guardamos también en la sesión.
-         */
+        =================================================
+         PERMISOS
+        =================================================
+        */
 
         permisos:
-            empleado.permisos || {},
+            empleado.permisos &&
+            typeof empleado.permisos === "object"
+            ? empleado.permisos
+            : {},
 
         /*
-         * IMPORTANTE
-         * Guardamos si la contraseña es temporal.
-         */
+        =================================================
+         CONTRASEÑA TEMPORAL
+        =================================================
+        */
 
         passwordTemporal:
             empleado.passwordTemporal === true
@@ -836,17 +771,13 @@ async function buscarEmpleado(
 
 /*
 =========================================================
- BUSCAR CHOFER
+ DATOS DEL CHOFER
 =========================================================
 */
 
-async function buscarDatosChofer(
-    sesion
-){
+async function buscarDatosChofer(sesion){
 
-    if(
-        !sesion.esChofer
-    ){
+    if(!sesion.esChofer){
 
         return null;
 
@@ -886,9 +817,7 @@ async function buscarDatosChofer(
             );
 
 
-        if(
-            resultados.empty
-        ){
+        if(resultados.empty){
 
             return null;
 
@@ -947,7 +876,6 @@ async function buscarDatosChofer(
 
         return chofer;
 
-
     }
     catch(error){
 
@@ -986,13 +914,11 @@ async function iniciarSesion(){
 
     /*
     =====================================================
-     VALIDAR EMAIL
+     VALIDACIONES
     =====================================================
     */
 
-    if(
-        !emailValor
-    ){
+    if(!emailValor){
 
         mostrarError(
             "Ingresá el email."
@@ -1005,15 +931,7 @@ async function iniciarSesion(){
     }
 
 
-    /*
-    =====================================================
-     VALIDAR PASSWORD
-    =====================================================
-    */
-
-    if(
-        !passwordValor
-    ){
+    if(!passwordValor){
 
         mostrarError(
             "Ingresá la contraseña."
@@ -1033,7 +951,7 @@ async function iniciarSesion(){
 
         /*
         =================================================
-         AUTENTICACIÓN
+         1. FIREBASE AUTH
         =================================================
         */
 
@@ -1055,7 +973,7 @@ async function iniciarSesion(){
 
         /*
         =================================================
-         BUSCAR EMPLEADO
+         2. BUSCAR EMPLEADO
         =================================================
         */
 
@@ -1067,7 +985,7 @@ async function iniciarSesion(){
 
         /*
         =================================================
-         CONTRASEÑA TEMPORAL
+         3. CONTRASEÑA TEMPORAL
         =================================================
         */
 
@@ -1081,10 +999,16 @@ async function iniciarSesion(){
 
 
             setTimeout(
-                function(){
+                () => {
+
+                    /*
+                    =====================================
+                     REDIRECCIÓN EXPLÍCITA
+                    =====================================
+                    */
 
                     window.location.replace(
-                        "cambiar-password.html"
+                        "./cambiar-password.html"
                     );
 
                 },
@@ -1099,7 +1023,7 @@ async function iniciarSesion(){
 
         /*
         =================================================
-         CHOFER
+         4. DATOS DE CHOFER
         =================================================
         */
 
@@ -1116,32 +1040,48 @@ async function iniciarSesion(){
 
         /*
         =================================================
-         TODOS LOS EMPLEADOS
-         → PANEL DEL EMPLEADO
+         5. PANEL PRINCIPAL DEL EMPLEADO
         =================================================
         */
 
         mostrarExito(
+
             "Bienvenido " +
             (
                 empleado.nombre ||
                 "empleado"
             ) +
-            ". Abriendo tu espacio de trabajo..."
+            ". Abriendo tu menú de trabajo..."
+
         );
 
 
         setTimeout(
-            function(){
+            () => {
+
+                /*
+                =========================================
+                 IMPORTANTE
+                 
+                 TODOS LOS EMPLEADOS VAN AQUÍ.
+                 
+                 NO FICHaje
+                 NO INDEX EMPRESA
+                 NO OTRO MÓDULO
+                 
+                 PRIMERO:
+                 
+                 index-empleado.html
+                ==========================================
+                */
 
                 window.location.replace(
-                    "index-empleado.html"
+                    "./index-empleado.html"
                 );
 
             },
             700
         );
-
 
     }
     catch(error){
@@ -1268,11 +1208,8 @@ async function iniciarSesion(){
 */
 
 btnIngresar.addEventListener(
-
     "click",
-
     iniciarSesion
-
 );
 
 
@@ -1283,14 +1220,11 @@ btnIngresar.addEventListener(
 */
 
 password.addEventListener(
-
     "keydown",
-
     function(event){
 
         if(
-            event.key ===
-            "Enter"
+            event.key === "Enter"
         ){
 
             iniciarSesion();
@@ -1298,7 +1232,6 @@ password.addEventListener(
         }
 
     }
-
 );
 
 
@@ -1309,14 +1242,11 @@ password.addEventListener(
 */
 
 email.addEventListener(
-
     "keydown",
-
     function(event){
 
         if(
-            event.key ===
-            "Enter"
+            event.key === "Enter"
         ){
 
             password.focus();
@@ -1324,7 +1254,6 @@ email.addEventListener(
         }
 
     }
-
 );
 
 
@@ -1335,15 +1264,12 @@ email.addEventListener(
 */
 
 btnVolver.addEventListener(
-
     "click",
-
     function(){
 
         window.history.back();
 
     }
-
 );
 
 </script>
