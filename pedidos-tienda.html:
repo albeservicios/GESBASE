@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+name="theme-color"
+content="#111827"
+>
+
+<title>Pedidos de la Tienda - GESBASE</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.contenedor{
+    max-width:1100px;
+    margin:auto;
+    min-height:100vh;
+    background:white;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:25px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+header h1{
+    font-size:24px;
+}
+
+header p{
+    margin-top:4px;
+    color:#d1d5db;
+    font-size:13px;
+}
+
+main{
+    padding:20px;
+}
+
+.cargando{
+    text-align:center;
+    padding:40px 20px;
+    color:#6b7280;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+    padding:16px;
+    border-radius:10px;
+    margin-bottom:20px;
+    line-height:1.5;
+    display:none;
+}
+
+.filtros{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding-bottom:15px;
+    margin-bottom:20px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.btn-filtro{
+    padding:8px 16px;
+    border:1px solid #d1d5db;
+    background:#f9fafb;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:bold;
+    cursor:pointer;
+    white-space:nowrap;
+}
+
+.btn-filtro.activo{
+    background:#111827;
+    color:white;
+    border-color:#111827;
+}
+
+.grilla-pedidos{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+    gap:18px;
+}
+
+.tarjeta-pedido{
+    border:1px solid #d1d5db;
+    border-radius:12px;
+    padding:18px;
+    background:white;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+}
+
+.pedido-encabezado{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    border-bottom:1px solid #f3f4f6;
+    padding-bottom:10px;
+    margin-bottom:12px;
+}
+
+.numero-pedido{
+    font-weight:bold;
+    font-size:16px;
+    color:#111827;
+}
+
+.fecha-pedido{
+    font-size:12px;
+    color:#6b7280;
+}
+
+.badge-estado{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:12px;
+    font-size:11px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.estado-pendiente{ background:#fef3c7; color:#92400e; }
+.estado-confirmado{ background:#dbeafe; color:#1e40af; }
+.estado-entregado{ background:#d1fae5; color:#065f46; }
+.estado-cancelado{ background:#fee2e2; color:#991b1b; }
+
+.cliente-info{
+    font-size:13px;
+    line-height:1.5;
+    margin-bottom:12px;
+    color:#374151;
+}
+
+.cliente-info strong{
+    color:#111827;
+}
+
+.items-lista{
+    background:#f9fafb;
+    border-radius:8px;
+    padding:10px;
+    font-size:13px;
+    margin-bottom:12px;
+}
+
+.item-linea{
+    display:flex;
+    justify-content:space-between;
+    padding:4px 0;
+    border-bottom:1px dashed #e5e7eb;
+}
+
+.item-linea:last-child{
+    border-bottom:none;
+}
+
+.total-pedido{
+    display:flex;
+    justify-content:space-between;
+    font-weight:bold;
+    font-size:16px;
+    margin-top:10px;
+    padding-top:10px;
+    border-top:2px solid #111827;
+}
+
+.acciones{
+    margin-top:15px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.btn{
+    display:block;
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:bold;
+    text-align:center;
+    text-decoration:none;
+    cursor:pointer;
+}
+
+.btn-ws{ background:#25d366; color:white; }
+.btn-estado{ background:#2563eb; color:white; }
+.btn-volver{ background:#e5e7eb; color:#111827; margin-top:20px; }
+
+.selector-estado{
+    width:100%;
+    padding:9px;
+    border-radius:8px;
+    border:1px solid #d1d5db;
+    font-size:13px;
+    background:#ffffff;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<header>
+
+<div>
+<h1>GESBASE</h1>
+<p>Gestión de Pedidos de la Tienda</p>
+</div>
+
+<a href="index.html" class="btn btn-volver" style="margin:0; width:auto; padding:8px 15px;">
+⬅️ Volver al Panel
+</a>
+
+</header>
+
+<main>
+
+<div id="cargando" class="cargando">
+Cargando pedidos...
+</div>
+
+<div id="error" class="error"></div>
+
+<div id="contenido" style="display:none;">
+
+<div class="filtros">
+    <button class="btn-filtro activo" onclick="filtrarEstado('todos')">Todos</button>
+    <button class="btn-filtro" onclick="filtrarEstado('Pendiente')">Pendientes</button>
+    <button class="btn-filtro" onclick="filtrarEstado('Confirmado')">Confirmados</button>
+    <button class="btn-filtro" onclick="filtrarEstado('Entregado')">Entregados</button>
+    <button class="btn-filtro" onclick="filtrarEstado('Cancelado')">Cancelados</button>
+</div>
+
+<div id="grillaPedidos" class="grilla-pedidos"></div>
+
+</div>
+
+</main>
+
+</div>
+
+<script type="module">
+
+import { auth, db } from "./Js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { collection, query, where, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+const cargando = document.getElementById("cargando");
+const errorElemento = document.getElementById("error");
+const contenido = document.getElementById("contenido");
+const grillaPedidos = document.getElementById("grillaPedidos");
+
+let pedidosList = [];
+let estadoFiltroActivo = "todos";
+let usuarioActual = null;
+let datosUsuario = {};
+
+function dinero(valor){
+    return (Number(valor) || 0).toLocaleString("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        maximumFractionDigits: 2
+    });
+}
+
+async function cargarPedidos(){
+    try {
+        const docUser = await getDoc(doc(db, "usuarios", usuarioActual.uid));
+        if(docUser.exists()){
+            datosUsuario = docUser.data();
+        }
+
+        const empresaId = datosUsuario.empresaId || usuarioActual.uid;
+
+        const q = query(
+            collection(db, "pedidos"),
+            where("empresaId", "==", empresaId)
+        );
+
+        const snap = await getDocs(q);
+        pedidosList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Ordenar del más reciente al más antiguo
+        pedidosList.sort((a,b) => (b.fechaCreacion?.seconds || 0) - (a.fechaCreacion?.seconds || 0));
+
+        cargando.style.display = "none";
+        contenido.style.display = "block";
+
+        renderizarPedidos();
+
+    } catch (err) {
+        console.error("Error cargando pedidos:", err);
+        cargando.style.display = "none";
+        errorElemento.textContent = "No se pudieron cargar los pedidos: " + err.message;
+        errorElemento.style.display = "block";
+    }
+}
+
+function renderizarPedidos(){
+    grillaPedidos.innerHTML = "";
+
+    const filtrados = pedidosList.filter(p => {
+        if(estadoFiltroActivo === "todos") return true;
+        return (p.estado || "Pendiente") === estadoFiltroActivo;
+    });
+
+    if(filtrados.length === 0){
+        grillaPedidos.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 30px;">No hay pedidos en esta categoría.</p>`;
+        return;
+    }
+
+    filtrados.forEach(pedido => {
+        const tarjeta = document.createElement("div");
+        tarjeta.className = "tarjeta-pedido";
+
+        const estadoClase = "estado-" + (pedido.estado || "pendiente").toLowerCase();
+
+        let itemsHTML = "";
+        if(Array.isArray(pedido.items)){
+            itemsHTML = pedido.items.map(i => `
+                <div class="item-linea">
+                    <span>${i.nombre} x${i.cantidad}</span>
+                    <strong>${dinero(i.subtotal || (i.precioUnitario * i.cantidad))}</strong>
+                </div>
+            `).join("");
+        }
+
+        const telLimpio = String(pedido.cliente?.telefono || "").replace(/\D/g,'');
+        const msjWhatsApp = encodeURIComponent(`Hola ${pedido.cliente?.nombre || ''}, te contactamos de ${datosUsuario.empresa || 'GESBASE'} por tu pedido #${pedido.numeroPedido || pedido.id.slice(-6)}.`);
+        const urlWS = `https://wa.me/${telLimpio}?text=${msjWhatsApp}`;
+
+        tarjeta.innerHTML = `
+            <div>
+                <div class="pedido-encabezado">
+                    <div>
+                        <div class="numero-pedido">Pedido #${pedido.numeroPedido || pedido.id.slice(-6)}</div>
+                        <div class="fecha-pedido">${pedido.fechaCreacion ? new Date(pedido.fechaCreacion.seconds * 1000).toLocaleDateString("es-AR") : "Reciente"}</div>
+                    </div>
+                    <span class="badge-estado ${estadoClase}">${pedido.estado || 'Pendiente'}</span>
+                </div>
+
+                <div class="cliente-info">
+                    <strong>Cliente:</strong> ${pedido.cliente?.nombre || 'Sin nombre'}<br>
+                    <strong>Teléfono:</strong> ${pedido.cliente?.telefono || '-'}<br>
+                    <strong>Entrega:</strong> ${pedido.entrega?.tipo || 'A coordinar'}<br>
+                    ${pedido.entrega?.direccion ? `<strong>Dirección:</strong> ${pedido.entrega.direccion}<br>` : ''}
+                    <strong>Pago:</strong> ${pedido.metodoPago || 'A coordinar'}
+                </div>
+
+                <div class="items-lista">
+                    ${itemsHTML}
+                </div>
+
+                <div class="total-pedido">
+                    <span>Total:</span>
+                    <span>${dinero(pedido.total || pedido.subtotal)}</span>
+                </div>
+            </div>
+
+            <div class="acciones">
+                ${telLimpio ? `<a href="${urlWS}" target="_blank" class="btn btn-ws">💬 Contactar por WhatsApp</a>` : ''}
+
+                <select class="selector-estado" onchange="cambiarEstadoPedido('${pedido.id}', this.value)">
+                    <option value="Pendiente" ${pedido.estado === 'Pendiente' ? 'selected' : ''}>Estado: Pendiente</option>
+                    <option value="Confirmado" ${pedido.estado === 'Confirmado' ? 'selected' : ''}>Estado: Confirmado</option>
+                    <option value="Entregado" ${pedido.estado === 'Entregado' ? 'selected' : ''}>Estado: Entregado</option>
+                    <option value="Cancelado" ${pedido.estado === 'Cancelado' ? 'selected' : ''}>Estado: Cancelado</option>
+                </select>
+            </div>
+        `;
+
+        grillaPedidos.appendChild(tarjeta);
+    });
+}
+
+window.filtrarEstado = function(estado){
+    estadoFiltroActivo = estado;
+    document.querySelectorAll(".btn-filtro").forEach(b => b.classList.remove("activo"));
+    event.target.classList.add("activo");
+    renderizarPedidos();
+};
+
+window.cambiarEstadoPedido = async function(id, nuevoEstado){
+    try {
+        await updateDoc(doc(db, "pedidos", id), {
+            estado: nuevoEstado
+        });
+
+        const pedido = pedidosList.find(p => p.id === id);
+        if(pedido) pedido.estado = nuevoEstado;
+
+        renderizarPedidos();
+        alert("Estado actualizado correctamente.");
+    } catch (err) {
+        alert("Error al actualizar estado: " + err.message);
+    }
+};
+
+onAuthStateChanged(auth, user => {
+    if(user){
+        usuarioActual = user;
+        cargarPedidos();
+    } else {
+        window.location.href = "login.html";
+    }
+});
+
+</script>
+
+</body>
+
+</html>
