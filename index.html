@@ -537,6 +537,7 @@ a{
         box-shadow .2s ease;
 
     overflow:hidden;
+    cursor:pointer;
 }
 
 .module::before{
@@ -726,17 +727,18 @@ a{
 }
 
 /* =========================================================
-   PANEL FINANZAS
+   PANEL FINANZAS Y MODALES
    ========================================================= */
 
-.finance-overlay{
+.finance-overlay,
+.modal-overlay{
     position:fixed;
     inset:0;
 
     z-index:300;
 
     display:none;
-    align-items:flex-end;
+    align-items:center;
     justify-content:center;
 
     background:rgba(0,0,0,.62);
@@ -747,15 +749,17 @@ a{
     padding:14px;
 }
 
-.finance-overlay.open{
+.finance-overlay.open,
+.modal-overlay.open{
     display:flex;
 }
 
-.finance-panel{
+.finance-panel,
+.modal-panel{
     width:min(620px,100%);
 
     border:1px solid #263750;
-    border-radius:24px 24px 18px 18px;
+    border-radius:24px;
 
     background:
         linear-gradient(
@@ -765,7 +769,7 @@ a{
         );
 
     box-shadow:
-        0 -20px 70px rgba(0,0,0,.45);
+        0 20px 70px rgba(0,0,0,.45);
 
     padding:21px;
 
@@ -926,6 +930,36 @@ a{
 .finance-link span{
     font-size:20px;
 }
+
+/* MODAL DE TIENDA */
+.link-box{
+    width:100%;
+    background:#0b1220;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px;
+    color:#93c5fd;
+    font-size:13px;
+    margin:15px 0;
+    word-break:break-all;
+}
+
+.btn-modal{
+    width:100%;
+    padding:12px;
+    border-radius:12px;
+    border:none;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+
+.btn-copiar{ background:var(--primary); color:white; }
+.btn-ws{ background:#25d366; color:white; }
 
 /* =========================================================
    EMPLEADO
@@ -1126,10 +1160,6 @@ a{
 
 }
 
-/* =========================================================
-   OCULTOS
-   ========================================================= */
-
 .oculto{
     display:none !important;
 }
@@ -1141,2410 +1171,659 @@ a{
 
 <body>
 
-
-<!-- =======================================================
-     TOPBAR
-======================================================= -->
-
+<!-- TOPBAR -->
 <header class="topbar">
-
     <div class="topbar-inner">
-
         <div class="brand">
-
             <div class="logo">G</div>
-
             <div class="brand-text">
                 <div class="brand-name">GESBASE</div>
-                <div class="brand-sub">
-                    Tu empresa. Todo organizado.
-                </div>
+                <div class="brand-sub">Tu empresa. Todo organizado.</div>
             </div>
-
         </div>
-
 
         <div class="top-actions">
-
-            <button
-                class="icon-btn"
-                id="btnNotificacionesAdmin"
-                type="button"
-                title="Notificaciones"
-            >
-                🔔
-
-                <span
-                    id="contadorSolicitudes"
-                    class="notification-dot"
-                >
-                    0
-                </span>
-
+            <button class="icon-btn" id="btnNotificacionesAdmin" type="button" title="Notificaciones">
+                🔔 <span id="contadorSolicitudes" class="notification-dot">0</span>
             </button>
-
-
-            <button
-                class="icon-btn"
-                id="btnCerrarSesion"
-                type="button"
-                title="Cerrar sesión"
-            >
-                ↪
-            </button>
-
+            <button class="icon-btn" id="btnCerrarSesion" type="button" title="Cerrar sesión">↪</button>
         </div>
-
     </div>
-
 </header>
 
-
-
-<!-- =======================================================
-     CARGANDO
-======================================================= -->
-
+<!-- CARGANDO -->
 <div id="cargando">
-
     <div class="loader"></div>
-
-    <div>
-        Cargando GESBASE...
-    </div>
-
+    <div>Cargando GESBASE...</div>
 </div>
 
-
-
-<!-- =======================================================
-     PANEL PRINCIPAL
-======================================================= -->
-
-<main
-    id="contenido"
-    class="app"
-    style="display:none;"
->
-
-
-    <!-- ===================================================
-         EMPRESA
-    ==================================================== -->
+<!-- PANEL PRINCIPAL -->
+<main id="contenido" class="app" style="display:none;">
 
     <section class="company-hero">
-
         <div class="hero-top">
-
             <div>
-
-                <div class="hero-label">
-                    PANEL EMPRESARIAL
-                </div>
-
-                <h1 id="nombreEmpresa">
-                    Mi empresa
-                </h1>
-
-                <p class="hero-description">
-                    Gestioná tu empresa desde un solo lugar.
-                </p>
-
+                <div class="hero-label">PANEL EMPRESARIAL</div>
+                <h1 id="nombreEmpresa">Mi empresa</h1>
+                <p class="hero-description">Gestioná tu empresa desde un solo lugar.</p>
             </div>
-
-
-            <div
-                id="estadoAcceso"
-                class="status"
-            >
-                <span class="status-dot"></span>
-                ACCESO HABILITADO
+            <div id="estadoAcceso" class="status">
+                <span class="status-dot"></span> ACCESO HABILITADO
             </div>
-
         </div>
-
-
-        <div id="alertaAcceso">
-            El acceso a esta empresa se encuentra bloqueado.
-        </div>
-
+        <div id="alertaAcceso">El acceso a esta empresa se encuentra bloqueado.</div>
     </section>
 
-
-
-    <!-- ===================================================
-         SERVICIOS
-    ==================================================== -->
-
-    <section
-        id="seccionServicios"
-        class="dashboard-section"
-    >
-
+    <!-- SERVICIOS -->
+    <section id="seccionServicios" class="dashboard-section">
         <div class="section-heading">
-
-            <div class="section-title-wrap">
-
-                <span class="section-marker"></span>
-
-                <h2 class="section-title">
-                    Gestión de servicios
-                </h2>
-
-            </div>
-
-            <span class="section-caption">
-                Operaciones
-            </span>
-
-        </div>
-
-
-        <div class="module-grid">
-
-            <a
-                href="presupuesto.html"
-                class="module acceso-protegido"
-            >
-                <div class="module-icon">📋</div>
-
-                <div class="module-bottom">
-                    <span class="module-name">
-                        Nuevo presupuesto
-                    </span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-
-            <a
-                href="presupuestos.html"
-                class="module acceso-protegido"
-            >
-                <div class="module-icon">📑</div>
-
-                <div class="module-bottom">
-                    <span class="module-name">
-                        Presupuestos
-                    </span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-
-            <a
-                href="clientes.html"
-                class="module acceso-protegido"
-            >
-                <div class="module-icon">👥</div>
-
-                <div class="module-bottom">
-                    <span class="module-name">
-                        Clientes
-                    </span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-
-            <a
-                href="trabajos.html"
-                class="module acceso-protegido"
-            >
-                <div class="module-icon">🛠️</div>
-
-                <div class="module-bottom">
-                    <span class="module-name">
-                        Trabajos
-                    </span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-
-            <a
-                href="gastos.html"
-                class="module acceso-protegido"
-            >
-                <div class="module-icon">💸</div>
-
-                <div class="module-bottom">
-                    <span class="module-name">
-                        Gastos
-                    </span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-
-            <a
-                href="facturas.html"
-                class="module acceso-protegido"
-            >
-                <div class="module-icon">🧾</div>
-
-                <div class="module-bottom">
-                    <span class="module-name">
-                        Facturas
-                    </span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-
-            <a
-                href="cobros.html"
-                class="module acceso-protegido"
-            >
-                <div class="module-icon">💵</div>
-
-                <div class="module-bottom">
-                    <span class="module-name">
-                        Cobros
-                    </span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-
-            <a
-                href="certificacion.html"
-                class="module acceso-protegido"
-            >
-                <div class="module-icon">✅</div>
-
-                <div class="module-bottom">
-                    <span class="module-name">
-                        Certificación
-                    </span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-
-            <a
-                href="conformidad.html"
-                class="module acceso-protegido"
-            >
-                <div class="module-icon">✍️</div>
-
-                <div class="module-bottom">
-                    <span class="module-name">
-                        Conformidad
-                    </span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- ===================================================
-         ALQUILER TEMPORAL
-    ==================================================== -->
-
-    <section
-        id="seccionAlquilerTemporal"
-        class="dashboard-section section-alquiler oculto"
-    >
-
-        <div class="section-heading">
-
-            <div class="section-title-wrap">
-
-                <span class="section-marker"></span>
-
-                <h2 class="section-title">
-                    Alquiler temporal
-                </h2>
-
-            </div>
-
-            <span class="section-caption">
-                Propiedades
-            </span>
-
-        </div>
-
-
-        <div class="module-grid">
-
-            <a href="alquileres.html" class="module acceso-protegido">
-                <div class="module-icon">🏠</div>
-                <div class="module-bottom">
-                    <span class="module-name">Alquileres</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="propiedades-alquiler.html" class="module acceso-protegido">
-                <div class="module-icon">🏡</div>
-                <div class="module-bottom">
-                    <span class="module-name">Propiedades</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="reservas-alquiler.html" class="module acceso-protegido">
-                <div class="module-icon">📅</div>
-                <div class="module-bottom">
-                    <span class="module-name">Reservas</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="clientes-alquiler.html" class="module acceso-protegido">
-                <div class="module-icon">👤</div>
-                <div class="module-bottom">
-                    <span class="module-name">Clientes</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="solicitudes-alquiler.html" class="module acceso-protegido">
-                <div class="module-icon">📨</div>
-                <div class="module-bottom">
-                    <span class="module-name">Solicitudes</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="formulario-alquiler.html" class="module acceso-protegido">
-                <div class="module-icon">📝</div>
-                <div class="module-bottom">
-                    <span class="module-name">Formulario público</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="cobros-alquiler.html" class="module acceso-protegido">
-                <div class="module-icon">💵</div>
-                <div class="module-bottom">
-                    <span class="module-name">Cobros</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="comprobantes-alquiler.html" class="module acceso-protegido">
-                <div class="module-icon">🧾</div>
-                <div class="module-bottom">
-                    <span class="module-name">Comprobantes</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="historial-alquiler.html" class="module acceso-protegido">
-                <div class="module-icon">🕘</div>
-                <div class="module-bottom">
-                    <span class="module-name">Historial</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- ===================================================
-         CONSTRUCCIÓN
-    ==================================================== -->
-
-    <section
-        id="seccionConstruccion"
-        class="dashboard-section section-construccion oculto"
-    >
-
-        <div class="section-heading">
-
             <div class="section-title-wrap">
                 <span class="section-marker"></span>
-
-                <h2 class="section-title">
-                    Construcción
-                </h2>
+                <h2 class="section-title">Gestión de servicios</h2>
             </div>
-
-            <span class="section-caption">
-                Obras
-            </span>
-
+            <span class="section-caption">Operaciones</span>
         </div>
 
-
         <div class="module-grid">
-
             <a href="presupuesto.html" class="module acceso-protegido">
                 <div class="module-icon">📋</div>
-                <div class="module-bottom">
-                    <span class="module-name">Presupuesto</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-bottom"><span class="module-name">Nuevo presupuesto</span><span class="module-arrow">›</span></div>
             </a>
-
             <a href="presupuestos.html" class="module acceso-protegido">
                 <div class="module-icon">📑</div>
-                <div class="module-bottom">
-                    <span class="module-name">Presupuestos</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-bottom"><span class="module-name">Presupuestos</span><span class="module-arrow">›</span></div>
             </a>
-
-            <a href="trabajos.html" class="module acceso-protegido">
-                <div class="module-icon">🏗️</div>
-                <div class="module-bottom">
-                    <span class="module-name">Obras y trabajos</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
             <a href="clientes.html" class="module acceso-protegido">
                 <div class="module-icon">👥</div>
-                <div class="module-bottom">
-                    <span class="module-name">Clientes</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-bottom"><span class="module-name">Clientes</span><span class="module-arrow">›</span></div>
             </a>
-
+            <a href="trabajos.html" class="module acceso-protegido">
+                <div class="module-icon">🛠️</div>
+                <div class="module-bottom"><span class="module-name">Trabajos</span><span class="module-arrow">›</span></div>
+            </a>
             <a href="gastos.html" class="module acceso-protegido">
                 <div class="module-icon">💸</div>
-                <div class="module-bottom">
-                    <span class="module-name">Gastos de obra</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-bottom"><span class="module-name">Gastos</span><span class="module-arrow">›</span></div>
             </a>
-
-            <a href="productos.html" class="module acceso-protegido">
-                <div class="module-icon">🧱</div>
-                <div class="module-bottom">
-                    <span class="module-name">Materiales</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="inventario.html" class="module acceso-protegido">
-                <div class="module-icon">📦</div>
-                <div class="module-bottom">
-                    <span class="module-name">Inventario</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
             <a href="facturas.html" class="module acceso-protegido">
                 <div class="module-icon">🧾</div>
-                <div class="module-bottom">
-                    <span class="module-name">Facturas</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-bottom"><span class="module-name">Facturas</span><span class="module-arrow">›</span></div>
             </a>
-
             <a href="cobros.html" class="module acceso-protegido">
                 <div class="module-icon">💵</div>
-                <div class="module-bottom">
-                    <span class="module-name">Cobros</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-bottom"><span class="module-name">Cobros</span><span class="module-arrow">›</span></div>
             </a>
-
+            <a href="certificacion.html" class="module acceso-protegido">
+                <div class="module-icon">✅</div>
+                <div class="module-bottom"><span class="module-name">Certificación</span><span class="module-arrow">›</span></div>
+            </a>
+            <a href="conformidad.html" class="module acceso-protegido">
+                <div class="module-icon">✍️</div>
+                <div class="module-bottom"><span class="module-name">Conformidad</span><span class="module-arrow">›</span></div>
+            </a>
         </div>
-
     </section>
 
-
-
-    <!-- ===================================================
-         COMERCIO
-    ==================================================== -->
-
-    <section
-        id="seccionComercio"
-        class="dashboard-section section-comercio oculto"
-    >
-
+    <!-- ALQUILER TEMPORAL -->
+    <section id="seccionAlquilerTemporal" class="dashboard-section section-alquiler oculto">
         <div class="section-heading">
-
             <div class="section-title-wrap">
                 <span class="section-marker"></span>
-
-                <h2 class="section-title">
-                    Comercio
-                </h2>
+                <h2 class="section-title">Alquiler temporal</h2>
             </div>
+            <span class="section-caption">Propiedades</span>
+        </div>
+        <div class="module-grid">
+            <a href="alquileres.html" class="module acceso-protegido"><div class="module-icon">🏠</div><div class="module-bottom"><span class="module-name">Alquileres</span><span class="module-arrow">›</span></div></a>
+            <a href="propiedades-alquiler.html" class="module acceso-protegido"><div class="module-icon">🏡</div><div class="module-bottom"><span class="module-name">Propiedades</span><span class="module-arrow">›</span></div></a>
+            <a href="reservas-alquiler.html" class="module acceso-protegido"><div class="module-icon">📅</div><div class="module-bottom"><span class="module-name">Reservas</span><span class="module-arrow">›</span></div></a>
+            <a href="clientes-alquiler.html" class="module acceso-protegido"><div class="module-icon">👤</div><div class="module-bottom"><span class="module-name">Clientes</span><span class="module-arrow">›</span></div></a>
+            <a href="solicitudes-alquiler.html" class="module acceso-protegido"><div class="module-icon">📨</div><div class="module-bottom"><span class="module-name">Solicitudes</span><span class="module-arrow">›</span></div></a>
+            <a href="formulario-alquiler.html" class="module acceso-protegido"><div class="module-icon">📝</div><div class="module-bottom"><span class="module-name">Formulario público</span><span class="module-arrow">›</span></div></a>
+            <a href="cobros-alquiler.html" class="module acceso-protegido"><div class="module-icon">💵</div><div class="module-bottom"><span class="module-name">Cobros</span><span class="module-arrow">›</span></div></a>
+            <a href="comprobantes-alquiler.html" class="module acceso-protegido"><div class="module-icon">🧾</div><div class="module-bottom"><span class="module-name">Comprobantes</span><span class="module-arrow">›</span></div></a>
+            <a href="historial-alquiler.html" class="module acceso-protegido"><div class="module-icon">🕘</div><div class="module-bottom"><span class="module-name">Historial</span><span class="module-arrow">›</span></div></a>
+        </div>
+    </section>
 
-            <span class="section-caption">
-                Ventas
-            </span>
+    <!-- CONSTRUCCIÓN -->
+    <section id="seccionConstruccion" class="dashboard-section section-construccion oculto">
+        <div class="section-heading">
+            <div class="section-title-wrap">
+                <span class="section-marker"></span>
+                <h2 class="section-title">Construcción</h2>
+            </div>
+            <span class="section-caption">Obras</span>
+        </div>
+        <div class="module-grid">
+            <a href="presupuesto.html" class="module acceso-protegido"><div class="module-icon">📋</div><div class="module-bottom"><span class="module-name">Presupuesto</span><span class="module-arrow">›</span></div></a>
+            <a href="presupuestos.html" class="module acceso-protegido"><div class="module-icon">📑</div><div class="module-bottom"><span class="module-name">Presupuestos</span><span class="module-arrow">›</span></div></a>
+            <a href="trabajos.html" class="module acceso-protegido"><div class="module-icon">🏗️</div><div class="module-bottom"><span class="module-name">Obras y trabajos</span><span class="module-arrow">›</span></div></a>
+            <a href="clientes.html" class="module acceso-protegido"><div class="module-icon">👥</div><div class="module-bottom"><span class="module-name">Clientes</span><span class="module-arrow">›</span></div></a>
+            <a href="gastos.html" class="module acceso-protegido"><div class="module-icon">💸</div><div class="module-bottom"><span class="module-name">Gastos de obra</span><span class="module-arrow">›</span></div></a>
+            <a href="productos.html" class="module acceso-protegido"><div class="module-icon">🧱</div><div class="module-bottom"><span class="module-name">Materiales</span><span class="module-arrow">›</span></div></a>
+            <a href="inventario.html" class="module acceso-protegido"><div class="module-icon">📦</div><div class="module-bottom"><span class="module-name">Inventario</span><span class="module-arrow">›</span></div></a>
+            <a href="facturas.html" class="module acceso-protegido"><div class="module-icon">🧾</div><div class="module-bottom"><span class="module-name">Facturas</span><span class="module-arrow">›</span></div></a>
+            <a href="cobros.html" class="module acceso-protegido"><div class="module-icon">💵</div><div class="module-bottom"><span class="module-name">Cobros</span><span class="module-arrow">›</span></div></a>
+        </div>
+    </section>
 
+    <!-- COMERCIO Y TIENDA (NUEVO MÓDULO INTEGRADO) -->
+    <section id="seccionComercio" class="dashboard-section section-comercio oculto">
+        <div class="section-heading">
+            <div class="section-title-wrap">
+                <span class="section-marker"></span>
+                <h2 class="section-title">Comercio y Tienda Online</h2>
+            </div>
+            <span class="section-caption">Ventas</span>
         </div>
 
-
         <div class="module-grid">
-
             <a href="productos.html" class="module acceso-protegido">
                 <div class="module-icon">📦</div>
-                <div class="module-bottom">
-                    <span class="module-name">Productos</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-bottom"><span class="module-name">Productos</span><span class="module-arrow">›</span></div>
+            </a>
+
+            <!-- MÓDULO COMPARTIR / MI TIENDA -->
+            <div class="module acceso-protegido" onclick="abrirModalCompartirTienda()">
+                <div class="module-icon">🛍️</div>
+                <div class="module-bottom"><span class="module-name">Compartir Mi Tienda</span><span class="module-arrow">›</span></div>
+            </div>
+
+            <!-- MÓDULO PEDIDOS TIENDA ONLINE -->
+            <a href="pedidos-tienda.html" class="module acceso-protegido">
+                <div class="module-icon">🛒</div>
+                <div class="module-bottom"><span class="module-name">Pedidos Online</span><span class="module-arrow">›</span></div>
             </a>
 
             <a href="inventario.html" class="module acceso-protegido">
                 <div class="module-icon">📊</div>
-                <div class="module-bottom">
-                    <span class="module-name">Inventario</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-bottom"><span class="module-name">Inventario</span><span class="module-arrow">›</span></div>
             </a>
-
             <a href="ventas.html" class="module acceso-protegido">
-                <div class="module-icon">🛒</div>
-                <div class="module-bottom">
-                    <span class="module-name">Ventas</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-icon">💰</div>
+                <div class="module-bottom"><span class="module-name">Ventas</span><span class="module-arrow">›</span></div>
             </a>
-
-            <a href="compras.html" class="module acceso-protegido">
-                <div class="module-icon">🛍️</div>
-                <div class="module-bottom">
-                    <span class="module-name">Compras</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
             <a href="proveedores.html" class="module acceso-protegido">
                 <div class="module-icon">🏢</div>
-                <div class="module-bottom">
-                    <span class="module-name">Proveedores</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-bottom"><span class="module-name">Proveedores</span><span class="module-arrow">›</span></div>
             </a>
-
             <a href="clientes.html" class="module acceso-protegido">
                 <div class="module-icon">👥</div>
-                <div class="module-bottom">
-                    <span class="module-name">Clientes</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-bottom"><span class="module-name">Clientes</span><span class="module-arrow">›</span></div>
             </a>
-
-            <a href="facturas.html" class="module acceso-protegido">
-                <div class="module-icon">🧾</div>
-                <div class="module-bottom">
-                    <span class="module-name">Facturas</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
             <a href="cobros.html" class="module acceso-protegido">
                 <div class="module-icon">💵</div>
-                <div class="module-bottom">
-                    <span class="module-name">Cobros</span>
-                    <span class="module-arrow">›</span>
-                </div>
+                <div class="module-bottom"><span class="module-name">Cobros</span><span class="module-arrow">›</span></div>
             </a>
-
         </div>
-
     </section>
 
-
-
-    <!-- ===================================================
-         TRANSPORTE
-    ==================================================== -->
-
-    <section
-        id="seccionTransporte"
-        class="dashboard-section section-transporte oculto"
-    >
-
+    <!-- TRANSPORTE -->
+    <section id="seccionTransporte" class="dashboard-section section-transporte oculto">
         <div class="section-heading">
-
             <div class="section-title-wrap">
                 <span class="section-marker"></span>
-
-                <h2 class="section-title">
-                    Transporte
-                </h2>
+                <h2 class="section-title">Transporte</h2>
             </div>
-
-            <span class="section-caption">
-                Operaciones
-            </span>
-
+            <span class="section-caption">Operaciones</span>
         </div>
-
-
         <div class="module-grid">
-
-            <a href="vehiculos.html" class="module acceso-protegido">
-                <div class="module-icon">🚚</div>
-                <div class="module-bottom">
-                    <span class="module-name">Vehículos</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="viajes.html" class="module acceso-protegido">
-                <div class="module-icon">🛣️</div>
-                <div class="module-bottom">
-                    <span class="module-name">Viajes</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="paqueteria.html" class="module acceso-protegido">
-                <div class="module-icon">📦</div>
-                <div class="module-bottom">
-                    <span class="module-name">Paquetería</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="hoja-ruta.html" class="module acceso-protegido">
-                <div class="module-icon">🗺️</div>
-                <div class="module-bottom">
-                    <span class="module-name">Hoja de ruta</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="seguimiento.html" class="module acceso-protegido">
-                <div class="module-icon">📍</div>
-                <div class="module-bottom">
-                    <span class="module-name">Seguimiento</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="combustible.html" class="module acceso-protegido">
-                <div class="module-icon">⛽</div>
-                <div class="module-bottom">
-                    <span class="module-name">Combustible</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="mantenimiento.html" class="module acceso-protegido">
-                <div class="module-icon">🔧</div>
-                <div class="module-bottom">
-                    <span class="module-name">Mantenimiento</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="modo-chofer.html" class="module acceso-protegido">
-                <div class="module-icon">👨‍✈️</div>
-                <div class="module-bottom">
-                    <span class="module-name">Modo chofer</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
+            <a href="vehiculos.html" class="module acceso-protegido"><div class="module-icon">🚚</div><div class="module-bottom"><span class="module-name">Vehículos</span><span class="module-arrow">›</span></div></a>
+            <a href="viajes.html" class="module acceso-protegido"><div class="module-icon">🛣️</div><div class="module-bottom"><span class="module-name">Viajes</span><span class="module-arrow">›</span></div></a>
+            <a href="paqueteria.html" class="module acceso-protegido"><div class="module-icon">📦</div><div class="module-bottom"><span class="module-name">Paquetería</span><span class="module-arrow">›</span></div></a>
+            <a href="hoja-ruta.html" class="module acceso-protegido"><div class="module-icon">🗺️</div><div class="module-bottom"><span class="module-name">Hoja de ruta</span><span class="module-arrow">›</span></div></a>
+            <a href="seguimiento.html" class="module acceso-protegido"><div class="module-icon">📍</div><div class="module-bottom"><span class="module-name">Seguimiento</span><span class="module-arrow">›</span></div></a>
+            <a href="combustible.html" class="module acceso-protegido"><div class="module-icon">⛽</div><div class="module-bottom"><span class="module-name">Combustible</span><span class="module-arrow">›</span></div></a>
+            <a href="mantenimiento.html" class="module acceso-protegido"><div class="module-icon">🔧</div><div class="module-bottom"><span class="module-name">Mantenimiento</span><span class="module-arrow">›</span></div></a>
+            <a href="modo-chofer.html" class="module acceso-protegido"><div class="module-icon">👨‍✈️</div><div class="module-bottom"><span class="module-name">Modo chofer</span><span class="module-arrow">›</span></div></a>
         </div>
-
     </section>
 
-
-
-    <!-- ===================================================
-         PERSONAL
-    ==================================================== -->
-
-    <section
-        id="seccionPersonal"
-        class="dashboard-section section-personal"
-    >
-
+    <!-- PERSONAL -->
+    <section id="seccionPersonal" class="dashboard-section section-personal">
         <div class="section-heading">
-
             <div class="section-title-wrap">
                 <span class="section-marker"></span>
-
-                <h2 class="section-title">
-                    Personal
-                </h2>
+                <h2 class="section-title">Personal</h2>
             </div>
-
-            <span class="section-caption">
-                Equipo
-            </span>
-
+            <span class="section-caption">Equipo</span>
         </div>
-
-
         <div class="module-grid">
-
-            <a href="registro-empleado.html" class="module acceso-protegido">
-                <div class="module-icon">➕</div>
-                <div class="module-bottom">
-                    <span class="module-name">Registrar empleado</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="empleados.html" class="module acceso-protegido">
-                <div class="module-icon">👷</div>
-                <div class="module-bottom">
-                    <span class="module-name">Empleados</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="fichaje.html" class="module acceso-protegido">
-                <div class="module-icon">⏱️</div>
-                <div class="module-bottom">
-                    <span class="module-name">Fichaje</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="administracion-empleados.html" class="module acceso-protegido">
-                <div class="module-icon">⚙️</div>
-                <div class="module-bottom">
-                    <span class="module-name">Administración</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="liquidacion-empleado.html" class="module acceso-protegido">
-                <div class="module-icon">💳</div>
-                <div class="module-bottom">
-                    <span class="module-name">Liquidaciones</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
+            <a href="registro-empleado.html" class="module acceso-protegido"><div class="module-icon">➕</div><div class="module-bottom"><span class="module-name">Registrar empleado</span><span class="module-arrow">›</span></div></a>
+            <a href="empleados.html" class="module acceso-protegido"><div class="module-icon">👷</div><div class="module-bottom"><span class="module-name">Empleados</span><span class="module-arrow">›</span></div></a>
+            <a href="fichaje.html" class="module acceso-protegido"><div class="module-icon">⏱️</div><div class="module-bottom"><span class="module-name">Fichaje</span><span class="module-arrow">›</span></div></a>
+            <a href="administracion-empleados.html" class="module acceso-protegido"><div class="module-icon">⚙️</div><div class="module-bottom"><span class="module-name">Administración</span><span class="module-arrow">›</span></div></a>
+            <a href="liquidacion-empleado.html" class="module acceso-protegido"><div class="module-icon">💳</div><div class="module-bottom"><span class="module-name">Liquidaciones</span><span class="module-arrow">›</span></div></a>
         </div>
-
     </section>
 
-
-
-    <!-- ===================================================
-         MI EMPRESA
-    ==================================================== -->
-
-    <section
-        id="seccionEmpresa"
-        class="dashboard-section section-empresa"
-    >
-
+    <!-- MI EMPRESA -->
+    <section id="seccionEmpresa" class="dashboard-section section-empresa">
         <div class="section-heading">
-
             <div class="section-title-wrap">
                 <span class="section-marker"></span>
-
-                <h2 class="section-title">
-                    Mi empresa
-                </h2>
+                <h2 class="section-title">Mi empresa</h2>
             </div>
-
-            <span class="section-caption">
-                Organización
-            </span>
-
+            <span class="section-caption">Organización</span>
         </div>
-
-
         <div class="module-grid">
-
-            <a href="empresa.html" class="module acceso-protegido">
-                <div class="module-icon">🏢</div>
-                <div class="module-bottom">
-                    <span class="module-name">Datos de empresa</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="comunicacion.html" class="module acceso-protegido">
-                <div class="module-icon">💬</div>
-                <div class="module-bottom">
-                    <span class="module-name">Comunicación</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="agenda.html" class="module acceso-protegido">
-                <div class="module-icon">📅</div>
-                <div class="module-bottom">
-                    <span class="module-name">Agenda</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="asistencia.html" class="module acceso-protegido">
-                <div class="module-icon">🟢</div>
-                <div class="module-bottom">
-                    <span class="module-name">Asistencia</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
+            <a href="empresa.html" class="module acceso-protegido"><div class="module-icon">🏢</div><div class="module-bottom"><span class="module-name">Datos de empresa</span><span class="module-arrow">›</span></div></a>
+            <a href="comunicacion.html" class="module acceso-protegido"><div class="module-icon">💬</div><div class="module-bottom"><span class="module-name">Comunicación</span><span class="module-arrow">›</span></div></a>
+            <a href="agenda.html" class="module acceso-protegido"><div class="module-icon">📅</div><div class="module-bottom"><span class="module-name">Agenda</span><span class="module-arrow">›</span></div></a>
+            <a href="asistencia.html" class="module acceso-protegido"><div class="module-icon">🟢</div><div class="module-bottom"><span class="module-name">Asistencia</span><span class="module-arrow">›</span></div></a>
         </div>
-
     </section>
 
-
-
-    <!-- ===================================================
-         ADMINISTRADOR
-    ==================================================== -->
-
-    <section
-        id="seccionAdministrador"
-        class="dashboard-section section-admin oculto"
-    >
-
+    <!-- ADMINISTRADOR -->
+    <section id="seccionAdministrador" class="dashboard-section section-admin oculto">
         <div class="section-heading">
-
             <div class="section-title-wrap">
                 <span class="section-marker"></span>
-
-                <h2 class="section-title">
-                    Administración GESBASE
-                </h2>
+                <h2 class="section-title">Administración GESBASE</h2>
             </div>
-
-            <span class="section-caption">
-                Control
-            </span>
-
+            <span class="section-caption">Control</span>
         </div>
-
-
         <div class="module-grid">
-
-            <a href="administrador.html" class="module">
-                <div class="module-icon">🛡️</div>
-                <div class="module-bottom">
-                    <span class="module-name">Administrador</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="control-accesos.html" class="module">
-                <div class="module-icon">🔐</div>
-                <div class="module-bottom">
-                    <span class="module-name">Control de accesos</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="solicitudes-acceso.html" class="module">
-                <div class="module-icon">📨</div>
-                <div class="module-bottom">
-                    <span class="module-name">Solicitudes</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
-            <a href="atencion.html" class="module">
-                <div class="module-icon">🎧</div>
-                <div class="module-bottom">
-                    <span class="module-name">Atención</span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
+            <a href="administrador.html" class="module"><div class="module-icon">🛡️</div><div class="module-bottom"><span class="module-name">Administrador</span><span class="module-arrow">›</span></div></a>
+            <a href="control-accesos.html" class="module"><div class="module-icon">🔐</div><div class="module-bottom"><span class="module-name">Control de accesos</span><span class="module-arrow">›</span></div></a>
+            <a href="solicitudes-acceso.html" class="module"><div class="module-icon">📨</div><div class="module-bottom"><span class="module-name">Solicitudes</span><span class="module-arrow">›</span></div></a>
+            <a href="atencion.html" class="module"><div class="module-icon">🎧</div><div class="module-bottom"><span class="module-name">Atención</span><span class="module-arrow">›</span></div></a>
         </div>
-
     </section>
-
 
 </main>
 
-
-
-<!-- =======================================================
-     PANEL EMPLEADO
-======================================================= -->
-
-<section
-    id="panelEmpleado"
-    class="app"
->
-
+<!-- PANEL EMPLEADO -->
+<section id="panelEmpleado" class="app">
     <div class="employee-card">
-
-        <span class="employee-badge">
-            ACCESO EMPLEADO
-        </span>
-
-        <h1 id="empleadoNombre">
-            Empleado
-        </h1>
-
+        <span class="employee-badge">ACCESO EMPLEADO</span>
+        <h1 id="empleadoNombre">Empleado</h1>
         <div class="employee-data">
-
-            <span id="empleadoPuesto">
-                Puesto
-            </span>
-
-            <span id="empleadoTipo">
-                Empleado
-            </span>
-
+            <span id="empleadoPuesto">Puesto</span>
+            <span id="empleadoTipo">Empleado</span>
         </div>
-
     </div>
-
 </section>
 
-
-
-<!-- =======================================================
-     FINANZAS FLOTANTE
-======================================================= -->
-
-<button
-    id="btnFinanzas"
-    class="finance-fab"
-    type="button"
-    aria-label="Abrir Finanzas"
->
-
-    <span class="finance-icon">
-        💰
-    </span>
-
-    <span class="finance-text">
-        Finanzas
-    </span>
-
+<!-- BOTÓN FLOTANTE FINANZAS -->
+<button id="btnFinanzas" class="finance-fab" type="button" aria-label="Abrir Finanzas">
+    <span class="finance-icon">💰</span>
+    <span class="finance-text">Finanzas</span>
 </button>
 
-
-
-<!-- =======================================================
-     PANEL FINANZAS
-======================================================= -->
-
-<div
-    id="financeOverlay"
-    class="finance-overlay"
->
-
-    <div
-        class="finance-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Finanzas"
-    >
-
+<!-- PANEL FINANZAS -->
+<div id="financeOverlay" class="finance-overlay">
+    <div class="finance-panel" role="dialog" aria-modal="true" aria-label="Finanzas">
         <div class="finance-head">
-
             <div class="finance-title">
-
-                <div class="finance-title-icon">
-                    💰
-                </div>
-
+                <div class="finance-title-icon">💰</div>
                 <div>
-
-                    <strong>
-                        Finanzas
-                    </strong>
-
-                    <span>
-                        Resumen económico de la empresa
-                    </span>
-
+                    <strong>Finanzas</strong>
+                    <span>Resumen económico de la empresa</span>
                 </div>
-
             </div>
-
-
-            <button
-                id="btnCerrarFinanzas"
-                class="finance-close"
-                type="button"
-                aria-label="Cerrar"
-            >
-                ×
-            </button>
-
+            <button id="btnCerrarFinanzas" class="finance-close" type="button" aria-label="Cerrar">×</button>
         </div>
-
 
         <div class="finance-summary">
-
             <div class="finance-stat ingresos">
-
-                <span>
-                    Ingresos cobrados
-                </span>
-
-                <strong id="totalIngresos">
-                    $ 0
-                </strong>
-
+                <span>Ingresos cobrados</span>
+                <strong id="totalIngresos">$ 0</strong>
             </div>
-
-
             <div class="finance-stat gastos">
-
-                <span>
-                    Gastos
-                </span>
-
-                <strong id="totalGastos">
-                    $ 0
-                </strong>
-
+                <span>Gastos</span>
+                <strong id="totalGastos">$ 0</strong>
             </div>
-
-
             <div class="finance-stat resultado">
-
-                <span>
-                    Resultado
-                </span>
-
-                <strong id="resultadoEmpresa">
-                    $ 0
-                </strong>
-
+                <span>Resultado</span>
+                <strong id="resultadoEmpresa">$ 0</strong>
             </div>
-
         </div>
-
 
         <div class="finance-links">
-
-            <a
-                href="cobros.html"
-                class="finance-link acceso-protegido"
-            >
-                <span>💵</span>
-                Cobros
-            </a>
-
-            <a
-                href="gastos.html"
-                class="finance-link acceso-protegido"
-            >
-                <span>💸</span>
-                Gastos
-            </a>
-
-            <a
-                href="facturas.html"
-                class="finance-link acceso-protegido"
-            >
-                <span>🧾</span>
-                Facturas
-            </a>
-
+            <a href="cobros.html" class="finance-link acceso-protegido"><span>💵</span>Cobros</a>
+            <a href="gastos.html" class="finance-link acceso-protegido"><span>💸</span>Gastos</a>
+            <a href="facturas.html" class="finance-link acceso-protegido"><span>🧾</span>Facturas</a>
         </div>
-
     </div>
-
 </div>
 
+<!-- MODAL COMPARTIR TIENDA -->
+<div id="modalCompartirTienda" class="modal-overlay">
+    <div class="modal-panel">
+        <div class="finance-head">
+            <div class="finance-title">
+                <div class="finance-title-icon">🛍️</div>
+                <div>
+                    <strong>Mi Tienda Online</strong>
+                    <span>Compartí tu catálogo con tus clientes</span>
+                </div>
+            </div>
+            <button class="finance-close" type="button" onclick="cerrarModalTienda()">×</button>
+        </div>
 
+        <p style="font-size:13px; color:var(--muted); line-height:1.5;">
+            Este es el enlace público de tu tienda en GESBASE. Tus clientes pueden ver tus productos, agregar al carrito y enviarte pedidos directamente.
+        </p>
 
-<!-- =======================================================
-     DATOS INTERNOS
-     Se mantienen para compatibilidad con el sistema actual
-     pero NO aparecen visualmente.
-======================================================= -->
+        <div class="link-box" id="urlTiendaTexto">Cargando enlace...</div>
 
+        <button class="btn-modal btn-copiar" onclick="copiarLinkTienda()">
+            📋 Copiar Enlace
+        </button>
+
+        <button class="btn-modal btn-ws" onclick="compartirWhatsAppTienda()">
+            💬 Compartir por WhatsApp
+        </button>
+
+        <a id="btnAbrirTiendaDirecto" href="#" target="_blank" class="btn-modal" style="background:#1e293b; color:white; text-align:center;">
+            🔗 Abrir Tienda en nueva pestaña
+        </a>
+    </div>
+</div>
+
+<!-- DATOS INTERNOS COMPATIBILIDAD -->
 <div class="datos-internos" aria-hidden="true">
-
     <span id="razonSocial"></span>
     <span id="rubroEmpresa"></span>
-
     <span id="infoEmpresa"></span>
     <span id="infoRazonSocial"></span>
     <span id="infoRubro"></span>
     <span id="infoEmail"></span>
-
 </div>
-
-
 
 <script type="module">
 
-/* =========================================================
-   FIREBASE
-   ========================================================= */
+import { auth, db } from "./Js/firebase.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-import {
-    auth,
-    db
-} from "./Js/firebase.js";
-
-import {
-    onAuthStateChanged,
-    signOut
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-
-import {
-    doc,
-    getDoc,
-    collection,
-    query,
-    where,
-    getDocs,
-    onSnapshot
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-
-
-/* =========================================================
-   ELEMENTOS
-   ========================================================= */
-
-const cargando =
-    document.getElementById("cargando");
-
-const contenido =
-    document.getElementById("contenido");
-
-const panelEmpleado =
-    document.getElementById("panelEmpleado");
-
-const btnCerrarSesion =
-    document.getElementById("btnCerrarSesion");
-
-const btnNotificacionesAdmin =
-    document.getElementById("btnNotificacionesAdmin");
-
-const contadorSolicitudes =
-    document.getElementById("contadorSolicitudes");
-
-const nombreEmpresa =
-    document.getElementById("nombreEmpresa");
-
-const razonSocial =
-    document.getElementById("razonSocial");
-
-const rubroEmpresa =
-    document.getElementById("rubroEmpresa");
-
-const estadoAcceso =
-    document.getElementById("estadoAcceso");
-
-const alertaAcceso =
-    document.getElementById("alertaAcceso");
-
-const totalIngresos =
-    document.getElementById("totalIngresos");
-
-const totalGastos =
-    document.getElementById("totalGastos");
-
-const resultadoEmpresa =
-    document.getElementById("resultadoEmpresa");
-
-const financeOverlay =
-    document.getElementById("financeOverlay");
-
-const btnFinanzas =
-    document.getElementById("btnFinanzas");
-
-const btnCerrarFinanzas =
-    document.getElementById("btnCerrarFinanzas");
-
-
-/* =========================================================
-   ESTADO
-   ========================================================= */
+const cargando = document.getElementById("cargando");
+const contenido = document.getElementById("contenido");
+const panelEmpleado = document.getElementById("panelEmpleado");
+const btnCerrarSesion = document.getElementById("btnCerrarSesion");
+const btnNotificacionesAdmin = document.getElementById("btnNotificacionesAdmin");
+const contadorSolicitudes = document.getElementById("contadorSolicitudes");
+const nombreEmpresa = document.getElementById("nombreEmpresa");
+const razonSocial = document.getElementById("razonSocial");
+const rubroEmpresa = document.getElementById("rubroEmpresa");
+const estadoAcceso = document.getElementById("estadoAcceso");
+const alertaAcceso = document.getElementById("alertaAcceso");
+const totalIngresos = document.getElementById("totalIngresos");
+const totalGastos = document.getElementById("totalGastos");
+const resultadoEmpresa = document.getElementById("resultadoEmpresa");
+const financeOverlay = document.getElementById("financeOverlay");
+const btnFinanzas = document.getElementById("btnFinanzas");
+const btnCerrarFinanzas = document.getElementById("btnCerrarFinanzas");
 
 let empresaActual = null;
 let empresaIdActual = null;
 let usuarioActual = null;
-
 let esAdministrador = false;
-
 let unsubSolicitudes = null;
-
-
-/* =========================================================
-   FORMATO DINERO
-   ========================================================= */
+let enlaceTiendaCompleto = "";
 
 function dinero(valor){
-
-    const numero =
-        Number(valor) || 0;
-
-    return numero.toLocaleString(
-        "es-AR",
-        {
-            style:"currency",
-            currency:"ARS",
-            maximumFractionDigits:0
-        }
-    );
+    return (Number(valor) || 0).toLocaleString("es-AR", { style:"currency", currency:"ARS", maximumFractionDigits:0 });
 }
-
-
-/* =========================================================
-   NORMALIZAR TEXTO
-   ========================================================= */
 
 function normalizarTexto(valor){
-
-    return String(valor || "")
-        .trim()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g,"");
-
+    return String(valor || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 }
-
-
-/* =========================================================
-   OBTENER EMPRESA DEL USUARIO
-   ========================================================= */
 
 async function obtenerEmpresaUsuario(user){
+    const usuarioRef = doc(db,"usuarios",user.uid);
+    const usuarioSnap = await getDoc(usuarioRef);
+    let usuarioData = usuarioSnap.exists() ? (usuarioSnap.data() || {}) : {};
+    usuarioActual = usuarioData;
 
-    const usuarioRef =
-        doc(db,"usuarios",user.uid);
-
-    const usuarioSnap =
-        await getDoc(usuarioRef);
-
-    let usuarioData = {};
-
-    if(usuarioSnap.exists()){
-        usuarioData =
-            usuarioSnap.data() || {};
-    }
-
-    usuarioActual =
-        usuarioData;
-
-
-    let empresaId =
-        usuarioData.empresaId ||
-        usuarioData.idEmpresa ||
-        usuarioData.empresa ||
-        usuarioData.companyId ||
-        null;
-
-
-    /*
-       Si no tiene empresaId buscamos por
-       propietarioUid.
-    */
+    let empresaId = usuarioData.empresaId || usuarioData.idEmpresa || usuarioData.empresa || usuarioData.companyId || null;
 
     if(!empresaId){
-
-        const empresasRef =
-            collection(db,"empresas");
-
-        const q =
-            query(
-                empresasRef,
-                where(
-                    "propietarioUid",
-                    "==",
-                    user.uid
-                )
-            );
-
-        const snap =
-            await getDocs(q);
-
-        if(!snap.empty){
-
-            empresaId =
-                snap.docs[0].id;
-
-        }
-
+        const q = query(collection(db,"empresas"), where("propietarioUid", "==", user.uid));
+        const snap = await getDocs(q);
+        if(!snap.empty) empresaId = snap.docs[0].id;
     }
-
-
-    return {
-        usuarioData,
-        empresaId
-    };
-
+    return { usuarioData, empresaId };
 }
 
-
-/* =========================================================
-   ADMIN
-   ========================================================= */
-
-function detectarAdministrador(
-    user,
-    usuarioData
-){
-
-    const email =
-        String(user?.email || "")
-            .toLowerCase();
-
-    const rol =
-        normalizarTexto(
-            usuarioData?.rol ||
-            usuarioData?.role ||
-            ""
-        );
-
-    return (
-        email ===
-        "julianbattauz006@gmail.com"
-        ||
-        rol === "admin"
-        ||
-        rol === "administrador"
-    );
-
+function detectarAdministrador(user, usuarioData){
+    const email = String(user?.email || "").toLowerCase();
+    const rol = normalizarTexto(usuarioData?.rol || usuarioData?.role || "");
+    return (email === "julianbattauz006@gmail.com" || rol === "admin" || rol === "administrador");
 }
 
-
-/* =========================================================
-   RUBRO
-   ========================================================= */
-
-function obtenerRubroNormalizado(
-    empresa
-){
-
-    const rubro =
-        normalizarTexto(
-            empresa?.rubro ||
-            empresa?.tipoNegocio ||
-            empresa?.tipo ||
-            empresa?.actividad ||
-            empresa?.categoria ||
-            ""
-        );
-
-
-    if([
-        "comercio",
-        "distribuidora",
-        "distribucion",
-        "venta",
-        "ventas"
-    ].includes(rubro)){
-
-        return "comercio";
-
-    }
-
-
-    if([
-        "transporte",
-        "logistica",
-        "paqueteria",
-        "flete",
-        "camion",
-        "chofer"
-    ].includes(rubro)){
-
-        return "transporte";
-
-    }
-
-
-    if([
-        "construccion",
-        "construcciones",
-        "obra",
-        "obras",
-        "constructor"
-    ].includes(rubro)){
-
-        return "construccion";
-
-    }
-
-
-    if([
-        "alquiler",
-        "alquileres",
-        "alquiler temporal",
-        "alquiler temporario",
-        "alquileres temporales",
-        "alquileres temporarios",
-        "alquiler temporal de casas",
-        "alquiler temporario de casas",
-        "alquiler de temporada",
-        "alquileres de temporada",
-        "alojamiento",
-        "hospedaje",
-        "cabanas",
-        "cabanas y hospedaje",
-        "apart",
-        "apartamentos temporarios"
-    ].includes(rubro)){
-
-        return "alquiler";
-
-    }
-
-
+function obtenerRubroNormalizado(empresa){
+    const rubro = normalizarTexto(empresa?.rubro || empresa?.tipoNegocio || empresa?.tipo || empresa?.actividad || empresa?.categoria || "");
+    if(["comercio", "distribuidora", "distribucion", "venta", "ventas"].includes(rubro)) return "comercio";
+    if(["transporte", "logistica", "paqueteria", "flete", "camion", "chofer"].includes(rubro)) return "transporte";
+    if(["construccion", "construcciones", "obra", "obras", "constructor"].includes(rubro)) return "construccion";
+    if(["alquiler", "alquileres", "alquiler temporal", "alquiler temporario", "alquileres temporales", "alquileres temporarios", "alquiler temporal de casas", "alquiler temporario de casas", "alquiler de temporada", "alquileres de temporada", "alojamiento", "hospedaje", "cabanas", "cabanas y hospedaje", "apart", "apartamentos temporarios"].includes(rubro)) return "alquiler";
     return "servicios";
-
 }
 
-
-/* =========================================================
-   MOSTRAR RUBRO
-   ========================================================= */
-
-function configurarSecciones(
-    empresa
-){
-
-    const rubro =
-        obtenerRubroNormalizado(
-            empresa
-        );
-
-
-    const servicios =
-        document.getElementById(
-            "seccionServicios"
-        );
-
-    const alquiler =
-        document.getElementById(
-            "seccionAlquilerTemporal"
-        );
-
-    const construccion =
-        document.getElementById(
-            "seccionConstruccion"
-        );
-
-    const comercio =
-        document.getElementById(
-            "seccionComercio"
-        );
-
-    const transporte =
-        document.getElementById(
-            "seccionTransporte"
-        );
-
+function configurarSecciones(empresa){
+    const rubro = obtenerRubroNormalizado(empresa);
+    const servicios = document.getElementById("seccionServicios");
+    const alquiler = document.getElementById("seccionAlquilerTemporal");
+    const construccion = document.getElementById("seccionConstruccion");
+    const comercio = document.getElementById("seccionComercio");
+    const transporte = document.getElementById("seccionTransporte");
 
     servicios.classList.add("oculto");
     alquiler.classList.add("oculto");
     construccion.classList.add("oculto");
-    comercio.classList.add("oculto");
+    comercio.classList.remove("oculto"); // Siempre dejamos comercio activo o según rubro
     transporte.classList.add("oculto");
 
-
-    if(rubro === "comercio"){
-
-        comercio.classList.remove("oculto");
-
-    }
-    else if(rubro === "transporte"){
-
-        transporte.classList.remove("oculto");
-
-    }
-    else if(rubro === "construccion"){
-
-        construccion.classList.remove("oculto");
-
-    }
-    else if(rubro === "alquiler"){
-
-        alquiler.classList.remove("oculto");
-
-    }
-    else{
-
-        servicios.classList.remove("oculto");
-
-    }
-
+    if(rubro === "comercio") comercio.classList.remove("oculto");
+    else if(rubro === "transporte") transporte.classList.remove("oculto");
+    else if(rubro === "construccion") construccion.classList.remove("oculto");
+    else if(rubro === "alquiler") alquiler.classList.remove("oculto");
+    else servicios.classList.remove("oculto");
 }
 
+async function cargarDatosEmpresa(empresaId){
+    empresaIdActual = empresaId;
+    const empresaRef = doc(db, "empresas", empresaId);
+    const empresaSnap = await getDoc(empresaRef);
 
-/* =========================================================
-   CARGAR DATOS EMPRESA
-   ========================================================= */
+    if(!empresaSnap.exists()) throw new Error("No se encontró la empresa.");
 
-async function cargarDatosEmpresa(
-    empresaId
-){
+    empresaActual = empresaSnap.data() || {};
+    const nombre = empresaActual.nombre || empresaActual.nombreEmpresa || empresaActual.empresa || empresaActual.razonSocial || "Mi empresa";
+    nombreEmpresa.textContent = nombre;
 
-    empresaIdActual =
-        empresaId;
+    razonSocial.textContent = empresaActual.razonSocial || "";
+    rubroEmpresa.textContent = empresaActual.rubro || empresaActual.tipoNegocio || "";
 
-
-    const empresaRef =
-        doc(
-            db,
-            "empresas",
-            empresaId
-        );
-
-    const empresaSnap =
-        await getDoc(empresaRef);
-
-
-    if(!empresaSnap.exists()){
-
-        throw new Error(
-            "No se encontró la empresa."
-        );
-
-    }
-
-
-    empresaActual =
-        empresaSnap.data() || {};
-
-
-    const nombre =
-        empresaActual.nombre ||
-        empresaActual.nombreEmpresa ||
-        empresaActual.empresa ||
-        empresaActual.razonSocial ||
-        "Mi empresa";
-
-
-    nombreEmpresa.textContent =
-        nombre;
-
-
-    /*
-       Estos datos se conservan internamente
-       pero ya NO se muestran en tarjetas.
-    */
-
-    razonSocial.textContent =
-        empresaActual.razonSocial ||
-        "";
-
-    rubroEmpresa.textContent =
-        empresaActual.rubro ||
-        empresaActual.tipoNegocio ||
-        "";
-
-
-    const accesoHabilitado =
-        esAdministrador ||
-        empresaActual.accesoHabilitado !== false;
-
+    const accesoHabilitado = esAdministrador || empresaActual.accesoHabilitado !== false;
 
     if(accesoHabilitado){
-
-        estadoAcceso.innerHTML = `
-            <span class="status-dot"></span>
-            ACCESO HABILITADO
-        `;
-
-        estadoAcceso.style.background =
-            "rgba(34,197,94,.08)";
-
-        estadoAcceso.style.borderColor =
-            "rgba(34,197,94,.18)";
-
-        estadoAcceso.style.color =
-            "#86efac";
-
-        alertaAcceso.style.display =
-            "none";
-
-    }
-    else{
-
-        estadoAcceso.innerHTML = `
-            <span
-                class="status-dot"
-                style="
-                    background:#ef4444;
-                    box-shadow:
-                    0 0 0 4px
-                    rgba(239,68,68,.10);
-                "
-            ></span>
-            ACCESO BLOQUEADO
-        `;
-
-        estadoAcceso.style.background =
-            "rgba(239,68,68,.08)";
-
-        estadoAcceso.style.borderColor =
-            "rgba(239,68,68,.20)";
-
-        estadoAcceso.style.color =
-            "#fca5a5";
-
-        alertaAcceso.style.display =
-            "block";
-
+        estadoAcceso.innerHTML = `<span class="status-dot"></span> ACCESO HABILITADO`;
+        estadoAcceso.style.background = "rgba(34,197,94,.08)";
+        estadoAcceso.style.borderColor = "rgba(34,197,94,.18)";
+        estadoAcceso.style.color = "#86efac";
+        alertaAcceso.style.display = "none";
+    } else {
+        estadoAcceso.innerHTML = `<span class="status-dot" style="background:#ef4444; box-shadow:0 0 0 4px rgba(239,68,68,.10);"></span> ACCESO BLOQUEADO`;
+        estadoAcceso.style.background = "rgba(239,68,68,.08)";
+        estadoAcceso.style.borderColor = "rgba(239,68,68,.20)";
+        estadoAcceso.style.color = "#fca5a5";
+        alertaAcceso.style.display = "block";
     }
 
+    /* CONFIGURAR ENLACE TIENDA ONLINE */
+    const baseOrigin = window.location.origin + window.location.pathname.replace("index.html", "");
+    enlaceTiendaCompleto = `${baseOrigin}tienda.html?empresaId=${encodeURIComponent(empresaIdActual)}`;
 
-    configurarSecciones(
-        empresaActual
-    );
+    document.getElementById("urlTiendaTexto").textContent = enlaceTiendaCompleto;
+    document.getElementById("btnAbrirTiendaDirecto").href = enlaceTiendaCompleto;
 
-
-    aplicarPermisos(
-        accesoHabilitado
-    );
-
+    configurarSecciones(empresaActual);
+    aplicarPermisos(accesoHabilitado);
 }
 
-
-/* =========================================================
-   PERMISOS
-   ========================================================= */
-
-function aplicarPermisos(
-    accesoHabilitado
-){
-
-    const elementos =
-        document.querySelectorAll(
-            ".acceso-protegido"
-        );
-
-
-    elementos.forEach(
-        elemento => {
-
-            if(
-                accesoHabilitado ||
-                esAdministrador
-            ){
-
-                elemento.style.pointerEvents =
-                    "";
-
-                elemento.style.opacity =
-                    "";
-
-            }
-            else{
-
-                elemento.style.pointerEvents =
-                    "none";
-
-                elemento.style.opacity =
-                    ".45";
-
-            }
-
+function aplicarPermisos(accesoHabilitado){
+    document.querySelectorAll(".acceso-protegido").forEach(elemento => {
+        if(accesoHabilitado || esAdministrador){
+            elemento.style.pointerEvents = "";
+            elemento.style.opacity = "";
+        } else {
+            elemento.style.pointerEvents = "none";
+            elemento.style.opacity = ".45";
         }
-    );
-
+    });
 }
 
+/* FUNCIONES DE MODAL TIENDA */
+window.abrirModalCompartirTienda = function(){
+    document.getElementById("modalCompartirTienda").classList.add("open");
+};
 
-/* =========================================================
-   EMPLEADO
-   ========================================================= */
+window.cerrarModalTienda = function(){
+    document.getElementById("modalCompartirTienda").classList.remove("open");
+};
+
+window.copiarLinkTienda = function(){
+    navigator.clipboard.writeText(enlaceTiendaCompleto);
+    alert("¡Enlace copiado al portapapeles!");
+};
+
+window.compartirWhatsAppTienda = function(){
+    const msj = encodeURIComponent(`¡Hola! Te invito a conocer el catálogo de productos de ${empresaActual.nombre || 'nuestra empresa'} en GESBASE:\n${enlaceTiendaCompleto}`);
+    window.open(`https://wa.me/?text=${msj}`, "_blank");
+};
 
 async function comprobarSesionEmpleado(){
-
-    const datos =
-        sessionStorage.getItem(
-            "gesbaseEmpleado"
-        );
-
-
-    if(!datos){
-        return false;
-    }
-
+    const datos = sessionStorage.getItem("gesbaseEmpleado");
+    if(!datos) return false;
 
     try{
+        const empleado = JSON.parse(datos);
+        if(!empleado?.empleadoId) return false;
 
-        const empleado =
-            JSON.parse(datos);
-
-
-        if(!empleado?.empleadoId){
-
-            return false;
-
-        }
-
-
-        const empleadoRef =
-            doc(
-                db,
-                "empleados",
-                empleado.empleadoId
-            );
-
-
-        const empleadoSnap =
-            await getDoc(
-                empleadoRef
-            );
-
-
+        const empleadoSnap = await getDoc(doc(db, "empleados", empleado.empleadoId));
         if(!empleadoSnap.exists()){
-
-            sessionStorage.removeItem(
-                "gesbaseEmpleado"
-            );
-
+            sessionStorage.removeItem("gesbaseEmpleado");
             return false;
-
         }
 
+        const data = empleadoSnap.data() || {};
+        document.getElementById("empleadoNombre").textContent = `${data.nombre || ""} ${data.apellido || ""}`.trim() || "Empleado";
+        document.getElementById("empleadoPuesto").textContent = data.puesto || "Sin puesto";
+        document.getElementById("empleadoTipo").textContent = data.tipoEmpleado || "Empleado";
 
-        const data =
-            empleadoSnap.data() || {};
-
-
-        document.getElementById(
-            "empleadoNombre"
-        ).textContent =
-            `${data.nombre || ""} ${data.apellido || ""}`
-                .trim() ||
-                "Empleado";
-
-
-        document.getElementById(
-            "empleadoPuesto"
-        ).textContent =
-            data.puesto ||
-            "Sin puesto";
-
-
-        document.getElementById(
-            "empleadoTipo"
-        ).textContent =
-            data.tipoEmpleado ||
-            "Empleado";
-
-
-        cargando.style.display =
-            "none";
-
-        contenido.style.display =
-            "none";
-
-        panelEmpleado.style.display =
-            "block";
-
-
+        cargando.style.display = "none";
+        contenido.style.display = "none";
+        panelEmpleado.style.display = "block";
         return true;
-
-    }
-    catch(error){
-
-        console.error(
-            "Error sesión empleado:",
-            error
-        );
-
+    } catch(error){
         return false;
-
     }
-
 }
 
+function abrirFinanzas(){ financeOverlay.classList.add("open"); document.body.style.overflow = "hidden"; }
+function cerrarFinanzas(){ financeOverlay.classList.remove("open"); document.body.style.overflow = ""; }
 
-/* =========================================================
-   FINANZAS
-   ========================================================= */
-
-function abrirFinanzas(){
-
-    financeOverlay.classList.add(
-        "open"
-    );
-
-    document.body.style.overflow =
-        "hidden";
-
-}
-
-
-function cerrarFinanzas(){
-
-    financeOverlay.classList.remove(
-        "open"
-    );
-
-    document.body.style.overflow =
-        "";
-
-}
-
-
-btnFinanzas.addEventListener(
-    "click",
-    abrirFinanzas
-);
-
-
-btnCerrarFinanzas.addEventListener(
-    "click",
-    cerrarFinanzas
-);
-
-
-financeOverlay.addEventListener(
-    "click",
-    event => {
-
-        if(
-            event.target ===
-            financeOverlay
-        ){
-
-            cerrarFinanzas();
-
-        }
-
-    }
-);
-
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        if(
-            event.key === "Escape"
-        ){
-
-            cerrarFinanzas();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   CARGAR FINANZAS
-   ========================================================= */
+btnFinanzas.addEventListener("click", abrirFinanzas);
+btnCerrarFinanzas.addEventListener("click", cerrarFinanzas);
 
 async function cargarFinanzas(){
-
-    if(!empresaIdActual){
-        return;
-    }
-
-
+    if(!empresaIdActual) return;
     try{
-
-        let ingresos = 0;
-        let gastos = 0;
-
-
-        /* COBROS */
-
-        const cobrosRef =
-            collection(
-                db,
-                "cobros"
-            );
-
-
-        const qCobros =
-            query(
-                cobrosRef,
-                where(
-                    "empresaId",
-                    "==",
-                    empresaIdActual
-                )
-            );
-
-
-        const cobrosSnap =
-            await getDocs(
-                qCobros
-            );
-
-
-        cobrosSnap.forEach(
-            item => {
-
-                const data =
-                    item.data() || {};
-
-
-                const estado =
-                    normalizarTexto(
-                        data.estado || ""
-                    );
-
-
-                if(
-                    !estado ||
-                    estado === "cobrado"
-                ){
-
-                    ingresos +=
-                        Number(
-                            data.importe ??
-                            data.monto ??
-                            data.total ??
-                            0
-                        ) || 0;
-
-                }
-
+        let ingresos = 0, gastos = 0;
+        const qCobros = query(collection(db, "cobros"), where("empresaId", "==", empresaIdActual));
+        const cobrosSnap = await getDocs(qCobros);
+        cobrosSnap.forEach(item => {
+            const data = item.data() || {};
+            if(!normalizarTexto(data.estado) || normalizarTexto(data.estado) === "cobrado"){
+                ingresos += Number(data.importe ?? data.monto ?? data.total ?? 0) || 0;
             }
-        );
+        });
 
+        const qGastos = query(collection(db, "gastos"), where("empresaId", "==", empresaIdActual));
+        const gastosSnap = await getDocs(qGastos);
+        gastosSnap.forEach(item => {
+            const data = item.data() || {};
+            gastos += Number(data.importe ?? data.monto ?? data.total ?? 0) || 0;
+        });
 
-        /* GASTOS */
-
-        const gastosRef =
-            collection(
-                db,
-                "gastos"
-            );
-
-
-        const qGastos =
-            query(
-                gastosRef,
-                where(
-                    "empresaId",
-                    "==",
-                    empresaIdActual
-                )
-            );
-
-
-        const gastosSnap =
-            await getDocs(
-                qGastos
-            );
-
-
-        gastosSnap.forEach(
-            item => {
-
-                const data =
-                    item.data() || {};
-
-
-                gastos +=
-                    Number(
-                        data.importe ??
-                        data.monto ??
-                        data.total ??
-                        0
-                    ) || 0;
-
-            }
-        );
-
-
-        const resultado =
-            ingresos - gastos;
-
-
-        totalIngresos.textContent =
-            dinero(ingresos);
-
-        totalGastos.textContent =
-            dinero(gastos);
-
-        resultadoEmpresa.textContent =
-            dinero(resultado);
-
-
+        totalIngresos.textContent = dinero(ingresos);
+        totalGastos.textContent = dinero(gastos);
+        resultadoEmpresa.textContent = dinero(ingresos - gastos);
+    } catch(error){
+        totalIngresos.textContent = "$ 0";
+        totalGastos.textContent = "$ 0";
+        resultadoEmpresa.textContent = "$ 0";
     }
-    catch(error){
-
-        console.error(
-            "Error cargando finanzas:",
-            error
-        );
-
-        totalIngresos.textContent =
-            "$ 0";
-
-        totalGastos.textContent =
-            "$ 0";
-
-        resultadoEmpresa.textContent =
-            "$ 0";
-
-    }
-
 }
-
-
-/* =========================================================
-   NOTIFICACIONES ADMIN
-   ========================================================= */
 
 function configurarNotificacionesAdmin(){
-
-    if(!esAdministrador){
-
-        btnNotificacionesAdmin.style.display =
-            "none";
-
-        return;
-
-    }
-
-
-    btnNotificacionesAdmin.style.display =
-        "flex";
-
-
+    if(!esAdministrador){ btnNotificacionesAdmin.style.display = "none"; return; }
+    btnNotificacionesAdmin.style.display = "flex";
     try{
-
-        const solicitudesRef =
-            collection(
-                db,
-                "solicitudes_acceso"
-            );
-
-
-        const q =
-            query(
-                solicitudesRef,
-                where(
-                    "estado",
-                    "==",
-                    "pendiente"
-                )
-            );
-
-
-        unsubSolicitudes =
-            onSnapshot(
-                q,
-                snapshot => {
-
-                    const cantidad =
-                        snapshot.size;
-
-
-                    contadorSolicitudes.textContent =
-                        cantidad;
-
-
-                    contadorSolicitudes.style.display =
-                        cantidad > 0
-                            ? "flex"
-                            : "none";
-
-                },
-                error => {
-
-                    console.error(
-                        "Error notificaciones:",
-                        error
-                    );
-
-                }
-            );
-
-    }
-    catch(error){
-
-        console.error(
-            error
-        );
-
-    }
-
+        const q = query(collection(db, "solicitudes_acceso"), where("estado", "==", "pendiente"));
+        unsubSolicitudes = onSnapshot(q, snapshot => {
+            const cantidad = snapshot.size;
+            contadorSolicitudes.textContent = cantidad;
+            contadorSolicitudes.style.display = cantidad > 0 ? "flex" : "none";
+        });
+    } catch(error){}
 }
 
-
-/* =========================================================
-   BOTÓN NOTIFICACIONES
-   ========================================================= */
-
-btnNotificacionesAdmin.addEventListener(
-    "click",
-    () => {
-
-        if(!esAdministrador){
-            return;
-        }
-
-        window.location.href =
-            "solicitudes-acceso.html";
-
-    }
-);
-
-
-/* =========================================================
-   CERRAR SESIÓN
-   ========================================================= */
-
-btnCerrarSesion.addEventListener(
-    "click",
-    async () => {
-
-        try{
-
-            if(
-                unsubSolicitudes
-            ){
-
-                unsubSolicitudes();
-
-            }
-
-
-            sessionStorage.removeItem(
-                "gesbaseEmpleado"
-            );
-
-
-            await signOut(auth);
-
-
-            window.location.href =
-                "acceso.html";
-
-        }
-        catch(error){
-
-            console.error(
-                "Error cerrando sesión:",
-                error
-            );
-
-            alert(
-                "No se pudo cerrar la sesión."
-            );
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   INICIO
-   ========================================================= */
-
-onAuthStateChanged(
-    auth,
-    async user => {
-
-        try{
-
-            /*
-               Primero comprobamos si existe
-               una sesión especial de empleado.
-            */
-
-            const empleadoActivo =
-                await comprobarSesionEmpleado();
-
-
-            if(empleadoActivo){
-
-                return;
-
-            }
-
-
-            if(!user){
-
-                window.location.href =
-                    "acceso.html";
-
-                return;
-
-            }
-
-
-            usuarioActual = null;
-
-
-            const resultado =
-                await obtenerEmpresaUsuario(
-                    user
-                );
-
-
-            esAdministrador =
-                detectarAdministrador(
-                    user,
-                    resultado.usuarioData
-                );
-
-
-            configurarNotificacionesAdmin();
-
-
-            /*
-               Si es administrador y no tiene
-               empresa propia, permitimos entrar
-               al panel administrativo.
-            */
-
-            if(
-                !resultado.empresaId
-            ){
-
-                if(esAdministrador){
-
-                    cargando.style.display =
-                        "none";
-
-                    contenido.style.display =
-                        "block";
-
-                    document.getElementById(
-                        "seccionServicios"
-                    ).classList.add(
-                        "oculto"
-                    );
-
-                    document.getElementById(
-                        "seccionAdministrador"
-                    ).classList.remove(
-                        "oculto"
-                    );
-
-                    nombreEmpresa.textContent =
-                        "Administración GESBASE";
-
-                    estadoAcceso.innerHTML = `
-                        <span class="status-dot"></span>
-                        ADMINISTRADOR
-                    `;
-
-                    cargarFinanzas();
-
-                    return;
-
-                }
-
-
-                throw new Error(
-                    "No se encontró una empresa asociada a este usuario."
-                );
-
-            }
-
-
-            await cargarDatosEmpresa(
-                resultado.empresaId
-            );
-
-
-            cargando.style.display =
-                "none";
-
-            contenido.style.display =
-                "block";
-
-
-            /*
-               Mostrar administración
-               solamente para administrador.
-            */
-
+btnNotificacionesAdmin.addEventListener("click", () => { if(esAdministrador) window.location.href = "solicitudes-acceso.html"; });
+
+btnCerrarSesion.addEventListener("click", async () => {
+    try{
+        if(unsubSolicitudes) unsubSolicitudes();
+        sessionStorage.removeItem("gesbaseEmpleado");
+        await signOut(auth);
+        window.location.href = "acceso.html";
+    } catch(error){ alert("No se pudo cerrar la sesión."); }
+});
+
+onAuthStateChanged(auth, async user => {
+    try{
+        if(await comprobarSesionEmpleado()) return;
+        if(!user){ window.location.href = "acceso.html"; return; }
+
+        usuarioActual = null;
+        const resultado = await obtenerEmpresaUsuario(user);
+        esAdministrador = detectarAdministrador(user, resultado.usuarioData);
+        configurarNotificacionesAdmin();
+
+        if(!resultado.empresaId){
             if(esAdministrador){
-
-                document.getElementById(
-                    "seccionAdministrador"
-                ).classList.remove(
-                    "oculto"
-                );
-
+                cargando.style.display = "none";
+                contenido.style.display = "block";
+                document.getElementById("seccionServicios").classList.add("oculto");
+                document.getElementById("seccionAdministrador").classList.remove("oculto");
+                nombreEmpresa.textContent = "Administración GESBASE";
+                estadoAcceso.innerHTML = `<span class="status-dot"></span> ADMINISTRADOR`;
+                cargarFinanzas();
+                return;
             }
-
-
-            /*
-               Finanzas se carga al abrir o
-               al entrar al panel.
-            */
-
-            await cargarFinanzas();
-
-
-        }
-        catch(error){
-
-            console.error(
-                "Error inicializando GESBASE:",
-                error
-            );
-
-
-            cargando.innerHTML = `
-
-                <div
-                    style="
-                        max-width:420px;
-                        padding:25px;
-                        text-align:center;
-                    "
-                >
-
-                    <div
-                        style="
-                            font-size:42px;
-                            margin-bottom:15px;
-                        "
-                    >
-                        ⚠️
-                    </div>
-
-                    <strong
-                        style="
-                            display:block;
-                            color:#f8fafc;
-                            font-size:18px;
-                            margin-bottom:8px;
-                        "
-                    >
-                        No se pudo cargar GESBASE
-                    </strong>
-
-                    <span
-                        style="
-                            color:#8d9ab0;
-                            font-size:13px;
-                            line-height:1.5;
-                        "
-                    >
-                        ${error.message || "Ocurrió un error inesperado."}
-                    </span>
-
-                    <br><br>
-
-                    <button
-                        onclick="location.reload()"
-                        style="
-                            border:0;
-                            padding:11px 17px;
-                            border-radius:12px;
-                            background:#2563eb;
-                            color:white;
-                            font-weight:700;
-                            cursor:pointer;
-                        "
-                    >
-                        Reintentar
-                    </button>
-
-                </div>
-
-            `;
-
+            throw new Error("No se encontró una empresa asociada a este usuario.");
         }
 
+        await cargarDatosEmpresa(resultado.empresaId);
+        cargando.style.display = "none";
+        contenido.style.display = "block";
+
+        if(esAdministrador) document.getElementById("seccionAdministrador").classList.remove("oculto");
+        await cargarFinanzas();
+    } catch(error){
+        cargando.innerHTML = `
+            <div style="max-width:420px; padding:25px; text-align:center;">
+                <div style="font-size:42px; margin-bottom:15px;">⚠️</div>
+                <strong style="display:block; color:#f8fafc; font-size:18px; margin-bottom:8px;">No se pudo cargar GESBASE</strong>
+                <span style="color:#8d9ab0; font-size:13px; line-height:1.5;">${error.message || "Ocurrió un error inesperado."}</span><br><br>
+                <button onclick="location.reload()" style="border:0; padding:11px 17px; border-radius:12px; background:#2563eb; color:white; font-weight:700; cursor:pointer;">Reintentar</button>
+            </div>`;
     }
-);
+});
 
 </script>
 
