@@ -107,11 +107,20 @@ if ! pgrep -f "node src/index.js" >/dev/null; then
     cd ~/gesbase/server
     nohup node src/index.js >> ~/gesbase-logs/app.log 2>&1 &
 fi
+
+# Cloudflare Tunnel (si está configurado)
+if [ -x ~/opt/cloudflared/cloudflared ] && [ -f ~/.cloudflared/config.yml ]; then
+    if ! pgrep -f "cloudflared.*tunnel run" >/dev/null; then
+        nohup ~/opt/cloudflared/cloudflared tunnel run gesbase \
+            >> ~/gesbase-logs/cloudflared.log 2>&1 &
+    fi
+fi
 STARTEOF
 chmod +x ~/bin/gesbase-start.sh
 
 cat > ~/bin/gesbase-stop.sh <<'STOPEOF'
 #!/bin/bash
+pkill -f "cloudflared.*tunnel run" 2>/dev/null
 pkill -f "node src/index.js" 2>/dev/null
 pkill -f "mongod.*mongodb-data" 2>/dev/null
 STOPEOF
