@@ -3,7 +3,7 @@ import {
     getToken,
     onMessage
 }
-from "https://www.gstatic.com/firebasejs/12.18.0/firebase-messaging.js";
+from "./local/firebase-messaging.js";
 
 
 import {
@@ -11,7 +11,7 @@ import {
     setDoc,
     serverTimestamp
 }
-from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+from "./local/firebase-firestore.js";
 
 
 import {

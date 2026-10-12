@@ -3,15 +3,11 @@
 // Conexión entre asistente.html y Firebase Cloud Function
 // ============================================================
 
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import { app } from "./firebase-config.js";
+import { auth } from "./firebase.js";
 
-// Firebase Authentication
-const auth = getAuth(app);
-
-// URL de la Cloud Function de GESBASE
+// Endpoint local del servidor GESBASE (reemplaza la Cloud Function)
 const GEMINI_FUNCTION_URL =
-    "https://us-central1-gesbase-4bf94.cloudfunctions.net/geminiChat";
+    "/api/functions/geminiChat";
 
 /**
  * Envía una consulta a Gemini a través de Firebase Cloud Functions.

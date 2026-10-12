@@ -1,8 +1,8 @@
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { onAuthStateChanged } from "./local/firebase-auth.js";
 import {
   collection, query, where, getDocs, getDoc, doc
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+} from "./local/firebase-firestore.js";
 
 const cliente = document.getElementById("cliente");
 const presupuesto = document.getElementById("presupuesto");

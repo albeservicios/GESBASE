@@ -10,18 +10,18 @@ import {
 
 import {
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+} from "./local/firebase-auth.js";
 
 import {
     getApp
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+} from "./local/firebase-app.js";
 
 import {
     getMessaging,
     getToken,
     onMessage,
     isSupported
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-messaging.js";
+} from "./local/firebase-messaging.js";
 
 import {
     collection,
@@ -34,7 +34,7 @@ import {
     setDoc,
     arrayUnion,
     serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+} from "./local/firebase-firestore.js";
 
 
 /* ============================================================
@@ -283,10 +283,10 @@ async function prepararFCM() {
 
         serviceWorkerRegistro =
             await navigator.serviceWorker.register(
-                "/GESBASE/firebase-messaging-sw.js",
+                "/firebase-messaging-sw.js",
                 {
                     scope:
-                        "/GESBASE/"
+                        "/"
                 }
             );
 

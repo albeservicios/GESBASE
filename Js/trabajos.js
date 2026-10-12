@@ -11,14 +11,14 @@ import {
 
 import {
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+} from "./local/firebase-auth.js";
 
 import {
     collection,
     getDocs,
     addDoc,
     serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+} from "./local/firebase-firestore.js";
 
 
 // ==========================================

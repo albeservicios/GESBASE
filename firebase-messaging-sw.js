@@ -1,370 +1,239 @@
 /* ============================================================
    GESBASE
-   Firebase Cloud Messaging - Service Worker
+   Service Worker de notificaciones push (Web Push estándar)
 
    Ubicación:
-   /GESBASE/firebase-messaging-sw.js
+   /firebase-messaging-sw.js
+
+   Recibe eventos "push" con payload JSON:
+   {
+     "title": "...", "body": "...",
+     "data": { "tipo": "...", "url": "...", "salaId": "...", ... }
+   }
+   (también acepta el formato notification/data de FCM)
 ============================================================ */
 
 
 /* ============================================================
-   FIREBASE
+   CONSTRUIR NOTIFICACIÓN DESDE PAYLOAD
 ============================================================ */
 
-importScripts(
-    "https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"
-);
+function construirNotificacion(payload) {
 
-importScripts(
-    "https://www.gstatic.com/firebasejs/12.18.0/firebase-messaging-compat.js"
-);
+    const notification =
+        payload.notification || {};
 
+    const data =
+        payload.data || payload || {};
 
-/* ============================================================
-   CONFIGURACIÓN FIREBASE
-============================================================ */
+    const tipo =
+        data.tipo || "notificacion";
 
-firebase.initializeApp({
+    let titulo =
+        payload.title ||
+        notification.title ||
+        data.title ||
+        "GESBASE";
 
-    apiKey:
-        "AIzaSyDDQ7Wh9S8Gy8DwQGZ01VaFTmSgV2rjs9o",
+    let cuerpo =
+        payload.body ||
+        notification.body ||
+        data.body ||
+        "Tenés una nueva actividad en GESBASE.";
 
-    authDomain:
-        "gesbase-4bf94.firebaseapp.com",
+    const icono =
+        data.icon ||
+        "/icon-192.png";
 
-    projectId:
-        "gesbase-4bf94",
+    let url =
+        data.url ||
+        "";
 
-    storageBucket:
-        "gesbase-4bf94.firebasestorage.app",
-
-    messagingSenderId:
-        "64959788774",
-
-    appId:
-        "1:64959788774:web:c3bc129c3cee8cb77d6503",
-
-    measurementId:
-        "G-CCKGSRVGEX"
-
-});
+    const salaId =
+        data.salaId ||
+        data.llamadaId ||
+        "";
 
 
-/* ============================================================
-   FIREBASE MESSAGING
-============================================================ */
+    /* ====================================================
+       LLAMADA DE AUDIO
+    ==================================================== */
 
-const messaging =
-    firebase.messaging();
+    if (
+        tipo === "llamada" ||
+        tipo === "audio"
+    ) {
 
-
-/* ============================================================
-   MENSAJES EN SEGUNDO PLANO
-============================================================ */
-
-messaging.onBackgroundMessage(
-    payload => {
-
-        console.log(
-            "[GESBASE] Notificación recibida en segundo plano:",
-            payload
-        );
-
-
-        const notification =
-            payload.notification || {};
-
-        const data =
-            payload.data || {};
-
-
-        const tipo =
-            data.tipo || "notificacion";
-
-
-        /* ====================================================
-           TÍTULO
-        ==================================================== */
-
-        let titulo =
+        titulo =
             notification.title ||
             data.title ||
-            "GESBASE";
+            "📞 Llamada entrante";
 
-
-        /* ====================================================
-           CUERPO
-        ==================================================== */
-
-        let cuerpo =
+        cuerpo =
             notification.body ||
             data.body ||
-            "Tenés una nueva actividad en GESBASE.";
+            "Tenés una llamada entrante.";
 
-
-        /* ====================================================
-           ICONO
-        ==================================================== */
-
-        const icono =
-            data.icon ||
-            "/GESBASE/icon-192.png";
-
-
-        /* ====================================================
-           URL
-        ==================================================== */
-
-        let url =
-            data.url ||
-            "";
-
-
-        /* ====================================================
-           ID DE SALA
-        ==================================================== */
-
-        const salaId =
-            data.salaId ||
-            data.llamadaId ||
-            "";
-
-
-        /* ====================================================
-           LLAMADA DE AUDIO
-        ==================================================== */
-
-        if (
-            tipo === "llamada" ||
-            tipo === "audio"
-        ) {
-
-            titulo =
-                notification.title ||
-                data.title ||
-                "📞 Llamada entrante";
-
-
-            cuerpo =
-                notification.body ||
-                data.body ||
-                "Tenés una llamada entrante.";
-
-
-            if (
-                !url &&
-                salaId
-            ) {
-
-                url =
-                    "/GESBASE/llamada.html?sala=" +
-                    encodeURIComponent(
-                        salaId
-                    );
-
-            }
-
+        if (!url && salaId) {
+            url =
+                "/llamada.html?sala=" +
+                encodeURIComponent(salaId);
         }
 
-
-        /* ====================================================
-           VIDEOLLAMADA
-        ==================================================== */
-
-        if (
-            tipo === "videollamada" ||
-            tipo === "video"
-        ) {
-
-            titulo =
-                notification.title ||
-                data.title ||
-                "📹 Videollamada entrante";
+    }
 
 
-            cuerpo =
-                notification.body ||
-                data.body ||
-                "Tenés una videollamada entrante.";
+    /* ====================================================
+       VIDEOLLAMADA
+    ==================================================== */
 
+    if (
+        tipo === "videollamada" ||
+        tipo === "video"
+    ) {
 
-            if (
-                !url &&
-                salaId
-            ) {
+        titulo =
+            notification.title ||
+            data.title ||
+            "📹 Videollamada entrante";
 
-                url =
-                    "/GESBASE/videollamada.html?sala=" +
-                    encodeURIComponent(
-                        salaId
-                    );
+        cuerpo =
+            notification.body ||
+            data.body ||
+            "Tenés una videollamada entrante.";
 
-            }
-
+        if (!url && salaId) {
+            url =
+                "/videollamada.html?sala=" +
+                encodeURIComponent(salaId);
         }
 
-
-        /* ====================================================
-           MENSAJE
-        ==================================================== */
-
-        if (
-            tipo === "mensaje"
-        ) {
-
-            titulo =
-                notification.title ||
-                data.title ||
-                "💬 Nuevo mensaje";
+    }
 
 
-            cuerpo =
-                notification.body ||
-                data.body ||
-                "Tenés un nuevo mensaje.";
+    /* ====================================================
+       MENSAJE
+    ==================================================== */
 
+    if (tipo === "mensaje") {
 
-            if (!url) {
+        titulo =
+            notification.title ||
+            data.title ||
+            "💬 Nuevo mensaje";
 
-                url =
-                    "/GESBASE/comunicacion.html";
+        cuerpo =
+            notification.body ||
+            data.body ||
+            "Tenés un nuevo mensaje.";
 
-            }
-
+        if (!url) {
+            url = "/comunicacion.html";
         }
 
-
-        /* ====================================================
-           NUEVO REGISTRO DE EMPRESA
-        ==================================================== */
-
-        if (
-            tipo === "nuevo_registro" ||
-            tipo === "NUEVO_REGISTRO" ||
-            tipo === "registro_empresa"
-        ) {
-
-            titulo =
-                notification.title ||
-                data.title ||
-                "🔔 Nuevo registro en GESBASE";
+    }
 
 
-            cuerpo =
-                notification.body ||
-                data.body ||
-                "Una empresa solicitó acceso a GESBASE.";
+    /* ====================================================
+       NUEVO REGISTRO DE EMPRESA
+    ==================================================== */
 
+    if (
+        tipo === "nuevo_registro" ||
+        tipo === "NUEVO_REGISTRO" ||
+        tipo === "registro_empresa"
+    ) {
 
-            if (!url) {
+        titulo =
+            notification.title ||
+            data.title ||
+            "🔔 Nuevo registro en GESBASE";
 
-                url =
-                    "/GESBASE/solicitudes-acceso.html";
+        cuerpo =
+            notification.body ||
+            data.body ||
+            "Una empresa solicitó acceso a GESBASE.";
 
-            }
-
+        if (!url) {
+            url = "/solicitudes-acceso.html";
         }
 
-
-        /* ====================================================
-           DATOS DE LA NOTIFICACIÓN
-        ==================================================== */
-
-        const datosNotificacion = {
-
-            tipo:
-                tipo,
-
-            salaId:
-                salaId,
-
-            llamadaId:
-                data.llamadaId ||
-                salaId,
-
-            mensajeId:
-                data.mensajeId ||
-                "",
-
-            usuario:
-                data.usuario ||
-                "",
-
-            empresaId:
-                data.empresaId ||
-                "",
-
-            solicitudId:
-                data.solicitudId ||
-                "",
-
-            nombreEmpresa:
-                data.nombreEmpresa ||
-                "",
-
-            url:
-                url ||
-                "/GESBASE/comunicacion.html"
-
-        };
+    }
 
 
-        /* ====================================================
-           OPCIONES
-        ==================================================== */
+    const datosNotificacion = {
+        tipo: tipo,
+        salaId: salaId,
+        llamadaId: data.llamadaId || salaId,
+        mensajeId: data.mensajeId || "",
+        usuario: data.usuario || "",
+        empresaId: data.empresaId || "",
+        solicitudId: data.solicitudId || "",
+        nombreEmpresa: data.nombreEmpresa || "",
+        url: url || "/comunicacion.html"
+    };
 
-        const opciones = {
 
-            body:
-                cuerpo,
-
-            icon:
-                icono,
-
-            badge:
-                icono,
-
-            tag:
-                data.tag ||
+    const opciones = {
+        body: cuerpo,
+        icon: icono,
+        badge: icono,
+        tag:
+            data.tag ||
+            (
+                "gesbase-" + tipo + "-" +
                 (
-                    "gesbase-" +
-                    tipo +
-                    "-" +
-                    (
-                        salaId ||
-                        data.mensajeId ||
-                        data.solicitudId ||
-                        Date.now()
-                    )
-                ),
+                    salaId ||
+                    data.mensajeId ||
+                    data.solicitudId ||
+                    Date.now()
+                )
+            ),
+        renotify: true,
+        requireInteraction:
+            [
+                "llamada", "audio",
+                "videollamada", "video",
+                "nuevo_registro", "NUEVO_REGISTRO",
+                "registro_empresa"
+            ].includes(tipo),
+        data: datosNotificacion
+    };
 
-            renotify:
-                true,
-
-            requireInteraction:
-                (
-                    tipo === "llamada" ||
-                    tipo === "audio" ||
-                    tipo === "videollamada" ||
-                    tipo === "video" ||
-                    tipo === "nuevo_registro" ||
-                    tipo === "NUEVO_REGISTRO" ||
-                    tipo === "registro_empresa"
-                ),
-
-            data:
-                datosNotificacion
-
-        };
+    return { titulo, opciones };
+}
 
 
-        /* ====================================================
-           MOSTRAR NOTIFICACIÓN
-        ==================================================== */
+/* ============================================================
+   EVENTO PUSH (Web Push estándar)
+============================================================ */
 
-        return self.registration.showNotification(
-            titulo,
-            opciones
+self.addEventListener(
+    "push",
+    event => {
+
+        let payload = {};
+
+        try {
+            payload = event.data ? event.data.json() : {};
+        } catch {
+            try {
+                payload = {
+                    body: event.data ? event.data.text() : ""
+                };
+            } catch {
+                payload = {};
+            }
+        }
+
+        const { titulo, opciones } =
+            construirNotificacion(payload);
+
+        event.waitUntil(
+            self.registration.showNotification(
+                titulo,
+                opciones
+            )
         );
 
     }
@@ -381,155 +250,71 @@ self.addEventListener(
 
         event.notification.close();
 
-
         const data =
-            event.notification.data ||
-            {};
-
+            event.notification.data || {};
 
         let url =
-            data.url ||
-            "/GESBASE/comunicacion.html";
+            data.url || "/comunicacion.html";
 
-
-        const tipo =
-            data.tipo ||
-            "";
-
+        const tipo = data.tipo || "";
 
         const salaId =
-            data.salaId ||
-            data.llamadaId ||
-            "";
+            data.salaId || data.llamadaId || "";
 
-
-        /* ====================================================
-           LLAMADA
-        ==================================================== */
 
         if (
-            (
-                tipo === "llamada" ||
-                tipo === "audio"
-            ) &&
+            (tipo === "llamada" || tipo === "audio") &&
             salaId
         ) {
-
             url =
-                "/GESBASE/llamada.html?sala=" +
-                encodeURIComponent(
-                    salaId
-                );
-
+                "/llamada.html?sala=" +
+                encodeURIComponent(salaId);
         }
 
-
-        /* ====================================================
-           VIDEOLLAMADA
-        ==================================================== */
-
         if (
-            (
-                tipo === "videollamada" ||
-                tipo === "video"
-            ) &&
+            (tipo === "videollamada" || tipo === "video") &&
             salaId
         ) {
-
             url =
-                "/GESBASE/videollamada.html?sala=" +
-                encodeURIComponent(
-                    salaId
-                );
-
+                "/videollamada.html?sala=" +
+                encodeURIComponent(salaId);
         }
 
-
-        /* ====================================================
-           MENSAJE
-        ==================================================== */
-
-        if (
-            tipo === "mensaje"
-        ) {
-
-            url =
-                data.url ||
-                "/GESBASE/comunicacion.html";
-
+        if (tipo === "mensaje") {
+            url = data.url || "/comunicacion.html";
         }
-
-
-        /* ====================================================
-           NUEVO REGISTRO
-        ==================================================== */
 
         if (
             tipo === "nuevo_registro" ||
             tipo === "NUEVO_REGISTRO" ||
             tipo === "registro_empresa"
         ) {
-
-            url =
-                data.url ||
-                "/GESBASE/solicitudes-acceso.html";
-
+            url = data.url || "/solicitudes-acceso.html";
         }
 
-
-        /* ====================================================
-           ABRIR GESBASE
-        ==================================================== */
 
         event.waitUntil(
 
             clients
                 .matchAll({
+                    type: "window",
+                    includeUncontrolled: true
+                })
+                .then(ventanas => {
 
-                    type:
-                        "window",
+                    for (const ventana of ventanas) {
+                        if ("focus" in ventana) {
+                            return ventana
+                                .navigate(url)
+                                .then(() => ventana.focus());
+                        }
+                    }
 
-                    includeUncontrolled:
-                        true
+                    if (clients.openWindow) {
+                        return clients.openWindow(url);
+                    }
 
                 })
-
-                .then(
-                    ventanas => {
-
-                        for (
-                            const ventana
-                            of ventanas
-                        ) {
-
-                            if (
-                                "focus" in ventana
-                            ) {
-
-                                return ventana
-                                    .navigate(url)
-                                    .then(
-                                        () =>
-                                            ventana.focus()
-                                    );
-
-                            }
-
-                        }
-
-
-                        if (
-                            clients.openWindow
-                        ) {
-
-                            return clients.openWindow(
-                                url
-                            );
-
-                        }
-
-                    }
-                )
 
         );
 
@@ -538,64 +323,29 @@ self.addEventListener(
 
 
 /* ============================================================
-   INSTALACIÓN
+   INSTALACIÓN / ACTIVACIÓN / FETCH
 ============================================================ */
 
 self.addEventListener(
     "install",
     event => {
-
-        console.log(
-            "[GESBASE] Service Worker instalado."
-        );
-
         self.skipWaiting();
-
     }
 );
-
-
-/* ============================================================
-   ACTIVACIÓN
-============================================================ */
 
 self.addEventListener(
     "activate",
     event => {
-
-        console.log(
-            "[GESBASE] Service Worker activado."
-        );
-
-        event.waitUntil(
-            self.clients.claim()
-        );
-
+        event.waitUntil(self.clients.claim());
     }
 );
-
-
-/* ============================================================
-   FETCH
-   No interceptamos las páginas de GESBASE.
-============================================================ */
 
 self.addEventListener(
     "fetch",
     event => {
-
         /*
          * El Service Worker solamente se utiliza
-         * para las notificaciones de Firebase.
-         *
-         * No modificamos las solicitudes normales
-         * de GESBASE.
+         * para las notificaciones push.
          */
-
     }
-);
-
-
-console.log(
-    "[GESBASE] Firebase Messaging Service Worker cargado."
 );

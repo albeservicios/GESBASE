@@ -1,98 +1,63 @@
 /*
 =========================================================
- GESBASE - REGISTRO DE TOKEN FCM
-=========================================================
- Guarda el token del dispositivo en Firestore.
+ GESBASE - REGISTRO DE TOKEN PUSH
+ Guarda el token del dispositivo en la base de datos local.
 =========================================================
 */
+
+import { doc, setDoc, serverTimestamp } from "./local/firebase-firestore.js";
+import { auth, db } from "./firebase.js";
 
 (function () {
 
     "use strict";
 
-
     console.log(
-        "GESBASE: módulo Firestore Push iniciado."
+        "GESBASE: módulo Push iniciado."
     );
 
 
-    async function guardarTokenFCM(token) {
+    async function guardarTokenPush(token) {
 
         try {
 
             if (!token) {
-
                 console.log(
-                    "GESBASE: token FCM vacío."
+                    "GESBASE: token push vacío."
                 );
-
                 return;
-
             }
 
 
-            if (
-                typeof firebase === "undefined" ||
-                !firebase.auth ||
-                !firebase.firestore
-            ) {
-
-                console.log(
-                    "GESBASE: Firebase todavía no está disponible."
-                );
-
-                return;
-
-            }
-
-
-            const usuario =
-                firebase.auth().currentUser;
-
+            const usuario = auth.currentUser;
 
             if (!usuario) {
-
                 console.log(
                     "GESBASE: usuario no autenticado."
                 );
-
                 return;
-
             }
 
 
-            const db =
-                firebase.firestore();
-
-
-            await db
-                .collection("usuarios")
-                .doc(usuario.uid)
-                .set(
-                    {
-                        fcmToken: token,
-
-                        fcmTokenActualizado:
-                            firebase.firestore.FieldValue.serverTimestamp(),
-
-                        plataforma:
-                            "android"
-
-                    },
-                    {
-                        merge: true
-                    }
-                );
+            await setDoc(
+                doc(db, "usuarios", usuario.uid),
+                {
+                    fcmToken: token,
+                    fcmTokenActualizado: serverTimestamp(),
+                    plataforma: "android"
+                },
+                { merge: true }
+            );
 
 
             console.log(
-                "GESBASE: token FCM guardado correctamente."
+                "GESBASE: token push guardado correctamente."
             );
 
         } catch (error) {
 
             console.error(
-                "GESBASE: error guardando token FCM:",
+                "GESBASE: error guardando token push:",
                 error
             );
 
@@ -111,7 +76,7 @@
                 event.detail.token
             ) {
 
-                guardarTokenFCM(
+                guardarTokenPush(
                     event.detail.token
                 );
 
