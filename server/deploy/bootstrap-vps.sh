@@ -6,6 +6,14 @@
 # ============================================================
 
 set -e
+
+if [ "$(uname -s)" != "Linux" ]; then
+    echo "ERROR: este script es para el VPS (Linux)."
+    echo "Estás en $(uname -s). Ejecutalo en la terminal del VPS"
+    echo "(la que muestra el prompt [vps46874]$)."
+    exit 1
+fi
+
 cd "$HOME"
 
 echo "==> GESBASE bootstrap iniciando..."
