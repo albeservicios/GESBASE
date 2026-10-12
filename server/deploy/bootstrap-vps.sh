@@ -27,7 +27,8 @@ case "$ARCH" in
 esac
 echo "==> Arch: $ARCH"
 
-mkdir -p ~/opt ~/logs ~/mongodb-data ~/bin
+# ~/logs es de DreamHost (dhapache, solo lectura) — usamos gesbase-logs
+mkdir -p ~/opt ~/gesbase-logs ~/mongodb-data ~/bin
 
 # ---------- Node.js 20 ----------
 if [ ! -x "$HOME/opt/node/bin/node" ]; then
@@ -98,13 +99,13 @@ export PATH="$HOME/opt/node/bin:$HOME/opt/mongodb/bin:$PATH"
 if ! pgrep -f "mongod.*mongodb-data" >/dev/null; then
     ~/opt/mongodb/bin/mongod --dbpath ~/mongodb-data \
         --bind_ip 127.0.0.1 --port 27017 \
-        --fork --logpath ~/logs/mongod.log
+        --fork --logpath ~/gesbase-logs/mongod.log
 fi
 
 # App Node
 if ! pgrep -f "node src/index.js" >/dev/null; then
     cd ~/gesbase/server
-    nohup node src/index.js >> ~/logs/app.log 2>&1 &
+    nohup node src/index.js >> ~/gesbase-logs/app.log 2>&1 &
 fi
 STARTEOF
 chmod +x ~/bin/gesbase-start.sh
@@ -142,5 +143,5 @@ echo "  GESBASE desplegado"
 echo "============================================"
 curl -s -o /dev/null -w "App en :3001 -> HTTP %{http_code}\n" \
     http://localhost:3001/index.html || true
-echo "Logs:  ~/logs/app.log  y  ~/logs/mongod.log"
+echo "Logs:  ~/gesbase-logs/app.log  y  ~/gesbase-logs/mongod.log"
 echo "Start: ~/bin/gesbase-start.sh | Stop: ~/bin/gesbase-stop.sh"
