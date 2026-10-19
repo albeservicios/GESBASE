@@ -47,6 +47,11 @@ app.use("/api/functions", functionsRouter);
 // Archivos subidos (reemplaza Firebase Storage URLs)
 app.use("/uploads", express.static(config.uploadsDir));
 
+// Landing pública (marketing) en /
+app.get("/", (_req, res) => {
+    res.sendFile(path.join(config.rootDir, "landing", "index.html"));
+});
+
 // Estáticos del frontend (raíz del proyecto)
 app.use(
     express.static(config.rootDir, {

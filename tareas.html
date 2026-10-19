@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#111827">
+    <title>GESBASE - Mis Tareas</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #111827;
+            color: #111827;
+            min-height: 100vh;
+            padding: 18px;
+        }
+
+        .contenedor {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1f2937;
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .22);
+        }
+
+        .btnVolver {
+            background: #374151;
+            color: #fff;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            display: inline-block;
+        }
+
+        .btnVolver:hover {
+            background: #4b5563;
+        }
+
+        .cargando {
+            background: #fff;
+            border-radius: 18px;
+            padding: 35px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .15);
+        }
+
+        .lista-tareas {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tarjeta-tarea {
+            background: #fff;
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .10);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            border-left: 5px solid #2563eb;
+        }
+
+        .tarjeta-tarea.completada {
+            border-left-color: #059669;
+            opacity: 0.85;
+        }
+
+        .tarea-info {
+            flex: 1;
+        }
+
+        .tarea-info h3 {
+            font-size: 17px;
+            margin-bottom: 6px;
+        }
+
+        .tarea-info p {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .tarea-meta {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .acciones-tarea {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .badge-estado {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #dbeafe;
+            color: #1e40af;
+            white-space: nowrap;
+        }
+
+        .badge-estado.completada {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .btnCompletar {
+            background: #059669;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btnCompletar:hover {
+            background: #047857;
+        }
+
+        .mensaje-estado {
+            background: #fff;
+            border-radius: 18px;
+            padding: 35px;
+            text-align: center;
+            color: #6b7280;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .15);
+        }
+
+        .oculto {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="contenedor">
+
+        <header>
+            <h2>📋 Mis Tareas</h2>
+            <a href="./panel-empleado.html" class="btnVolver">← Volver al panel</a>
+        </header>
+
+        <div id="cargando" class="cargando">
+            <div style="font-size:30px;">⏳</div>
+            <p style="margin-top:10px;">Cargando tus tareas asignadas...</p>
+        </div>
+
+        <main id="contenido" class="oculto">
+            <div id="contenedorTareas" class="lista-tareas"></div>
+            
+            <div id="mensajeEstado" class="mensaje-estado oculto">
+                <div id="iconoMensaje" style="font-size: 40px; margin-bottom: 10px;">🎉</div>
+                <h3 id="tituloMensaje">No tenés tareas pendientes</h3>
+                <p id="textoMensaje" style="margin-top: 5px;">Las tareas asignadas por tu empresa aparecerán aquí.</p>
+            </div>
+        </main>
+
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./Js/firebase.js";
+        import { onAuthStateChanged } from "./Js/local/firebase-auth.js";
+        import { collection, query, where, getDocs, doc, updateDoc } from "./Js/local/firebase-firestore.js";
+
+        const cargando = document.getElementById("cargando");
+        const contenido = document.getElementById("contenido");
+        const contenedorTareas = document.getElementById("contenedorTareas");
+        const mensajeEstado = document.getElementById("mensajeEstado");
+        const tituloMensaje = document.getElementById("tituloMensaje");
+        const textoMensaje = document.getElementById("textoMensaje");
+        const iconoMensaje = document.getElementById("iconoMensaje");
+
+        let sesionActual = null;
+
+        // Timeout de seguridad por si Firestore tarda demasiado en responder
+        const timeoutCarga = setTimeout(() => {
+            if (!cargando.classList.contains("oculto")) {
+                cargando.classList.add("oculto");
+                contenido.classList.remove("oculto");
+                mensajeEstado.classList.remove("oculto");
+                iconoMensaje.textContent = "⚠️";
+                tituloMensaje.textContent = "Demora en la conexión";
+                textoMensaje.textContent = "No pudimos conectar con la base de datos a tiempo. Verifica tu conexión o intenta recargar.";
+            }
+        }, 5000);
+
+        onAuthStateChanged(auth, async (usuario) => {
+            if (!usuario) {
+                window.location.href = "./acceso-empleado.html";
+                return;
+            }
+
+            const sesionGuardada = sessionStorage.getItem("gesbaseEmpleado");
+            if (!sesionGuardada) {
+                window.location.href = "./acceso-empleado.html";
+                return;
+            }
+
+            try {
+                sesionActual = JSON.parse(sesionGuardada);
+            } catch (e) {
+                window.location.href = "./acceso-empleado.html";
+                return;
+            }
+
+            try {
+                await cargarTareas();
+            } catch (error) {
+                console.error("Error al cargar tareas:", error);
+                clearTimeout(timeoutCarga);
+                cargando.classList.add("oculto");
+                contenido.classList.remove("oculto");
+                mensajeEstado.classList.remove("oculto");
+                iconoMensaje.textContent = "⚠️";
+                tituloMensaje.textContent = "Aviso de sistema";
+                textoMensaje.textContent = "Ocurrió un detalle al consultar las tareas: " + (error.message || error);
+            }
+        });
+
+        async function cargarTareas() {
+            contenedorTareas.innerHTML = "";
+            
+            // Consulta simplificada para evitar bloqueos por índices
+            const q = query(
+                collection(db, "tareas"),
+                where("empresaId", "==", sesionActual.empresaId)
+            );
+
+            const snapshot = await getDocs(q);
+            clearTimeout(timeoutCarga);
+
+            cargando.classList.add("oculto");
+            contenido.classList.remove("oculto");
+
+            if (snapshot.empty) {
+                mensajeEstado.classList.remove("oculto");
+                return;
+            }
+
+            let tareasEncontradas = 0;
+
+            snapshot.forEach((docSnap) => {
+                const tarea = docSnap.data();
+                const tareaId = docSnap.id;
+
+                if (!tarea.empleadoId || tarea.empleadoId === sesionActual.empleadoId) {
+                    tareasEncontradas++;
+                    
+                    const esCompletada = tarea.estado === "completada";
+                    const tarjeta = document.createElement("div");
+                    tarjeta.className = `tarjeta-tarea ${esCompletada ? 'completada' : ''}`;
+
+                    tarjeta.innerHTML = `
+                        <div class="tarea-info">
+                            <h3>${tarea.titulo || 'Tarea asignada'}</h3>
+                            <p>${tarea.descripcion || 'Sin descripción detallada.'}</p>
+                            <div class="tarea-meta">
+                                📅 Asignada: ${tarea.fecha || 'Reciente'}
+                            </div>
+                        </div>
+                        <div class="acciones-tarea">
+                            <span class="badge-estado ${esCompletada ? 'completada' : ''}">
+                                ${esCompletada ? '✓ Completada' : '⏳ Pendiente'}
+                            </span>
+                            ${!esCompletada ? `<button class="btnCompletar" data-id="${tareaId}">✓ Finalizar</button>` : ''}
+                        </div>
+                    `;
+
+                    contenedorTareas.appendChild(tarjeta);
+                }
+            });
+
+            document.querySelectorAll(".btnCompletar").forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    const idTarea = e.target.getAttribute("data-id");
+                    await marcarComoCompletada(idTarea);
+                });
+            });
+
+            if (tareasEncontradas === 0) {
+                mensajeEstado.classList.remove("oculto");
+            } else {
+                mensajeEstado.classList.add("oculto");
+            }
+        }
+
+        async function marcarComoCompletada(tareaId) {
+            try {
+                const tareaRef = doc(db, "tareas", tareaId);
+                await updateDoc(tareaRef, {
+                    estado: "completada",
+                    fechaCompletada: new Date().toISOString()
+                });
+
+                // Recargar tareas para ver el cambio reflejado al instante
+                cargando.classList.remove("oculto");
+                contenido.classList.add("oculto");
+                await cargarTareas();
+            } catch (error) {
+                console.error("Error al actualizar la tarea:", error);
+                alert("No se pudo marcar la tarea como completada.");
+                cargando.classList.add("oculto");
+                contenido.classList.remove("oculto");
+            }
+        }
+    </script>
+
+</body>
+
+</html>
