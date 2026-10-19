@@ -45,5 +45,13 @@ export const config = {
     // URL pública del sitio (para links en emails)
     publicUrl: process.env.PUBLIC_URL || "http://localhost:3000",
     // Email del admin (recibe contactos y tickets de soporte)
-    adminEmail: process.env.ADMIN_EMAIL || "gesbase0@gmail.com"
+    adminEmail: process.env.ADMIN_EMAIL || "gesbase0@gmail.com",
+    // SMTP (DreamHost u otro). Si está SMTP_HOST se usa SMTP;
+    // si no, se intenta Resend.
+    smtpHost: process.env.SMTP_HOST || "",
+    smtpPort: Number(process.env.SMTP_PORT || 587),
+    smtpSecure: process.env.SMTP_SECURE === "true",
+    smtpUser: process.env.SMTP_USER || "",
+    smtpPass: process.env.SMTP_PASS || "",
+    smtpFrom: process.env.SMTP_FROM || ""
 };

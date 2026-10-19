@@ -1,5 +1,6 @@
 // ============================================================
-// GESBASE SERVER - ENVÍO DE EMAIL (Resend)
+// GESBASE SERVER - ENVÍO DE EMAIL
+// SMTP (DreamHost, vía nodemailer) con fallback a Resend.
 // Helper compartido por functions.js, triggers.js y auth.js
 // ============================================================
 
@@ -14,15 +15,68 @@ export function escaparHTML(texto) {
         .replace(/'/g, "&#039;");
 }
 
-export function emailConfigurado() {
-    return !!(config.resendApiKey && config.resendFromEmail);
+export function smtpConfigurado() {
+    return !!(
+        config.smtpHost && config.smtpUser && config.smtpPass
+    );
 }
 
-export async function enviarEmail({ to, subject, html }) {
-    if (!to) throw new Error("Falta el destinatario.");
-    if (!emailConfigurado()) {
-        throw new Error("Faltan las credenciales de Resend.");
+export function emailConfigurado() {
+    return smtpConfigurado() ||
+        !!(config.resendApiKey && config.resendFromEmail);
+}
+
+// ------------------------------------------------------------
+// SMTP (nodemailer) - transporter lazy, reutiliza conexión
+// ------------------------------------------------------------
+
+let transporter = null;
+let transporterKey = "";
+
+async function obtenerTransporter() {
+    const key = [
+        config.smtpHost, config.smtpPort,
+        config.smtpUser, config.smtpSecure
+    ].join("|");
+
+    if (transporter && transporterKey === key) {
+        return transporter;
     }
+
+    const nodemailer = await import("nodemailer");
+    transporter = nodemailer.createTransport({
+        host: config.smtpHost,
+        port: config.smtpPort,
+        secure: config.smtpSecure,
+        auth: {
+            user: config.smtpUser,
+            pass: config.smtpPass
+        }
+    });
+    transporterKey = key;
+    return transporter;
+}
+
+async function enviarSMTP({ to, subject, html }) {
+    const t = await obtenerTransporter();
+    const from = config.smtpFrom || config.smtpUser;
+    const info = await t.sendMail({
+        from,
+        to,
+        subject,
+        html
+    });
+    return {
+        messageId: info.messageId || "",
+        email: to
+    };
+}
+
+// ------------------------------------------------------------
+// Resend (fallback si no hay SMTP)
+// ------------------------------------------------------------
+
+async function enviarResend({ to, subject, html }) {
     const { Resend } = await import("resend");
     const resend = new Resend(config.resendApiKey);
     const resultado = await resend.emails.send({
@@ -40,6 +94,21 @@ export async function enviarEmail({ to, subject, html }) {
         messageId: resultado?.data?.id || "",
         email: to
     };
+}
+
+// ------------------------------------------------------------
+
+export async function enviarEmail({ to, subject, html }) {
+    if (!to) throw new Error("Falta el destinatario.");
+    if (smtpConfigurado()) {
+        return enviarSMTP({ to, subject, html });
+    }
+    if (config.resendApiKey && config.resendFromEmail) {
+        return enviarResend({ to, subject, html });
+    }
+    throw new Error(
+        "Email no configurado (faltan SMTP_* o RESEND_*)."
+    );
 }
 
 // Plantilla base con el estilo de la marca
