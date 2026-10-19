@@ -1,5 +1,15 @@
 # GESBASE - Deploy a DreamHost VPS
 
+> **Despliegue real actual (DreamHost, sin sudo):** la app vive en
+> `~/gesbase-app` con Node/Mongo/cloudflared en `~/opt`, mongod con
+> `--auth` en `~/mongodb-data`, logs en `~/gesbase-logs`, y
+> `~/bin/gesbase-start.sh` + cron (`@reboot` + cada 5 min) como
+> watchdog. Exposición pública: Cloudflare Tunnel `gesbase` →
+> `gesbase.online`. `~/gesbase` es el webroot de Apache de DreamHost
+> (sitio estático viejo) — **no** poner la app ahí.
+> Todo eso lo instala `deploy/bootstrap-vps.sh`. El resto de este doc
+> describe la alternativa clásica con root/nginx.
+
 Guía de salida a producción. Requisitos: VPS con acceso root/sudo
 (en shared hosting NO se puede correr Node persistente ni MongoDB;
 si tenés shared, hay que usar MongoDB Atlas gratis + Passenger/Node).

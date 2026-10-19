@@ -1,8 +1,8 @@
 #!/bin/bash
 # ============================================================
 # GESBASE - Bootstrap VPS (sin sudo, todo en $HOME)
-# Uso:  bash ~/gesbase/server/deploy/bootstrap-vps.sh
-# Requiere que el código ya esté en ~/gesbase (vía rsync).
+# Uso:  bash $HOME/gesbase-app/server/deploy/bootstrap-vps.sh
+# Requiere que el código ya esté en $HOME/gesbase-app (vía rsync).
 # ============================================================
 
 set -e
@@ -66,10 +66,10 @@ fi
 echo "    mongod instalado"
 
 # ---------- .env ----------
-if [ ! -f ~/gesbase/server/.env ]; then
+if [ ! -f $HOME/gesbase-app/server/.env ]; then
     MPASS_GEN=$(~/opt/node/bin/node -e \
         "console.log(require('crypto').randomBytes(16).toString('hex'))")
-    cat > ~/gesbase/server/.env <<ENVEOF
+    cat > $HOME/gesbase-app/server/.env <<ENVEOF
 PORT=3001
 MONGODB_URI=mongodb://gesbase:$MPASS_GEN@127.0.0.1:27017/gesbase
 MONGO_PASS=$MPASS_GEN
@@ -90,7 +90,7 @@ fi
 
 # ---------- dependencias ----------
 echo "==> npm install..."
-cd ~/gesbase/server
+cd $HOME/gesbase-app/server
 ~/opt/node/bin/npm install --omit=dev --no-audit --no-fund
 
 # ---------- scripts de arranque ----------
@@ -99,8 +99,8 @@ cat > ~/bin/gesbase-start.sh <<'STARTEOF'
 export PATH="$HOME/opt/node/bin:$HOME/opt/mongodb/bin:$PATH"
 
 # Reinicio pedido por otro usuario autorizado (flag file)
-if [ -f ~/gesbase/.restart-requested ]; then
-    rm -f ~/gesbase/.restart-requested
+if [ -f $HOME/gesbase-app/.restart-requested ]; then
+    rm -f $HOME/gesbase-app/.restart-requested
     pkill -f "cloudflared.*tunnel run" 2>/dev/null
     pkill -f "node src/index.js" 2>/dev/null
     pkill -f "mongod.*mongodb-data" 2>/dev/null
@@ -116,7 +116,7 @@ fi
 
 # App Node
 if ! pgrep -f "node src/index.js" >/dev/null; then
-    cd ~/gesbase/server
+    cd $HOME/gesbase-app/server
     nohup node src/index.js >> ~/gesbase-logs/app.log 2>&1 &
 fi
 
@@ -154,13 +154,13 @@ if [ ! -f ~/.mongodb-auth-done ]; then
             --fork --logpath ~/gesbase-logs/mongod.log
         sleep 2
     fi
-    MPASS=$(grep '^MONGO_PASS=' ~/gesbase/server/.env | cut -d= -f2)
+    MPASS=$(grep '^MONGO_PASS=' $HOME/gesbase-app/server/.env | cut -d= -f2)
     [ -z "$MPASS" ] && MPASS=$(~/opt/node/bin/node -e \
         "console.log(require('crypto').randomBytes(16).toString('hex'))")
-    cd ~/gesbase/server && ~/opt/node/bin/node scripts/create-mongo-user.js "$MPASS"
-    sed -i "s|^MONGODB_URI=.*|MONGODB_URI=mongodb://gesbase:$MPASS@127.0.0.1:27017/gesbase|" ~/gesbase/server/.env
-    grep -q '^MONGO_PASS=' ~/gesbase/server/.env || \
-        echo "MONGO_PASS=$MPASS" >> ~/gesbase/server/.env
+    cd $HOME/gesbase-app/server && ~/opt/node/bin/node scripts/create-mongo-user.js "$MPASS"
+    sed -i "s|^MONGODB_URI=.*|MONGODB_URI=mongodb://gesbase:$MPASS@127.0.0.1:27017/gesbase|" $HOME/gesbase-app/server/.env
+    grep -q '^MONGO_PASS=' $HOME/gesbase-app/server/.env || \
+        echo "MONGO_PASS=$MPASS" >> $HOME/gesbase-app/server/.env
     touch ~/.mongodb-auth-done
     # reiniciar mongod (con --auth) y la app (con las credenciales nuevas)
     pkill -f "mongod.*mongodb-data" 2>/dev/null
@@ -173,10 +173,10 @@ fi
 sleep 3
 
 # ---------- importar datos ----------
-if [ -d ~/gesbase/server/data/export ] && \
-   ls ~/gesbase/server/data/export/*.json >/dev/null 2>&1; then
+if [ -d $HOME/gesbase-app/server/data/export ] && \
+   ls $HOME/gesbase-app/server/data/export/*.json >/dev/null 2>&1; then
     echo "==> Importando datos a MongoDB..."
-    cd ~/gesbase/server && ~/opt/node/bin/npm run import:mongo
+    cd $HOME/gesbase-app/server && ~/opt/node/bin/npm run import:mongo
 else
     echo "==> Sin datos para importar (server/data/export vacío)"
 fi

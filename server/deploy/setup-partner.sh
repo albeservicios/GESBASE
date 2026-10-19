@@ -3,7 +3,7 @@
 # GESBASE - Acceso para un segundo usuario del VPS
 # Le da acceso SOLO al proyecto (código, logs, restart).
 # NO ve: el resto del home ni los secretos (.env, serviceAccountKey)
-# Uso: bash ~/gesbase/server/deploy/setup-partner.sh <usuario>
+# Uso: bash $HOME/gesbase-app/server/deploy/setup-partner.sh <usuario>
 # ============================================================
 
 set -e
@@ -32,8 +32,8 @@ fi
 setfacl -m "u:$P:--x" "$HOME"
 
 # Proyecto: lectura/escritura completa + heredado en archivos nuevos
-setfacl -R  -m "u:$P:rwx" ~/gesbase
-setfacl -R -d -m "u:$P:rwx" ~/gesbase
+setfacl -R  -m "u:$P:rwx" $HOME/gesbase-app
+setfacl -R -d -m "u:$P:rwx" $HOME/gesbase-app
 
 # Logs: lectura/escritura
 setfacl -R  -m "u:$P:rwX" ~/gesbase-logs
@@ -48,8 +48,8 @@ setfacl    -m "u:$P:r-X" ~/bin
 setfacl    -m "u:$P:r-X" ~/bin/gesbase-start.sh ~/bin/gesbase-stop.sh 2>/dev/null || true
 
 # Secretos: negar explícitamente
-for f in ~/gesbase/server/.env ~/gesbase/server/.jwt-secret \
-         ~/gesbase/server/serviceAccountKey.json; do
+for f in $HOME/gesbase-app/server/.env $HOME/gesbase-app/server/.jwt-secret \
+         $HOME/gesbase-app/server/serviceAccountKey.json; do
     if [ -f "$f" ]; then
         chmod 600 "$f"
         setfacl -m "u:$P:---" "$f"
@@ -58,9 +58,9 @@ done
 
 echo ""
 echo "OK: '$P' ahora tiene acceso al proyecto GESBASE."
-echo "  - código:      ~/gesbase  (leer/editar)"
+echo "  - código:      $HOME/gesbase-app  (leer/editar)"
 echo "  - logs:        ~/gesbase-logs"
-echo "  - reiniciar:   touch ~/gesbase/.restart-requested"
+echo "  - reiniciar:   touch $HOME/gesbase-app/.restart-requested"
 echo "    (el watchdog reinicia todo en < 5 min, como usuario gesbase)"
 echo "  - NO accede a: resto del home, .env, .jwt-secret, serviceAccountKey"
 echo "  - DB: sin la contraseña de mongo no puede escribirla"
