@@ -1609,10 +1609,8 @@ footer{
 
 
         <form
+            id="formContacto"
             class="contact-form"
-            action="mailto:gesbase0@gmail.com"
-            method="post"
-            enctype="text/plain"
         >
 
             <input
@@ -1638,6 +1636,11 @@ footer{
             <button type="submit">
                 Enviar consulta
             </button>
+
+            <p
+                id="contactoEstado"
+                style="margin-top:12px;font-size:14px;display:none;"
+            ></p>
 
         </form>
 
@@ -1681,6 +1684,82 @@ footer{
 >
     ☎
 </a>
+
+
+<script>
+
+document
+.getElementById("formContacto")
+.addEventListener(
+    "submit",
+    async function(e){
+
+        e.preventDefault();
+
+        const form = e.target;
+        const estado =
+            document.getElementById("contactoEstado");
+        const btn =
+            form.querySelector("button");
+
+        const datos = {
+            nombre: form.nombre.value.trim(),
+            email: form.email.value.trim(),
+            mensaje: form.mensaje.value.trim()
+        };
+
+        btn.disabled = true;
+        btn.textContent = "Enviando...";
+        estado.style.display = "none";
+
+        try {
+
+            const resp = await fetch(
+                "/api/functions/contacto",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(datos)
+                }
+            );
+
+            const json = await resp.json();
+
+            if(!resp.ok){
+                throw new Error(
+                    json?.error?.message ||
+                    "Error del servidor"
+                );
+            }
+
+            estado.textContent =
+                "✅ Consulta enviada. " +
+                "Te contactamos a la brevedad.";
+            estado.style.color = "#16a34a";
+            estado.style.display = "block";
+            form.reset();
+
+        } catch(err){
+
+            estado.textContent =
+                "❌ " +
+                (err.message ||
+                 "No se pudo enviar. " +
+                 "Escribinos a gesbase0@gmail.com");
+            estado.style.color = "#dc2626";
+            estado.style.display = "block";
+
+        }
+
+        btn.disabled = false;
+        btn.textContent = "Enviar consulta";
+
+    }
+);
+
+</script>
 
 </body>
 

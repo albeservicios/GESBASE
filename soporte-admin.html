@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="theme-color"
+    content="#111827"
+>
+
+<meta
+    name="description"
+    content="Gestión de tickets de soporte - GESBASE"
+>
+
+<title>Tickets de soporte - GESBASE Admin</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.oculto{
+    display:none !important;
+}
+
+.cargando-pantalla{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:14px;
+    color:#6b7280;
+}
+
+.spinner{
+    width:42px;
+    height:42px;
+    border:4px solid #d1d5db;
+    border-top-color:#2563eb;
+    border-radius:50%;
+    animation:girar .8s linear infinite;
+}
+
+@keyframes girar{
+    to{ transform:rotate(360deg); }
+}
+
+.app{
+    max-width:1000px;
+    margin:auto;
+    min-height:100vh;
+    background:#fff;
+}
+
+header{
+    background:#111827;
+    color:#fff;
+    padding:22px 20px;
+}
+
+.header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.btn-volver{
+    width:42px;
+    height:42px;
+    border:none;
+    border-radius:10px;
+    background:#374151;
+    color:#fff;
+    font-size:21px;
+    cursor:pointer;
+}
+
+header h1{
+    font-size:25px;
+}
+
+header p{
+    margin-top:5px;
+    color:#d1d5db;
+    font-size:14px;
+}
+
+main{
+    padding:20px;
+}
+
+.mensaje{
+    display:none;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:18px;
+    font-size:14px;
+}
+
+.mensaje.error{
+    display:block;
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.mensaje.ok{
+    display:block;
+    background:#dcfce7;
+    color:#166534;
+}
+
+.tarjeta{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:18px;
+}
+
+.titulo{
+    font-size:21px;
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.filtros{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:16px;
+}
+
+.chip{
+    border:1px solid #d1d5db;
+    background:#fff;
+    border-radius:999px;
+    padding:7px 14px;
+    font-size:13px;
+    font-weight:bold;
+    cursor:pointer;
+    color:#374151;
+}
+
+.chip.activo{
+    background:#2563eb;
+    border-color:#2563eb;
+    color:#fff;
+}
+
+.ticket{
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:12px;
+    cursor:pointer;
+}
+
+.ticket:hover{
+    background:#f9fafb;
+}
+
+.ticket-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+}
+
+.ticket-asunto{
+    font-weight:bold;
+    font-size:16px;
+}
+
+.ticket-meta{
+    color:#9ca3af;
+    font-size:12px;
+    margin-top:4px;
+}
+
+.ticket-cliente{
+    color:#6b7280;
+    font-size:13px;
+    margin-top:6px;
+}
+
+.badge{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.badge.abierto{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+.badge.en-proceso{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.badge.resuelto{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.badge.cerrado{
+    background:#f3f4f6;
+    color:#4b5563;
+}
+
+.badge.alta{
+    background:#fee2e2;
+    color:#991b1b;
+    margin-left:6px;
+}
+
+.hilo{
+    border-top:1px solid #e5e7eb;
+    margin-top:14px;
+    padding-top:14px;
+}
+
+.msg{
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
+    font-size:14px;
+    line-height:1.5;
+    white-space:pre-wrap;
+}
+
+.msg.usuario{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+}
+
+.msg.admin{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+}
+
+.msg .quien{
+    font-weight:bold;
+    font-size:12px;
+    color:#6b7280;
+    margin-bottom:5px;
+}
+
+label{
+    display:block;
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+select,
+textarea{
+    width:100%;
+    padding:12px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    margin-bottom:14px;
+    font-family:inherit;
+    font-size:15px;
+}
+
+textarea{
+    min-height:100px;
+    resize:vertical;
+}
+
+button.primario{
+    border:0;
+    cursor:pointer;
+    background:#2563eb;
+    color:#fff;
+    padding:13px 20px;
+    border-radius:10px;
+    font-weight:bold;
+    font-size:15px;
+}
+
+button.primario:disabled{
+    background:#93c5fd;
+    cursor:default;
+}
+
+button.secundario{
+    border:1px solid #d1d5db;
+    cursor:pointer;
+    background:#fff;
+    color:#374151;
+    padding:10px 16px;
+    border-radius:10px;
+    font-weight:bold;
+    margin-left:8px;
+}
+
+.detalle-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.detalle-info{
+    color:#6b7280;
+    font-size:14px;
+    line-height:1.6;
+    margin-top:8px;
+}
+
+.detalle-info strong{
+    color:#111827;
+}
+
+.vacio{
+    color:#9ca3af;
+    text-align:center;
+    padding:25px 10px;
+    font-size:14px;
+}
+
+.acciones{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:14px;
+}
+
+.acciones select{
+    width:auto;
+    margin-bottom:0;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div
+    id="cargando"
+    class="cargando-pantalla"
+>
+    <div class="spinner"></div>
+    <div>Cargando tickets...</div>
+</div>
+
+<div
+    id="app"
+    class="app oculto"
+>
+
+<header>
+
+    <div class="header">
+
+        <button
+            id="btnVolver"
+            class="btn-volver"
+            type="button"
+        >←</button>
+
+        <div>
+            <h1>🎫 Tickets de soporte</h1>
+            <p>Gestión de consultas de usuarios</p>
+        </div>
+
+    </div>
+
+</header>
+
+<main>
+
+    <div
+        id="mensaje"
+        class="mensaje"
+    ></div>
+
+    <div class="tarjeta">
+
+        <div class="titulo">Tickets</div>
+
+        <div class="filtros" id="filtros">
+
+            <button
+                class="chip activo"
+                data-estado="todos"
+            >Todos</button>
+
+            <button
+                class="chip"
+                data-estado="abierto"
+            >Abiertos</button>
+
+            <button
+                class="chip"
+                data-estado="en-proceso"
+            >En proceso</button>
+
+            <button
+                class="chip"
+                data-estado="resuelto"
+            >Resueltos</button>
+
+            <button
+                class="chip"
+                data-estado="cerrado"
+            >Cerrados</button>
+
+        </div>
+
+        <div id="listaTickets">
+            <div class="vacio">Sin tickets.</div>
+        </div>
+
+    </div>
+
+
+    <div
+        id="tarjetaDetalle"
+        class="tarjeta oculto"
+    >
+
+        <div class="detalle-header">
+
+            <div>
+                <div
+                    id="detAsunto"
+                    class="ticket-asunto"
+                ></div>
+
+                <div
+                    id="detInfo"
+                    class="detalle-info"
+                ></div>
+            </div>
+
+            <span
+                id="detEstado"
+                class="badge"
+            ></span>
+
+        </div>
+
+        <div
+            id="detHilo"
+            class="hilo"
+        ></div>
+
+        <div
+            id="zonaRespuesta"
+            style="margin-top:14px;"
+        >
+
+            <label for="respuesta">
+                Responder al cliente
+            </label>
+
+            <textarea
+                id="respuesta"
+                maxlength="4000"
+                placeholder="Escribí la respuesta (el cliente recibe un email)..."
+            ></textarea>
+
+            <div class="acciones">
+
+                <button
+                    id="btnResponder"
+                    class="primario"
+                    type="button"
+                >Enviar respuesta</button>
+
+                <label
+                    for="selEstado"
+                    style="margin:0 0 0 12px;"
+                >Estado:</label>
+
+                <select id="selEstado">
+                    <option value="abierto">Abierto</option>
+                    <option value="en-proceso">
+                        En proceso
+                    </option>
+                    <option value="resuelto">
+                        Resuelto
+                    </option>
+                    <option value="cerrado">Cerrado</option>
+                </select>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+</div>
+
+
+<script type="module">
+
+// =====================================================
+// FIREBASE
+// =====================================================
+
+import {
+    auth,
+    db
+} from "./Js/firebase.js";
+
+import {
+    onAuthStateChanged
+} from "./Js/local/firebase-auth.js";
+
+import {
+    collection,
+    doc,
+    updateDoc,
+    getDoc,
+    query,
+    orderBy,
+    onSnapshot,
+    serverTimestamp,
+    arrayUnion
+} from "./Js/local/firebase-firestore.js";
+
+
+// =====================================================
+// ELEMENTOS
+// =====================================================
+
+const cargando =
+document.getElementById("cargando");
+
+const app =
+document.getElementById("app");
+
+const mensaje =
+document.getElementById("mensaje");
+
+const listaTickets =
+document.getElementById("listaTickets");
+
+const tarjetaDetalle =
+document.getElementById("tarjetaDetalle");
+
+
+// =====================================================
+// ESTADO
+// =====================================================
+
+let tickets = [];
+let filtroEstado = "todos";
+let ticketSeleccionado = null;
+let unsubscribe = null;
+
+
+// =====================================================
+// HELPERS
+// =====================================================
+
+function mostrarMensaje(
+    texto,
+    tipo
+){
+
+    mensaje.textContent = texto;
+
+    mensaje.className =
+        "mensaje " + tipo;
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+    if(tipo === "ok"){
+
+        setTimeout(
+            () => {
+                mensaje.className = "mensaje";
+            },
+            5000
+        );
+
+    }
+
+}
+
+
+function fechaTexto(valor){
+
+    const fecha =
+        valor?.toDate ?
+            valor.toDate() :
+            valor ? new Date(valor) : null;
+
+    if(!fecha || isNaN(fecha)) return "";
+
+    return fecha.toLocaleString("es-AR");
+
+}
+
+
+function escapar(texto){
+
+    const div = document.createElement("div");
+    div.textContent = texto;
+    return div.innerHTML;
+
+}
+
+
+function badgeEstado(estado){
+
+    const s = estado || "abierto";
+
+    return `<span class="badge ${s}">${s}</span>`;
+
+}
+
+
+function esAdmin(usuario, data){
+
+    const email =
+        String(usuario?.email || "").toLowerCase();
+
+    const rol =
+        String(
+            data?.rol || data?.role || ""
+        ).toLowerCase();
+
+    return (
+        email === "julianbattauz006@gmail.com"
+        ||
+        rol === "admin"
+        ||
+        rol === "administrador"
+    );
+
+}
+
+
+// =====================================================
+// LISTA
+// =====================================================
+
+function renderTickets(){
+
+    const filtrados =
+        filtroEstado === "todos" ?
+            tickets :
+            tickets.filter(
+                t =>
+                    (t.estado || "abierto") ===
+                    filtroEstado
+            );
+
+
+    if(!filtrados.length){
+
+        listaTickets.innerHTML =
+            '<div class="vacio">Sin tickets.</div>';
+
+        return;
+
+    }
+
+
+    listaTickets.innerHTML =
+        filtrados.map(t => `
+
+            <div
+                class="ticket"
+                data-id="${t.id}"
+            >
+
+                <div class="ticket-top">
+                    <div class="ticket-asunto">
+                        ${escapar(
+                            t.asunto || "Sin asunto"
+                        )}
+                    </div>
+                    <div>
+                        ${badgeEstado(t.estado)}
+                        ${
+                            t.prioridad === "alta" ?
+                                '<span class="badge alta">' +
+                                'alta</span>' : ""
+                        }
+                    </div>
+                </div>
+
+                <div class="ticket-cliente">
+                    ${escapar(t.nombre || "")}
+                    · ${escapar(t.email || "sin email")}
+                    ${t.empresaId ?
+                        " · " + escapar(t.empresaId) : ""}
+                </div>
+
+                <div class="ticket-meta">
+                    ${fechaTexto(t.creadoEn)}
+                    · ${t.respuestas?.length || 0} respuesta(s)
+                    · #${t.id}
+                </div>
+
+            </div>
+
+        `).join("");
+
+
+    listaTickets
+        .querySelectorAll(".ticket")
+        .forEach(el => {
+
+            el.addEventListener(
+                "click",
+                () => seleccionarTicket(el.dataset.id)
+            );
+
+        });
+
+}
+
+
+function seleccionarTicket(id){
+
+    ticketSeleccionado =
+        tickets.find(t => t.id === id) || null;
+
+    if(!ticketSeleccionado) return;
+
+    tarjetaDetalle.classList.remove("oculto");
+
+    renderDetalle();
+
+    tarjetaDetalle.scrollIntoView({
+        behavior:"smooth"
+    });
+
+}
+
+
+function renderDetalle(){
+
+    const t = ticketSeleccionado;
+
+    document.getElementById("detAsunto")
+        .textContent = t.asunto || "Sin asunto";
+
+
+    document.getElementById("detInfo")
+        .innerHTML =
+            `Ticket <strong>#${escapar(t.id)}</strong><br>` +
+            `<strong>${escapar(t.nombre || "")}</strong>` +
+            ` · ${escapar(t.email || "sin email")}<br>` +
+            (t.empresaId ?
+                `Empresa: <strong>` +
+                    escapar(t.empresaId) +
+                `</strong><br>` : "") +
+            `Creado: ${fechaTexto(t.creadoEn)}` +
+            (t.prioridad ?
+                ` · Prioridad: ` +
+                escapar(t.prioridad) : "");
+
+
+    const estado = t.estado || "abierto";
+
+    const detEstado =
+        document.getElementById("detEstado");
+
+    detEstado.className = "badge " + estado;
+    detEstado.textContent = estado;
+
+    document.getElementById("selEstado")
+        .value = estado;
+
+
+    const hilo = [
+        {
+            de:"usuario",
+            texto:t.mensaje,
+            fecha:t.creadoEn
+        },
+        ...(t.respuestas || [])
+    ];
+
+
+    document.getElementById("detHilo")
+        .innerHTML =
+            hilo.map(r => `
+
+                <div class="msg ${
+                    r.de === "admin" ?
+                        "admin" : "usuario"
+                }">
+                    <div class="quien">
+                        ${r.de === "admin" ?
+                            "Soporte" :
+                            escapar(t.nombre || "Cliente")}
+                        · ${fechaTexto(r.fecha)}
+                    </div>
+                    ${escapar(r.texto || "")}
+                </div>
+
+            `).join("");
+
+
+    document.getElementById("zonaRespuesta")
+        .classList.toggle(
+            "oculto",
+            estado === "cerrado"
+        );
+
+}
+
+
+// =====================================================
+// FILTROS
+// =====================================================
+
+document
+.getElementById("filtros")
+.addEventListener(
+    "click",
+    e => {
+
+        const chip =
+            e.target.closest(".chip");
+
+        if(!chip) return;
+
+        filtroEstado =
+            chip.dataset.estado;
+
+        document
+            .querySelectorAll(".chip")
+            .forEach(c =>
+                c.classList.toggle(
+                    "activo",
+                    c === chip
+                )
+            );
+
+        renderTickets();
+
+    }
+);
+
+
+// =====================================================
+// RESPONDER / ESTADO
+// =====================================================
+
+document
+.getElementById("btnResponder")
+.addEventListener(
+    "click",
+    async () => {
+
+        if(!ticketSeleccionado) return;
+
+        const texto =
+            document
+                .getElementById("respuesta")
+                .value.trim();
+
+        if(!texto) return;
+
+
+        const btn =
+            document.getElementById("btnResponder");
+
+        btn.disabled = true;
+        btn.textContent = "Enviando...";
+
+        try {
+
+            const estado =
+                document
+                    .getElementById("selEstado")
+                    .value;
+
+            await updateDoc(
+                doc(
+                    db,
+                    "soporte",
+                    ticketSeleccionado.id
+                ),
+                {
+                    respuestas: arrayUnion({
+                        de: "admin",
+                        texto,
+                        fecha: new Date().toISOString()
+                    }),
+                    estado:
+                        estado === "abierto" ?
+                            "en-proceso" : estado,
+                    notificarUsuario: true,
+                    actualizadoEn: serverTimestamp()
+                }
+            );
+
+            document
+                .getElementById("respuesta").value = "";
+
+            mostrarMensaje(
+                "Respuesta enviada. " +
+                "El cliente recibe un email.",
+                "ok"
+            );
+
+        } catch(error){
+
+            console.error(error);
+
+            mostrarMensaje(
+                "No se pudo enviar la respuesta.",
+                "error"
+            );
+
+        }
+
+        btn.disabled = false;
+        btn.textContent = "Enviar respuesta";
+
+    }
+);
+
+
+document
+.getElementById("selEstado")
+.addEventListener(
+    "change",
+    async e => {
+
+        if(!ticketSeleccionado) return;
+
+        try {
+
+            await updateDoc(
+                doc(
+                    db,
+                    "soporte",
+                    ticketSeleccionado.id
+                ),
+                {
+                    estado: e.target.value,
+                    actualizadoEn: serverTimestamp()
+                }
+            );
+
+            mostrarMensaje(
+                "Estado actualizado.",
+                "ok"
+            );
+
+        } catch(error){
+
+            console.error(error);
+
+            mostrarMensaje(
+                "No se pudo cambiar el estado.",
+                "error"
+            );
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// VOLVER
+// =====================================================
+
+document
+.getElementById("btnVolver")
+.addEventListener(
+    "click",
+    () => {
+
+        window.location.href =
+            "index.html";
+
+    }
+);
+
+
+// =====================================================
+// AUTENTICACIÓN + ADMIN
+// =====================================================
+
+onAuthStateChanged(
+    auth,
+    async usuario => {
+
+        if(!usuario){
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        let data = {};
+
+        try {
+
+            const snap = await getDoc(
+                doc(db, "usuarios", usuario.uid)
+            );
+
+            if(snap.exists()) data = snap.data();
+
+        } catch(e){
+
+            console.warn(e);
+
+        }
+
+
+        if(!esAdmin(usuario, data)){
+
+            window.location.replace(
+                "index.html"
+            );
+
+            return;
+
+        }
+
+
+        cargando.classList.add("oculto");
+        app.classList.remove("oculto");
+
+
+        if(unsubscribe) unsubscribe();
+
+        unsubscribe = onSnapshot(
+            query(
+                collection(db, "soporte"),
+                orderBy("creadoEn", "desc")
+            ),
+            snap => {
+
+                tickets =
+                    snap.docs.map(d => ({
+                        id: d.id,
+                        ...d.data()
+                    }));
+
+                renderTickets();
+
+                if(ticketSeleccionado){
+
+                    const actualizado =
+                        tickets.find(
+                            t => t.id ===
+                                ticketSeleccionado.id
+                        );
+
+                    if(actualizado){
+
+                        ticketSeleccionado =
+                            actualizado;
+
+                        renderDetalle();
+
+                    }
+
+                }
+
+
+                // Deep link desde el email: ?id=
+                if(!ticketSeleccionado){
+
+                    const params =
+                        new URLSearchParams(
+                            location.search
+                        );
+
+                    const id =
+                        params.get("id");
+
+                    if(id) seleccionarTicket(id);
+
+                }
+
+            }
+        );
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>

@@ -43,5 +43,7 @@ export const config = {
     twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER || "",
     geminiApiKey: process.env.GEMINI_API_KEY || "",
     // URL pública del sitio (para links en emails)
-    publicUrl: process.env.PUBLIC_URL || "http://localhost:3000"
+    publicUrl: process.env.PUBLIC_URL || "http://localhost:3000",
+    // Email del admin (recibe contactos y tickets de soporte)
+    adminEmail: process.env.ADMIN_EMAIL || "gesbase0@gmail.com"
 };

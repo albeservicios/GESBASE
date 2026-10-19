@@ -9,6 +9,7 @@ import { docs, mongo } from "./db.js";
 import { config } from "./config.js";
 import { createUser } from "./auth.js";
 import { stripMeta } from "./firestore-internal.js";
+import { enviarEmail, escaparHTML, plantillaEmail } from "./mailer.js";
 
 export const functionsRouter = Router();
 
@@ -114,6 +115,80 @@ const callables = {
             email,
             uid: user._id
         };
+    },
+
+    // ----------------------------------------------------------
+    // contacto {nombre, email, mensaje}
+    // Formulario público del landing -> email al admin + auto-reply
+    // ----------------------------------------------------------
+    async contacto(data) {
+        const nombre = String(data.nombre || "").trim();
+        const email = String(data.email || "").trim();
+        const mensaje = String(data.mensaje || "").trim();
+
+        if (!nombre || !mensaje) {
+            const err = new Error("Faltan nombre y mensaje.");
+            err.code = "invalid-argument";
+            throw err;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            const err = new Error("Email inválido.");
+            err.code = "invalid-argument";
+            throw err;
+        }
+        if (mensaje.length > 4000 || nombre.length > 200) {
+            const err = new Error("Mensaje demasiado largo.");
+            err.code = "invalid-argument";
+            throw err;
+        }
+
+        const registro = {
+            nombre, email, mensaje,
+            origen: "landing",
+            creadoEn: new Date()
+        };
+        await mongo.collection("contactos").insertOne(registro);
+
+        try {
+            await enviarEmail({
+                to: config.adminEmail,
+                subject: `📩 Contacto web: ${nombre}`,
+                html: plantillaEmail({
+                    titulo: "Nuevo contacto desde la web",
+                    cuerpo:
+                        `<p><strong>${escaparHTML(nombre)}</strong> ` +
+                        `(${escaparHTML(email)}) escribió:</p>` +
+                        `<div style="margin:15px 0;padding:15px;background:#f9fafb;border-radius:10px;white-space:pre-wrap;">${escaparHTML(mensaje)}</div>` +
+                        `<p style="font-size:13px;color:#6b7280;">Respondé directamente a ` +
+                        `<a href="mailto:${escaparHTML(email)}">${escaparHTML(email)}</a>.</p>`
+                })
+            });
+            await enviarEmail({
+                to: email,
+                subject: "Recibimos tu consulta - GESBASE",
+                html: plantillaEmail({
+                    titulo: "Gracias por escribirnos",
+                    cuerpo:
+                        `<p>Hola <strong>${escaparHTML(nombre)}</strong>.</p>` +
+                        `<p>Recibimos tu consulta y te responderemos a la brevedad.</p>` +
+                        `<div style="margin:15px 0;padding:15px;background:#f9fafb;border-radius:10px;white-space:pre-wrap;">${escaparHTML(mensaje)}</div>`
+                })
+            });
+            registro.emails = { admin: "enviado", usuario: "enviado" };
+        } catch (e) {
+            console.error("Contacto: error enviando emails:", e);
+            registro.emails = {
+                error: String(e?.message || e)
+            };
+            const err = new Error(
+                "No se pudo enviar el email. " +
+                "Revisá la configuración de Resend en el servidor."
+            );
+            err.code = "internal";
+            throw err;
+        }
+
+        return { ok: true };
     }
 };
 

@@ -4,12 +4,16 @@
 //
 //  - salas/{id} onCreate                 -> push de llamada
 //  - notificacionesAlquiler/{id} onCreate -> SMS (Twilio) + email (Resend)
+//  - soporte/{id} onCreate/onUpdate      -> emails de ticket de soporte
 // ============================================================
 
 import { docs, mongo } from "./db.js";
 import { config } from "./config.js";
 import { writeEvents } from "./events.js";
 import { stripMeta } from "./firestore-internal.js";
+import {
+    enviarEmail, escaparHTML, plantillaEmail
+} from "./mailer.js";
 import twilio from "twilio";
 
 // ============================================================
@@ -192,15 +196,6 @@ function normalizarTelefono(telefono) {
     return "+54" + numero;
 }
 
-function escaparHTML(texto) {
-    return String(texto || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
 function construirEmailSolicitudAprobada({ nombre, solicitudId }) {
     const nombreSeguro = escaparHTML(nombre || "Cliente");
     const idSeguro = escaparHTML(solicitudId || "");
@@ -240,26 +235,11 @@ async function enviarEmailAlquiler({ nombre, email, solicitudId }) {
     if (!email) {
         throw new Error("El cliente no tiene un email.");
     }
-    if (!config.resendApiKey || !config.resendFromEmail) {
-        throw new Error("Faltan las credenciales de Resend.");
-    }
-    const { Resend } = await import("resend");
-    const resend = new Resend(config.resendApiKey);
-    const resultado = await resend.emails.send({
-        from: config.resendFromEmail,
-        to: [email],
+    return enviarEmail({
+        to: email,
         subject: "🏠 Solicitud de alquiler aprobada - GESBASE",
         html: construirEmailSolicitudAprobada({ nombre, solicitudId })
     });
-    if (resultado?.error) {
-        throw new Error(
-            resultado.error.message || "Resend informó un error."
-        );
-    }
-    return {
-        messageId: resultado?.data?.id || "",
-        email
-    };
 }
 
 async function procesarNotificacionAlquiler(notificacionId, data) {
@@ -430,33 +410,159 @@ async function procesarNotificacionAlquiler(notificacionId, data) {
 }
 
 // ============================================================
+// TRIGGER: soporte/{id} -> emails de ticket
+//  - create: confirmación al usuario + aviso al admin
+//  - update con notificarUsuario/notificarAdmin: email al otro lado
+// ============================================================
+
+const linkTicket = id =>
+    `${config.publicUrl}/soporte-admin.html?id=` +
+    encodeURIComponent(id);
+
+async function notificarTicketCreado(ticketId, ticket) {
+    const nombre = escaparHTML(ticket.nombre || "Usuario");
+    const asunto = escaparHTML(ticket.asunto || "Sin asunto");
+    const mensaje = escaparHTML(ticket.mensaje || "");
+    const emailUsuario = String(ticket.email || "").trim();
+    const updates = { actualizadoEn: new Date() };
+
+    try {
+        if (emailUsuario) {
+            await enviarEmail({
+                to: emailUsuario,
+                subject: `🎫 Ticket recibido: ${ticket.asunto || "soporte"} - GESBASE`,
+                html: plantillaEmail({
+                    titulo: "Recibimos tu ticket",
+                    cuerpo:
+                        `<p>Hola <strong>${nombre}</strong>.</p>` +
+                        `<p>Tu consulta fue registrada como ticket ` +
+                        `<strong>#${escaparHTML(ticketId)}</strong>. ` +
+                        `Te responderemos a la brevedad.</p>` +
+                        `<div style="margin:15px 0;padding:15px;background:#f9fafb;border-radius:10px;">` +
+                        `<strong>${asunto}</strong><br>` +
+                        `<span style="white-space:pre-wrap;">${mensaje}</span></div>`
+                })
+            });
+            updates["emailUsuarioConfirmacion"] = "enviado";
+        }
+        await enviarEmail({
+            to: config.adminEmail,
+            subject: `🎫 Nuevo ticket: ${ticket.asunto || "soporte"} (${ticket.nombre || ticket.email || "usuario"})`,
+            html: plantillaEmail({
+                titulo: "Nuevo ticket de soporte",
+                cuerpo:
+                    `<p><strong>${nombre}</strong> ` +
+                    `(${escaparHTML(ticket.email || "sin email")}) ` +
+                    `abrió el ticket <strong>#${escaparHTML(ticketId)}</strong>:</p>` +
+                    `<div style="margin:15px 0;padding:15px;background:#f9fafb;border-radius:10px;">` +
+                    `<strong>${asunto}</strong><br>` +
+                    `<span style="white-space:pre-wrap;">${mensaje}</span></div>` +
+                    `<p><a href="${linkTicket(ticketId)}">Abrir en el panel de administración</a></p>`
+            })
+        });
+        updates["emailAdminTicket"] = "enviado";
+    } catch (e) {
+        console.error("Soporte: error emails ticket nuevo:", e);
+        updates["emailError"] = String(e?.message || e);
+    }
+    await docs().updateOne(
+        { _id: `soporte/${ticketId}` },
+        { $set: updates, $inc: { _v: 1 } }
+    );
+}
+
+async function notificarRespuestaTicket(ticketId, ticket) {
+    const path = `soporte/${ticketId}`;
+    const ultima = (ticket.respuestas || []).slice(-1)[0];
+    if (!ultima) return;
+
+    const texto = escaparHTML(ultima.texto || "");
+    const updates = { actualizadoEn: new Date() };
+
+    try {
+        if (ticket.notificarUsuario && ticket.email) {
+            await enviarEmail({
+                to: String(ticket.email).trim(),
+                subject: `💬 Respuesta a tu ticket: ${ticket.asunto || "soporte"} - GESBASE`,
+                html: plantillaEmail({
+                    titulo: "Tenés una respuesta",
+                    cuerpo:
+                        `<p>Hola <strong>${escaparHTML(ticket.nombre || "Usuario")}</strong>.</p>` +
+                        `<p>Respondimos tu ticket <strong>#${escaparHTML(ticketId)}</strong> ` +
+                        `(${escaparHTML(ticket.asunto || "")}):</p>` +
+                        `<div style="margin:15px 0;padding:15px;background:#f9fafb;border-radius:10px;white-space:pre-wrap;">${texto}</div>` +
+                        `<p>Podés responder desde tu panel en GESBASE.</p>`
+                })
+            });
+            updates.notificarUsuario = false;
+            updates["ultimoEmailUsuarioEn"] = new Date();
+        }
+        if (ticket.notificarAdmin) {
+            await enviarEmail({
+                to: config.adminEmail,
+                subject: `💬 Respuesta en ticket #${ticketId} (${ticket.nombre || ticket.email || "usuario"})`,
+                html: plantillaEmail({
+                    titulo: "Respuesta en ticket de soporte",
+                    cuerpo:
+                        `<p><strong>${escaparHTML(ticket.nombre || "Usuario")}</strong> ` +
+                        `respondió el ticket <strong>#${escaparHTML(ticketId)}</strong> ` +
+                        `(${escaparHTML(ticket.asunto || "")}):</p>` +
+                        `<div style="margin:15px 0;padding:15px;background:#f9fafb;border-radius:10px;white-space:pre-wrap;">${texto}</div>` +
+                        `<p><a href="${linkTicket(ticketId)}">Abrir en el panel de administración</a></p>`
+                })
+            });
+            updates.notificarAdmin = false;
+            updates["ultimoEmailAdminEn"] = new Date();
+        }
+    } catch (e) {
+        console.error("Soporte: error email respuesta:", e);
+        updates["emailError"] = String(e?.message || e);
+    }
+    await docs().updateOne(
+        { _id: path },
+        { $set: updates, $inc: { _v: 1 } }
+    );
+}
+
+// ============================================================
 // CABLEADO DE TRIGGERS
 // ============================================================
 
 export function initTriggers() {
     writeEvents.on("write", async ({ path, parent, op }) => {
-        if (op !== "create") return;
         try {
-            if (parent === "salas") {
-                const doc = await docs().findOne({ _id: path });
-                if (doc) {
-                    await notificarLlamada(
-                        path.split("/").pop(),
-                        stripMeta(doc)
-                    );
+            const id = path.split("/").pop();
+            if (op === "create") {
+                if (parent === "salas") {
+                    const doc = await docs().findOne({ _id: path });
+                    if (doc) {
+                        await notificarLlamada(id, stripMeta(doc));
+                    }
+                } else if (parent === "notificacionesAlquiler") {
+                    const doc = await docs().findOne({ _id: path });
+                    if (doc) {
+                        await procesarNotificacionAlquiler(
+                            id,
+                            stripMeta(doc)
+                        );
+                    }
+                } else if (parent === "soporte") {
+                    const doc = await docs().findOne({ _id: path });
+                    if (doc) {
+                        await notificarTicketCreado(id, stripMeta(doc));
+                    }
                 }
-            } else if (parent === "notificacionesAlquiler") {
+            } else if (op === "update" && parent === "soporte") {
                 const doc = await docs().findOne({ _id: path });
-                if (doc) {
-                    await procesarNotificacionAlquiler(
-                        path.split("/").pop(),
-                        stripMeta(doc)
-                    );
+                if (doc && (doc.notificarUsuario || doc.notificarAdmin)) {
+                    await notificarRespuestaTicket(id, stripMeta(doc));
                 }
             }
         } catch (e) {
             console.error("Error en trigger:", e);
         }
     });
-    console.log("Triggers registrados (salas, notificacionesAlquiler)");
+    console.log(
+        "Triggers registrados (salas, notificacionesAlquiler, soporte)"
+    );
 }
