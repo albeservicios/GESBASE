@@ -14,8 +14,18 @@ import { fileURLToPath } from "node:url";
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const serverDir = path.resolve(dir, "..");
 const exportDir = path.join(serverDir, "data", "export");
-const MONGO_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017";
-const DB = process.env.MONGODB_DB || "gesbase";
+
+const env = {};
+const envFile = path.join(serverDir, ".env");
+if (fs.existsSync(envFile)) {
+    for (const line of fs.readFileSync(envFile, "utf8").split("\n")) {
+        const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+        if (m) env[m[1]] = m[2];
+    }
+}
+const MONGO_URI =
+    process.env.MONGODB_URI || env.MONGODB_URI || "mongodb://127.0.0.1:27017";
+const DB = process.env.MONGODB_DB || env.MONGODB_DB || "gesbase";
 
 if (!fs.existsSync(exportDir)) {
     console.error(
