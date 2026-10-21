@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="description" content="GESBASE - Ver presupuesto">
+<title>Ver presupuesto - GESBASE</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f3f4f6;color:#111827}
+.contenedor{max-width:760px;margin:auto;min-height:100vh;background:#fff}
+header{background:#111827;color:#fff;padding:22px}
+header h1{font-size:25px}
+header p{margin-top:5px;color:#d1d5db;font-size:14px}
+main{padding:18px}
+.cargando{text-align:center;padding:35px 15px;color:#6b7280}
+.error{background:#fee2e2;color:#991b1b;padding:15px;border-radius:10px;white-space:pre-wrap;line-height:1.5}
+.presupuesto{border:1px solid #d1d5db;border-radius:12px;padding:20px}
+.empresa{text-align:center;padding-bottom:14px;margin-bottom:15px;border-bottom:2px solid #111827}
+.logo-empresa{max-width:140px;max-height:80px;object-fit:contain;margin:0 auto 8px;display:none}
+.empresa-nombre{font-size:21px;font-weight:bold}
+.empresa-dato{font-size:12px;color:#4b5563;margin-top:3px;overflow-wrap:anywhere}
+.titulo{text-align:center;font-size:20px;font-weight:bold;margin:15px 0 20px}
+.seccion{margin-top:18px}
+.seccion-titulo{font-size:14px;font-weight:bold;border-bottom:1px solid #111827;padding-bottom:5px;margin-bottom:10px}
+.fila{padding:5px 0;font-size:14px;overflow-wrap:anywhere}
+.etiqueta{font-weight:bold}
+.descripcion,.consideraciones{white-space:pre-wrap;line-height:1.5;overflow-wrap:anywhere}
+.item-detalle{padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:13px}
+.item-titulo{font-weight:bold}
+.item-datos{color:#4b5563;margin-top:3px;overflow-wrap:anywhere}
+.subtotal{text-align:right;font-weight:bold;padding-top:8px}
+.importes{margin-top:12px;border:1px solid #d1d5db;padding:12px}
+.importe{display:flex;justify-content:space-between;gap:12px;padding:7px 0;font-size:14px}
+.total{margin-top:8px;padding-top:10px;border-top:2px solid #111827;display:flex;justify-content:space-between;gap:12px;font-size:18px;font-weight:bold}
+.consideraciones{font-size:13px}
+button,.boton{display:block;width:100%;padding:14px;border:0;border-radius:10px;font-size:15px;font-weight:bold;text-align:center;text-decoration:none;cursor:pointer;margin-top:12px}
+.pdf{background:#dc2626;color:#fff}
+.editar{background:#2563eb;color:#fff}
+.trabajo{background:#16a34a;color:#fff}
+.volver{background:#e5e7eb;color:#111827}
+.relacion{margin-top:15px;padding:12px;background:#ecfdf5;border:1px solid #86efac;border-radius:10px;color:#166534;font-size:13px;line-height:1.5}
+@media(max-width:480px){main{padding:10px}.presupuesto{padding:13px}.total{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="contenedor">
+<header><h1>GESBASE</h1><p>Presupuesto</p></header>
+<main>
+<div id="cargando" class="cargando">Cargando presupuesto...</div>
+<div id="error" class="error" style="display:none"></div>
+<div id="contenido" style="display:none">
+<div class="presupuesto">
+<div class="empresa">
+<img id="logoEmpresa" class="logo-empresa" alt="Logo de empresa">
+<div id="empresaNombre" class="empresa-nombre">GESBASE</div>
+<div id="empresaRazonSocial" class="empresa-dato">Razón Social: -</div>
+<div id="empresaCuit" class="empresa-dato">CUIT Nº: -</div>
+<div id="empresaTelefono" class="empresa-dato">Tel./Cel: -</div>
+<div id="empresaEmail" class="empresa-dato">Mail: -</div>
+</div>
+<div class="titulo">PEDIDO DE PRESUPUESTO</div>
+<div class="seccion">
+<div class="seccion-titulo">DATOS DEL CLIENTE</div>
+<div class="fila"><b>Cliente: </b><span id="cliente">-</span></div>
+<div class="fila"><b>CUIT: </b><span id="clienteCuit">-</span></div>
+<div class="fila"><b>Teléfono: </b><span id="clienteTelefono">-</span></div>
+<div class="fila"><b>Email: </b><span id="clienteEmail">-</span></div>
+<div class="fila"><b>Dirección: </b><span id="clienteDireccion">-</span></div>
+<div class="fila"><b>Localidad: </b><span id="clienteLocalidad">-</span></div>
+<div class="fila"><b>N.º de agenda: </b><span id="numeroAgenda">-</span></div>
+<div class="fila"><b>Fecha: </b><span id="fecha">-</span></div>
+</div>
+<div class="seccion">
+<div class="seccion-titulo">DATOS DEL CONTRATISTA</div>
+<div class="fila"><b>Nombre y Apellido: </b><span id="nombreApellido">-</span></div>
+<div class="fila"><b>Razón Social: </b><span id="razonSocial">-</span></div>
+<div class="fila"><b>CUIT Nº: </b><span id="cuit">-</span></div>
+<div class="fila"><b>Tel./ Cel: </b><span id="telefono">-</span></div>
+<div class="fila"><b>Mail: </b><span id="email">-</span></div>
+</div>
+<div class="seccion">
+<div class="seccion-titulo">DETALLE DEL PRESUPUESTO</div>
+<div class="fila"><b>TAREAS A REALIZAR</b><div id="descripcion" class="descripcion">-</div></div>
+<div class="fila"><b>MATERIALES</b><div id="materialesLista">-</div></div>
+<div class="fila"><b>MANO DE OBRA</b><div id="manoObraDetalle">-</div></div>
+<div class="fila"><b>OBSERVACIONES</b><div id="observaciones" class="descripcion">-</div></div>
+<div class="fila"><b>Lugar de Prestación del Servicio:</b><div id="lugarTrabajo" class="descripcion">-</div></div>
+<div class="fila"><b>Otros:</b><div id="otros" class="descripcion">-</div></div>
+</div>
+<div class="seccion">
+<div class="seccion-titulo">IMPORTES</div>
+<div style="font-size:12px;margin-bottom:8px">Indicar valores sin IVA</div>
+<div class="importes">
+<div class="importe"><span>Importe Material</span><strong>$ <span id="importeMaterial">0,00</span></strong></div>
+<div class="importe"><span>Importe Mano de Obra</span><strong>$ <span id="importeManoObra">0,00</span></strong></div>
+<div class="importe"><span>Viáticos</span><strong>$ <span id="importeViaticos">0,00</span></strong></div>
+<div class="importe"><span>Flete</span><strong>$ <span id="importeFlete">0,00</span></strong></div>
+<div class="total"><span>PRESUPUESTO</span><strong>$ <span id="importeTotal">0,00</span></strong></div>
+</div>
+</div>
+<div class="seccion"><div class="seccion-titulo">OTRAS CONSIDERACIONES</div>
+<div id="consideraciones" class="consideraciones">VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE REVISAR DICHA COTIZACIÓN.</div>
+</div>
+<div id="relacionTrabajo" class="relacion" style="display:none">Este presupuesto está vinculado al cliente y puede utilizarse para crear un trabajo.</div>
+</div>
+<button id="btnPDF" class="pdf" type="button">📄 GENERAR PDF</button>
+<a id="btnTrabajo" class="boton trabajo" href="#">🔧 CREAR TRABAJO DESDE ESTE PRESUPUESTO</a>
+<a id="btnEditar" class="boton editar" href="#">✏️ EDITAR PRESUPUESTO</a>
+<a href="presupuestos.html" class="boton volver">⬅️ VOLVER A PRESUPUESTOS</a>
+</div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script type="module">
+import { auth, db } from "./Js/firebase.js";
+import { onAuthStateChanged } from "./Js/local/firebase-auth.js";
+import { doc, getDoc } from "./Js/local/firebase-firestore.js";
+
+const $ = id => document.getElementById(id);
+const cargando = $("cargando"), errorElemento = $("error"), contenido = $("contenido");
+const parametros = new URLSearchParams(location.search);
+const presupuestoId = parametros.get("id");
+let datosPresupuesto = {}, datosUsuario = {}, datosEmpresa = {}, datosCliente = {};
+let clienteIdReal = "", presupuestoCargado = false;
+
+function texto(v) { return v === undefined || v === null || String(v).trim() === "" ? "-" : String(v); }
+function numero(v) {
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+  if (v === undefined || v === null || v === "") return 0;
+  let s = String(v).trim().replace(/\s/g,"").replace(/\$/g,"");
+  if (s.includes(",")) s = s.replace(/\./g,"").replace(",",".");
+  const n = Number(s); return Number.isFinite(n) ? n : 0;
+}
+function dinero(v) { return numero(v).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function mostrarError(m) {
+  console.error("GESBASE:",m); cargando.style.display="none"; contenido.style.display="none";
+  errorElemento.textContent=m; errorElemento.style.display="block";
+}
+function listaMateriales() {
+  for (const k of ["materiales","materialesLista","itemsMateriales"]) if (Array.isArray(datosPresupuesto[k])) return datosPresupuesto[k];
+  return [];
+}
+function listaManoObra() { return Array.isArray(datosPresupuesto.manoObraItems) ? datosPresupuesto.manoObraItems : []; }
+function precioItem(i) { return numero(i?.precio ?? i?.precioUnitario ?? i?.importe ?? 0); }
+function cantidadItem(i) { return numero(i?.cantidad ?? 0); }
+function totalItem(i) { return i?.resultado !== undefined ? numero(i.resultado) : precioItem(i)*cantidadItem(i); }
+function totalMateriales() { return listaMateriales().reduce((s,i)=>s+totalItem(i),0); }
+function totalManoObra() {
+  const items=listaManoObra();
+  return items.length ? items.reduce((s,i)=>s+totalItem(i),0) : numero(datosPresupuesto.manoObra ?? datosPresupuesto.importeManoObra);
+}
+function clienteNombre() {
+  const completo=[datosCliente.nombre,datosCliente.apellido].filter(Boolean).join(" ").trim();
+  return completo || datosCliente.empresa || datosCliente.razonSocial || datosCliente.razon_social ||
+    datosPresupuesto.cliente || datosPresupuesto.nombreCliente || datosPresupuesto.clienteNombre || "Cliente";
+}
+function agregarDetalle(container, lista, tipo) {
+  container.innerHTML="";
+  if (!lista.length) { container.textContent="Sin detalles cargados."; return; }
+  for (const item of lista) {
+    const div=document.createElement("div"); div.className="item-detalle";
+    const titulo=document.createElement("div"); titulo.className="item-titulo";
+    titulo.textContent=texto(item?.tipo || item?.nombre || item?.descripcion || item?.trabajo);
+    const datos=document.createElement("div"); datos.className="item-datos";
+    datos.textContent=`Unidad: ${texto(item?.unidad || item?.unidadMedida || item?.u)} | Precio: $ ${dinero(precioItem(item))} | Cantidad: ${cantidadItem(item)} | Resultado: $ ${dinero(totalItem(item))}`;
+    div.append(titulo,datos); container.appendChild(div);
+  }
+  const subtotal=document.createElement("div"); subtotal.className="subtotal";
+  subtotal.textContent=`Total ${tipo}: $ ${dinero(lista.reduce((s,i)=>s+totalItem(i),0))}`;
+  container.appendChild(subtotal);
+}
+async function cargarPresupuesto(usuario) {
+  if (!presupuestoId) { mostrarError("Falta el ID del presupuesto en la dirección."); return; }
+  try {
+    const snap=await getDoc(doc(db,"presupuestos",presupuestoId));
+    if (!snap.exists()) { mostrarError("El presupuesto no existe."); return; }
+    datosPresupuesto=snap.data();
+    try {
+      const u=await getDoc(doc(db,"usuarios",usuario.uid));
+      if (u.exists()) datosUsuario=u.data();
+    } catch(e) { console.warn("No se pudo leer usuario",e); }
+    const empresaId=datosPresupuesto.empresaId || datosUsuario.empresaId || datosUsuario.idEmpresa || datosUsuario.empresa || "";
+    if (empresaId && typeof empresaId==="string") {
+      try { const e=await getDoc(doc(db,"empresas",empresaId)); if(e.exists()) datosEmpresa=e.data(); }
+      catch(e) { console.warn("No se pudo leer empresa",e); }
+    }
+    clienteIdReal=datosPresupuesto.clienteId || datosPresupuesto.idCliente || datosPresupuesto.clienteID || "";
+    if(clienteIdReal) {
+      try { const c=await getDoc(doc(db,"clientes",clienteIdReal)); if(c.exists()) datosCliente=c.data(); }
+      catch(e) { console.warn("No se pudo leer cliente",e); }
+    }
+    const empresa=datosEmpresa.nombreEmpresa || datosEmpresa.nombre || datosEmpresa.empresa || datosUsuario.empresa || "GESBASE";
+    const razon=datosEmpresa.razonSocial || datosEmpresa.razon_social || datosUsuario.razonSocial || datosUsuario.razon_social || "";
+    const cuit=datosEmpresa.cuit || datosUsuario.cuit || "";
+    const tel=datosEmpresa.telefono || datosEmpresa.telefonoEmpresa || datosUsuario.telefono || "";
+    const mail=datosEmpresa.email || datosUsuario.email || usuario.email || "";
+    $("empresaNombre").textContent=empresa;
+    $("empresaRazonSocial").textContent="Razón Social: "+texto(razon);
+    $("empresaCuit").textContent="CUIT Nº: "+texto(cuit);
+    $("empresaTelefono").textContent="Tel./Cel: "+texto(tel);
+    $("empresaEmail").textContent="Mail: "+texto(mail);
+    $("nombreApellido").textContent=texto([datosUsuario.nombre,datosUsuario.apellido].filter(Boolean).join(" "));
+    $("razonSocial").textContent=texto(razon); $("cuit").textContent=texto(cuit);
+    $("telefono").textContent=texto(tel); $("email").textContent=texto(mail);
+    const logo=datosEmpresa.logoUrl || datosEmpresa.logo || datosUsuario.logoUrl || datosUsuario.logo;
+    if(logo) { $("logoEmpresa").src=logo; $("logoEmpresa").style.display="block"; $("logoEmpresa").onerror=()=>{$("logoEmpresa").style.display="none";}; }
+
+    $("cliente").textContent=clienteNombre();
+    $("clienteCuit").textContent=texto(datosCliente.cuit || datosPresupuesto.clienteCuit);
+    $("clienteTelefono").textContent=texto(datosCliente.telefono || datosPresupuesto.clienteTelefono);
+    $("clienteEmail").textContent=texto(datosCliente.email || datosPresupuesto.clienteEmail);
+    $("clienteDireccion").textContent=texto(datosCliente.direccion || datosPresupuesto.clienteDireccion);
+    const loc=datosCliente.localidad || datosPresupuesto.clienteLocalidad || "";
+    const prov=datosCliente.provincia || datosPresupuesto.clienteProvincia || "";
+    $("clienteLocalidad").textContent=texto(loc+(loc&&prov?", ":"")+prov);
+    $("numeroAgenda").textContent=texto(datosPresupuesto.numeroAgenda || datosPresupuesto.numero || datosPresupuesto.numeroPresupuesto);
+    $("fecha").textContent=texto(datosPresupuesto.fecha);
+    $("descripcion").textContent=texto(datosPresupuesto.descripcion || datosPresupuesto.tareas || datosPresupuesto.concepto || datosPresupuesto.detalle);
+    agregarDetalle($("materialesLista"),listaMateriales(),"materiales");
+    agregarDetalle($("manoObraDetalle"),listaManoObra(),"mano de obra");
+    if(!listaManoObra().length) $("manoObraDetalle").textContent="$ "+dinero(totalManoObra());
+    $("observaciones").textContent=texto(datosPresupuesto.observaciones);
+    $("lugarTrabajo").textContent=texto(datosPresupuesto.lugarTrabajo || datosPresupuesto.lugar);
+    $("otros").textContent=texto(datosPresupuesto.otros);
+    const mat=totalMateriales() || numero(datosPresupuesto.materiales ?? datosPresupuesto.importeMaterial);
+    const mano=totalManoObra(), via=numero(datosPresupuesto.viaticos ?? datosPresupuesto.importeViaticos);
+    const flete=numero(datosPresupuesto.flete ?? datosPresupuesto.importeFlete);
+    const guardado=numero(datosPresupuesto.total ?? datosPresupuesto.totalFinal);
+    const total=guardado>0?guardado:mat+mano+via+flete;
+    $("importeMaterial").textContent=dinero(mat); $("importeManoObra").textContent=dinero(mano);
+    $("importeViaticos").textContent=dinero(via); $("importeFlete").textContent=dinero(flete); $("importeTotal").textContent=dinero(total);
+    $("consideraciones").textContent=datosPresupuesto.consideraciones || "VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE REVISAR DICHA COTIZACIÓN.";
+    $("btnEditar").href="editar-presupuesto.html?id="+encodeURIComponent(presupuestoId);
+    const q=new URLSearchParams({presupuestoId});
+    if(clienteIdReal) { q.set("clienteId",clienteIdReal); $("relacionTrabajo").style.display="block"; }
+    $("btnTrabajo").href="trabajo.html?"+q.toString();
+    presupuestoCargado=true; cargando.style.display="none"; contenido.style.display="block";
+  } catch(e) { console.error(e); mostrarError("No se pudo cargar el presupuesto.\n"+(e?.message || e)); }
+}
+function generarDocumentoPDF(mostrarPrecios) {
+  try {
+    if(!window.jspdf?.jsPDF) throw new Error("No se cargó jsPDF. Revisá la conexión a internet.");
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+    const margen=18, ancho=174; let y=18;
+    function espacio(n=8){ if(y+n>278){pdf.addPage();y=20;} }
+    function textoPDF(s,x=margen,opciones={}) {
+      const lineas=pdf.splitTextToSize(String(s ?? ""),ancho);
+      espacio(lineas.length*4.5+2); pdf.text(lineas,x,y,opciones); y+=lineas.length*4.5;
+    }
+    function tituloPDF(s) { espacio(12); pdf.setFont("helvetica","bold"); pdf.setFontSize(10); pdf.text(s,margen,y); y+=6; pdf.setFont("helvetica","normal"); }
+    const empresa=datosEmpresa.nombreEmpresa || datosEmpresa.nombre || datosEmpresa.empresa || datosUsuario.empresa || "GESBASE";
+    const razon=datosEmpresa.razonSocial || datosEmpresa.razon_social || datosUsuario.razonSocial || datosUsuario.razon_social || "";
+    const cuit=datosEmpresa.cuit || datosUsuario.cuit || "";
+    const tel=datosEmpresa.telefono || datosEmpresa.telefonoEmpresa || datosUsuario.telefono || "";
+    const mail=datosEmpresa.email || datosUsuario.email || auth.currentUser?.email || "";
+    pdf.setFont("helvetica","bold"); pdf.setFontSize(16); pdf.text(String(empresa),105,y,{align:"center"}); y+=7;
+    pdf.setFont("helvetica","normal"); pdf.setFontSize(9);
+    for(const s of [razon?"Razón Social: "+razon:"",cuit?"CUIT Nº: "+cuit:"",tel?"Tel./Cel: "+tel:"",mail?"Mail: "+mail:""]) {
+      if(s){pdf.text(s,105,y,{align:"center"});y+=5;}
+    }
+    y+=3; pdf.line(margen,y,192,y); y+=8;
+    pdf.setFont("helvetica","bold"); pdf.setFontSize(15); pdf.text("PEDIDO DE PRESUPUESTO",105,y,{align:"center"}); y+=10;
+    pdf.setFont("helvetica","normal"); pdf.setFontSize(10);
+    textoPDF("CLIENTE: "+clienteNombre());
+    textoPDF("N.º DE AGENDA: "+texto(datosPresupuesto.numeroAgenda || datosPresupuesto.numero || datosPresupuesto.numeroPresupuesto));
+    textoPDF("FECHA: "+texto(datosPresupuesto.fecha)); y+=3;
+    tituloPDF("DATOS DEL CONTRATISTA");
+    textoPDF("Nombre y Apellido: "+texto([datosUsuario.nombre,datosUsuario.apellido].filter(Boolean).join(" ")));
+    textoPDF("Razón Social: "+texto(razon)); textoPDF("CUIT Nº: "+texto(cuit));
+    textoPDF("Tel./Cel: "+texto(tel)); textoPDF("Mail: "+texto(mail)); y+=3;
+    tituloPDF("DETALLE DEL PRESUPUESTO");
+    pdf.setFont("helvetica","bold"); pdf.text("TAREAS A REALIZAR",margen,y); y+=6; pdf.setFont("helvetica","normal");
+    textoPDF(texto(datosPresupuesto.descripcion || datosPresupuesto.tareas || datosPresupuesto.concepto || datosPresupuesto.detalle)); y+=2;
+
+    function dibujarItems(nombre,items) {
+      tituloPDF(nombre);
+      if(!items.length){textoPDF("Sin detalles cargados.");return;}
+      if(mostrarPrecios) {
+        pdf.setFontSize(8); pdf.text("Descripción",margen,y); pdf.text("Unidad",105,y);
+        pdf.text("Precio",128,y,{align:"right"}); pdf.text("Cant.",146,y,{align:"right"});
+        pdf.text("Importe",192,y,{align:"right"}); y+=5;
+      }
+      for(const item of items) {
+        const desc=String(item?.tipo || item?.nombre || item?.descripcion || item?.trabajo || "Ítem");
+        const unidad=texto(item?.unidad || item?.unidadMedida || item?.u);
+        const cantidad=cantidadItem(item), precio=precioItem(item), total=totalItem(item);
+        const lineas=pdf.splitTextToSize(desc,mostrarPrecios?65:125);
+        espacio(Math.max(6,lineas.length*4)+2); pdf.setFont("helvetica","normal"); pdf.setFontSize(8);
+        pdf.text(lineas,margen,y);
+        if(mostrarPrecios) {
+          pdf.text(unidad,105,y); pdf.text("$"+dinero(precio),128,y,{align:"right"});
+          pdf.text(String(cantidad),146,y,{align:"right"}); pdf.text("$"+dinero(total),192,y,{align:"right"});
+        } else {
+          pdf.text("Cant.: "+cantidad+(unidad!=="-"?" "+unidad:""),192,y,{align:"right"});
+        }
+        y+=Math.max(5,lineas.length*4);
+      }
+      if(mostrarPrecios) {
+        espacio(8); pdf.setFont("helvetica","bold");
+        pdf.text("Total "+nombre.toLowerCase()+": $"+dinero(items.reduce((s,i)=>s+totalItem(i),0)),192,y,{align:"right"});
+        y+=7; pdf.setFont("helvetica","normal");
+      }
+    }
+    dibujarItems("MATERIALES",listaMateriales());
+    if(listaManoObra().length) dibujarItems("MANO DE OBRA",listaManoObra());
+    else { tituloPDF("MANO DE OBRA"); textoPDF(mostrarPrecios?"Importe mano de obra: $"+dinero(totalManoObra()):"Mano de obra incluida en la propuesta global."); }
+    if(datosPresupuesto.observaciones) { tituloPDF("OBSERVACIONES"); textoPDF(datosPresupuesto.observaciones); }
+    tituloPDF("LUGAR DE PRESTACIÓN DEL SERVICIO"); textoPDF(texto(datosPresupuesto.lugarTrabajo || datosPresupuesto.lugar));
+    textoPDF("Otros: "+texto(datosPresupuesto.otros));
+    const mat=totalMateriales() || numero(datosPresupuesto.materiales ?? datosPresupuesto.importeMaterial);
+    const mano=totalManoObra(), via=numero(datosPresupuesto.viaticos ?? datosPresupuesto.importeViaticos);
+    const flete=numero(datosPresupuesto.flete ?? datosPresupuesto.importeFlete);
+    const guardado=numero(datosPresupuesto.total ?? datosPresupuesto.totalFinal);
+    const total=guardado>0?guardado:mat+mano+via+flete;
+    if(mostrarPrecios) {
+      tituloPDF("IMPORTES (VALORES SIN IVA)");
+      for(const [nombre,valor] of [["Importe Material",mat],["Importe Mano de Obra",mano],["Viáticos",via],["Flete",flete]]) {
+        espacio(7); pdf.text(nombre,margen,y); pdf.text("$"+dinero(valor),192,y,{align:"right"}); y+=6;
+      }
+    }
+    espacio(18); y+=2; pdf.line(margen,y,192,y); y+=9;
+    pdf.setFont("helvetica","bold"); pdf.setFontSize(13);
+    pdf.text("PRESUPUESTO TOTAL:",margen,y); pdf.text("$"+dinero(total),192,y,{align:"right"}); y+=10;
+    pdf.line(margen,y,192,y); y+=8;
+    tituloPDF("OTRAS CONSIDERACIONES");
+    pdf.setFont("helvetica","normal"); pdf.setFontSize(9);
+    textoPDF(datosPresupuesto.consideraciones || "VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE REVISAR DICHA COTIZACIÓN.");
+    const idArchivo=String(presupuestoId).replace(/[^a-zA-Z0-9_-]/g,"").slice(-18);
+    pdf.save("Presupuesto-"+(idArchivo || "GESBASE")+".pdf");
+  } catch(e) {
+    console.error("Error al generar PDF:",e);
+    alert("No se pudo generar el PDF.\n\n"+(e?.message || String(e)));
+  }
+}
+
+$("btnPDF").addEventListener("click",()=>{
+  console.log("GESBASE: clic en Generar PDF");
+  if(!presupuestoCargado || !Object.keys(datosPresupuesto).length) {
+    alert("El presupuesto todavía no terminó de cargar. Esperá unos segundos e intentá de nuevo."); return;
+  }
+  if(!window.jspdf?.jsPDF) {
+    alert("No se cargó jsPDF. Revisá la conexión y recargá la página."); return;
+  }
+  const mostrarPrecios=confirm(
+    "¿Cómo querés generar el PDF?\n\n"+
+    "ACEPTAR: PDF DETALLADO con precios unitarios y desglose de importes.\n\n"+
+    "CANCELAR: PDF PARA CLIENTE, sin importes desglosados.\n\n"+
+    "El total final seguirá apareciendo."
+  );
+  generarDocumentoPDF(mostrarPrecios);
+});
+
+let inicioCompletado=false;
+onAuthStateChanged(auth,async usuario=>{
+  if(!usuario){mostrarError("No hay una sesión iniciada. Volvé a iniciar sesión en GESBASE.");return;}
+  if(inicioCompletado)return;
+  inicioCompletado=true;
+  await cargarPresupuesto(usuario);
+});
+setTimeout(()=>{
+  if(cargando.style.display!=="none") mostrarError("GESBASE tardó demasiado en cargar. Revisá la conexión, la sesión y los errores de Firebase.");
+},15000);
+
+console.log("GESBASE: ver-presupuesto iniciado. Botón PDF:",Boolean($("btnPDF")));
+</script>
+</body>
+</html>
