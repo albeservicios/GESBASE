@@ -246,6 +246,79 @@ button,
     line-height:1.5;
 }
 
+/* MODAL DE OPCIONES PDF */
+.modal-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:9999;
+}
+
+.modal-card{
+    background:white;
+    border-radius:12px;
+    padding:24px;
+    max-width:450px;
+    width:100%;
+    box-shadow:0 20px 25px -5px rgba(0,0,0,0.2);
+}
+
+.modal-titulo{
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:8px;
+    color:#111827;
+}
+
+.modal-subtitulo{
+    font-size:13px;
+    color:#4b5563;
+    margin-bottom:20px;
+    line-height:1.4;
+}
+
+.modal-opciones{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.btn-opcion{
+    padding:12px;
+    border:2px solid #e5e7eb;
+    border-radius:8px;
+    background:#f9fafb;
+    color:#111827;
+    font-size:14px;
+    font-weight:bold;
+    text-align:left;
+    cursor:pointer;
+    transition:all 0.2s;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.btn-opcion:hover{
+    border-color:#2563eb;
+    background:#eff6ff;
+}
+
+.btn-cancelar{
+    margin-top:15px;
+    background:#f3f4f6;
+    color:#4b5563;
+    padding:10px;
+    font-size:14px;
+}
+
 </style>
 
 </head>
@@ -630,6 +703,25 @@ class="boton volver"
 
 </div>
 
+<!-- VENTANA MODAL PARA ELEGIR FORMATO DE PDF -->
+<div id="modalPDF" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+        <div class="modal-titulo">Formato del PDF</div>
+        <div class="modal-subtitulo">Seleccioná cómo querés que el cliente vea los precios en el comprobante:</div>
+        <div class="modal-opciones">
+            <button id="btnPdfCerrado" class="btn-opcion" type="button">
+                <span>🔒 Ocultar precios unitarios y desgloses</span>
+                <small style="color:#6b7280; font-weight:normal;">(Solo total final)</small>
+            </button>
+            <button id="btnPdfDetallado" class="btn-opcion" type="button">
+                <span>📋 Mostrar todo el desglose completo</span>
+                <small style="color:#6b7280; font-weight:normal;">(Detallado ítem por ítem)</small>
+            </button>
+        </div>
+        <button id="btnCancelarModal" class="boton btn-cancelar" type="button">Cancelar</button>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script type="module">
@@ -649,126 +741,52 @@ import {
 } from "./Js/local/firebase-firestore.js";
 
 
-const cargando =
-document.getElementById("cargando");
+const cargando = document.getElementById("cargando");
+const errorElemento = document.getElementById("error");
+const contenido = document.getElementById("contenido");
+const cliente = document.getElementById("cliente");
+const clienteCuit = document.getElementById("clienteCuit");
+const clienteTelefono = document.getElementById("clienteTelefono");
+const clienteEmail = document.getElementById("clienteEmail");
+const clienteDireccion = document.getElementById("clienteDireccion");
+const clienteLocalidad = document.getElementById("clienteLocalidad");
+const numeroAgenda = document.getElementById("numeroAgenda");
+const fecha = document.getElementById("fecha");
+const empresaNombre = document.getElementById("empresaNombre");
+const empresaRazonSocial = document.getElementById("empresaRazonSocial");
+const empresaCuit = document.getElementById("empresaCuit");
+const empresaTelefono = document.getElementById("empresaTelefono");
+const empresaEmail = document.getElementById("empresaEmail");
+const logoEmpresa = document.getElementById("logoEmpresa");
+const nombreApellido = document.getElementById("nombreApellido");
+const razonSocial = document.getElementById("razonSocial");
+const cuit = document.getElementById("cuit");
+const telefono = document.getElementById("telefono");
+const email = document.getElementById("email");
+const descripcion = document.getElementById("descripcion");
+const materialesLista = document.getElementById("materialesLista");
+const manoObraDetalle = document.getElementById("manoObraDetalle");
+const observacionesElemento = document.getElementById("observaciones");
+const lugarTrabajo = document.getElementById("lugarTrabajo");
+const otros = document.getElementById("otros");
+const importeMaterial = document.getElementById("importeMaterial");
+const importeManoObra = document.getElementById("importeManoObra");
+const importeViaticos = document.getElementById("importeViaticos");
+const importeFlete = document.getElementById("importeFlete");
+const importeTotal = document.getElementById("importeTotal");
 
-const errorElemento =
-document.getElementById("error");
+const btnPDF = document.getElementById("btnPDF");
+const btnEditar = document.getElementById("btnEditar");
+const btnTrabajo = document.getElementById("btnTrabajo");
+const relacionTrabajo = document.getElementById("relacionTrabajo");
 
-const contenido =
-document.getElementById("contenido");
+const modalPDF = document.getElementById("modalPDF");
+const btnPdfCerrado = document.getElementById("btnPdfCerrado");
+const btnPdfDetallado = document.getElementById("btnPdfDetallado");
+const btnCancelarModal = document.getElementById("btnCancelarModal");
 
-const cliente =
-document.getElementById("cliente");
-
-const clienteCuit =
-document.getElementById("clienteCuit");
-
-const clienteTelefono =
-document.getElementById("clienteTelefono");
-
-const clienteEmail =
-document.getElementById("clienteEmail");
-
-const clienteDireccion =
-document.getElementById("clienteDireccion");
-
-const clienteLocalidad =
-document.getElementById("clienteLocalidad");
-
-const numeroAgenda =
-document.getElementById("numeroAgenda");
-
-const fecha =
-document.getElementById("fecha");
-
-const empresaNombre =
-document.getElementById("empresaNombre");
-
-const empresaRazonSocial =
-document.getElementById("empresaRazonSocial");
-
-const empresaCuit =
-document.getElementById("empresaCuit");
-
-const empresaTelefono =
-document.getElementById("empresaTelefono");
-
-const empresaEmail =
-document.getElementById("empresaEmail");
-
-const logoEmpresa =
-document.getElementById("logoEmpresa");
-
-const nombreApellido =
-document.getElementById("nombreApellido");
-
-const razonSocial =
-document.getElementById("razonSocial");
-
-const cuit =
-document.getElementById("cuit");
-
-const telefono =
-document.getElementById("telefono");
-
-const email =
-document.getElementById("email");
-
-const descripcion =
-document.getElementById("descripcion");
-
-const materialesLista =
-document.getElementById("materialesLista");
-
-const manoObraDetalle =
-document.getElementById("manoObraDetalle");
-
-const observacionesElemento =
-document.getElementById("observaciones");
-
-const lugarTrabajo =
-document.getElementById("lugarTrabajo");
-
-const otros =
-document.getElementById("otros");
-
-const importeMaterial =
-document.getElementById("importeMaterial");
-
-const importeManoObra =
-document.getElementById("importeManoObra");
-
-const importeViaticos =
-document.getElementById("importeViaticos");
-
-const importeFlete =
-document.getElementById("importeFlete");
-
-const importeTotal =
-document.getElementById("importeTotal");
-
-const btnPDF =
-document.getElementById("btnPDF");
-
-const btnEditar =
-document.getElementById("btnEditar");
-
-const btnTrabajo =
-document.getElementById("btnTrabajo");
-
-const relacionTrabajo =
-document.getElementById("relacionTrabajo");
-
-
-const parametros =
-new URLSearchParams(
-    window.location.search
-);
-
-const presupuestoId =
-parametros.get("id");
-
+const parametros = new URLSearchParams(window.location.search);
+const presupuestoId = parametros.get("id");
 
 let datosPresupuesto = {};
 let datosUsuario = {};
@@ -776,229 +794,90 @@ let datosEmpresa = {};
 let datosCliente = {};
 let clienteIdReal = "";
 
-
 function texto(valor){
-
-    if(
-        valor === undefined ||
-        valor === null ||
-        String(valor).trim() === ""
-    ){
+    if(valor === undefined || valor === null || String(valor).trim() === ""){
         return "-";
     }
-
     return String(valor);
 }
 
-
 function numero(valor){
-
     if(typeof valor === "number"){
-        return Number.isFinite(valor)
-            ? valor
-            : 0;
+        return Number.isFinite(valor) ? valor : 0;
     }
-
-    if(
-        valor === undefined ||
-        valor === null ||
-        valor === ""
-    ){
+    if(valor === undefined || valor === null || valor === ""){
         return 0;
     }
-
-    let valorTexto =
-    String(valor)
-    .trim()
-    .replace(/\s/g,"")
-    .replace(/\$/g,"");
-
+    let valorTexto = String(valor).trim().replace(/\s/g,"").replace(/\$/g,"");
     if(valorTexto.includes(",")){
-
-        valorTexto =
-        valorTexto
-        .replace(/\./g,"")
-        .replace(",",".");
+        valorTexto = valorTexto.replace(/\./g,"").replace(",",".");
     }
-
-    const resultado =
-    Number(valorTexto);
-
-    return Number.isFinite(resultado)
-        ? resultado
-        : 0;
+    const resultado = Number(valorTexto);
+    return Number.isFinite(resultado) ? resultado : 0;
 }
-
 
 function dinero(valor){
-
-    return numero(valor)
-    .toLocaleString(
-        "es-AR",
-        {
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
-        }
-    );
+    return numero(valor).toLocaleString("es-AR", {
+        minimumFractionDigits:2,
+        maximumFractionDigits:2
+    });
 }
-
 
 function mostrarError(mensaje){
-
     console.error(mensaje);
-
-    cargando.style.display =
-    "none";
-
-    contenido.style.display =
-    "none";
-
-    errorElemento.textContent =
-    mensaje;
-
-    errorElemento.style.display =
-    "block";
+    cargando.style.display = "none";
+    contenido.style.display = "none";
+    errorElemento.textContent = mensaje;
+    errorElemento.style.display = "block";
 }
-
 
 async function cargarUsuario(usuario){
-
     datosUsuario = {};
-
-    const referencia =
-    doc(
-        db,
-        "usuarios",
-        usuario.uid
-    );
-
-    const resultado =
-    await getDoc(
-        referencia
-    );
-
+    const referencia = doc(db, "usuarios", usuario.uid);
+    const resultado = await getDoc(referencia);
     if(resultado.exists()){
-
-        datosUsuario =
-        resultado.data();
+        datosUsuario = resultado.data();
     }
 }
-
 
 async function cargarEmpresa(){
-
     datosEmpresa = {};
-
-    const empresaId =
-    datosPresupuesto.empresaId ||
-    datosUsuario.empresaId ||
-    "";
-
-    if(!empresaId){
-        return;
-    }
-
+    const empresaId = datosPresupuesto.empresaId || datosUsuario.empresaId || "";
+    if(!empresaId) return;
     try{
-
-        const referencia =
-        doc(
-            db,
-            "empresas",
-            empresaId
-        );
-
-        const resultado =
-        await getDoc(
-            referencia
-        );
-
+        const referencia = doc(db, "empresas", empresaId);
+        const resultado = await getDoc(referencia);
         if(resultado.exists()){
-
-            datosEmpresa =
-            resultado.data();
+            datosEmpresa = resultado.data();
         }
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo cargar empresa:",
-            error
-        );
-
+    }catch(error){
+        console.warn("No se pudo cargar empresa:", error);
     }
 }
-
 
 function obtenerClienteId(){
-
-    return (
-        datosPresupuesto.clienteId ||
-        datosPresupuesto.idCliente ||
-        datosPresupuesto.clienteID ||
-        ""
-    );
+    return datosPresupuesto.clienteId || datosPresupuesto.idCliente || datosPresupuesto.clienteID || "";
 }
-
 
 async function cargarCliente(){
-
     datosCliente = {};
-
-    clienteIdReal =
-    obtenerClienteId();
-
-    if(!clienteIdReal){
-        return;
-    }
-
+    clienteIdReal = obtenerClienteId();
+    if(!clienteIdReal) return;
     try{
-
-        const referencia =
-        doc(
-            db,
-            "clientes",
-            clienteIdReal
-        );
-
-        const resultado =
-        await getDoc(
-            referencia
-        );
-
+        const referencia = doc(db, "clientes", clienteIdReal);
+        const resultado = await getDoc(referencia);
         if(resultado.exists()){
-
-            datosCliente =
-            resultado.data();
+            datosCliente = resultado.data();
         }
-
-    }
-    catch(error){
-
-        console.warn(
-            "No se pudo cargar cliente:",
-            error
-        );
-
+    }catch(error){
+        console.warn("No se pudo cargar cliente:", error);
     }
 }
 
-
 function obtenerNombreCliente(){
-
-    const nombreCompleto =
-    [
-        datosCliente.nombre,
-        datosCliente.apellido
-    ]
-    .filter(
-        valor =>
-        valor !== undefined &&
-        valor !== null &&
-        String(valor).trim() !== ""
-    )
-    .join(" ")
-    .trim();
+    const nombreCompleto = [datosCliente.nombre, datosCliente.apellido]
+        .filter(v => v !== undefined && v !== null && String(v).trim() !== "")
+        .join(" ").trim();
 
     return (
         nombreCompleto ||
@@ -1012,1978 +891,542 @@ function obtenerNombreCliente(){
     );
 }
 
-
 function mostrarEmpresa(usuario){
+    const nombreEmpresa = datosEmpresa.nombreEmpresa || datosEmpresa.nombre || datosEmpresa.empresa || datosUsuario.empresa || "GESBASE";
+    const razon = datosEmpresa.razonSocial || datosEmpresa.razon_social || datosUsuario.razonSocial || datosUsuario.razon_social || "";
+    const cuitValor = datosEmpresa.cuit || datosUsuario.cuit || "";
+    const telefonoValor = datosEmpresa.telefono || datosEmpresa.telefonoEmpresa || datosUsuario.telefono || "";
+    const emailValor = datosEmpresa.email || datosUsuario.email || usuario.email || "";
 
-    const nombreEmpresa =
-    datosEmpresa.nombreEmpresa ||
-    datosEmpresa.nombre ||
-    datosEmpresa.empresa ||
-    datosUsuario.empresa ||
-    "GESBASE";
+    empresaNombre.textContent = nombreEmpresa;
+    empresaRazonSocial.textContent = "Razón Social: " + texto(razon);
+    empresaCuit.textContent = "CUIT Nº: " + texto(cuitValor);
+    empresaTelefono.textContent = "Tel./Cel: " + texto(telefonoValor);
+    empresaEmail.textContent = "Mail: " + texto(emailValor);
 
-    const razon =
-    datosEmpresa.razonSocial ||
-    datosEmpresa.razon_social ||
-    datosUsuario.razonSocial ||
-    datosUsuario.razon_social ||
-    "";
+    const nombre = datosUsuario.nombre || "";
+    const apellido = datosUsuario.apellido || "";
 
-    const cuitValor =
-    datosEmpresa.cuit ||
-    datosUsuario.cuit ||
-    "";
+    nombreApellido.textContent = texto((nombre + " " + apellido).trim());
+    razonSocial.textContent = texto(razon);
+    cuit.textContent = texto(cuitValor);
+    telefono.textContent = texto(telefonoValor);
+    email.textContent = texto(emailValor);
 
-    const telefonoValor =
-    datosEmpresa.telefono ||
-    datosEmpresa.telefonoEmpresa ||
-    datosUsuario.telefono ||
-    "";
-
-    const emailValor =
-    datosEmpresa.email ||
-    datosUsuario.email ||
-    usuario.email ||
-    "";
-
-    empresaNombre.textContent =
-    nombreEmpresa;
-
-    empresaRazonSocial.textContent =
-    "Razón Social: " +
-    texto(razon);
-
-    empresaCuit.textContent =
-    "CUIT Nº: " +
-    texto(cuitValor);
-
-    empresaTelefono.textContent =
-    "Tel./Cel: " +
-    texto(telefonoValor);
-
-    empresaEmail.textContent =
-    "Mail: " +
-    texto(emailValor);
-
-    const nombre =
-    datosUsuario.nombre ||
-    "";
-
-    const apellido =
-    datosUsuario.apellido ||
-    "";
-
-    nombreApellido.textContent =
-    texto(
-        (
-            nombre +
-            " " +
-            apellido
-        ).trim()
-    );
-
-    razonSocial.textContent =
-    texto(razon);
-
-    cuit.textContent =
-    texto(cuitValor);
-
-    telefono.textContent =
-    texto(telefonoValor);
-
-    email.textContent =
-    texto(emailValor);
-
-    const logoUrl =
-    datosEmpresa.logoUrl ||
-    datosEmpresa.logo ||
-    datosUsuario.logoUrl ||
-    datosUsuario.logo ||
-    "";
-
+    const logoUrl = datosEmpresa.logoUrl || datosEmpresa.logo || datosUsuario.logoUrl || datosUsuario.logo || "";
     if(logoUrl){
-
-        logoEmpresa.src =
-        logoUrl;
-
-        logoEmpresa.style.display =
-        "block";
+        logoEmpresa.src = logoUrl;
+        logoEmpresa.style.display = "block";
     }
 }
-
-
-/* =====================================================
-   MATERIALES (Con opción de ocultar precios unitarios)
-===================================================== */
 
 function obtenerMateriales(){
-
-    if(
-        Array.isArray(
-            datosPresupuesto.materiales
-        )
-    ){
-        return datosPresupuesto.materiales;
-    }
-
-    if(
-        Array.isArray(
-            datosPresupuesto.materialesLista
-        )
-    ){
-        return datosPresupuesto.materialesLista;
-    }
-
-    if(
-        Array.isArray(
-            datosPresupuesto.itemsMateriales
-        )
-    ){
-        return datosPresupuesto.itemsMateriales;
-    }
-
+    if(Array.isArray(datosPresupuesto.materiales)) return datosPresupuesto.materiales;
+    if(Array.isArray(datosPresupuesto.materialesLista)) return datosPresupuesto.materialesLista;
+    if(Array.isArray(datosPresupuesto.itemsMateriales)) return datosPresupuesto.itemsMateriales;
     return [];
 }
-
 
 function calcularTotalMateriales(){
-
-    const lista =
-    obtenerMateriales();
-
-    return lista.reduce(
-        function(total, material){
-
-            const precio =
-            numero(
-                material?.precio ??
-                material?.precioUnitario ??
-                material?.importe ??
-                0
-            );
-
-            const cantidad =
-            numero(
-                material?.cantidad ??
-                0
-            );
-
-            const resultado =
-            material?.resultado !== undefined
-                ? numero(material.resultado)
-                : precio * cantidad;
-
-            return total + resultado;
-
-        },
-        0
-    );
+    const lista = obtenerMateriales();
+    return lista.reduce(function(total, material){
+        const precio = numero(material?.precio ?? material?.precioUnitario ?? material?.importe ?? 0);
+        const cantidad = numero(material?.cantidad ?? 0);
+        const resultado = material?.resultado !== undefined ? numero(material.resultado) : precio * cantidad;
+        return total + resultado;
+    }, 0);
 }
 
-
 function mostrarMateriales(lista){
-
     materialesLista.innerHTML = "";
-
-    if(
-        !Array.isArray(lista) ||
-        lista.length === 0
-    ){
-
-        materialesLista.textContent =
-        "Sin materiales cargados.";
-
+    if(!Array.isArray(lista) || lista.length === 0){
+        materialesLista.textContent = "Sin materiales cargados.";
         return;
     }
 
-    const mostrarPrecios =
-    datosPresupuesto.mostrarPreciosUnitarios !== false;
+    lista.forEach(function(material){
+        const linea = document.createElement("div");
+        linea.className = "item-detalle";
 
-    lista.forEach(
-        function(material){
+        const titulo = document.createElement("div");
+        titulo.className = "item-titulo";
+        titulo.textContent = texto(material?.tipo || material?.nombre || material?.descripcion);
 
-            const linea =
-            document.createElement("div");
+        const datos = document.createElement("div");
+        datos.className = "item-datos";
 
-            linea.className =
-            "item-detalle";
+        const unidad = texto(material?.unidad || material?.unidadMedida || material?.u);
+        const precio = numero(material?.precio ?? material?.precioUnitario ?? material?.importe ?? 0);
+        const cantidad = numero(material?.cantidad ?? 0);
+        const resultado = material?.resultado !== undefined ? numero(material.resultado) : precio * cantidad;
 
-            const titulo =
-            document.createElement("div");
+        datos.textContent = "Unidad: " + unidad + " | Precio: $ " + dinero(precio) + " | Cantidad: " + cantidad + " | Resultado: $ " + dinero(resultado);
 
-            titulo.className =
-            "item-titulo";
+        linea.appendChild(titulo);
+        linea.appendChild(datos);
+        materialesLista.appendChild(linea);
+    });
 
-            titulo.textContent =
-            texto(
-                material?.tipo ||
-                material?.nombre ||
-                material?.descripcion
-            );
-
-            const datos =
-            document.createElement("div");
-
-            datos.className =
-            "item-datos";
-
-            const unidad =
-            texto(
-                material?.unidad ||
-                material?.unidadMedida ||
-                material?.u
-            );
-
-            const cantidad =
-            numero(
-                material?.cantidad ??
-                0
-            );
-
-            if(mostrarPrecios){
-
-                const precio =
-                numero(
-                    material?.precio ??
-                    material?.precioUnitario ??
-                    material?.importe ??
-                    0
-                );
-
-                const resultado =
-                material?.resultado !== undefined
-                    ? numero(material.resultado)
-                    : precio * cantidad;
-
-                datos.textContent =
-                "Unidad: " + unidad +
-                " | Precio: $ " + dinero(precio) +
-                " | Cantidad: " + cantidad +
-                " | Resultado: $ " + dinero(resultado);
-
-            }else{
-
-                datos.textContent =
-                "Cantidad: " + cantidad +
-                (
-                    unidad && unidad !== "-"
-                    ? " " + unidad
-                    : ""
-                );
-            }
-
-            linea.appendChild(titulo);
-            linea.appendChild(datos);
-
-            materialesLista.appendChild(linea);
-        }
-    );
-
-    if(mostrarPrecios){
-
-        const total =
-        calcularTotalMateriales();
-
-        const subtotal =
-        document.createElement("div");
-
-        subtotal.className =
-        "subtotal";
-
-        subtotal.textContent =
-        "Total materiales: $ " +
-        dinero(total);
-
-        materialesLista.appendChild(subtotal);
-    }
+    const total = calcularTotalMateriales();
+    const subtotal = document.createElement("div");
+    subtotal.className = "subtotal";
+    subtotal.textContent = "Total materiales: $ " + dinero(total);
+    materialesLista.appendChild(subtotal);
 }
 
-
-/* =====================================================
-   MANO DE OBRA (Con opción de ocultar precios unitarios)
-===================================================== */
-
 function obtenerManoObraItems(){
-
-    if(
-        Array.isArray(
-            datosPresupuesto.manoObraItems
-        )
-    ){
-        return datosPresupuesto.manoObraItems;
-    }
-
+    if(Array.isArray(datosPresupuesto.manoObraItems)) return datosPresupuesto.manoObraItems;
     return [];
 }
 
-
 function calcularTotalManoObra(){
-
-    const lista =
-    obtenerManoObraItems();
-
-    return lista.reduce(
-        function(total, item){
-
-            const precio =
-            numero(
-                item?.precio ??
-                item?.precioUnitario ??
-                0
-            );
-
-            const cantidad =
-            numero(
-                item?.cantidad ??
-                0
-            );
-
-            const resultado =
-            item?.resultado !== undefined
-                ? numero(item.resultado)
-                : precio * cantidad;
-
-            return total + resultado;
-
-        },
-        0
-    );
+    const lista = obtenerManoObraItems();
+    return lista.reduce(function(total, item){
+        const precio = numero(item?.precio ?? item?.precioUnitario ?? 0);
+        const cantidad = numero(item?.cantidad ?? 0);
+        const resultado = item?.resultado !== undefined ? numero(item.resultado) : precio * cantidad;
+        return total + resultado;
+    }, 0);
 }
-
 
 function obtenerValorManoObra(){
-
-    const items =
-    obtenerManoObraItems();
-
-    if(items.length){
-
-        return calcularTotalManoObra();
-    }
-
-    return numero(
-        datosPresupuesto.manoObra ??
-        datosPresupuesto.importeManoObra
-    );
+    const items = obtenerManoObraItems();
+    if(items.length) return calcularTotalManoObra();
+    return numero(datosPresupuesto.manoObra ?? datosPresupuesto.importeManoObra);
 }
 
-
 function mostrarManoObra(){
-
     manoObraDetalle.innerHTML = "";
-
-    const lista =
-    obtenerManoObraItems();
-
-    const mostrarPrecios =
-    datosPresupuesto.mostrarPreciosUnitarios !== false;
+    const lista = obtenerManoObraItems();
 
     if(!lista.length){
-
-        manoObraDetalle.textContent =
-        "$ " +
-        dinero(
-            obtenerValorManoObra()
-        );
-
+        manoObraDetalle.textContent = "$ " + dinero(obtenerValorManoObra());
         return;
     }
 
-    lista.forEach(
-        function(item){
+    lista.forEach(function(item){
+        const linea = document.createElement("div");
+        linea.className = "item-detalle";
 
-            const linea =
-            document.createElement("div");
+        const titulo = document.createElement("div");
+        titulo.className = "item-titulo";
+        titulo.textContent = texto(item?.descripcion || item?.tipo || item?.nombre || item?.trabajo);
 
-            linea.className =
-            "item-detalle";
+        const datos = document.createElement("div");
+        datos.className = "item-datos";
 
-            const titulo =
-            document.createElement("div");
+        const unidad = texto(item?.unidad || item?.unidadMedida || item?.u);
+        const precio = numero(item?.precio ?? item?.precioUnitario ?? 0);
+        const cantidad = numero(item?.cantidad ?? 0);
+        const resultado = item?.resultado !== undefined ? numero(item.resultado) : precio * cantidad;
 
-            titulo.className =
-            "item-titulo";
+        datos.textContent = "Unidad: " + unidad + " | Precio: $ " + dinero(precio) + " | Cantidad: " + cantidad + " | Resultado: $ " + dinero(resultado);
 
-            titulo.textContent =
-            texto(
-                item?.descripcion ||
-                item?.tipo ||
-                item?.nombre ||
-                item?.trabajo
-            );
+        linea.appendChild(titulo);
+        linea.appendChild(datos);
+        manoObraDetalle.appendChild(linea);
+    });
 
-            const datos =
-            document.createElement("div");
-
-            datos.className =
-            "item-datos";
-
-            const unidad =
-            texto(
-                item?.unidad ||
-                item?.unidadMedida ||
-                item?.u
-            );
-
-            const cantidad =
-            numero(
-                item?.cantidad ??
-                0
-            );
-
-            if(mostrarPrecios){
-
-                const precio =
-                numero(
-                    item?.precio ??
-                    item?.precioUnitario ??
-                    0
-                );
-
-                const resultado =
-                item?.resultado !== undefined
-                    ? numero(item.resultado)
-                    : precio * cantidad;
-
-                datos.textContent =
-                "Unidad: " + unidad +
-                " | Precio: $ " + dinero(precio) +
-                " | Cantidad: " + cantidad +
-                " | Resultado: $ " + dinero(resultado);
-
-            }else{
-
-                datos.textContent =
-                "Cantidad: " + cantidad +
-                (
-                    unidad && unidad !== "-"
-                    ? " " + unidad
-                    : ""
-                );
-            }
-
-            linea.appendChild(titulo);
-            linea.appendChild(datos);
-
-            manoObraDetalle.appendChild(linea);
-        }
-    );
-
-    if(mostrarPrecios){
-
-        const subtotal =
-        document.createElement("div");
-
-        subtotal.className =
-        "subtotal";
-
-        subtotal.textContent =
-        "Total mano de obra: $ " +
-        dinero(
-            calcularTotalManoObra()
-        );
-
-        manoObraDetalle.appendChild(
-            subtotal
-        );
-    }
+    const subtotal = document.createElement("div");
+    subtotal.className = "subtotal";
+    subtotal.textContent = "Total mano de obra: $ " + dinero(calcularTotalManoObra());
+    manoObraDetalle.appendChild(subtotal);
 }
 
-
-/* =====================================================
-   CARGAR PRESUPUESTO
-===================================================== */
-
 async function cargarPresupuesto(usuario){
-
     if(!presupuestoId){
-
-        mostrarError(
-            "No se recibió el ID del presupuesto en la URL."
-        );
-
+        mostrarError("No se recibió el ID del presupuesto en la URL.");
         return;
     }
 
     try{
-
-        const referencia =
-        doc(
-            db,
-            "presupuestos",
-            presupuestoId
-        );
-
-        const resultado =
-        await getDoc(
-            referencia
-        );
+        const referencia = doc(db, "presupuestos", presupuestoId);
+        const resultado = await getDoc(referencia);
 
         if(!resultado.exists()){
-
-            mostrarError(
-                "El presupuesto no existe."
-            );
-
+            mostrarError("El presupuesto no existe.");
             return;
         }
 
-        datosPresupuesto =
-        resultado.data();
+        datosPresupuesto = resultado.data();
 
-        try{
-
-            await cargarUsuario(
-                usuario
-            );
-
-        }
-        catch(error){
-
-            console.warn(
-                "No se pudo cargar usuario:",
-                error
-            );
-        }
-
+        try{ await cargarUsuario(usuario); }catch(e){}
         await cargarEmpresa();
-
         await cargarCliente();
 
         mostrarEmpresa(usuario);
 
-        cliente.textContent =
-        obtenerNombreCliente();
+        cliente.textContent = obtenerNombreCliente();
+        clienteCuit.textContent = texto(datosCliente.cuit || datosPresupuesto.clienteCuit);
+        clienteTelefono.textContent = texto(datosCliente.telefono || datosPresupuesto.clienteTelefono);
+        clienteEmail.textContent = texto(datosCliente.email || datosPresupuesto.clienteEmail);
+        clienteDireccion.textContent = texto(datosCliente.direccion || datosPresupuesto.clienteDireccion);
 
-        clienteCuit.textContent =
-        texto(
-            datosCliente.cuit ||
-            datosPresupuesto.clienteCuit
-        );
+        const localidad = datosCliente.localidad || datosPresupuesto.clienteLocalidad || "";
+        const provincia = datosCliente.provincia || datosPresupuesto.clienteProvincia || "";
+        clienteLocalidad.textContent = texto(localidad + (localidad && provincia ? ", " : "") + provincia);
 
-        clienteTelefono.textContent =
-        texto(
-            datosCliente.telefono ||
-            datosPresupuesto.clienteTelefono
-        );
+        numeroAgenda.textContent = texto(datosPresupuesto.numeroAgenda || datosPresupuesto.numero || datosPresupuesto.numeroPresupuesto);
+        fecha.textContent = texto(datosPresupuesto.fecha);
+        descripcion.textContent = texto(datosPresupuesto.descripcion || datosPresupuesto.tareas || datosPresupuesto.concepto || datosPresupuesto.detalle);
+        lugarTrabajo.textContent = texto(datosPresupuesto.lugarTrabajo || datosPresupuesto.lugar);
+        otros.textContent = texto(datosPresupuesto.otros);
 
-        clienteEmail.textContent =
-        texto(
-            datosCliente.email ||
-            datosPresupuesto.clienteEmail
-        );
-
-        clienteDireccion.textContent =
-        texto(
-            datosCliente.direccion ||
-            datosPresupuesto.clienteDireccion
-        );
-
-        const localidad =
-        datosCliente.localidad ||
-        datosPresupuesto.clienteLocalidad ||
-        "";
-
-        const provincia =
-        datosCliente.provincia ||
-        datosPresupuesto.clienteProvincia ||
-        "";
-
-        const localidadCompleta =
-        localidad +
-        (
-            localidad &&
-            provincia
-            ? ", "
-            : ""
-        ) +
-        provincia;
-
-        clienteLocalidad.textContent =
-        texto(
-            localidadCompleta
-        );
-
-        numeroAgenda.textContent =
-        texto(
-            datosPresupuesto.numeroAgenda ||
-            datosPresupuesto.agendaNumero ||
-            datosPresupuesto.numero ||
-            datosPresupuesto.numeroPresupuesto
-        );
-
-        fecha.textContent =
-        texto(
-            datosPresupuesto.fecha
-        );
-
-        descripcion.textContent =
-        texto(
-            datosPresupuesto.descripcion ||
-            datosPresupuesto.tareas ||
-            datosPresupuesto.concepto ||
-            datosPresupuesto.detalle
-        );
-
-        lugarTrabajo.textContent =
-        texto(
-            datosPresupuesto.lugarTrabajo ||
-            datosPresupuesto.lugar
-        );
-
-        otros.textContent =
-        texto(
-            datosPresupuesto.otros
-        );
-
-        /* MATERIALES */
-
-        mostrarMateriales(
-            obtenerMateriales()
-        );
-
-        /* MANO DE OBRA */
-
+        mostrarMateriales(obtenerMateriales());
         mostrarManoObra();
 
-        /* OBSERVACIONES */
+        observacionesElemento.textContent = texto(datosPresupuesto.observaciones);
 
-        observacionesElemento.textContent =
-        texto(
-            datosPresupuesto.observaciones
-        );
+        const valorMateriales = calcularTotalMateriales() > 0 ? calcularTotalMateriales() : numero(datosPresupuesto.materiales ?? datosPresupuesto.importeMaterial);
+        const valorManoObra = obtenerValorManoObra();
+        const valorViaticos = numero(datosPresupuesto.viaticos ?? datosPresupuesto.importeViaticos);
+        const valorFlete = numero(datosPresupuesto.flete ?? datosPresupuesto.importeFlete);
+        const sumaOperativa = valorMateriales + valorManoObra + valorViaticos + valorFlete;
+        const totalFinal = numero(datosPresupuesto.total ?? datosPresupuesto.totalFinal) > 0 ? numero(datosPresupuesto.total ?? datosPresupuesto.totalFinal) : sumaOperativa;
 
-        /* IMPORTES */
+        importeMaterial.textContent = dinero(valorMateriales);
+        importeManoObra.textContent = dinero(valorManoObra);
+        importeViaticos.textContent = dinero(valorViaticos);
+        importeFlete.textContent = dinero(valorFlete);
+        importeTotal.textContent = dinero(totalFinal);
 
-        const valorMaterialesItems =
-        calcularTotalMateriales();
+        document.getElementById("consideraciones").textContent = datosPresupuesto.consideraciones || "VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE REVISAR DICHA COTIZACIÓN.";
 
-        const valorMaterialesGuardado =
-        numero(
-            datosPresupuesto.materiales ??
-            datosPresupuesto.importeMaterial
-        );
+        btnEditar.href = "editar-presupuesto.html?id=" + encodeURIComponent(presupuestoId);
 
-        const valorMateriales =
-        valorMaterialesItems > 0
-            ? valorMaterialesItems
-            : valorMaterialesGuardado;
-
-        const valorManoObra =
-        obtenerValorManoObra();
-
-        const valorViaticos =
-        numero(
-            datosPresupuesto.viaticos ??
-            datosPresupuesto.importeViaticos
-        );
-
-        const valorFlete =
-        numero(
-            datosPresupuesto.flete ??
-            datosPresupuesto.importeFlete
-        );
-
-        const sumaOperativa =
-        valorMateriales +
-        valorManoObra +
-        valorViaticos +
-        valorFlete;
-
-        const totalGuardado =
-        numero(
-            datosPresupuesto.total ??
-            datosPresupuesto.totalFinal
-        );
-
-        const totalFinal =
-        totalGuardado > 0
-            ? totalGuardado
-            : sumaOperativa;
-
-        importeMaterial.textContent =
-        dinero(valorMateriales);
-
-        importeManoObra.textContent =
-        dinero(valorManoObra);
-
-        importeViaticos.textContent =
-        dinero(valorViaticos);
-
-        importeFlete.textContent =
-        dinero(valorFlete);
-
-        importeTotal.textContent =
-        dinero(totalFinal);
-
-        const consideraciones =
-        datosPresupuesto.consideraciones ||
-        "VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE REVISAR DICHA COTIZACIÓN.";
-
-        document.getElementById(
-            "consideraciones"
-        ).textContent =
-        consideraciones;
-
-        btnEditar.href =
-        "editar-presupuesto.html?id=" +
-        encodeURIComponent(
-            presupuestoId
-        );
-
-        const parametrosTrabajo =
-        new URLSearchParams();
-
-        parametrosTrabajo.set(
-            "presupuestoId",
-            presupuestoId
-        );
-
+        const parametrosTrabajo = new URLSearchParams();
+        parametrosTrabajo.set("presupuestoId", presupuestoId);
         if(clienteIdReal){
-
-            parametrosTrabajo.set(
-                "clienteId",
-                clienteIdReal
-            );
-
-            relacionTrabajo.style.display =
-            "block";
+            parametrosTrabajo.set("clienteId", clienteIdReal);
+            relacionTrabajo.style.display = "block";
         }
+        btnTrabajo.href = "trabajo.html?" + parametrosTrabajo.toString();
 
-        btnTrabajo.href =
-        "trabajo.html?" +
-        parametrosTrabajo.toString();
+        cargando.style.display = "none";
+        errorElemento.style.display = "none";
+        contenido.style.display = "block";
 
-        cargando.style.display =
-        "none";
-
-        errorElemento.style.display =
-        "none";
-
-        contenido.style.display =
-        "block";
-
-    }
-    catch(error){
-
-        console.error(
-            "ERROR CARGANDO PRESUPUESTO:",
-            error
-        );
-
-        mostrarError(
-            "No se pudo cargar el presupuesto.\n\n" +
-            error.message
-        );
+    }catch(error){
+        mostrarError("No se pudo cargar el presupuesto.\n\n" + error.message);
     }
 }
-
-
-/* =====================================================
-   NUMERO PDF
-===================================================== */
 
 function numeroPresupuesto(id){
-
-    if(!id){
-        return "000000";
-    }
-
+    if(!id) return "000000";
     let suma = 0;
-
-    for(
-        let i = 0;
-        i < id.length;
-        i++
-    ){
-
-        suma +=
-        id.charCodeAt(i);
-    }
-
-    return String(
-        suma % 1000000
-    ).padStart(
-        6,
-        "0"
-    );
+    for(let i = 0; i < id.length; i++) suma += id.charCodeAt(i);
+    return String(suma % 1000000).padStart(6, "0");
 }
 
-
 /* =====================================================
-   PDF (RESPETANDO LA OPCIÓN DE OCULTAR PRECIOS)
+   EVENTOS DE BOTÓN PDF Y VENTANA MODAL
 ===================================================== */
 
-btnPDF.addEventListener(
-    "click",
-    function(){
+btnPDF.addEventListener("click", function(){
+    modalPDF.style.display = "flex";
+});
 
-        try{
+btnCancelarModal.addEventListener("click", function(){
+    modalPDF.style.display = "none";
+});
 
-            if(
-                !window.jspdf ||
-                !window.jspdf.jsPDF
-            ){
+btnPdfCerrado.addEventListener("click", function(){
+    modalPDF.style.display = "none";
+    generarDocumentoPDF(false); // FALSE = Oculta precios unitarios y desgloses
+});
 
-                alert(
-                    "No se pudo cargar el generador PDF."
-                );
+btnPdfDetallado.addEventListener("click", function(){
+    modalPDF.style.display = "none";
+    generarDocumentoPDF(true); // TRUE = Muestra todo detallado
+});
 
-                return;
-            }
 
-            const {
-                jsPDF
-            } =
-            window.jspdf;
+/* =====================================================
+   GENERADOR DE PDF (CON PARÁMETRO DE MOSTRAR PRECIOS)
+===================================================== */
 
-            const pdf =
-            new jsPDF({
-                orientation:"portrait",
-                unit:"mm",
-                format:"a4"
+function generarDocumentoPDF(mostrarPrecios){
+    try{
+        if(!window.jspdf || !window.jspdf.jsPDF){
+            alert("No se pudo cargar el generador PDF.");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
+
+        const margen = 18;
+        const ancho = 174;
+        let y = 18;
+
+        const empresa = datosEmpresa.nombreEmpresa || datosEmpresa.nombre || datosEmpresa.empresa || datosUsuario.empresa || "GESBASE";
+        const razon = datosEmpresa.razonSocial || datosEmpresa.razon_social || datosUsuario.razonSocial || "";
+        const cuitValor = datosEmpresa.cuit || datosUsuario.cuit || "";
+        const telefonoValor = datosEmpresa.telefono || datosUsuario.telefono || "";
+        const emailValor = datosEmpresa.email || datosUsuario.email || auth.currentUser?.email || "";
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(16);
+        pdf.text(texto(empresa), 105, y, { align:"center" });
+        y += 7;
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(9);
+
+        if(razon){ pdf.text("Razón Social: " + texto(razon), 105, y, { align:"center" }); y += 5; }
+        if(cuitValor){ pdf.text("CUIT Nº: " + texto(cuitValor), 105, y, { align:"center" }); y += 5; }
+        if(telefonoValor){ pdf.text("Tel./Cel: " + texto(telefonoValor), 105, y, { align:"center" }); y += 5; }
+        if(emailValor){ pdf.text("Mail: " + texto(emailValor), 105, y, { align:"center" }); y += 5; }
+
+        y += 3;
+        pdf.line(margen, y, margen + ancho, y);
+        y += 8;
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(16);
+        pdf.text("PEDIDO DE PRESUPUESTO", 105, y, { align:"center" });
+        y += 10;
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.text("CLIENTE: " + obtenerNombreCliente(), margen, y);
+        y += 6;
+        pdf.text("N.º DE AGENDA: " + texto(datosPresupuesto.numeroAgenda || datosPresupuesto.numero || datosPresupuesto.numeroPresupuesto), margen, y);
+        y += 6;
+        pdf.text("FECHA: " + texto(datosPresupuesto.fecha), margen, y);
+        y += 9;
+
+        pdf.setFont("helvetica", "bold");
+        pdf.text("DATOS DEL CONTRATISTA", margen, y);
+        y += 7;
+
+        pdf.setFont("helvetica", "normal");
+        const nombreCompleto = (datosUsuario.nombre || "") + " " + (datosUsuario.apellido || "");
+        pdf.text("Nombre y Apellido: " + texto(nombreCompleto.trim()), margen, y);
+        y += 6;
+        pdf.text("Razón Social: " + texto(razon), margen, y);
+        y += 6;
+        pdf.text("CUIT Nº: " + texto(cuitValor), margen, y);
+        y += 6;
+        pdf.text("Tel./ Cel: " + texto(telefonoValor), margen, y);
+        y += 6;
+        pdf.text("Mail: " + texto(emailValor), margen, y);
+        y += 9;
+
+        pdf.setFont("helvetica", "bold");
+        pdf.text("DETALLE DEL PRESUPUESTO", margen, y);
+        y += 7;
+
+        pdf.text("TAREAS A REALIZAR", margen, y);
+        y += 6;
+
+        pdf.setFont("helvetica", "normal");
+        const tareas = pdf.splitTextToSize(texto(datosPresupuesto.descripcion || datosPresupuesto.tareas || datosPresupuesto.concepto || datosPresupuesto.detalle), ancho);
+        pdf.text(tareas, margen, y);
+        y += tareas.length * 5 + 6;
+
+        /* MATERIALES */
+        pdf.setFont("helvetica", "bold");
+        pdf.text("MATERIALES", margen, y);
+        y += 6;
+
+        const listaMateriales = obtenerMateriales();
+        if(listaMateriales.length){
+            listaMateriales.forEach(function(material){
+                if(y > 265){ pdf.addPage(); y = 20; }
+                const descripcionMaterial = texto(material?.tipo || material?.nombre || material?.descripcion);
+                const unidad = texto(material?.unidad || material?.unidadMedida || material?.u);
+                const cantidad = numero(material?.cantidad ?? 0);
+
+                const lineaMaterial = pdf.splitTextToSize("• " + descripcionMaterial, mostrarPrecios ? 75 : 130);
+                pdf.setFont("helvetica", "normal");
+                pdf.setFontSize(9);
+                pdf.text(lineaMaterial, margen + 2, y);
+
+                if(mostrarPrecios){
+                    const precio = numero(material?.precio ?? material?.precioUnitario ?? material?.importe ?? 0);
+                    const resultado = material?.resultado !== undefined ? numero(material.resultado) : precio * cantidad;
+                    pdf.text(unidad, 98, y);
+                    pdf.text("$" + dinero(precio), 120, y);
+                    pdf.text(String(cantidad), 145, y);
+                    pdf.text("$" + dinero(resultado), 174, y, { align:"right" });
+                }else{
+                    pdf.text("Cant: " + cantidad + (unidad && unidad !== "-" ? " " + unidad : ""), 174, y, { align:"right" });
+                }
+                y += Math.max(6, lineaMaterial.length * 5);
             });
 
-            const margen = 18;
-            const ancho = 174;
-
-            let y = 18;
-
-            const empresa =
-            datosEmpresa.nombreEmpresa ||
-            datosEmpresa.nombre ||
-            datosEmpresa.empresa ||
-            datosUsuario.empresa ||
-            "GESBASE";
-
-            const razon =
-            datosEmpresa.razonSocial ||
-            datosEmpresa.razon_social ||
-            datosUsuario.razonSocial ||
-            "";
-
-            const cuitValor =
-            datosEmpresa.cuit ||
-            datosUsuario.cuit ||
-            "";
-
-            const telefonoValor =
-            datosEmpresa.telefono ||
-            datosUsuario.telefono ||
-            "";
-
-            const emailValor =
-            datosEmpresa.email ||
-            datosUsuario.email ||
-            auth.currentUser?.email ||
-            "";
-
-            const mostrarPrecios =
-            datosPresupuesto.mostrarPreciosUnitarios !== false;
-
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
-
-            pdf.setFontSize(16);
-
-            pdf.text(
-                texto(empresa),
-                105,
-                y,
-                {
-                    align:"center"
-                }
-            );
-
-            y += 7;
-
-            pdf.setFont(
-                "helvetica",
-                "normal"
-            );
-
-            pdf.setFontSize(9);
-
-            if(razon){
-
-                pdf.text(
-                    "Razón Social: " +
-                    texto(razon),
-                    105,
-                    y,
-                    {
-                        align:"center"
-                    }
-                );
-
-                y += 5;
+            if(mostrarPrecios){
+                if(y > 265){ pdf.addPage(); y = 20; }
+                pdf.setFont("helvetica", "bold");
+                pdf.text("Total materiales: $" + dinero(calcularTotalMateriales()), 174, y, { align:"right" });
+                y += 7;
             }
-
-            if(cuitValor){
-
-                pdf.text(
-                    "CUIT Nº: " +
-                    texto(cuitValor),
-                    105,
-                    y,
-                    {
-                        align:"center"
-                    }
-                );
-
-                y += 5;
-            }
-
-            if(telefonoValor){
-
-                pdf.text(
-                    "Tel./Cel: " +
-                    texto(telefonoValor),
-                    105,
-                    y,
-                    {
-                        align:"center"
-                    }
-                );
-
-                y += 5;
-            }
-
-            if(emailValor){
-
-                pdf.text(
-                    "Mail: " +
-                    texto(emailValor),
-                    105,
-                    y,
-                    {
-                        align:"center"
-                    }
-                );
-
-                y += 5;
-            }
-
-            y += 3;
-
-            pdf.line(
-                margen,
-                y,
-                margen + ancho,
-                y
-            );
-
-            y += 8;
-
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
-
-            pdf.setFontSize(16);
-
-            pdf.text(
-                "PEDIDO DE PRESUPUESTO",
-                105,
-                y,
-                {
-                    align:"center"
-                }
-            );
-
-            y += 10;
-
-            pdf.setFont(
-                "helvetica",
-                "normal"
-            );
-
-            pdf.setFontSize(10);
-
-            pdf.text(
-                "CLIENTE: " +
-                obtenerNombreCliente(),
-                margen,
-                y
-            );
-
+        }else{
+            pdf.setFont("helvetica", "normal");
+            pdf.text("Sin materiales cargados.", margen + 4, y);
             y += 6;
+        }
 
-            pdf.text(
-                "N.º DE AGENDA: " +
-                texto(
-                    datosPresupuesto.numeroAgenda ||
-                    datosPresupuesto.numero ||
-                    datosPresupuesto.numeroPresupuesto
-                ),
-                margen,
-                y
-            );
+        /* MANO DE OBRA */
+        if(y > 250){ pdf.addPage(); y = 20; }
+        pdf.setFont("helvetica", "bold");
+        pdf.text("MANO DE OBRA", margen, y);
+        y += 6;
 
-            y += 6;
+        const listaManoObra = obtenerManoObraItems();
+        if(listaManoObra.length){
+            listaManoObra.forEach(function(item){
+                if(y > 265){ pdf.addPage(); y = 20; }
+                const descripcionTrabajo = texto(item?.descripcion || item?.tipo || item?.nombre || item?.trabajo);
+                const unidad = texto(item?.unidad || item?.unidadMedida || item?.u);
+                const cantidad = numero(item?.cantidad ?? 0);
 
-            pdf.text(
-                "FECHA: " +
-                texto(
-                    datosPresupuesto.fecha
-                ),
-                margen,
-                y
-            );
-
-            y += 9;
-
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
-
-            pdf.text(
-                "DATOS DEL CONTRATISTA",
-                margen,
-                y
-            );
-
-            y += 7;
-
-            pdf.setFont(
-                "helvetica",
-                "normal"
-            );
-
-            const nombreCompleto =
-            (
-                datosUsuario.nombre ||
-                ""
-            ) +
-            " " +
-            (
-                datosUsuario.apellido ||
-                ""
-            );
-
-            pdf.text(
-                "Nombre y Apellido: " +
-                texto(
-                    nombreCompleto.trim()
-                ),
-                margen,
-                y
-            );
-
-            y += 6;
-
-            pdf.text(
-                "Razón Social: " +
-                texto(razon),
-                margen,
-                y
-            );
-
-            y += 6;
-
-            pdf.text(
-                "CUIT Nº: " +
-                texto(cuitValor),
-                margen,
-                y
-            );
-
-            y += 6;
-
-            pdf.text(
-                "Tel./ Cel: " +
-                texto(telefonoValor),
-                margen,
-                y
-            );
-
-            y += 6;
-
-            pdf.text(
-                "Mail: " +
-                texto(emailValor),
-                margen,
-                y
-            );
-
-            y += 9;
-
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
-
-            pdf.text(
-                "DETALLE DEL PRESUPUESTO",
-                margen,
-                y
-            );
-
-            y += 7;
-
-            pdf.text(
-                "TAREAS A REALIZAR",
-                margen,
-                y
-            );
-
-            y += 6;
-
-            pdf.setFont(
-                "helvetica",
-                "normal"
-            );
-
-            const tareas =
-            pdf.splitTextToSize(
-                texto(
-                    datosPresupuesto.descripcion ||
-                    datosPresupuesto.tareas ||
-                    datosPresupuesto.concepto ||
-                    datosPresupuesto.detalle
-                ),
-                ancho
-            );
-
-            pdf.text(
-                tareas,
-                margen,
-                y
-            );
-
-            y +=
-            tareas.length * 5 +
-            6;
-
-
-            /* =================================================
-               MATERIALES EN PDF
-            ================================================= */
-
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
-
-            pdf.text(
-                "MATERIALES",
-                margen,
-                y
-            );
-
-            y += 6;
-
-            const listaMateriales =
-            obtenerMateriales();
-
-            if(listaMateriales.length){
-
-                listaMateriales.forEach(
-                    function(material){
-
-                        if(y > 265){
-
-                            pdf.addPage();
-
-                            y = 20;
-                        }
-
-                        const descripcionMaterial =
-                        texto(
-                            material?.tipo ||
-                            material?.nombre ||
-                            material?.descripcion
-                        );
-
-                        const unidad =
-                        texto(
-                            material?.unidad ||
-                            material?.unidadMedida ||
-                            material?.u
-                        );
-
-                        const cantidad =
-                        numero(
-                            material?.cantidad ??
-                            0
-                        );
-
-                        const lineaMaterial =
-                        pdf.splitTextToSize(
-                            "• " +
-                            descripcionMaterial,
-                            mostrarPrecios ? 75 : 130
-                        );
-
-                        pdf.setFont(
-                            "helvetica",
-                            "normal"
-                        );
-
-                        pdf.setFontSize(9);
-
-                        pdf.text(
-                            lineaMaterial,
-                            margen + 2,
-                            y
-                        );
-
-                        if(mostrarPrecios){
-
-                            const precio =
-                            numero(
-                                material?.precio ??
-                                material?.precioUnitario ??
-                                material?.importe ??
-                                0
-                            );
-
-                            const resultado =
-                            material?.resultado !== undefined
-                                ? numero(material.resultado)
-                                : precio * cantidad;
-
-                            pdf.text(
-                                unidad,
-                                98,
-                                y
-                            );
-
-                            pdf.text(
-                                "$" +
-                                dinero(precio),
-                                120,
-                                y
-                            );
-
-                            pdf.text(
-                                String(cantidad),
-                                145,
-                                y
-                            );
-
-                            pdf.text(
-                                "$" +
-                                dinero(resultado),
-                                174,
-                                y,
-                                {
-                                    align:"right"
-                                }
-                            );
-
-                        }else{
-
-                            pdf.text(
-                                "Cant: " +
-                                cantidad +
-                                (
-                                    unidad && unidad !== "-"
-                                    ? " " + unidad
-                                    : ""
-                                ),
-                                174,
-                                y,
-                                {
-                                    align:"right"
-                                }
-                            );
-                        }
-
-                        y +=
-                        Math.max(
-                            6,
-                            lineaMaterial.length * 5
-                        );
-
-                    }
-                );
-
-                if(y > 265){
-
-                    pdf.addPage();
-
-                    y = 20;
-                }
+                const lineaTrabajo = pdf.splitTextToSize("• " + descripcionTrabajo, mostrarPrecios ? 75 : 130);
+                pdf.setFont("helvetica", "normal");
+                pdf.setFontSize(9);
+                pdf.text(lineaTrabajo, margen + 2, y);
 
                 if(mostrarPrecios){
-
-                    pdf.setFont(
-                        "helvetica",
-                        "bold"
-                    );
-
-                    pdf.text(
-                        "Total materiales: $" +
-                        dinero(
-                            calcularTotalMateriales()
-                        ),
-                        174,
-                        y,
-                        {
-                            align:"right"
-                        }
-                    );
-
-                    y += 7;
+                    const precio = numero(item?.precio ?? item?.precioUnitario ?? 0);
+                    const resultado = item?.resultado !== undefined ? numero(item.resultado) : precio * cantidad;
+                    pdf.text(unidad, 98, y);
+                    pdf.text("$" + dinero(precio), 120, y);
+                    pdf.text(String(cantidad), 145, y);
+                    pdf.text("$" + dinero(resultado), 174, y, { align:"right" });
+                }else{
+                    pdf.text("Cant: " + cantidad + (unidad && unidad !== "-" ? " " + unidad : ""), 174, y, { align:"right" });
                 }
+                y += Math.max(6, lineaTrabajo.length * 5);
+            });
 
-            }
-            else{
-
-                pdf.setFont(
-                    "helvetica",
-                    "normal"
-                );
-
-                pdf.text(
-                    "Sin materiales cargados.",
-                    margen + 4,
-                    y
-                );
-
-                y += 6;
-            }
-
-
-            /* =================================================
-               MANO DE OBRA EN PDF
-            ================================================= */
-
-            if(y > 250){
-
-                pdf.addPage();
-
-                y = 20;
-            }
-
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
-
-            pdf.text(
-                "MANO DE OBRA",
-                margen,
-                y
-            );
-
-            y += 6;
-
-            const listaManoObra =
-            obtenerManoObraItems();
-
-            if(listaManoObra.length){
-
-                listaManoObra.forEach(
-                    function(item){
-
-                        if(y > 265){
-
-                            pdf.addPage();
-
-                            y = 20;
-                        }
-
-                        const descripcionTrabajo =
-                        texto(
-                            item?.descripcion ||
-                            item?.tipo ||
-                            item?.nombre ||
-                            item?.trabajo
-                        );
-
-                        const unidad =
-                        texto(
-                            item?.unidad ||
-                            item?.unidadMedida ||
-                            item?.u
-                        );
-
-                        const cantidad =
-                        numero(
-                            item?.cantidad ??
-                            0
-                        );
-
-                        const lineaTrabajo =
-                        pdf.splitTextToSize(
-                            "• " +
-                            descripcionTrabajo,
-                            mostrarPrecios ? 75 : 130
-                        );
-
-                        pdf.setFont(
-                            "helvetica",
-                            "normal"
-                        );
-
-                        pdf.setFontSize(9);
-
-                        pdf.text(
-                            lineaTrabajo,
-                            margen + 2,
-                            y
-                        );
-
-                        if(mostrarPrecios){
-
-                            const precio =
-                            numero(
-                                item?.precio ??
-                                item?.precioUnitario ??
-                                0
-                            );
-
-                            const resultado =
-                            item?.resultado !== undefined
-                                ? numero(item.resultado)
-                                : precio * cantidad;
-
-                            pdf.text(
-                                unidad,
-                                98,
-                                y
-                            );
-
-                            pdf.text(
-                                "$" +
-                                dinero(precio),
-                                120,
-                                y
-                            );
-
-                            pdf.text(
-                                String(cantidad),
-                                145,
-                                y
-                            );
-
-                            pdf.text(
-                                "$" +
-                                dinero(resultado),
-                                174,
-                                y,
-                                {
-                                    align:"right"
-                                }
-                            );
-
-                        }else{
-
-                            pdf.text(
-                                "Cant: " +
-                                cantidad +
-                                (
-                                    unidad && unidad !== "-"
-                                    ? " " + unidad
-                                    : ""
-                                ),
-                                174,
-                                y,
-                                {
-                                    align:"right"
-                                }
-                            );
-                        }
-
-                        y +=
-                        Math.max(
-                            6,
-                            lineaTrabajo.length * 5
-                        );
-
-                    }
-                );
-
-                if(y > 265){
-
-                    pdf.addPage();
-
-                    y = 20;
-                }
-
-                if(mostrarPrecios){
-
-                    pdf.setFont(
-                        "helvetica",
-                        "bold"
-                    );
-
-                    pdf.text(
-                        "Total mano de obra: $" +
-                        dinero(
-                            calcularTotalManoObra()
-                        ),
-                        174,
-                        y,
-                        {
-                            align:"right"
-                        }
-                    );
-
-                    y += 8;
-                }
-
-            }
-            else{
-
-                pdf.setFont(
-                    "helvetica",
-                    "normal"
-                );
-
-                pdf.text(
-                    "Importe: $" +
-                    dinero(
-                        obtenerValorManoObra()
-                    ),
-                    margen + 4,
-                    y
-                );
-
+            if(mostrarPrecios){
+                if(y > 265){ pdf.addPage(); y = 20; }
+                pdf.setFont("helvetica", "bold");
+                pdf.text("Total mano de obra: $" + dinero(calcularTotalManoObra()), 174, y, { align:"right" });
                 y += 8;
             }
-
-
-            /* =================================================
-               OBSERVACIONES
-            ================================================= */
-
-            const observaciones =
-            datosPresupuesto.observaciones ||
-            "";
-
-            if(observaciones){
-
-                if(y > 245){
-
-                    pdf.addPage();
-
-                    y = 20;
-                }
-
-                pdf.setFont(
-                    "helvetica",
-                    "bold"
-                );
-
-                pdf.setFontSize(10);
-
-                pdf.text(
-                    "OBSERVACIONES",
-                    margen,
-                    y
-                );
-
-                y += 6;
-
-                pdf.setFont(
-                    "helvetica",
-                    "normal"
-                );
-
-                const textoObservaciones =
-                pdf.splitTextToSize(
-                    observaciones,
-                    ancho
-                );
-
-                pdf.text(
-                    textoObservaciones,
-                    margen,
-                    y
-                );
-
-                y +=
-                textoObservaciones.length * 5 +
-                8;
-            }
-
-
-            /* =================================================
-               LUGAR
-            ================================================= */
-
-            if(y > 250){
-
-                pdf.addPage();
-
-                y = 20;
-            }
-
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
-
-            pdf.text(
-                "Lugar de Prestación del Servicio:",
-                margen,
-                y
-            );
-
-            y += 6;
-
-            pdf.setFont(
-                "helvetica",
-                "normal"
-            );
-
-            const lugar =
-            pdf.splitTextToSize(
-                texto(
-                    datosPresupuesto.lugarTrabajo ||
-                    datosPresupuesto.lugar
-                ),
-                ancho
-            );
-
-            pdf.text(
-                lugar,
-                margen,
-                y
-            );
-
-            y +=
-            lugar.length * 5 +
-            7;
-
-
-            /* =================================================
-               OTROS
-            ================================================= */
-
-            const otrosTexto =
-            pdf.splitTextToSize(
-                "Otros: " +
-                texto(
-                    datosPresupuesto.otros
-                ),
-                ancho
-            );
-
-            pdf.text(
-                otrosTexto,
-                margen,
-                y
-            );
-
-            y +=
-            otrosTexto.length * 5 +
-            9;
-
-
-            /* =================================================
-               IMPORTES (EN PDF)
-            ================================================= */
-
-            if(y > 250){
-
-                pdf.addPage();
-
-                y = 20;
-            }
-
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
-
-            pdf.text(
-                "IMPORTES",
-                margen,
-                y
-            );
-
-            y += 6;
-
-            pdf.setFont(
-                "helvetica",
-                "normal"
-            );
-
-            pdf.setFontSize(9);
-
-            pdf.text(
-                "Indicar valores sin IVA",
-                margen,
-                y
-            );
-
-            y += 7;
-
-            const valorMaterial =
-            calcularTotalMateriales() > 0
-                ? calcularTotalMateriales()
-                : numero(
-                    datosPresupuesto.materiales ??
-                    datosPresupuesto.importeMaterial
-                );
-
-            const valorManoObra =
-            obtenerValorManoObra();
-
-            const valorViaticos =
-            numero(
-                datosPresupuesto.viaticos ??
-                datosPresupuesto.importeViaticos
-            );
-
-            const valorFlete =
-            numero(
-                datosPresupuesto.flete ??
-                datosPresupuesto.importeFlete
-            );
-
-            const sumaOperativaPdf =
-            valorMaterial +
-            valorManoObra +
-            valorViaticos +
-            valorFlete;
-
-            const totalGuardadoPdf =
-            numero(
-                datosPresupuesto.total ??
-                datosPresupuesto.totalFinal
-            );
-
-            const total =
-            totalGuardadoPdf > 0
-                ? totalGuardadoPdf
-                : sumaOperativaPdf;
-
-
-            function filaImporte(
-                nombre,
-                valor
-            ){
-
-                if(y > 270){
-
-                    pdf.addPage();
-
-                    y = 20;
-                }
-
-                pdf.setFontSize(10);
-
-                pdf.text(
-                    nombre,
-                    margen,
-                    y
-                );
-
-                pdf.text(
-                    "$" +
-                    dinero(valor),
-                    150,
-                    y
-                );
-
-                y += 6;
-            }
-
-
-            filaImporte(
-                "Importe Material",
-                valorMaterial
-            );
-
-            filaImporte(
-                "Importe Mano de Obra",
-                valorManoObra
-            );
-
-            filaImporte(
-                "Viáticos",
-                valorViaticos
-            );
-
-            filaImporte(
-                "Flete",
-                valorFlete
-            );
-
-            y += 2;
-
-            pdf.line(
-                margen,
-                y,
-                margen + ancho,
-                y
-            );
-
-            y += 9;
-
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
-
-            pdf.setFontSize(13);
-
-            pdf.text(
-                "PRESUPUESTO:",
-                margen,
-                y
-            );
-
-            pdf.text(
-                "$" +
-                dinero(total),
-                150,
-                y
-            );
-
-            y += 10;
-
-            pdf.line(
-                margen,
-                y,
-                margen + ancho,
-                y
-            );
-
+        }else{
+            pdf.setFont("helvetica", "normal");
+            pdf.text(mostrarPrecios ? ("Importe: $" + dinero(obtenerValorManoObra())) : "Incluido en propuesta global", margen + 4, y);
             y += 8;
+        }
 
+        /* OBSERVACIONES */
+        const observaciones = datosPresupuesto.observaciones || "";
+        if(observaciones){
+            if(y > 245){ pdf.addPage(); y = 20; }
+            pdf.setFont("helvetica", "bold");
+            pdf.setFontSize(10);
+            pdf.text("OBSERVACIONES", margen, y);
+            y += 6;
 
-            /* =================================================
-               CONSIDERACIONES
-            ================================================= */
+            pdf.setFont("helvetica", "normal");
+            const textoObservaciones = pdf.splitTextToSize(observaciones, ancho);
+            pdf.text(textoObservaciones, margen, y);
+            y += textoObservaciones.length * 5 + 8;
+        }
 
-            if(y > 255){
+        /* LUGAR */
+        if(y > 250){ pdf.addPage(); y = 20; }
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Lugar de Prestación del Servicio:", margen, y);
+        y += 6;
 
-                pdf.addPage();
+        pdf.setFont("helvetica", "normal");
+        const lugar = pdf.splitTextToSize(texto(datosPresupuesto.lugarTrabajo || datosPresupuesto.lugar), ancho);
+        pdf.text(lugar, margen, y);
+        y += lugar.length * 5 + 7;
 
-                y = 20;
+        /* OTROS */
+        const otrosTexto = pdf.splitTextToSize("Otros: " + texto(datosPresupuesto.otros), ancho);
+        pdf.text(otrosTexto, margen, y);
+        y += otrosTexto.length * 5 + 9;
+
+        /* IMPORTES EN PDF */
+        if(y > 250){ pdf.addPage(); y = 20; }
+        pdf.setFont("helvetica", "bold");
+        pdf.text("IMPORTES", margen, y);
+        y += 6;
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(9);
+        pdf.text("Indicar valores sin IVA", margen, y);
+        y += 7;
+
+        const valorMaterial = calcularTotalMateriales() > 0 ? calcularTotalMateriales() : numero(datosPresupuesto.materiales ?? datosPresupuesto.importeMaterial);
+        const valorManoObra = obtenerValorManoObra();
+        const valorViaticos = numero(datosPresupuesto.viaticos ?? datosPresupuesto.importeViaticos);
+        const valorFlete = numero(datosPresupuesto.flete ?? datosPresupuesto.importeFlete);
+        const totalFinalPdf = numero(datosPresupuesto.total ?? datosPresupuesto.totalFinal) > 0 ? numero(datosPresupuesto.total ?? datosPresupuesto.totalFinal) : (valorMaterial + valorManoObra + valorViaticos + valorFlete);
+
+        if(mostrarPrecios){
+            function filaImporte(nombre, valor){
+                if(y > 270){ pdf.addPage(); y = 20; }
+                pdf.setFontSize(10);
+                pdf.text(nombre, margen, y);
+                pdf.text("$" + dinero(valor), 150, y);
+                y += 6;
             }
 
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
-
-            pdf.setFontSize(11);
-
-            pdf.text(
-                "OTRAS CONSIDERACIONES",
-                margen,
-                y
-            );
-
-            y += 7;
-
-            pdf.setFont(
-                "helvetica",
-                "normal"
-            );
-
-            pdf.setFontSize(9);
-
-            const consideraciones =
-            datosPresupuesto.consideraciones ||
-            "VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE REVISAR DICHA COTIZACIÓN.";
-
-            const textoConsideraciones =
-            pdf.splitTextToSize(
-                consideraciones,
-                ancho
-            );
-
-            pdf.text(
-                textoConsideraciones,
-                margen,
-                y
-            );
-
-
-            const numeroPDF =
-            numeroPresupuesto(
-                presupuestoId
-            );
-
-            pdf.save(
-                "Pedido-de-Presupuesto-" +
-                numeroPDF +
-                ".pdf"
-            );
-
+            filaImporte("Importe Material", valorMaterial);
+            filaImporte("Importe Mano de Obra", valorManoObra);
+            filaImporte("Viáticos", valorViaticos);
+            filaImporte("Flete", valorFlete);
+            y += 2;
         }
-        catch(error){
 
-            console.error(
-                "ERROR PDF:",
-                error
-            );
+        pdf.line(margen, y, margen + ancho, y);
+        y += 9;
 
-            alert(
-                "No se pudo generar el PDF:\n\n" +
-                error.message
-            );
-        }
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(13);
+        pdf.text("PRESUPUESTO TOTAL:", margen, y);
+        pdf.text("$" + dinero(totalFinalPdf), 150, y);
+
+        y += 10;
+        pdf.line(margen, y, margen + ancho, y);
+        y += 8;
+
+        /* CONSIDERACIONES */
+        if(y > 255){ pdf.addPage(); y = 20; }
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(11);
+        pdf.text("OTRAS CONSIDERACIONES", margen, y);
+        y += 7;
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(9);
+        const consideraciones = datosPresupuesto.consideraciones || "VALIDEZ DEL PRESUPUESTO 30 DÍAS A PARTIR DE LA FECHA. LUEGO DE LA FECHA SE DEBE REVISAR DICHA COTIZACIÓN.";
+        const textoConsideraciones = pdf.splitTextToSize(consideraciones, ancho);
+        pdf.text(textoConsideraciones, margen, y);
+
+        const numeroPDF = numeroPresupuesto(presupuestoId);
+        pdf.save("Pedido-de-Presupuesto-" + numeroPDF + ".pdf");
+
+    }catch(error){
+        console.error("ERROR PDF:", error);
+        alert("No se pudo generar el PDF:\n\n" + error.message);
     }
-);
+}
 
-
-/* =====================================================
-   AUTENTICACION
-===================================================== */
-
-let inicioCompletado =
-false;
-
-onAuthStateChanged(
-    auth,
-    async function(usuario){
-
-        if(!usuario){
-
-            mostrarError(
-                "No hay una sesión iniciada.\n\n" +
-                "Volvé a iniciar sesión en GESBASE."
-            );
-
-            return;
-        }
-
-        if(inicioCompletado){
-            return;
-        }
-
-        inicioCompletado =
-        true;
-
-        await cargarPresupuesto(
-            usuario
-        );
+/* AUTENTICACION */
+let inicioCompletado = false;
+onAuthStateChanged(auth, async function(usuario){
+    if(!usuario){
+        mostrarError("No hay una sesión iniciada.\n\nVolvé a iniciar sesión en GESBASE.");
+        return;
     }
-);
+    if(inicioCompletado) return;
+    inicioCompletado = true;
+    await cargarPresupuesto(usuario);
+});
 
-
-/* =====================================================
-   CONTROL
-===================================================== */
-
-setTimeout(
-    function(){
-
-        if(
-            cargando.style.display !==
-            "none"
-        ){
-
-            mostrarError(
-                "GESBASE tardó demasiado en cargar el presupuesto."
-            );
-        }
-
-    },
-    15000
-);
+setTimeout(function(){
+    if(cargando.style.display !== "none"){
+        mostrarError("GESBASE tardó demasiado en cargar el presupuesto.");
+    }
+}, 15000);
 
 </script>
 
