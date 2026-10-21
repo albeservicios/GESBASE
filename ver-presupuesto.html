@@ -140,15 +140,6 @@ main{
     margin-top:5px;
 }
 
-.material-linea{
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
-    padding:7px 0;
-    border-bottom:1px solid #e5e7eb;
-    font-size:14px;
-}
-
 .item-detalle{
     padding:8px 0;
     border-bottom:1px solid #e5e7eb;
@@ -1122,7 +1113,7 @@ function mostrarEmpresa(usuario){
 
 
 /* =====================================================
-   MATERIALES (Corregido para leer 'materiales' y 'materialesLista')
+   MATERIALES
 ===================================================== */
 
 function obtenerMateriales(){
@@ -1634,7 +1625,7 @@ async function cargarPresupuesto(usuario){
             datosPresupuesto.observaciones
         );
 
-        /* IMPORTES */
+        /* IMPORTES UNIFICADOS Y SEGUROS */
 
         const valorMaterialesItems =
         calcularTotalMateriales();
@@ -1665,22 +1656,22 @@ async function cargarPresupuesto(usuario){
             datosPresupuesto.importeFlete
         );
 
+        const sumaOperativa =
+        valorMateriales +
+        valorManoObra +
+        valorViaticos +
+        valorFlete;
+
         const totalGuardado =
         numero(
             datosPresupuesto.total ??
             datosPresupuesto.totalFinal
         );
 
-        const totalCalculado =
-        valorMateriales +
-        valorManoObra +
-        valorViaticos +
-        valorFlete;
-
         const totalFinal =
         totalGuardado > 0
             ? totalGuardado
-            : totalCalculado;
+            : sumaOperativa;
 
         importeMaterial.textContent =
         dinero(valorMateriales);
@@ -1806,7 +1797,7 @@ function numeroPresupuesto(id){
 
 
 /* =====================================================
-   PDF
+   PDF (USANDO LA MISMA REGLA UNIFICADA DE TOTALES)
 ===================================================== */
 
 btnPDF.addEventListener(
@@ -2624,7 +2615,7 @@ btnPDF.addEventListener(
 
 
             /* =================================================
-               IMPORTES
+               IMPORTES (EN PDF)
             ================================================= */
 
             if(y > 250){
@@ -2685,19 +2676,22 @@ btnPDF.addEventListener(
                 datosPresupuesto.importeFlete
             );
 
-            const totalGuardado =
+            const sumaOperativaPdf =
+            valorMaterial +
+            valorManoObra +
+            valorViaticos +
+            valorFlete;
+
+            const totalGuardadoPdf =
             numero(
                 datosPresupuesto.total ??
                 datosPresupuesto.totalFinal
             );
 
             const total =
-            totalGuardado > 0
-                ? totalGuardado
-                : valorMaterial +
-                  valorManoObra +
-                  valorViaticos +
-                  valorFlete;
+            totalGuardadoPdf > 0
+                ? totalGuardadoPdf
+                : sumaOperativaPdf;
 
 
             function filaImporte(
