@@ -1,29 +1,15 @@
+
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<meta
-    name="theme-color"
-    content="#111827"
->
-
-<meta
-    name="description"
-    content="GESBASE - Mis presupuestos"
->
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<meta name="description" content="GESBASE - Mis presupuestos">
 <title>Presupuestos - GESBASE</title>
 
 <style>
-
 *{
     box-sizing:border-box;
     margin:0;
@@ -49,18 +35,14 @@ header{
     padding:22px 18px;
 }
 
-header h1{
-    font-size:25px;
-}
+header h1{font-size:25px}
 
 header p{
     margin-top:5px;
     color:#d1d5db;
 }
 
-main{
-    padding:18px;
-}
+main{padding:18px}
 
 .barra{
     display:flex;
@@ -137,6 +119,7 @@ main{
 .dato{
     margin-top:6px;
     font-size:14px;
+    overflow-wrap:anywhere;
 }
 
 .total{
@@ -180,23 +163,11 @@ main{
 }
 
 @media(max-width:600px){
-
-    .barra{
-        flex-direction:column;
-    }
-
-    .acciones{
-        grid-template-columns:1fr;
-    }
-
-    .trabajo{
-        grid-column:auto;
-    }
-
+    .barra{flex-direction:column}
+    .acciones{grid-template-columns:1fr}
+    .trabajo{grid-column:auto}
 }
-
 </style>
-
 </head>
 
 <body>
@@ -204,61 +175,39 @@ main{
 <div class="contenedor">
 
 <header>
-
-<h1>GESBASE</h1>
-
-<p>Mis presupuestos</p>
-
+    <h1>GESBASE</h1>
+    <p>Mis presupuestos</p>
 </header>
 
 <main>
 
-<div class="barra">
+    <div class="barra">
+        <a href="presupuesto.html" class="boton nuevo">
+            ➕ NUEVO PRESUPUESTO
+        </a>
 
-<a
-    href="presupuesto.html"
-    class="boton nuevo"
->
-    ➕ NUEVO PRESUPUESTO
-</a>
+        <a href="index.html" class="boton volver">
+            ⬅️ VOLVER
+        </a>
+    </div>
 
-<a
-    href="index.html"
-    class="boton volver"
->
-    ⬅️ VOLVER
-</a>
+    <input
+        id="buscar"
+        class="buscar"
+        type="search"
+        placeholder="🔎 Buscar presupuesto o cliente..."
+    >
 
-</div>
+    <div id="cargando" class="estado">
+        ⏳ Identificando empresa...
+    </div>
 
-<input
-    id="buscar"
-    class="buscar"
-    type="search"
-    placeholder="🔎 Buscar presupuesto o cliente..."
->
+    <div id="error" class="error"></div>
 
-<div
-    id="cargando"
-    class="estado"
->
-    ⏳ Identificando empresa...
-</div>
-
-<div
-    id="error"
-    class="error"
-></div>
-
-<div
-    id="lista"
-    class="lista"
-></div>
+    <div id="lista" class="lista"></div>
 
 </main>
-
 </div>
-
 
 <script type="module">
 
@@ -286,30 +235,16 @@ import {
 
 
 /* =====================================================
-   ELEMENTOS
+   ELEMENTOS Y VARIABLES
 ===================================================== */
 
-const cargando =
-document.getElementById("cargando");
-
-const errorBox =
-document.getElementById("error");
-
-const lista =
-document.getElementById("lista");
-
-const buscar =
-document.getElementById("buscar");
-
-
-/* =====================================================
-   VARIABLES
-===================================================== */
+const cargando = document.getElementById("cargando");
+const errorBox = document.getElementById("error");
+const lista = document.getElementById("lista");
+const buscar = document.getElementById("buscar");
 
 let todos = [];
-
 let usuarioActual = null;
-
 let empresaIdActual = null;
 
 
@@ -318,56 +253,371 @@ let empresaIdActual = null;
 ===================================================== */
 
 function texto(valor){
-
-    if(
-        valor === null ||
-        valor === undefined
-    ){
-
+    if(valor === null || valor === undefined){
         return "";
-
     }
 
     return String(valor);
-
 }
 
-
 function escapar(valor){
-
     return texto(valor)
         .replace(/&/g,"&amp;")
         .replace(/</g,"&lt;")
         .replace(/>/g,"&gt;")
         .replace(/"/g,"&quot;")
         .replace(/'/g,"&#039;");
-
 }
 
+/*
+  Convierte importes numéricos o textos con formato argentino.
+  Ejemplos:
+  15000
+  "15000.50"
+  "15.000,50"
+  "$ 15.000,50"
+*/
 
 function numero(valor){
 
-    const n =
-    Number(valor);
+    if(typeof valor === "number"){
+        return Number.isFinite(valor) ? valor : 0;
+    }
 
-    return Number.isFinite(n)
-        ? n
-        : 0;
+    if(valor === null || valor === undefined || valor === ""){
+        return 0;
+    }
 
+    if(typeof valor !== "string"){
+        return 0;
+    }
+
+    let limpio = valor
+        .trim()
+        .replace(/\$/g,"")
+        .replace(/\s/g,"");
+
+    if(!limpio){
+        return 0;
+    }
+
+    /*
+      Si tiene punto y coma, se interpreta el punto
+      como separador de miles y la coma como decimal.
+    */
+
+    if(limpio.includes(",") && limpio.includes(".")){
+        limpio = limpio
+            .replace(/\./g,"")
+            .replace(",",".");
+    }else if(limpio.includes(",")){
+        limpio = limpio.replace(",",".");
+    }
+
+    const resultado = Number(limpio);
+
+    return Number.isFinite(resultado) ? resultado : 0;
+}
+
+function dinero(valor){
+    return numero(valor).toLocaleString("es-AR",{
+        minimumFractionDigits:2,
+        maximumFractionDigits:2
+    });
 }
 
 
-function dinero(valor){
+/* =====================================================
+   UTILIDADES PARA IMPORTES
+===================================================== */
 
-    return numero(valor)
-        .toLocaleString(
-            "es-AR",
-            {
-                minimumFractionDigits:2,
-                maximumFractionDigits:2
+/*
+  Devuelve el primer campo que realmente contiene un valor.
+  Se usa para no sumar campos alternativos que representan
+  el mismo importe.
+*/
+
+function primerImporte(datos, campos){
+
+    for(const campo of campos){
+
+        if(
+            datos[campo] !== undefined &&
+            datos[campo] !== null &&
+            datos[campo] !== ""
+        ){
+            const valor = datos[campo];
+
+            if(
+                typeof valor === "number" ||
+                typeof valor === "string"
+            ){
+                return numero(valor);
             }
+        }
+    }
+
+    return 0;
+}
+
+
+/*
+  Calcula el importe de una línea detallada.
+
+  Si existe un subtotal o resultado guardado para la línea,
+  lo utiliza una sola vez. Si no existe, calcula precio x
+  cantidad.
+*/
+
+function importeItem(item){
+
+    if(item === null || item === undefined){
+        return 0;
+    }
+
+    if(typeof item === "number" || typeof item === "string"){
+        return numero(item);
+    }
+
+    if(typeof item !== "object"){
+        return 0;
+    }
+
+    const camposTotal = [
+        "subtotal",
+        "importeTotal",
+        "totalItem",
+        "resultado",
+        "importe",
+        "total"
+    ];
+
+    for(const campo of camposTotal){
+
+        if(
+            item[campo] !== undefined &&
+            item[campo] !== null &&
+            item[campo] !== ""
+        ){
+            return numero(item[campo]);
+        }
+    }
+
+    const precio = primerImporte(item,[
+        "precioUnitario",
+        "precio",
+        "costoUnitario",
+        "valorUnitario"
+    ]);
+
+    const cantidad = primerImporte(item,[
+        "cantidad",
+        "unidades",
+        "metros",
+        "m2"
+    ]);
+
+    if(precio !== 0 && cantidad !== 0){
+        return precio * cantidad;
+    }
+
+    /*
+      Si la línea guarda únicamente un importe directo,
+      se utiliza como alternativa.
+    */
+
+    return primerImporte(item,[
+        "monto",
+        "valor",
+        "costo"
+    ]);
+}
+
+
+/*
+  Suma una lista de conceptos.
+  No suma el total general del presupuesto.
+*/
+
+function sumarItems(listaItems){
+
+    if(!Array.isArray(listaItems)){
+        return 0;
+    }
+
+    return listaItems.reduce((acumulado,item)=>{
+        return acumulado + importeItem(item);
+    },0);
+}
+
+
+/* =====================================================
+   CÁLCULO CORREGIDO DEL PRESUPUESTO
+===================================================== */
+
+/*
+  REGLA PRINCIPAL:
+
+  1. Si hay materiales detallados, sumar sus líneas.
+  2. Si hay mano de obra detallada, sumar sus líneas.
+  3. Si no hay detalle, usar un único campo de importe
+     alternativo para cada categoría.
+  4. Agregar viáticos, flete y otros gastos una sola vez.
+  5. No agregar datos.total ni datos.totalFinal al cálculo
+     de los componentes: esos campos pueden ser totales
+     generales guardados previamente.
+
+  Si no hay ningún componente disponible, se conserva como
+  último recurso el total histórico del documento.
+*/
+
+function total(datos){
+
+    const materialesLista =
+        Array.isArray(datos.materialesLista)
+            ? datos.materialesLista
+            : (
+                Array.isArray(datos.itemsMateriales)
+                    ? datos.itemsMateriales
+                    : (
+                        Array.isArray(datos.materiales)
+                            ? datos.materiales
+                            : []
+                    )
+            );
+
+    const manoObraLista =
+        Array.isArray(datos.manoObraItems)
+            ? datos.manoObraItems
+            : (
+                Array.isArray(datos.itemsManoObra)
+                    ? datos.itemsManoObra
+                    : (
+                        Array.isArray(datos.manoObraLista)
+                            ? datos.manoObraLista
+                            : []
+                    )
+            );
+
+
+    let materiales = 0;
+    let manoObra = 0;
+
+
+    /*
+      Materiales: usar el detalle si existe.
+      No sumar simultáneamente materialesLista y materiales,
+      porque pueden ser dos representaciones del mismo dato.
+    */
+
+    if(materialesLista.length > 0){
+
+        materiales = sumarItems(materialesLista);
+
+    }else{
+
+        materiales = primerImporte(datos,[
+            "importeMaterial",
+            "totalMateriales",
+            "materialesTotal",
+            "materiales"
+        ]);
+
+    }
+
+
+    /*
+      Mano de obra: mismo criterio.
+    */
+
+    if(manoObraLista.length > 0){
+
+        manoObra = sumarItems(manoObraLista);
+
+    }else{
+
+        manoObra = primerImporte(datos,[
+            "importeManoObra",
+            "totalManoObra",
+            "manoObraTotal",
+            "manoObra"
+        ]);
+
+    }
+
+
+    const viaticos = primerImporte(datos,[
+        "viaticos",
+        "importeViaticos",
+        "totalViaticos"
+    ]);
+
+    const flete = primerImporte(datos,[
+        "flete",
+        "importeFlete",
+        "totalFlete"
+    ]);
+
+    const otros = primerImporte(datos,[
+        "otros",
+        "importeOtros",
+        "otrosGastos",
+        "totalOtros"
+    ]);
+
+
+    const hayComponentes =
+        materialesLista.length > 0 ||
+        manoObraLista.length > 0 ||
+        [
+            "importeMaterial",
+            "totalMateriales",
+            "materialesTotal",
+            "materiales",
+            "importeManoObra",
+            "totalManoObra",
+            "manoObraTotal",
+            "manoObra",
+            "viaticos",
+            "importeViaticos",
+            "totalViaticos",
+            "flete",
+            "importeFlete",
+            "totalFlete",
+            "otros",
+            "importeOtros",
+            "otrosGastos",
+            "totalOtros"
+        ].some(campo =>
+            datos[campo] !== undefined &&
+            datos[campo] !== null &&
+            datos[campo] !== ""
         );
 
+
+    if(hayComponentes){
+
+        const resultado =
+            materiales +
+            manoObra +
+            viaticos +
+            flete +
+            otros;
+
+        return Math.round((resultado + Number.EPSILON) * 100) / 100;
+    }
+
+
+    /*
+      Compatibilidad con presupuestos antiguos que solo
+      tengan guardado un importe total y no sus componentes.
+    */
+
+    return primerImporte(datos,[
+        "total",
+        "totalFinal",
+        "importe"
+    ]);
 }
 
 
@@ -385,7 +635,6 @@ function cliente(datos){
         datos.empresaCliente ||
         "Sin cliente"
     );
-
 }
 
 
@@ -403,7 +652,6 @@ function numeroPresupuesto(datos,id){
         datos.nro ||
         id.substring(0,8)
     );
-
 }
 
 
@@ -421,53 +669,6 @@ function descripcion(datos){
         datos.detalle ||
         "Sin descripción"
     );
-
-}
-
-
-/* =====================================================
-   TOTAL
-===================================================== */
-
-function total(datos){
-
-    if(
-        datos.total !== undefined
-    ){
-
-        return numero(
-            datos.total
-        );
-
-    }
-
-    if(
-        datos.totalFinal !== undefined
-    ){
-
-        return numero(
-            datos.totalFinal
-        );
-
-    }
-
-    if(
-        datos.importe !== undefined
-    ){
-
-        return numero(
-            datos.importe
-        );
-
-    }
-
-    return (
-        numero(datos.materiales) +
-        numero(datos.manoObra) +
-        numero(datos.viaticos) +
-        numero(datos.flete)
-    );
-
 }
 
 
@@ -482,40 +683,19 @@ async function obtenerEmpresaId(uid){
         uid
     );
 
-
     try{
 
-        /* ---------------------------------------------
-           1. BUSCAR USUARIO
-        --------------------------------------------- */
+        const usuarioRef = doc(db,"usuarios",uid);
+        const usuarioSnap = await getDoc(usuarioRef);
 
-        const usuarioRef =
-        doc(
-            db,
-            "usuarios",
-            uid
-        );
+        if(usuarioSnap.exists()){
 
-
-        const usuarioSnap =
-        await getDoc(
-            usuarioRef
-        );
-
-
-        if(
-            usuarioSnap.exists()
-        ){
-
-            const data =
-            usuarioSnap.data();
-
+            const data = usuarioSnap.data();
 
             console.log(
                 "GESBASE: datos del usuario:",
                 data
             );
-
 
             const id =
                 data.empresaId ||
@@ -523,63 +703,34 @@ async function obtenerEmpresaId(uid){
                 data.empresa ||
                 data.companyId;
 
-
             if(id){
-
                 console.log(
                     "GESBASE: empresa encontrada:",
                     id
                 );
 
                 return id;
-
             }
-
         }
 
-
-        /* ---------------------------------------------
-           2. BUSCAR EMPRESA POR PROPIETARIO
-        --------------------------------------------- */
-
-        const empresasQuery =
-        query(
-            collection(
-                db,
-                "empresas"
-            ),
-            where(
-                "propietarioUid",
-                "==",
-                uid
-            )
+        const empresasQuery = query(
+            collection(db,"empresas"),
+            where("propietarioUid","==",uid)
         );
 
+        const empresasSnap = await getDocs(empresasQuery);
 
-        const empresasSnap =
-        await getDocs(
-            empresasQuery
-        );
+        if(!empresasSnap.empty){
 
-
-        if(
-            !empresasSnap.empty
-        ){
-
-            const empresa =
-            empresasSnap.docs[0];
-
+            const empresa = empresasSnap.docs[0];
 
             console.log(
                 "GESBASE: empresa encontrada por propietario:",
                 empresa.id
             );
 
-
             return empresa.id;
-
         }
-
 
     }catch(error){
 
@@ -589,12 +740,9 @@ async function obtenerEmpresaId(uid){
         );
 
         throw error;
-
     }
 
-
     return null;
-
 }
 
 
@@ -609,53 +757,25 @@ function mostrarError(error){
         error
     );
 
+    cargando.style.display = "none";
+    errorBox.style.display = "block";
 
-    cargando.style.display =
-    "none";
-
-
-    errorBox.style.display =
-    "block";
-
-
-    let mensaje =
-    error?.message ||
-    String(error);
-
+    const mensaje =
+        error?.message ||
+        String(error);
 
     errorBox.textContent =
-
         "❌ No se pudieron cargar los presupuestos.\n\n" +
-
         "Código: " +
-
-        (
-            error?.code ||
-            "sin código"
-        ) +
-
+        (error?.code || "sin código") +
         "\n\n" +
-
         mensaje +
-
         "\n\n" +
-
         "Usuario: " +
-
-        (
-            usuarioActual?.email ||
-            "sin usuario"
-        ) +
-
+        (usuarioActual?.email || "sin usuario") +
         "\n\n" +
-
         "Empresa detectada: " +
-
-        (
-            empresaIdActual ||
-            "no encontrada"
-        );
-
+        (empresaIdActual || "no encontrada");
 }
 
 
@@ -669,148 +789,73 @@ async function cargarPresupuestos(){
         "GESBASE: iniciando carga de presupuestos..."
     );
 
-
     try{
 
-        if(
-            !usuarioActual
-        ){
-
+        if(!usuarioActual){
             throw new Error(
                 "No existe usuario autenticado."
             );
-
         }
 
-
-        if(
-            !empresaIdActual
-        ){
-
+        if(!empresaIdActual){
             throw new Error(
                 "No se encontró una empresa asociada al usuario."
             );
-
         }
 
+        console.log("GESBASE UID:",usuarioActual.uid);
+        console.log("GESBASE EMPRESA:",empresaIdActual);
 
-        console.log(
-            "GESBASE UID:",
-            usuarioActual.uid
-        );
+        const referencia = collection(db,"presupuestos");
 
-
-        console.log(
-            "GESBASE EMPRESA:",
-            empresaIdActual
-        );
-
-
-        const referencia =
-        collection(
-            db,
-            "presupuestos"
-        );
-
-
-        /* =================================================
-           CONSULTA CORRECTA
-           
-           Los presupuestos nuevos se guardan con:
-           
-           empresaId: empresaIdActual
-           
-           Por eso la lista debe buscar por empresaId.
-        ================================================= */
-
-
-        const consulta =
-        query(
+        const consulta = query(
             referencia,
-            where(
-                "empresaId",
-                "==",
-                empresaIdActual
-            )
+            where("empresaId","==",empresaIdActual)
         );
 
-
-        const resultado =
-        await getDocs(
-            consulta
-        );
-
+        const resultado = await getDocs(consulta);
 
         console.log(
             "GESBASE: presupuestos encontrados:",
             resultado.size
         );
 
-
         todos = [];
 
+        resultado.forEach(documento => {
 
-        resultado.forEach(
-            documento => {
+            todos.push({
+                id: documento.id,
+                datos: documento.data()
+            });
 
-                todos.push({
+        });
 
-                    id:
-                    documento.id,
+        todos.sort((a,b)=>{
 
-                    datos:
-                    documento.data()
+            const fechaA =
+                a.datos.creadoEn?.seconds ||
+                a.datos.creado?.seconds ||
+                a.datos.actualizadoEn?.seconds ||
+                0;
 
-                });
+            const fechaB =
+                b.datos.creadoEn?.seconds ||
+                b.datos.creado?.seconds ||
+                b.datos.actualizadoEn?.seconds ||
+                0;
 
-            }
-        );
+            return fechaB - fechaA;
+        });
 
+        cargando.style.display = "none";
 
-        /* =================================================
-           ORDENAR
-        ================================================= */
-
-        todos.sort(
-            (a,b) => {
-
-                const fechaA =
-                    a.datos.creadoEn?.seconds ||
-                    a.datos.creado?.seconds ||
-                    a.datos.actualizadoEn?.seconds ||
-                    0;
-
-
-                const fechaB =
-                    b.datos.creadoEn?.seconds ||
-                    b.datos.creado?.seconds ||
-                    b.datos.actualizadoEn?.seconds ||
-                    0;
-
-
-                return fechaB - fechaA;
-
-            }
-        );
-
-
-        cargando.style.display =
-        "none";
-
-
-        mostrarLista(
-            todos
-        );
-
+        mostrarLista(todos);
 
     }catch(error){
 
-        mostrarError(
-            error
-        );
-
+        mostrarError(error);
     }
-
 }
 
 
@@ -820,23 +865,15 @@ async function cargarPresupuestos(){
 
 function mostrarLista(items){
 
-    lista.innerHTML =
-    "";
+    lista.innerHTML = "";
 
-
-    if(
-        items.length === 0
-    ){
+    if(items.length === 0){
 
         lista.innerHTML = `
-
             <div class="estado">
-
                 📋 No tenés presupuestos registrados
                 en esta empresa.
-
                 <br><br>
-
                 <a
                     href="presupuesto.html"
                     class="boton nuevo"
@@ -844,168 +881,93 @@ function mostrarLista(items){
                 >
                     ➕ CREAR PRESUPUESTO
                 </a>
-
             </div>
-
         `;
 
         return;
-
     }
 
+    items.forEach(item => {
 
-    items.forEach(
-        item => {
+        const datos = item.datos;
 
-            const datos =
-            item.datos;
+        const numero = numeroPresupuesto(
+            datos,
+            item.id
+        );
 
+        const nombreCliente = cliente(datos);
+        const desc = descripcion(datos);
+        const importe = total(datos);
 
-            const numero =
-            numeroPresupuesto(
-                datos,
-                item.id
-            );
+        const estado = datos.estado || "Pendiente";
 
-
-            const nombreCliente =
-            cliente(
-                datos
-            );
-
-
-            const desc =
-            descripcion(
-                datos
-            );
-
-
-            const importe =
-            total(
-                datos
-            );
-
-
-            const estado =
-            datos.estado ||
-            "Pendiente";
-
-
-            const lugar =
+        const lugar =
             datos.lugarTrabajo ||
             datos.lugar ||
             "Sin informar";
 
+        const card = document.createElement("div");
 
-            const card =
-            document.createElement(
-                "div"
-            );
+        card.className = "card";
 
+        card.innerHTML = `
+            <h2>
+                Presupuesto N.º ${escapar(numero)}
+            </h2>
 
-            card.className =
-            "card";
+            <div class="dato">
+                <strong>Cliente:</strong>
+                ${escapar(nombreCliente)}
+            </div>
 
+            <div class="dato">
+                <strong>Estado:</strong>
+                ${escapar(estado)}
+            </div>
 
-            card.innerHTML = `
+            <div class="dato">
+                <strong>Lugar:</strong>
+                ${escapar(lugar)}
+            </div>
 
-                <h2>
-                    Presupuesto N.º
-                    ${escapar(numero)}
-                </h2>
+            <div class="dato">
+                <strong>Descripción:</strong>
+                ${escapar(desc)}
+            </div>
 
+            <div class="total">
+                Total: $ ${dinero(importe)}
+            </div>
 
-                <div class="dato">
+            <div class="acciones">
 
-                    <strong>
-                        Cliente:
-                    </strong>
+                <a
+                    class="accion ver"
+                    href="ver-presupuesto.html?id=${encodeURIComponent(item.id)}"
+                >
+                    👁️ VER
+                </a>
 
-                    ${escapar(nombreCliente)}
+                <a
+                    class="accion editar"
+                    href="editar-presupuesto.html?id=${encodeURIComponent(item.id)}"
+                >
+                    ✏️ EDITAR
+                </a>
 
-                </div>
+                <a
+                    class="accion trabajo"
+                    href="trabajos.html?presupuestoId=${encodeURIComponent(item.id)}"
+                >
+                    🔧 CREAR TRABAJO
+                </a>
 
+            </div>
+        `;
 
-                <div class="dato">
-
-                    <strong>
-                        Estado:
-                    </strong>
-
-                    ${escapar(estado)}
-
-                </div>
-
-
-                <div class="dato">
-
-                    <strong>
-                        Lugar:
-                    </strong>
-
-                    ${escapar(lugar)}
-
-                </div>
-
-
-                <div class="dato">
-
-                    <strong>
-                        Descripción:
-                    </strong>
-
-                    ${escapar(desc)}
-
-                </div>
-
-
-                <div class="total">
-
-                    Total:
-                    $ ${dinero(importe)}
-
-                </div>
-
-
-                <div class="acciones">
-
-
-                    <a
-                        class="accion ver"
-                        href="ver-presupuesto.html?id=${encodeURIComponent(item.id)}"
-                    >
-                        👁️ VER
-                    </a>
-
-
-                    <a
-                        class="accion editar"
-                        href="editar-presupuesto.html?id=${encodeURIComponent(item.id)}"
-                    >
-                        ✏️ EDITAR
-                    </a>
-
-
-                    <a
-                        class="accion trabajo"
-                        href="trabajos.html?presupuestoId=${encodeURIComponent(item.id)}"
-                    >
-                        🔧 CREAR TRABAJO
-                    </a>
-
-
-                </div>
-
-            `;
-
-
-            lista.appendChild(
-                card
-            );
-
-        }
-    );
-
+        lista.appendChild(card);
+    });
 }
 
 
@@ -1013,78 +975,40 @@ function mostrarLista(items){
    BUSCADOR
 ===================================================== */
 
-buscar.addEventListener(
-    "input",
-    function(){
+buscar.addEventListener("input",function(){
 
-        const busqueda =
-        buscar.value
-            .toLowerCase()
-            .trim();
+    const busqueda = buscar.value
+        .toLowerCase()
+        .trim();
 
-
-        if(
-            !busqueda
-        ){
-
-            mostrarLista(
-                todos
-            );
-
-            return;
-
-        }
-
-
-        const filtrados =
-        todos.filter(
-            item => {
-
-                const datos =
-                item.datos;
-
-
-                const contenido = [
-
-                    numeroPresupuesto(
-                        datos,
-                        item.id
-                    ),
-
-                    cliente(
-                        datos
-                    ),
-
-                    descripcion(
-                        datos
-                    ),
-
-                    datos.lugarTrabajo,
-
-                    datos.lugar,
-
-                    datos.estado
-
-                ]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase();
-
-
-                return contenido.includes(
-                    busqueda
-                );
-
-            }
-        );
-
-
-        mostrarLista(
-            filtrados
-        );
-
+    if(!busqueda){
+        mostrarLista(todos);
+        return;
     }
-);
+
+    const filtrados = todos.filter(item=>{
+
+        const datos = item.datos;
+
+        const contenido = [
+
+            numeroPresupuesto(datos,item.id),
+            cliente(datos),
+            descripcion(datos),
+            datos.lugarTrabajo,
+            datos.lugar,
+            datos.estado
+
+        ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+        return contenido.includes(busqueda);
+    });
+
+    mostrarLista(filtrados);
+});
 
 
 /* =====================================================
@@ -1095,118 +1019,74 @@ console.log(
     "GESBASE: esperando autenticación..."
 );
 
+onAuthStateChanged(auth,async usuario=>{
 
-onAuthStateChanged(
-    auth,
-    async usuario => {
+    console.log(
+        "GESBASE AUTH:",
+        usuario ? usuario.email : "SIN SESIÓN"
+    );
 
-        console.log(
-            "GESBASE AUTH:",
-            usuario
-                ? usuario.email
-                : "SIN SESIÓN"
-        );
+    if(!usuario){
 
-
-        if(
-            !usuario
-        ){
-
-            cargando.textContent =
+        cargando.textContent =
             "⚠️ No hay una sesión iniciada.";
 
+        setTimeout(()=>{
+            window.location.href = "login.html";
+        },1000);
 
-            setTimeout(
-                () => {
+        return;
+    }
 
-                    window.location.href =
-                    "login.html";
+    usuarioActual = usuario;
 
-                },
-                1000
-            );
+    try{
 
-
-            return;
-
-        }
-
-
-        usuarioActual =
-        usuario;
-
-
-        try{
-
-            cargando.textContent =
+        cargando.textContent =
             "⏳ Identificando empresa...";
 
+        empresaIdActual = await obtenerEmpresaId(
+            usuario.uid
+        );
 
-            empresaIdActual =
-            await obtenerEmpresaId(
-                usuario.uid
+        if(!empresaIdActual){
+
+            throw new Error(
+                "No se pudo identificar la empresa del usuario."
             );
-
-
-            if(
-                !empresaIdActual
-            ){
-
-                throw new Error(
-                    "No se pudo identificar la empresa del usuario."
-                );
-
-            }
-
-
-            cargando.textContent =
-            "⏳ Cargando presupuestos...";
-
-
-            await cargarPresupuestos();
-
-
-        }catch(error){
-
-            mostrarError(
-                error
-            );
-
         }
 
+        cargando.textContent =
+            "⏳ Cargando presupuestos...";
+
+        await cargarPresupuestos();
+
+    }catch(error){
+
+        mostrarError(error);
     }
-);
+});
 
 
 /* =====================================================
    CONTROL DE ESPERA
 ===================================================== */
 
-setTimeout(
-    function(){
+setTimeout(()=>{
 
-        if(
-            cargando.style.display !==
-            "none"
-        ){
+    if(cargando.style.display !== "none"){
 
-            mostrarError(
+        mostrarError(
+            new Error(
+                "Firebase no respondió dentro del tiempo esperado. " +
+                "Revisá Js/firebase.js y la conexión con Firebase."
+            )
+        );
+    }
 
-                new Error(
-                    "Firebase no respondió dentro del tiempo esperado. " +
-                    "Revisá Js/firebase.js y la conexión con Firebase."
-                )
-
-            );
-
-        }
-
-    },
-    12000
-);
+},12000);
 
 </script>
 
 </body>
-
 </html>
