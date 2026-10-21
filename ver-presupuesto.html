@@ -1113,7 +1113,7 @@ function mostrarEmpresa(usuario){
 
 
 /* =====================================================
-   MATERIALES
+   MATERIALES (Con opción de ocultar precios unitarios)
 ===================================================== */
 
 function obtenerMateriales(){
@@ -1196,6 +1196,9 @@ function mostrarMateriales(lista){
         return;
     }
 
+    const mostrarPrecios =
+    datosPresupuesto.mostrarPreciosUnitarios !== false;
+
     lista.forEach(
         function(material){
 
@@ -1231,30 +1234,43 @@ function mostrarMateriales(lista){
                 material?.u
             );
 
-            const precio =
-            numero(
-                material?.precio ??
-                material?.precioUnitario ??
-                material?.importe ??
-                0
-            );
-
             const cantidad =
             numero(
                 material?.cantidad ??
                 0
             );
 
-            const resultado =
-            material?.resultado !== undefined
-                ? numero(material.resultado)
-                : precio * cantidad;
+            if(mostrarPrecios){
 
-            datos.textContent =
-            "Unidad: " + unidad +
-            " | Precio: $ " + dinero(precio) +
-            " | Cantidad: " + cantidad +
-            " | Resultado: $ " + dinero(resultado);
+                const precio =
+                numero(
+                    material?.precio ??
+                    material?.precioUnitario ??
+                    material?.importe ??
+                    0
+                );
+
+                const resultado =
+                material?.resultado !== undefined
+                    ? numero(material.resultado)
+                    : precio * cantidad;
+
+                datos.textContent =
+                "Unidad: " + unidad +
+                " | Precio: $ " + dinero(precio) +
+                " | Cantidad: " + cantidad +
+                " | Resultado: $ " + dinero(resultado);
+
+            }else{
+
+                datos.textContent =
+                "Cantidad: " + cantidad +
+                (
+                    unidad && unidad !== "-"
+                    ? " " + unidad
+                    : ""
+                );
+            }
 
             linea.appendChild(titulo);
             linea.appendChild(datos);
@@ -1263,25 +1279,28 @@ function mostrarMateriales(lista){
         }
     );
 
-    const total =
-    calcularTotalMateriales();
+    if(mostrarPrecios){
 
-    const subtotal =
-    document.createElement("div");
+        const total =
+        calcularTotalMateriales();
 
-    subtotal.className =
-    "subtotal";
+        const subtotal =
+        document.createElement("div");
 
-    subtotal.textContent =
-    "Total materiales: $ " +
-    dinero(total);
+        subtotal.className =
+        "subtotal";
 
-    materialesLista.appendChild(subtotal);
+        subtotal.textContent =
+        "Total materiales: $ " +
+        dinero(total);
+
+        materialesLista.appendChild(subtotal);
+    }
 }
 
 
 /* =====================================================
-   MANO DE OBRA
+   MANO DE OBRA (Con opción de ocultar precios unitarios)
 ===================================================== */
 
 function obtenerManoObraItems(){
@@ -1356,6 +1375,9 @@ function mostrarManoObra(){
     const lista =
     obtenerManoObraItems();
 
+    const mostrarPrecios =
+    datosPresupuesto.mostrarPreciosUnitarios !== false;
+
     if(!lista.length){
 
         manoObraDetalle.textContent =
@@ -1403,29 +1425,42 @@ function mostrarManoObra(){
                 item?.u
             );
 
-            const precio =
-            numero(
-                item?.precio ??
-                item?.precioUnitario ??
-                0
-            );
-
             const cantidad =
             numero(
                 item?.cantidad ??
                 0
             );
 
-            const resultado =
-            item?.resultado !== undefined
-                ? numero(item.resultado)
-                : precio * cantidad;
+            if(mostrarPrecios){
 
-            datos.textContent =
-            "Unidad: " + unidad +
-            " | Precio: $ " + dinero(precio) +
-            " | Cantidad: " + cantidad +
-            " | Resultado: $ " + dinero(resultado);
+                const precio =
+                numero(
+                    item?.precio ??
+                    item?.precioUnitario ??
+                    0
+                );
+
+                const resultado =
+                item?.resultado !== undefined
+                    ? numero(item.resultado)
+                    : precio * cantidad;
+
+                datos.textContent =
+                "Unidad: " + unidad +
+                " | Precio: $ " + dinero(precio) +
+                " | Cantidad: " + cantidad +
+                " | Resultado: $ " + dinero(resultado);
+
+            }else{
+
+                datos.textContent =
+                "Cantidad: " + cantidad +
+                (
+                    unidad && unidad !== "-"
+                    ? " " + unidad
+                    : ""
+                );
+            }
 
             linea.appendChild(titulo);
             linea.appendChild(datos);
@@ -1434,21 +1469,24 @@ function mostrarManoObra(){
         }
     );
 
-    const subtotal =
-    document.createElement("div");
+    if(mostrarPrecios){
 
-    subtotal.className =
-    "subtotal";
+        const subtotal =
+        document.createElement("div");
 
-    subtotal.textContent =
-    "Total mano de obra: $ " +
-    dinero(
-        calcularTotalManoObra()
-    );
+        subtotal.className =
+        "subtotal";
 
-    manoObraDetalle.appendChild(
-        subtotal
-    );
+        subtotal.textContent =
+        "Total mano de obra: $ " +
+        dinero(
+            calcularTotalManoObra()
+        );
+
+        manoObraDetalle.appendChild(
+            subtotal
+        );
+    }
 }
 
 
@@ -1468,11 +1506,6 @@ async function cargarPresupuesto(usuario){
     }
 
     try{
-
-        console.log(
-            "GESBASE: cargando presupuesto:",
-            presupuestoId
-        );
 
         const referencia =
         doc(
@@ -1497,11 +1530,6 @@ async function cargarPresupuesto(usuario){
 
         datosPresupuesto =
         resultado.data();
-
-        console.log(
-            "DATOS PRESUPUESTO:",
-            datosPresupuesto
-        );
 
         try{
 
@@ -1625,7 +1653,7 @@ async function cargarPresupuesto(usuario){
             datosPresupuesto.observaciones
         );
 
-        /* IMPORTES UNIFICADOS Y SEGUROS */
+        /* IMPORTES */
 
         const valorMaterialesItems =
         calcularTotalMateriales();
@@ -1735,10 +1763,6 @@ async function cargarPresupuesto(usuario){
         contenido.style.display =
         "block";
 
-        console.log(
-            "GESBASE: presupuesto cargado correctamente"
-        );
-
     }
     catch(error){
 
@@ -1749,17 +1773,7 @@ async function cargarPresupuesto(usuario){
 
         mostrarError(
             "No se pudo cargar el presupuesto.\n\n" +
-            "Código: " +
-            (
-                error?.code ||
-                "sin código"
-            ) +
-            "\n\n" +
-            "Detalle: " +
-            (
-                error?.message ||
-                String(error)
-            )
+            error.message
         );
     }
 }
@@ -1797,7 +1811,7 @@ function numeroPresupuesto(id){
 
 
 /* =====================================================
-   PDF (USANDO LA MISMA REGLA UNIFICADA DE TOTALES)
+   PDF (RESPETANDO LA OPCIÓN DE OCULTAR PRECIOS)
 ===================================================== */
 
 btnPDF.addEventListener(
@@ -1863,6 +1877,9 @@ btnPDF.addEventListener(
             datosUsuario.email ||
             auth.currentUser?.email ||
             "";
+
+            const mostrarPrecios =
+            datosPresupuesto.mostrarPreciosUnitarios !== false;
 
             pdf.setFont(
                 "helvetica",
@@ -2143,7 +2160,7 @@ btnPDF.addEventListener(
 
 
             /* =================================================
-               MATERIALES
+               MATERIALES EN PDF
             ================================================= */
 
             pdf.setFont(
@@ -2188,30 +2205,17 @@ btnPDF.addEventListener(
                             material?.u
                         );
 
-                        const precio =
-                        numero(
-                            material?.precio ??
-                            material?.precioUnitario ??
-                            material?.importe ??
-                            0
-                        );
-
                         const cantidad =
                         numero(
                             material?.cantidad ??
                             0
                         );
 
-                        const resultado =
-                        material?.resultado !== undefined
-                            ? numero(material.resultado)
-                            : precio * cantidad;
-
                         const lineaMaterial =
                         pdf.splitTextToSize(
                             "• " +
                             descripcionMaterial,
-                            75
+                            mostrarPrecios ? 75 : 130
                         );
 
                         pdf.setFont(
@@ -2227,34 +2231,67 @@ btnPDF.addEventListener(
                             y
                         );
 
-                        pdf.text(
-                            unidad,
-                            98,
-                            y
-                        );
+                        if(mostrarPrecios){
 
-                        pdf.text(
-                            "$" +
-                            dinero(precio),
-                            120,
-                            y
-                        );
+                            const precio =
+                            numero(
+                                material?.precio ??
+                                material?.precioUnitario ??
+                                material?.importe ??
+                                0
+                            );
 
-                        pdf.text(
-                            String(cantidad),
-                            145,
-                            y
-                        );
+                            const resultado =
+                            material?.resultado !== undefined
+                                ? numero(material.resultado)
+                                : precio * cantidad;
 
-                        pdf.text(
-                            "$" +
-                            dinero(resultado),
-                            174,
-                            y,
-                            {
-                                align:"right"
-                            }
-                        );
+                            pdf.text(
+                                unidad,
+                                98,
+                                y
+                            );
+
+                            pdf.text(
+                                "$" +
+                                dinero(precio),
+                                120,
+                                y
+                            );
+
+                            pdf.text(
+                                String(cantidad),
+                                145,
+                                y
+                            );
+
+                            pdf.text(
+                                "$" +
+                                dinero(resultado),
+                                174,
+                                y,
+                                {
+                                    align:"right"
+                                }
+                            );
+
+                        }else{
+
+                            pdf.text(
+                                "Cant: " +
+                                cantidad +
+                                (
+                                    unidad && unidad !== "-"
+                                    ? " " + unidad
+                                    : ""
+                                ),
+                                174,
+                                y,
+                                {
+                                    align:"right"
+                                }
+                            );
+                        }
 
                         y +=
                         Math.max(
@@ -2272,24 +2309,27 @@ btnPDF.addEventListener(
                     y = 20;
                 }
 
-                pdf.setFont(
-                    "helvetica",
-                    "bold"
-                );
+                if(mostrarPrecios){
 
-                pdf.text(
-                    "Total materiales: $" +
-                    dinero(
-                        calcularTotalMateriales()
-                    ),
-                    174,
-                    y,
-                    {
-                        align:"right"
-                    }
-                );
+                    pdf.setFont(
+                        "helvetica",
+                        "bold"
+                    );
 
-                y += 7;
+                    pdf.text(
+                        "Total materiales: $" +
+                        dinero(
+                            calcularTotalMateriales()
+                        ),
+                        174,
+                        y,
+                        {
+                            align:"right"
+                        }
+                    );
+
+                    y += 7;
+                }
 
             }
             else{
@@ -2310,7 +2350,7 @@ btnPDF.addEventListener(
 
 
             /* =================================================
-               MANO DE OBRA
+               MANO DE OBRA EN PDF
             ================================================= */
 
             if(y > 250){
@@ -2363,29 +2403,17 @@ btnPDF.addEventListener(
                             item?.u
                         );
 
-                        const precio =
-                        numero(
-                            item?.precio ??
-                            item?.precioUnitario ??
-                            0
-                        );
-
                         const cantidad =
                         numero(
                             item?.cantidad ??
                             0
                         );
 
-                        const resultado =
-                        item?.resultado !== undefined
-                            ? numero(item.resultado)
-                            : precio * cantidad;
-
                         const lineaTrabajo =
                         pdf.splitTextToSize(
                             "• " +
                             descripcionTrabajo,
-                            75
+                            mostrarPrecios ? 75 : 130
                         );
 
                         pdf.setFont(
@@ -2401,34 +2429,66 @@ btnPDF.addEventListener(
                             y
                         );
 
-                        pdf.text(
-                            unidad,
-                            98,
-                            y
-                        );
+                        if(mostrarPrecios){
 
-                        pdf.text(
-                            "$" +
-                            dinero(precio),
-                            120,
-                            y
-                        );
+                            const precio =
+                            numero(
+                                item?.precio ??
+                                item?.precioUnitario ??
+                                0
+                            );
 
-                        pdf.text(
-                            String(cantidad),
-                            145,
-                            y
-                        );
+                            const resultado =
+                            item?.resultado !== undefined
+                                ? numero(item.resultado)
+                                : precio * cantidad;
 
-                        pdf.text(
-                            "$" +
-                            dinero(resultado),
-                            174,
-                            y,
-                            {
-                                align:"right"
-                            }
-                        );
+                            pdf.text(
+                                unidad,
+                                98,
+                                y
+                            );
+
+                            pdf.text(
+                                "$" +
+                                dinero(precio),
+                                120,
+                                y
+                            );
+
+                            pdf.text(
+                                String(cantidad),
+                                145,
+                                y
+                            );
+
+                            pdf.text(
+                                "$" +
+                                dinero(resultado),
+                                174,
+                                y,
+                                {
+                                    align:"right"
+                                }
+                            );
+
+                        }else{
+
+                            pdf.text(
+                                "Cant: " +
+                                cantidad +
+                                (
+                                    unidad && unidad !== "-"
+                                    ? " " + unidad
+                                    : ""
+                                ),
+                                174,
+                                y,
+                                {
+                                    align:"right"
+                                }
+                            );
+                        }
 
                         y +=
                         Math.max(
@@ -2446,24 +2506,27 @@ btnPDF.addEventListener(
                     y = 20;
                 }
 
-                pdf.setFont(
-                    "helvetica",
-                    "bold"
-                );
+                if(mostrarPrecios){
 
-                pdf.text(
-                    "Total mano de obra: $" +
-                    dinero(
-                        calcularTotalManoObra()
-                    ),
-                    174,
-                    y,
-                    {
-                        align:"right"
-                    }
-                );
+                    pdf.setFont(
+                        "helvetica",
+                        "bold"
+                    );
 
-                y += 8;
+                    pdf.text(
+                        "Total mano de obra: $" +
+                        dinero(
+                            calcularTotalManoObra()
+                        ),
+                        174,
+                        y,
+                        {
+                            align:"right"
+                        }
+                    );
+
+                    y += 8;
+                }
 
             }
             else{
@@ -2877,13 +2940,6 @@ onAuthStateChanged(
     auth,
     async function(usuario){
 
-        console.log(
-            "GESBASE AUTH:",
-            usuario
-                ? usuario.uid
-                : "SIN USUARIO"
-        );
-
         if(!usuario){
 
             mostrarError(
@@ -2921,8 +2977,7 @@ setTimeout(
         ){
 
             mostrarError(
-                "GESBASE tardó demasiado en cargar el presupuesto.\n\n" +
-                "Verificá Firebase Authentication, Firestore y Js/firebase.js."
+                "GESBASE tardó demasiado en cargar el presupuesto."
             );
         }
 
