@@ -1461,21 +1461,6 @@ a{
                 </div>
             </a>
 
-
-            <a
-                href="informes-tecnicos.html"
-                class="module acceso-protegido"
-            >
-                <div class="module-icon">📄</div>
-
-                <div class="module-bottom">
-                    <span class="module-name">
-                        Informes técnicos
-                    </span>
-                    <span class="module-arrow">›</span>
-                </div>
-            </a>
-
         </div>
 
     </section>
@@ -2291,8 +2276,6 @@ a{
 
 <!-- =======================================================
      DATOS INTERNOS
-     Se mantienen para compatibilidad con el sistema actual
-     pero NO aparecen visualmente.
 ======================================================= -->
 
 <div class="datos-internos" aria-hidden="true">
@@ -2309,33 +2292,7 @@ a{
 
 
 
-<script type="module">
-
-/* =========================================================
-   FIREBASE
-   ========================================================= */
-
-import {
-    auth,
-    db
-} from "./Js/firebase.js";
-
-import {
-    onAuthStateChanged,
-    signOut
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-
-import {
-    doc,
-    getDoc,
-    setDoc,
-    collection,
-    query,
-    where,
-    getDocs,
-    onSnapshot
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-
+<script>
 
 /* =========================================================
    SOPORTE MODO OSCURO / CLARO
@@ -2369,56 +2326,23 @@ inicializarTema();
    ELEMENTOS
    ========================================================= */
 
-const cargando =
-    document.getElementById("cargando");
-
-const contenido =
-    document.getElementById("contenido");
-
-const panelEmpleado =
-    document.getElementById("panelEmpleado");
-
-const btnCerrarSesion =
-    document.getElementById("btnCerrarSesion");
-
-const btnNotificacionesAdmin =
-    document.getElementById("btnNotificacionesAdmin");
-
-const contadorSolicitudes =
-    document.getElementById("contadorSolicitudes");
-
-const nombreEmpresa =
-    document.getElementById("nombreEmpresa");
-
-const razonSocial =
-    document.getElementById("razonSocial");
-
-const rubroEmpresa =
-    document.getElementById("rubroEmpresa");
-
-const estadoAcceso =
-    document.getElementById("estadoAcceso");
-
-const alertaAcceso =
-    document.getElementById("alertaAcceso");
-
-const totalIngresos =
-    document.getElementById("totalIngresos");
-
-const totalGastos =
-    document.getElementById("totalGastos");
-
-const resultadoEmpresa =
-    document.getElementById("resultadoEmpresa");
-
-const financeOverlay =
-    document.getElementById("financeOverlay");
-
-const btnFinanzas =
-    document.getElementById("btnFinanzas");
-
-const btnCerrarFinanzas =
-    document.getElementById("btnCerrarFinanzas");
+const cargando = document.getElementById("cargando");
+const contenido = document.getElementById("contenido");
+const panelEmpleado = document.getElementById("panelEmpleado");
+const btnCerrarSesion = document.getElementById("btnCerrarSesion");
+const btnNotificacionesAdmin = document.getElementById("btnNotificacionesAdmin");
+const contadorSolicitudes = document.getElementById("contadorSolicitudes");
+const nombreEmpresa = document.getElementById("nombreEmpresa");
+const razonSocial = document.getElementById("razonSocial");
+const rubroEmpresa = document.getElementById("rubroEmpresa");
+const estadoAcceso = document.getElementById("estadoAcceso");
+const alertaAcceso = document.getElementById("alertaAcceso");
+const totalIngresos = document.getElementById("totalIngresos");
+const totalGastos = document.getElementById("totalGastos");
+const resultadoEmpresa = document.getElementById("resultadoEmpresa");
+const financeOverlay = document.getElementById("financeOverlay");
+const btnFinanzas = document.getElementById("btnFinanzas");
+const btnCerrarFinanzas = document.getElementById("btnCerrarFinanzas");
 
 
 /* =========================================================
@@ -2428,10 +2352,7 @@ const btnCerrarFinanzas =
 let empresaActual = null;
 let empresaIdActual = null;
 let usuarioActual = null;
-
 let esAdministrador = false;
-
-let unsubSolicitudes = null;
 
 
 /* =========================================================
@@ -2439,16 +2360,13 @@ let unsubSolicitudes = null;
    ========================================================= */
 
 function dinero(valor){
-
-    const numero =
-        Number(valor) || 0;
-
+    const numero = Number(valor) || 0;
     return numero.toLocaleString(
         "es-AR",
         {
-            style:"currency",
-            currency:"ARS",
-            maximumFractionDigits:0
+            style: "currency",
+            currency: "ARS",
+            maximumFractionDigits: 0
         }
     );
 }
@@ -2459,155 +2377,11 @@ function dinero(valor){
    ========================================================= */
 
 function normalizarTexto(valor){
-
     return String(valor || "")
         .trim()
         .toLowerCase()
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g,"");
-
-}
-
-
-/* =========================================================
-   GESTIÓN DE PRUEBA DE 7 DÍAS (OPCIÓN 1)
-   ========================================================= */
-
-async function verificarPrueba7Dias(empresaId, empresaData){
-    const ahora = new Date();
-
-    let trialEnd = null;
-    if(empresaData.trialEndsAt){
-        trialEnd = typeof empresaData.trialEndsAt.toDate === "function" 
-            ? empresaData.trialEndsAt.toDate() 
-            : new Date(empresaData.trialEndsAt);
-    } else {
-        // Si no tiene fecha de fin de prueba, se asigna 7 días desde hoy
-        trialEnd = new Date(ahora.getTime() + 7 * 24 * 60 * 60 * 1000);
-        try {
-            await setDoc(doc(db, "empresas", empresaId), {
-                trialStartAt: ahora,
-                trialEndsAt: trialEnd
-            }, { merge: true });
-            empresaData.trialStartAt = ahora;
-            empresaData.trialEndsAt = trialEnd;
-        } catch(e) {
-            console.error("Error al inicializar los 7 días de prueba:", e);
-        }
-    }
-
-    const msdif = trialEnd.getTime() - ahora.getTime();
-    const diasRestantes = Math.ceil(msdif / (1000 * 3600 * 24));
-    const trialActivo = diasRestantes > 0;
-
-    return {
-        trialActivo,
-        diasRestantes
-    };
-}
-
-
-/* =========================================================
-   OBTENER EMPRESA DEL USUARIO
-   ========================================================= */
-
-async function obtenerEmpresaUsuario(user){
-
-    const usuarioRef =
-        doc(db,"usuarios",user.uid);
-
-    const usuarioSnap =
-        await getDoc(usuarioRef);
-
-    let usuarioData = {};
-
-    if(usuarioSnap.exists()){
-        usuarioData =
-            usuarioSnap.data() || {};
-    }
-
-    usuarioActual =
-        usuarioData;
-
-
-    let empresaId =
-        usuarioData.empresaId ||
-        usuarioData.idEmpresa ||
-        usuarioData.empresa ||
-        usuarioData.companyId ||
-        null;
-
-
-    /*
-       Si no tiene empresaId buscamos por
-       propietarioUid.
-    */
-
-    if(!empresaId){
-
-        const empresasRef =
-            collection(db,"empresas");
-
-        const q =
-            query(
-                empresasRef,
-                where(
-                    "propietarioUid",
-                    "==",
-                    user.uid
-                )
-            );
-
-        const snap =
-            await getDocs(q);
-
-        if(!snap.empty){
-
-            empresaId =
-                snap.docs[0].id;
-
-        }
-
-    }
-
-
-    return {
-        usuarioData,
-        empresaId
-    };
-
-}
-
-
-/* =========================================================
-   ADMIN
-   ========================================================= */
-
-function detectarAdministrador(
-    user,
-    usuarioData
-){
-
-    const email =
-        String(user?.email || "")
-            .toLowerCase();
-
-    const rol =
-        normalizarTexto(
-            usuarioData?.rol ||
-            usuarioData?.role ||
-            ""
-        );
-
-    return (
-        email ===
-        "julianbattauz006@gmail.com"
-        ||
-        rol === "admin"
-        ||
-        rol === "administrador"
-    );
-
+        .replace(/[\u0300-\u036f]/g, "");
 }
 
 
@@ -2615,87 +2389,29 @@ function detectarAdministrador(
    RUBRO
    ========================================================= */
 
-function obtenerRubroNormalizado(
-    empresa
-){
+function obtenerRubroNormalizado(empresa){
+    const rubro = normalizarTexto(
+        empresa?.rubro ||
+        empresa?.tipoNegocio ||
+        empresa?.tipo ||
+        empresa?.actividad ||
+        empresa?.categoria ||
+        ""
+    );
 
-    const rubro =
-        normalizarTexto(
-            empresa?.rubro ||
-            empresa?.tipoNegocio ||
-            empresa?.tipo ||
-            empresa?.actividad ||
-            empresa?.categoria ||
-            ""
-        );
-
-
-    if([
-        "comercio",
-        "distribuidora",
-        "distribucion",
-        "venta",
-        "ventas"
-    ].includes(rubro)){
-
+    if(["comercio", "distribuidora", "distribucion", "venta", "ventas"].includes(rubro)){
         return "comercio";
-
     }
-
-
-    if([
-        "transporte",
-        "logistica",
-        "paqueteria",
-        "flete",
-        "camion",
-        "chofer"
-    ].includes(rubro)){
-
+    if(["transporte", "logistica", "paqueteria", "flete", "camion", "chofer"].includes(rubro)){
         return "transporte";
-
     }
-
-
-    if([
-        "construccion",
-        "construcciones",
-        "obra",
-        "obras",
-        "constructor"
-    ].includes(rubro)){
-
+    if(["construccion", "construcciones", "obra", "obras", "constructor"].includes(rubro)){
         return "construccion";
-
     }
-
-
-    if([
-        "alquiler",
-        "alquileres",
-        "alquiler temporal",
-        "alquiler temporario",
-        "alquileres temporales",
-        "alquileres temporarios",
-        "alquiler temporal de casas",
-        "alquiler temporario de casas",
-        "alquiler de temporada",
-        "alquileres de temporada",
-        "alojamiento",
-        "hospedaje",
-        "cabanas",
-        "cabanas y hospedaje",
-        "apart",
-        "apartamentos temporarios"
-    ].includes(rubro)){
-
+    if(["alquiler", "alquileres", "alquiler temporal", "alquiler temporario", "alquileres temporales", "alquileres temporarios", "alojamiento", "hospedaje", "cabanas", "apart"].includes(rubro)){
         return "alquiler";
-
     }
-
-
     return "servicios";
-
 }
 
 
@@ -2703,41 +2419,14 @@ function obtenerRubroNormalizado(
    MOSTRAR RUBRO
    ========================================================= */
 
-function configurarSecciones(
-    empresa
-){
+function configurarSecciones(empresa){
+    const rubro = obtenerRubroNormalizado(empresa);
 
-    const rubro =
-        obtenerRubroNormalizado(
-            empresa
-        );
-
-
-    const servicios =
-        document.getElementById(
-            "seccionServicios"
-        );
-
-    const alquiler =
-        document.getElementById(
-            "seccionAlquilerTemporal"
-        );
-
-    const construccion =
-        document.getElementById(
-            "seccionConstruccion"
-        );
-
-    const comercio =
-        document.getElementById(
-            "seccionComercio"
-        );
-
-    const transporte =
-        document.getElementById(
-            "seccionTransporte"
-        );
-
+    const servicios = document.getElementById("seccionServicios");
+    const alquiler = document.getElementById("seccionAlquilerTemporal");
+    const construccion = document.getElementById("seccionConstruccion");
+    const comercio = document.getElementById("seccionComercio");
+    const transporte = document.getElementById("seccionTransporte");
 
     servicios.classList.add("oculto");
     alquiler.classList.add("oculto");
@@ -2745,178 +2434,17 @@ function configurarSecciones(
     comercio.classList.add("oculto");
     transporte.classList.add("oculto");
 
-
     if(rubro === "comercio"){
-
         comercio.classList.remove("oculto");
-
-    }
-    else if(rubro === "transporte"){
-
+    } else if(rubro === "transporte"){
         transporte.classList.remove("oculto");
-
-    }
-    else if(rubro === "construccion"){
-
+    } else if(rubro === "construccion"){
         construccion.classList.remove("oculto");
-
-    }
-    else if(rubro === "alquiler"){
-
+    } else if(rubro === "alquiler"){
         alquiler.classList.remove("oculto");
-
-    }
-    else{
-
+    } else {
         servicios.classList.remove("oculto");
-
     }
-
-}
-
-
-/* =========================================================
-   CARGAR DATOS EMPRESA
-   ========================================================= */
-
-async function cargarDatosEmpresa(
-    empresaId
-){
-
-    empresaIdActual =
-        empresaId;
-
-
-    const empresaRef =
-        doc(
-            db,
-            "empresas",
-            empresaId
-        );
-
-    const empresaSnap =
-        await getDoc(empresaRef);
-
-
-    if(!empresaSnap.exists()){
-
-        throw new Error(
-            "No se encontró la empresa."
-        );
-
-    }
-
-
-    empresaActual =
-        empresaSnap.data() || {};
-
-
-    const nombre =
-        empresaActual.nombre ||
-        empresaActual.nombreEmpresa ||
-        empresaActual.empresa ||
-        empresaActual.razonSocial ||
-        "Mi empresa";
-
-
-    nombreEmpresa.textContent =
-        nombre;
-
-
-    /*
-       Estos datos se conservan internamente
-       pero ya NO se muestran en tarjetas.
-    */
-
-    razonSocial.textContent =
-        empresaActual.razonSocial ||
-        "";
-
-    rubroEmpresa.textContent =
-        empresaActual.rubro ||
-        empresaActual.tipoNegocio ||
-        "";
-
-
-    // Comprobación del período de prueba de 7 días
-    const { trialActivo, diasRestantes } = await verificarPrueba7Dias(empresaId, empresaActual);
-
-    const accesoHabilitado =
-        esAdministrador ||
-        empresaActual.accesoHabilitado === true ||
-        (empresaActual.accesoHabilitado !== false && trialActivo);
-
-
-    if(accesoHabilitado){
-
-        if(!esAdministrador && empresaActual.accesoHabilitado !== true && trialActivo){
-            estadoAcceso.innerHTML = `
-                <span class="status-dot"></span>
-                PRUEBA GRATIS (${diasRestantes} ${diasRestantes === 1 ? 'día' : 'días'})
-            `;
-        } else {
-            estadoAcceso.innerHTML = `
-                <span class="status-dot"></span>
-                ACCESO HABILITADO
-            `;
-        }
-
-        estadoAcceso.style.background =
-            "rgba(34,197,94,.08)";
-
-        estadoAcceso.style.borderColor =
-            "rgba(34,197,94,.18)";
-
-        estadoAcceso.style.color =
-            "#86efac";
-
-        alertaAcceso.style.display =
-            "none";
-
-    }
-    else{
-
-        estadoAcceso.innerHTML = `
-            <span
-                class="status-dot"
-                style="
-                    background:#ef4444;
-                    box-shadow:
-                    0 0 0 4px
-                    rgba(239,68,68,.10);
-                "
-            ></span>
-            ACCESO BLOQUEADO
-        `;
-
-        estadoAcceso.style.background =
-            "rgba(239,68,68,.08)";
-
-        estadoAcceso.style.borderColor =
-            "rgba(239,68,68,.20)";
-
-        estadoAcceso.style.color =
-            "#fca5a5";
-
-        alertaAcceso.textContent = !trialActivo 
-            ? "El período de prueba de 7 días ha finalizado. Por favor, activa tu suscripción." 
-            : "El acceso a esta empresa se encuentra bloqueado.";
-
-        alertaAcceso.style.display =
-            "block";
-
-    }
-
-
-    configurarSecciones(
-        empresaActual
-    );
-
-
-    aplicarPermisos(
-        accesoHabilitado
-    );
-
 }
 
 
@@ -2924,381 +2452,186 @@ async function cargarDatosEmpresa(
    PERMISOS
    ========================================================= */
 
-function aplicarPermisos(
-    accesoHabilitado
-){
-
-    const elementos =
-        document.querySelectorAll(
-            ".acceso-protegido"
-        );
-
-
-    elementos.forEach(
-        elemento => {
-
-            if(
-                accesoHabilitado ||
-                esAdministrador
-            ){
-
-                elemento.style.pointerEvents =
-                    "";
-
-                elemento.style.opacity =
-                    "";
-
-            }
-            else{
-
-                elemento.style.pointerEvents =
-                    "none";
-
-                elemento.style.opacity =
-                    ".45";
-
-            }
-
+function aplicarPermisos(accesoHabilitado){
+    const elementos = document.querySelectorAll(".acceso-protegido");
+    elementos.forEach(elemento => {
+        if(accesoHabilitado || esAdministrador){
+            elemento.style.pointerEvents = "";
+            elemento.style.opacity = "";
+        } else {
+            elemento.style.pointerEvents = "none";
+            elemento.style.opacity = ".45";
         }
-    );
-
+    });
 }
 
 
 /* =========================================================
-   EMPLEADO
-   ========================================================= */
-
-async function comprobarSesionEmpleado(){
-
-    const datos =
-        sessionStorage.getItem(
-            "gesbaseEmpleado"
-        );
-
-
-    if(!datos){
-        return false;
-    }
-
-
-    try{
-
-        const empleado =
-            JSON.parse(datos);
-
-
-        if(!empleado?.empleadoId){
-
-            return false;
-
-        }
-
-
-        const empleadoRef =
-            doc(
-                db,
-                "empleados",
-                empleado.empleadoId
-            );
-
-
-        const empleadoSnap =
-            await getDoc(
-                empleadoRef
-            );
-
-
-        if(!empleadoSnap.exists()){
-
-            sessionStorage.removeItem(
-                "gesbaseEmpleado"
-            );
-
-            return false;
-
-        }
-
-
-        const data =
-            empleadoSnap.data() || {};
-
-
-        document.getElementById(
-            "empleadoNombre"
-        ).textContent =
-            `${data.nombre || ""} ${data.apellido || ""}`
-                .trim() ||
-                "Empleado";
-
-
-        document.getElementById(
-            "empleadoPuesto"
-        ).textContent =
-            data.puesto ||
-            "Sin puesto";
-
-
-        document.getElementById(
-            "empleadoTipo"
-        ).textContent =
-            data.tipoEmpleado ||
-            "Empleado";
-
-
-        cargando.style.display =
-            "none";
-
-        contenido.style.display =
-            "none";
-
-        panelEmpleado.style.display =
-            "block";
-
-
-        return true;
-
-    }
-    catch(error){
-
-        console.error(
-            "Error sesión empleado:",
-            error
-        );
-
-        return false;
-
-    }
-
-}
-
-
-/* =========================================================
-   FINANZAS
+   FINANZAS FLOTANTE
    ========================================================= */
 
 function abrirFinanzas(){
-
-    financeOverlay.classList.add(
-        "open"
-    );
-
-    document.body.style.overflow =
-        "hidden";
-
+    financeOverlay.classList.add("open");
+    document.body.style.overflow = "hidden";
 }
-
 
 function cerrarFinanzas(){
-
-    financeOverlay.classList.remove(
-        "open"
-    );
-
-    document.body.style.overflow =
-        "";
-
+    financeOverlay.classList.remove("open");
+    document.body.style.overflow = "";
 }
 
+btnFinanzas.addEventListener("click", abrirFinanzas);
+btnCerrarFinanzas.addEventListener("click", cerrarFinanzas);
 
-btnFinanzas.addEventListener(
-    "click",
-    abrirFinanzas
-);
-
-
-btnCerrarFinanzas.addEventListener(
-    "click",
-    cerrarFinanzas
-);
-
-
-financeOverlay.addEventListener(
-    "click",
-    event => {
-
-        if(
-            event.target ===
-            financeOverlay
-        ){
-
-            cerrarFinanzas();
-
-        }
-
+financeOverlay.addEventListener("click", event => {
+    if(event.target === financeOverlay){
+        cerrarFinanzas();
     }
-);
+});
 
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        if(
-            event.key === "Escape"
-        ){
-
-            cerrarFinanzas();
-
-        }
-
+document.addEventListener("keydown", event => {
+    if(event.key === "Escape"){
+        cerrarFinanzas();
     }
-);
+});
 
 
 /* =========================================================
-   CARGAR FINANZAS
+   CARGAR DATOS DESDE API LOCAL (MYSQL / DREAMHOST)
+   ========================================================= */
+
+async function inicializarSesion(){
+    try {
+        // Consultamos a tu API PHP local en DreamHost para validar la sesión actual
+        const response = await fetch("api-sesion.php", {
+            credentials: "include"
+        });
+
+        if(!response.ok){
+            throw new Error("No se pudo conectar con el servidor.");
+        }
+
+        const data = await response.json();
+
+        if(!data.success || !data.usuario){
+            window.location.href = "acceso.html";
+            return;
+        }
+
+        usuarioActual = data.usuario;
+        esAdministrador = usuarioActual.es_admin || false;
+        empresaIdActual = usuarioActual.empresa_id || null;
+
+        // Comprobación de sesión de empleado si aplica
+        if(usuarioActual.tipo === "empleado"){
+            document.getElementById("empleadoNombre").textContent = usuarioActual.nombre || "Empleado";
+            document.getElementById("empleadoPuesto").textContent = usuarioActual.puesto || "Sin puesto";
+            document.getElementById("empleadoTipo").textContent = usuarioActual.tipoEmpleado || "Empleado";
+
+            cargando.style.display = "none";
+            contenido.style.display = "none";
+            panelEmpleado.style.display = "block";
+            return;
+        }
+
+        if(!empresaIdActual && !esAdministrador){
+            throw new Error("No se encontró una empresa asociada a este usuario.");
+        }
+
+        if(esAdministrador && !empresaIdActual){
+            cargando.style.display = "none";
+            contenido.style.display = "block";
+            document.getElementById("seccionServicios").classList.add("oculto");
+            document.getElementById("seccionAdministrador").classList.remove("oculto");
+            nombreEmpresa.textContent = "Administración GESBASE";
+            estadoAcceso.innerHTML = `<span class="status-dot"></span> ADMINISTRADOR`;
+            cargarFinanzas();
+            return;
+        }
+
+        // Cargar datos de la empresa
+        const respEmpresa = await fetch(`api-empresa.php?id=${empresaIdActual}`, {
+            credentials: "include"
+        });
+        const dataEmpresa = await respEmpresa.json();
+
+        if(!dataEmpresa.success){
+            throw new Error("No se encontró la información de la empresa.");
+        }
+
+        empresaActual = dataEmpresa.empresa;
+        nombreEmpresa.textContent = empresaActual.nombre || "Mi empresa";
+        razonSocial.textContent = empresaActual.razon_social || "";
+        rubroEmpresa.textContent = empresaActual.rubro || "";
+
+        const accesoHabilitado = esAdministrador || empresaActual.acceso_habilitado === true;
+
+        if(accesoHabilitado){
+            estadoAcceso.innerHTML = `<span class="status-dot"></span> ACCESO HABILITADO`;
+            alertaAcceso.style.display = "none";
+        } else {
+            estadoAcceso.innerHTML = `<span class="status-dot" style="background:#ef4444;"></span> ACCESO BLOQUEADO`;
+            alertaAcceso.textContent = "El acceso a esta empresa se encuentra bloqueado.";
+            alertaAcceso.style.display = "block";
+        }
+
+        configurarSecciones(empresaActual);
+        aplicarPermisos(accesoHabilitado);
+
+        if(esAdministrador){
+            document.getElementById("seccionAdministrador").classList.remove("oculto");
+            configurarNotificacionesAdmin();
+        } else {
+            btnNotificacionesAdmin.style.display = "none";
+        }
+
+        cargando.style.display = "none";
+        contenido.style.display = "block";
+
+        cargarFinanzas();
+
+    } catch (error) {
+        console.error("Error inicializando GESBASE:", error);
+        cargando.innerHTML = `
+            <div style="max-width:420px; padding:25px; text-align:center;">
+                <div style="font-size:42px; margin-bottom:15px;">⚠️</div>
+                <strong style="display:block; color:var(--text); font-size:18px; margin-bottom:8px;">
+                    No se pudo cargar GESBASE
+                </strong>
+                <span style="color:var(--muted); font-size:13px; line-height:1.5;">
+                    ${error.message || "Ocurrió un error inesperado."}
+                </span>
+                <br><br>
+                <button onclick="location.reload()" style="border:0; padding:11px 17px; border-radius:12px; background:#2563eb; color:white; font-weight:700; cursor:pointer;">
+                    Reintentar
+                </button>
+            </div>
+        `;
+    }
+}
+
+
+/* =========================================================
+   CARGAR FINANZAS DESDE MYSQL
    ========================================================= */
 
 async function cargarFinanzas(){
+    if(!empresaIdActual) return;
 
-    if(!empresaIdActual){
-        return;
+    try {
+        const response = await fetch(`api-finanzas.php?empresa_id=${empresaIdActual}`, {
+            credentials: "include"
+        });
+        const data = await response.json();
+
+        if(data.success){
+            totalIngresos.textContent = dinero(data.ingresos);
+            totalGastos.textContent = dinero(data.gastos);
+            resultadoEmpresa.textContent = dinero(data.resultado);
+        }
+    } catch (error) {
+        console.error("Error cargando finanzas:", error);
     }
-
-
-    try{
-
-        let ingresos = 0;
-        let gastos = 0;
-
-
-        /* COBROS */
-
-        const cobrosRef =
-            collection(
-                db,
-                "cobros"
-            );
-
-
-        const qCobros =
-            query(
-                cobrosRef,
-                where(
-                    "empresaId",
-                    "==",
-                    empresaIdActual
-                )
-            );
-
-
-        const cobrosSnap =
-            await getDocs(
-                qCobros
-            );
-
-
-        cobrosSnap.forEach(
-            item => {
-
-                const data =
-                    item.data() || {};
-
-
-                const estado =
-                    normalizarTexto(
-                        data.estado || ""
-                    );
-
-
-                if(
-                    !estado ||
-                    estado === "cobrado"
-                ){
-
-                    ingresos +=
-                        Number(
-                            data.importe ??
-                            data.monto ??
-                            data.total ??
-                            0
-                        ) || 0;
-
-                }
-
-            }
-        );
-
-
-        /* GASTOS */
-
-        const gastosRef =
-            collection(
-                db,
-                "gastos"
-            );
-
-
-        const qGastos =
-            query(
-                gastosRef,
-                where(
-                    "empresaId",
-                    "==",
-                    empresaIdActual
-                )
-            );
-
-
-        const gastosSnap =
-            await getDocs(
-                qGastos
-            );
-
-
-        gastosSnap.forEach(
-            item => {
-
-                const data =
-                    item.data() || {};
-
-
-                gastos +=
-                    Number(
-                        data.importe ??
-                        data.monto ??
-                        data.total ??
-                        0
-                    ) || 0;
-
-            }
-        );
-
-
-        const resultado =
-            ingresos - gastos;
-
-
-        totalIngresos.textContent =
-            dinero(ingresos);
-
-        totalGastos.textContent =
-            dinero(gastos);
-
-        resultadoEmpresa.textContent =
-            dinero(resultado);
-
-
-    }
-    catch(error){
-
-        console.error(
-            "Error cargando finanzas:",
-            error
-        );
-
-        totalIngresos.textContent =
-            "$ 0";
-
-        totalGastos.textContent =
-            "$ 0";
-
-        resultadoEmpresa.textContent =
-            "$ 0";
-
-    }
-
 }
 
 
@@ -3306,367 +2639,48 @@ async function cargarFinanzas(){
    NOTIFICACIONES ADMIN
    ========================================================= */
 
-function configurarNotificacionesAdmin(){
+async function configurarNotificacionesAdmin(){
+    if(!esAdministrador) return;
 
-    if(!esAdministrador){
+    try {
+        const response = await fetch("api-solicitudes.php?pendientes=1", {
+            credentials: "include"
+        });
+        const data = await response.json();
 
-        btnNotificacionesAdmin.style.display =
-            "none";
-
-        return;
-
+        if(data.success){
+            const cantidad = data.cantidad || 0;
+            contadorSolicitudes.textContent = cantidad;
+            contadorSolicitudes.style.display = cantidad > 0 ? "flex" : "none";
+        }
+    } catch (error) {
+        console.error("Error notificaciones:", error);
     }
-
-
-    btnNotificacionesAdmin.style.display =
-        "flex";
-
-
-    try{
-
-        const solicitudesRef =
-            collection(
-                db,
-                "solicitudes_acceso"
-            );
-
-
-        const q =
-            query(
-                solicitudesRef,
-                where(
-                    "estado",
-                    "==",
-                    "pendiente"
-                )
-            );
-
-
-        unsubSolicitudes =
-            onSnapshot(
-                q,
-                snapshot => {
-
-                    const cantidad =
-                        snapshot.size;
-
-
-                    contadorSolicitudes.textContent =
-                        cantidad;
-
-
-                    contadorSolicitudes.style.display =
-                        cantidad > 0
-                            ? "flex"
-                            : "none";
-
-                },
-                error => {
-
-                    console.error(
-                        "Error notificaciones:",
-                        error
-                    );
-
-                }
-            );
-
-    }
-    catch(error){
-
-        console.error(
-            error
-        );
-
-    }
-
 }
 
-
-/* =========================================================
-   BOTÓN NOTIFICACIONES
-   ========================================================= */
-
-btnNotificacionesAdmin.addEventListener(
-    "click",
-    () => {
-
-        if(!esAdministrador){
-            return;
-        }
-
-        window.location.href =
-            "solicitudes-acceso.html";
-
-    }
-);
+btnNotificacionesAdmin.addEventListener("click", () => {
+    if(!esAdministrador) return;
+    window.location.href = "solicitudes-acceso.html";
+});
 
 
 /* =========================================================
    CERRAR SESIÓN
    ========================================================= */
 
-btnCerrarSesion.addEventListener(
-    "click",
-    async () => {
-
-        try{
-
-            if(
-                unsubSolicitudes
-            ){
-
-                unsubSolicitudes();
-
-            }
-
-
-            sessionStorage.removeItem(
-                "gesbaseEmpleado"
-            );
-
-
-            await signOut(auth);
-
-
-            window.location.href =
-                "acceso.html";
-
-        }
-        catch(error){
-
-            console.error(
-                "Error cerrando sesión:",
-                error
-            );
-
-            alert(
-                "No se pudo cerrar la sesión."
-            );
-
-        }
-
+btnCerrarSesion.addEventListener("click", async () => {
+    try {
+        await fetch("api-logout.php", { credentials: "include" });
+        window.location.href = "acceso.html";
+    } catch (error) {
+        console.error("Error cerrando sesión:", error);
+        alert("No se pudo cerrar la sesión.");
     }
-);
+});
 
 
-/* =========================================================
-   INICIO
-   ========================================================= */
-
-onAuthStateChanged(
-    auth,
-    async user => {
-
-        try{
-
-            /*
-               Primero comprobamos si existe
-               una sesión especial de empleado.
-            */
-
-            const empleadoActivo =
-                await comprobarSesionEmpleado();
-
-
-            if(empleadoActivo){
-
-                return;
-
-            }
-
-
-            if(!user){
-
-                window.location.href =
-                    "acceso.html";
-
-                return;
-
-            }
-
-
-            usuarioActual = null;
-
-
-            const resultado =
-                await obtenerEmpresaUsuario(
-                    user
-                );
-
-
-            esAdministrador =
-                detectarAdministrador(
-                    user,
-                    resultado.usuarioData
-                );
-
-
-            configurarNotificacionesAdmin();
-
-
-            /*
-               Si es administrador y no tiene
-               empresa propia, permitimos entrar
-               al panel administrativo.
-            */
-
-            if(
-                !resultado.empresaId
-            ){
-
-                if(esAdministrador){
-
-                    cargando.style.display =
-                        "none";
-
-                    contenido.style.display =
-                        "block";
-
-                    document.getElementById(
-                        "seccionServicios"
-                    ).classList.add(
-                        "oculto"
-                    );
-
-                    document.getElementById(
-                        "seccionAdministrador"
-                    ).classList.remove(
-                        "oculto"
-                    );
-
-                    nombreEmpresa.textContent =
-                        "Administración GESBASE";
-
-                    estadoAcceso.innerHTML = `
-                        <span class="status-dot"></span>
-                        ADMINISTRADOR
-                    `;
-
-                    cargarFinanzas();
-
-                    return;
-
-                }
-
-
-                throw new Error(
-                    "No se encontró una empresa asociada a este usuario."
-                );
-
-            }
-
-
-            await cargarDatosEmpresa(
-                resultado.empresaId
-            );
-
-
-            cargando.style.display =
-                "none";
-
-            contenido.style.display =
-                "block";
-
-
-            /*
-               Mostrar administración
-               solamente para administrador.
-            */
-
-            if(esAdministrador){
-
-                document.getElementById(
-                    "seccionAdministrador"
-                ).classList.remove(
-                    "oculto"
-                );
-
-            }
-
-
-            /*
-               Finanzas se carga al abrir o
-               al entrar al panel.
-            */
-
-            await cargarFinanzas();
-
-
-        }
-        catch(error){
-
-            console.error(
-                "Error inicializando GESBASE:",
-                error
-            );
-
-
-            cargando.innerHTML = `
-
-                <div
-                    style="
-                        max-width:420px;
-                        padding:25px;
-                        text-align:center;
-                    "
-                >
-
-                    <div
-                        style="
-                            font-size:42px;
-                            margin-bottom:15px;
-                        "
-                    >
-                        ⚠️
-                    </div>
-
-                    <strong
-                        style="
-                            display:block;
-                            color:var(--text);
-                            font-size:18px;
-                            margin-bottom:8px;
-                        "
-                    >
-                        No se pudo cargar GESBASE
-                    </strong>
-
-                    <span
-                        style="
-                            color:var(--muted);
-                            font-size:13px;
-                            line-height:1.5;
-                        "
-                    >
-                        ${error.message || "Ocurrió un error inesperado."}
-                    </span>
-
-                    <br><br>
-
-                    <button
-                        onclick="location.reload()"
-                        style="
-                            border:0;
-                            padding:11px 17px;
-                            border-radius:12px;
-                            background:#2563eb;
-                            color:white;
-                            font-weight:700;
-                            cursor:pointer;
-                        "
-                    >
-                        Reintentar
-                    </button>
-
-                </div>
-
-            `;
-
-        }
-
-    }
-);
+// Iniciar carga de la aplicación al cargar la página
+document.addEventListener("DOMContentLoaded", inicializarSesion);
 
 </script>
 
