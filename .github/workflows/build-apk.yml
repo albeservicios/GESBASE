@@ -64,7 +64,8 @@ jobs:
           echo "Archivos copiados:"
           find dist -maxdepth 3 -type f | sort
 
-      # 6. CONFIGURAR API PARA LA APK
+
+      # 6. CONFIGURAR API Y WEBSOCKET PARA LA APK
       - name: Configurar conexión API GESBASE
         run: |
           python3 - <<'PY'
@@ -78,24 +79,43 @@ jobs:
               )
 
           codigo = archivo.read_text(encoding="utf-8")
-          original = codigo
 
-          codigo = codigo.replace(
-              "fetch(path,",
-              'fetch(new URL(path, "https://gesbase.online").href,'
-          )
+          # Corregir las solicitudes POST y GET para la APK.
+          anterior_post = 'fetch(path, {'
+          nuevo_post = 'fetch(new URL(path, "https://gesbase.online").href, {'
 
-          if codigo == original:
+          cantidad_http = codigo.count(anterior_post)
+
+          if cantidad_http < 2:
               raise SystemExit(
-                  'ERROR: no se encontró "fetch(path," en shared.js. '
-                  "No se puede aplicar el cambio automáticamente."
+                  f"ERROR: se esperaban al menos 2 llamadas "
+                  f"fetch(path, {{; encontradas: {cantidad_http}. "
+                  "No se aplicaron los cambios."
               )
 
+          codigo = codigo.replace(anterior_post, nuevo_post)
+
+          # Conectar el WebSocket al servidor de GESBASE.
+          anterior_ws = 'return `${proto}//${location.host}/ws${q}`;'
+          nuevo_ws = 'return `wss://gesbase.online/ws${q}`;'
+
+          if anterior_ws not in codigo:
+              raise SystemExit(
+                  "ERROR: no se encontró la configuración "
+                  "esperada del WebSocket. No se guardaron cambios."
+              )
+
+          codigo = codigo.replace(anterior_ws, nuevo_ws, 1)
+
           archivo.write_text(codigo, encoding="utf-8")
-          print("Conexión API configurada para la APK.")
+
+          print("OK: API POST y GET configuradas.")
+          print("OK: WebSocket configurado.")
           PY
 
           grep -n 'fetch(new URL(path' dist/Js/local/shared.js
+          grep -n 'wss://gesbase.online/ws' dist/Js/local/shared.js
+
 
       # 7. CONTROLADOR ATRÁS
       - name: Crear controlador web
