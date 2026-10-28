@@ -26,17 +26,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Preparar Android
+      - name: Preparar proyecto independiente
         run: |
-          mkdir -p android/app/src/main/java/com/gesbase/app
-          mkdir -p android/app/src/main/assets
-
-      - name: Generar proyecto Android
-        run: |
+          mkdir -p android-wrapper
+          cd android-wrapper
           npm init -y
           npm install @capacitor/core@6 @capacitor/android@6
           npm install --save-dev @capacitor/cli@6
-          npx cap init GESBASE com.gesbase.app --web-dir dist
           mkdir -p dist
           cat > dist/index.html <<'HTML'
           <!doctype html>
@@ -48,24 +44,23 @@ jobs:
           </head>
           <body>
             <p>Conectando con GESBASE...</p>
-            <script>
-              location.replace('https://gesbase.online/');
-            </script>
           </body>
           </html>
           HTML
+          npx cap init GESBASE com.gesbase.app --web-dir dist
+          node -e "const fs=require('fs'); const p='capacitor.config.json'; const c=JSON.parse(fs.readFileSync(p,'utf8')); c.server={url:'https://gesbase.online', cleartext:false}; fs.writeFileSync(p,JSON.stringify(c,null,2));"
           npx cap add android
           npx cap sync android
 
-      - name: Generar APK
+      - name: Compilar APK
         run: |
-          cd android
+          cd android-wrapper/android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Publicar APK
+      - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
           name: GESBASE-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android-wrapper/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
