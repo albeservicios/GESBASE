@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>Liquidación semanal de empleados - GESBASE</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f3f4f6;color:#111827}
+.app{width:100%;max-width:1100px;min-height:100vh;margin:auto;background:#fff}
+header{background:#111827;color:white;padding:20px}
+.header{display:flex;align-items:center;gap:12px}
+.btn-volver{width:44px;height:44px;border:0;border-radius:10px;background:#374151;color:white;font-size:22px;cursor:pointer}
+header h1{font-size:22px}header p{margin-top:5px;color:#d1d5db;font-size:13px}
+main{padding:20px}.tarjeta{background:white;border:1px solid #e5e7eb;border-radius:15px;padding:18px;margin-bottom:18px}
+.titulo{font-size:19px;font-weight:bold;margin-bottom:15px}.descripcion{color:#6b7280;font-size:13px;line-height:1.5;margin-bottom:15px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.campo{display:flex;flex-direction:column;gap:6px}
+.campo label{font-size:12px;font-weight:bold;color:#374151}
+input,select,textarea{width:100%;border:1px solid #d1d5db;border-radius:9px;padding:11px;font-size:14px;background:white}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#2563eb}textarea{min-height:80px;resize:vertical}
+.btn{border:0;border-radius:9px;padding:11px 15px;font-weight:bold;cursor:pointer}.btn-primary{background:#2563eb;color:white}.btn-success{background:#16a34a;color:white}.btn-gray{background:#e5e7eb;color:#111827}
+.acciones{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.info-empresa{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:14px;color:#1e40af;margin-bottom:18px;font-size:14px}
+.mensaje{display:none;padding:13px;border-radius:10px;margin-bottom:18px;font-size:14px;line-height:1.5}.mensaje.ok{display:block;background:#dcfce7;color:#166534}.mensaje.error{display:block;background:#fee2e2;color:#991b1b}.mensaje.aviso{display:block;background:#fef3c7;color:#92400e}
+.resumen{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.resumen-box{padding:16px;background:#f3f4f6;border-radius:12px}
+.resumen-box span{display:block;font-size:12px;color:#6b7280;margin-bottom:7px}.resumen-box strong{font-size:21px}
+.total{background:#111827;color:white}.total span{color:#d1d5db}
+.detalle,.historial{width:100%;border-collapse:collapse}.detalle th{background:#f3f4f6;padding:11px;text-align:left;font-size:12px}.detalle td{padding:11px;border-bottom:1px solid #e5e7eb;font-size:13px}
+.importe{text-align:right;font-weight:bold}.estado{display:inline-block;padding:6px 10px;border-radius:20px;font-size:11px;font-weight:bold}
+.estado-pendiente{background:#fef3c7;color:#92400e}.estado-liquidada{background:#dbeafe;color:#1e40af}.estado-pagada{background:#dcfce7;color:#166534}
+.tabla-contenedor{overflow-x:auto}.historial{min-width:720px}.historial th{background:#111827;color:white;padding:11px;text-align:left;font-size:12px}.historial td{padding:11px;border-bottom:1px solid #e5e7eb;font-size:13px}
+.vacio{text-align:center;padding:25px;color:#6b7280}.oculto{display:none!important}
+@media(max-width:700px){main{padding:14px}.grid{grid-template-columns:1fr}.resumen{grid-template-columns:repeat(2,1fr)}}
+@media print{body{background:white}.app{max-width:none}.btn,.btn-volver,#btnCalcular,#btnGuardar,#btnLimpiar{display:none!important}.tarjeta{break-inside:avoid;border:1px solid #bbb}header{background:white;color:#111827;border-bottom:2px solid #111827}header p{color:#374151}.info-empresa{color:#111827;background:white}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="header"><button id="btnVolver" class="btn-volver" type="button">←</button><div><h1>💰 Liquidación semanal</h1><p>GESBASE · Horas normales y horas extras</p></div></div></header>
+<main>
+<div id="mensaje" class="mensaje"></div>
+<div class="info-empresa">🏢 <strong>Empresa:</strong> <span id="nombreEmpresa">Cargando...</span></div>
+
+<div class="tarjeta">
+<div class="titulo">👷 Seleccionar empleado y período</div>
+<div class="grid">
+<div class="campo"><label>Empleado</label><select id="empleado"><option value="">Cargando empleados...</option></select></div>
+<div class="campo"><label>Desde (lunes)</label><input id="semanaInicio" type="date" required></div>
+<div class="campo"><label>Hasta (domingo)</label><input id="semanaFin" type="date" required></div>
+<div class="campo"><label>Estado</label><select id="estadoLiquidacion"><option value="Pendiente">Pendiente</option><option value="Liquidada">Liquidada</option><option value="Pagada">Pagada</option></select></div>
+</div>
+<div class="acciones"><button id="btnCalcular" class="btn btn-primary" type="button">🧮 CALCULAR LIQUIDACIÓN</button></div>
+</div>
+
+<div id="tarjetaEmpleado" class="tarjeta oculto">
+<div class="titulo">👤 Información del empleado</div>
+<div class="grid">
+<div class="campo"><label>Nombre</label><input id="nombreEmpleado" readonly></div>
+<div class="campo"><label>Puesto</label><input id="puestoEmpleado" readonly></div>
+<div class="campo"><label>Pago diario de referencia (ARS)</label><input id="pagoDiario" type="number" min="0" step="0.01"></div>
+<div class="campo"><label>Valor por hora (jornada de 8 h)</label><input id="pagoHora" type="text" readonly></div>
+<div class="campo"><label>Horas totales fichadas en la semana</label><input id="horasTrabajadas" type="number" min="0" step="0.01" value="0"></div>
+<div class="campo"><label>Días con fichajes cerrados</label><input id="diasTrabajados" type="number" readonly value="0"></div>
+</div>
+</div>
+
+<div id="tarjetaConceptos" class="tarjeta oculto">
+<div class="titulo">➕ Adicionales y descuentos</div>
+<div class="grid">
+<div class="campo"><label>Adicionales</label><input id="adicionales" type="number" min="0" step="0.01" value="0"></div>
+<div class="campo"><label>Descuentos</label><input id="descuentos" type="number" min="0" step="0.01" value="0"></div>
+<div class="campo"><label>Anticipos</label><input id="anticipos" type="number" min="0" step="0.01" value="0"></div>
+<div class="campo"><label>Observaciones</label><textarea id="observaciones" placeholder="Observaciones de la liquidación..."></textarea></div>
+</div>
+</div>
+
+<div id="tarjetaResumen" class="tarjeta oculto">
+<div class="titulo">📊 Resumen de la liquidación</div>
+<div class="resumen">
+<div class="resumen-box"><span>Horas normales</span><strong id="resumenHorasNormales">0,00 h</strong></div>
+<div class="resumen-box"><span>Extras al 50%</span><strong id="resumenHoras50">0,00 h</strong></div>
+<div class="resumen-box"><span>Extras al 100%</span><strong id="resumenHoras100">0,00 h</strong></div>
+<div class="resumen-box"><span>Importe horas normales</span><strong id="resumenBase">$ 0,00</strong></div>
+<div class="resumen-box"><span>Adicionales</span><strong id="resumenAdicionales">$ 0,00</strong></div>
+<div class="resumen-box"><span>Descuentos + anticipos</span><strong id="resumenDescuentos">$ 0,00</strong></div>
+<div class="resumen-box total"><span>TOTAL A PAGAR</span><strong id="resumenTotal">$ 0,00</strong></div>
+</div>
+</div>
+
+<div id="tarjetaGastos" class="tarjeta oculto">
+<div class="titulo">💸 Gastos del empleado</div><div class="descripcion">Gastos asociados al empleado durante la semana seleccionada. Se informan por separado y no se descuentan automáticamente del sueldo.</div>
+<div class="tabla-contenedor"><table class="detalle"><thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th class="importe">Importe</th></tr></thead><tbody id="tablaGastos"><tr><td colspan="4" class="vacio">Sin gastos cargados.</td></tr></tbody></table></div>
+</div>
+
+<div id="tarjetaFichajes" class="tarjeta oculto">
+<div class="titulo">🕐 Fichajes de la semana</div><div class="descripcion">Se suman los fichajes cerrados dentro de la semana. El sistema propone extras según las horas por día y el horario registrado; revisá la jornada y el convenio aplicable antes de confirmar. Los feriados deben revisarse manualmente.</div>
+<div class="tabla-contenedor"><table class="detalle"><thead><tr><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Horas</th><th>Importe</th><th>Estado</th></tr></thead><tbody id="tablaFichajes"><tr><td colspan="6" class="vacio">Sin fichajes encontrados.</td></tr></tbody></table></div>
+</div>
+
+<div id="tarjetaGuardar" class="tarjeta oculto">
+<div class="titulo">💾 Guardar liquidación</div><div class="descripcion">La liquidación semanal se conservará en el historial del empleado. Revisá las horas y el importe antes de guardar.</div>
+<div class="acciones"><button id="btnGuardar" class="btn btn-success" type="button">💾 GUARDAR LIQUIDACIÓN</button><button id="btnLimpiar" class="btn btn-gray" type="button">↺ LIMPIAR</button></div>
+</div>
+
+<div class="tarjeta">
+<div class="titulo">📚 Historial de liquidaciones</div><div class="descripcion">Seleccioná un empleado para consultar sus liquidaciones anteriores.</div>
+<div class="tabla-contenedor"><table class="historial"><thead><tr><th>Semana</th><th>Horas / días</th><th>Base</th><th>Adicionales</th><th>Descuentos</th><th>Total</th><th>Estado</th></tr></thead><tbody id="tablaHistorial"><tr><td colspan="7" class="vacio">Seleccioná un empleado.</td></tr></tbody></table></div>
+</div>
+</main>
+</div>
+
+<script type="module">
+import { auth, db } from "./Js/firebase.js";
+import { onAuthStateChanged } from "./Js/local/firebase-auth.js";
+import { collection, getDocs, getDoc, doc, query, where, addDoc, serverTimestamp } from "./Js/local/firebase-firestore.js";
+
+let usuarioActual=null, empresaActualId=null, empresaActual=null, empleados=[], empleadoSeleccionado=null;
+let gastosActuales=[], fichajesActuales=[], totalGastos=0, calculoListo=false;
+
+const $=id=>document.getElementById(id);
+const hoy=new Date();
+function fechaISO(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),dia=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${dia}`}
+const lunesActual=new Date(hoy);lunesActual.setHours(12,0,0,0);lunesActual.setDate(lunesActual.getDate()-((lunesActual.getDay()+6)%7));
+const domingoActual=new Date(lunesActual);domingoActual.setDate(domingoActual.getDate()+6);
+$("semanaInicio").value=fechaISO(lunesActual);
+$("semanaFin").value=fechaISO(domingoActual);
+function rangoSemana(){const a=normalizarFecha($("semanaInicio").value),b=normalizarFecha($("semanaFin").value);if(a)a.setHours(0,0,0,0);if(b)b.setHours(23,59,59,999);return {inicio:a,fin:b}}
+
+function texto(v){return String(v??"").trim()}
+function numero(v){const n=Number(v);return Number.isFinite(n)?n:0}
+function escapar(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function dinero(v){return new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",minimumFractionDigits:2}).format(numero(v))}
+function mostrarMensaje(t,tipo="ok"){$("mensaje").textContent=t;$("mensaje").className="mensaje "+tipo;$("mensaje").style.display="block"}
+function ocultarMensaje(){$("mensaje").style.display="none"}
+function mostrarSecciones(){["tarjetaEmpleado","tarjetaConceptos","tarjetaResumen","tarjetaGastos","tarjetaFichajes","tarjetaGuardar"].forEach(id=>$(id).classList.remove("oculto"))}
+function normalizarFecha(v){
+  if(!v)return null;
+  if(typeof v.toDate==="function")return v.toDate();
+  if(v instanceof Date&&!Number.isNaN(v.getTime()))return v;
+  if(typeof v==="number"){const d=new Date(v);return Number.isNaN(d.getTime())?null:d}
+  if(typeof v==="string"){
+    const s=v.trim();
+    const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(m)return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),12);
+    const d=new Date(s);if(!Number.isNaN(d.getTime()))return d;
+  }
+  return null;
+}
+function obtenerFecha(datos){
+  for(const v of [datos.fecha,datos.fechaFichaje,datos.createdAt,datos.timestamp,datos.creadoEn]){
+    const d=normalizarFecha(v);if(d)return d;
+  }
+  return null;
+}
+function horaAMinutos(v){
+  const m=texto(v).match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  return m?Number(m[1])*3600+Number(m[2])*60+Number(m[3]||0):null;
+}
+function duracionSegundos(datos){
+  const s=numero(datos.duracionSegundos);
+  if(s>0)return s;
+  const h=numero(datos.horasTrabajadas);
+  if(h>0)return h*3600;
+  const inicio=horaAMinutos(datos.horaEntrada||datos.entrada||datos.horaInicio);
+  const fin=horaAMinutos(datos.horaSalida||datos.salida||datos.horaFin);
+  if(inicio!==null&&fin!==null){
+    let delta=fin-inicio;if(delta<0)delta+=24*3600;return delta;
+  }
+  const entrada=normalizarFecha(datos.entradaTimestamp);
+  const salida=normalizarFecha(datos.salidaTimestamp);
+  if(entrada&&salida&&salida>entrada)return (salida-entrada)/1000;
+  return 0;
+}
+function esFichajeCerrado(d){return texto(d.estado).toLowerCase()==="cerrado"||Boolean(d.horaSalida||d.salidaTimestamp||d.horaFin)}
+function horasTexto(segundos){
+  const total=Math.max(0,Math.round(segundos));
+  const h=Math.floor(total/3600),m=Math.floor((total%3600)/60);
+  return `${h} h ${String(m).padStart(2,"0")} min`;
+}
+function pagoDiarioActual(){return Math.max(0,numero($("pagoDiario").value))}
+function pagoHoraActual(){return pagoDiarioActual()/8}
+
+async function obtenerEmpresa(){
+  const usuarioSnap=await getDoc(doc(db,"usuarios",usuarioActual.uid));
+  if(!usuarioSnap.exists())throw new Error("No se encontró tu usuario en GESBASE.");
+  const du=usuarioSnap.data(),rol=texto(du.rol).toLowerCase();
+  const esAdmin=usuarioActual.email==="julianbattauz006@gmail.com"||rol==="admin"||rol==="administrador";
+  if(!esAdmin)throw new Error("Solo un administrador puede realizar liquidaciones.");
+  let empresaId=texto(du.empresaId||du.idEmpresa||du.empresa);
+  if(!empresaId){
+    const q=query(collection(db,"empresas"),where("propietarioUid","==",usuarioActual.uid));
+    const snap=await getDocs(q);if(!snap.empty)empresaId=snap.docs[0].id;
+  }
+  if(!empresaId)throw new Error("No se encontró una empresa asociada.");
+  empresaActualId=empresaId;
+  const e=await getDoc(doc(db,"empresas",empresaActualId));
+  if(!e.exists())throw new Error("La empresa no existe.");
+  empresaActual=e.data();
+  $("nombreEmpresa").textContent=empresaActual.nombreEmpresa||empresaActual.nombre||empresaActual.razonSocial||"Empresa";
+}
+async function cargarEmpleados(){
+  const q=query(collection(db,"empleados"),where("empresaId","==",empresaActualId)),snap=await getDocs(q);
+  empleados=snap.docs.map(d=>({id:d.id,datos:d.data()}));
+  empleados.sort((a,b)=>(texto(a.datos.nombre)+" "+texto(a.datos.apellido)).localeCompare(texto(b.datos.nombre)+" "+texto(b.datos.apellido),"es"));
+  $("empleado").innerHTML='<option value="">Seleccioná un empleado</option>';
+  empleados.forEach(e=>{const o=document.createElement("option");o.value=e.id;o.textContent=(texto(e.datos.nombre)+" "+texto(e.datos.apellido)).trim()||"Empleado";$("empleado").appendChild(o)});
+}
+$("empleado").addEventListener("change",async()=>{
+  empleadoSeleccionado=empleados.find(e=>e.id===$("empleado").value)||null;
+  if(!empleadoSeleccionado){return}
+  cargarDatosEmpleado();await cargarHistorial();
+});
+function cargarDatosEmpleado(){
+  const d=empleadoSeleccionado.datos;
+  $("nombreEmpleado").value=(texto(d.nombre)+" "+texto(d.apellido)).trim();
+  $("puestoEmpleado").value=texto(d.puesto)||"Sin puesto";
+  $("pagoDiario").value=numero(d.pagoDiario??d.pago);
+  $("horasTrabajadas").value="0";$("diasTrabajados").value="0";
+  $("pagoHora").value=dinero(pagoHoraActual())+" / hora";
+  $("adicionales").value=numero(d.adicionales);$("descuentos").value=numero(d.descuentos);
+  $("anticipos").value=0;$("observaciones").value="";
+  fichajesActuales=[];gastosActuales=[];totalGastos=0;calculoListo=false;
+  mostrarSecciones();calcularTotal();
+}
+async function cargarFichajes(){
+  fichajesActuales=[];
+  const {inicio,fin}=rangoSemana();
+  if(!inicio||!fin||fin<inicio)throw new Error("Ingresá un rango semanal válido.");
+  const q=query(collection(db,"fichajes"),where("empresaId","==",empresaActualId),where("empleadoId","==",empleadoSeleccionado.id));
+  const snap=await getDocs(q);
+  snap.forEach(ds=>{
+    const d=ds.data(),fecha=obtenerFecha(d);
+    if(!fecha||fecha<inicio||fecha>fin)return;
+    const seg=duracionSegundos(d),cerrado=esFichajeCerrado(d);
+    fichajesActuales.push({id:ds.id,datos:d,fecha,segundos:seg,cerrado});
+  });
+  fichajesActuales.sort((a,b)=>b.fecha-a.fecha);
+  mostrarFichajes();
+}
+function mostrarFichajes(){
+  const tabla=$("tablaFichajes");
+  if(!fichajesActuales.length){tabla.innerHTML='<tr><td colspan="6" class="vacio">No hay fichajes en este período.</td></tr>';return}
+  const rate=pagoHoraActual();
+  tabla.innerHTML=fichajesActuales.map(x=>{
+    const d=x.datos,entrada=texto(d.horaEntrada||d.entrada||d.horaInicio)||"-",salida=texto(d.horaSalida||d.salida||d.horaFin)||"-";
+    const r=resumenHoras();
+    const hN=(x.segundosNormales||0)/3600,h50=(x.segundos50||0)/3600,h100=(x.segundos100||0)/3600;
+    const imp=x.cerrado&&x.segundos>0?(hN*rate)+(h50*rate*1.5)+(h100*rate*2):0;
+    const etiquetaExtras=(h50||h100)?` · extra 50%: ${h50.toFixed(2)} h · extra 100%: ${h100.toFixed(2)} h`:"";
+    return `<tr><td>${escapar(x.fecha.toLocaleDateString("es-AR"))}</td><td>${escapar(entrada)}</td><td>${escapar(salida)}</td><td>${x.cerrado?escapar(horasTexto(x.segundos))+escapar(etiquetaExtras):"Abierto"}</td><td class="importe">${dinero(imp)}</td><td>${escapar(texto(d.estado)||"Registrado")}</td></tr>`;
+  }).join("");
+}
+function resumenHoras(){
+  const cerrados=fichajesActuales.filter(x=>x.cerrado&&x.segundos>0);
+  const porDia=new Map();
+  for(const x of cerrados){
+    const key=fechaISO(x.fecha);
+    if(!porDia.has(key))porDia.set(key,[]);
+    porDia.get(key).push(x);
+  }
+  let segundos=0,segundosNormales=0,segundos50=0,segundos100=0;
+  for(const [key,items] of porDia){
+    const totalDia=items.reduce((sum,x)=>sum+x.segundos,0);
+    segundos+=totalDia;
+    // Regla de referencia editable/revisable: hasta 8 h diarias normales;
+    // el excedente se marca extra. Domingo y sábado después de las 13:00
+    // se marcan al 100%; el resto del excedente al 50%.
+    let normalesRestantes=Math.min(totalDia,8*3600);
+    for(const x of [...items].sort((a,b)=>{
+      const ta=horaAMinutos(a.datos.horaEntrada||a.datos.entrada||a.datos.horaInicio)??0;
+      const tb=horaAMinutos(b.datos.horaEntrada||b.datos.entrada||b.datos.horaInicio)??0;
+      return ta-tb;
+    })){
+      const normal=Math.min(x.segundos,normalesRestantes);
+      x.segundosNormales=normal;
+      normalesRestantes-=normal;
+      const extra=Math.max(0,x.segundos-normal);
+      const dia=x.fecha.getDay();
+      const salidaMin=horaAMinutos(x.datos.horaSalida||x.datos.salida||x.datos.horaFin);
+      const salida100=(dia===0)||(dia===6 && salidaMin!==null && salidaMin>13*3600);
+      x.segundos50=salida100?0:extra;
+      x.segundos100=salida100?extra:0;
+      segundosNormales+=x.segundosNormales;
+      segundos50+=x.segundos50;
+      segundos100+=x.segundos100;
+    }
+  }
+  const dias=porDia.size;
+  return {cerrados,segundos,horas:segundos/3600,dias,horasNormales:segundosNormales/3600,horas50:segundos50/3600,horas100:segundos100/3600};
+}
+async function cargarGastos(){
+  gastosActuales=[];totalGastos=0;
+  const {inicio,fin}=rangoSemana();
+  const q=query(collection(db,"gastos"),where("empresaId","==",empresaActualId)),snap=await getDocs(q);
+  snap.forEach(ds=>{
+    const d=ds.data(),eid=texto(d.empleadoId||d.usuarioIdEmpleado||d.trabajadorId);
+    if(!eid||eid!==empleadoSeleccionado.id)return;
+    const f=obtenerFecha(d);if(!f||f<inicio||f>fin)return;
+    const importe=numero(d.importe??d.monto??d.total);
+    totalGastos+=importe;gastosActuales.push({id:ds.id,datos:d,fecha:f,importe});
+  });
+  mostrarGastos();
+}
+function mostrarGastos(){
+  const tabla=$("tablaGastos");
+  if(!gastosActuales.length){tabla.innerHTML='<tr><td colspan="4" class="vacio">No hay gastos asociados a este empleado en el período.</td></tr>';return}
+  tabla.innerHTML=gastosActuales.map(x=>{
+    const d=x.datos;
+    return `<tr><td>${escapar(x.fecha.toLocaleDateString("es-AR"))}</td><td>${escapar(d.descripcion||d.concepto||d.detalle||"Gasto")}</td><td>${escapar(d.categoria||d.tipo||"General")}</td><td class="importe">${dinero(x.importe)}</td></tr>`;
+  }).join("")+`<tr><td colspan="3"><strong>Total gastos</strong></td><td class="importe">${dinero(totalGastos)}</td></tr>`;
+}
+$("btnCalcular").addEventListener("click",async()=>{
+  if(!empleadoSeleccionado){mostrarMensaje("Primero seleccioná un empleado.","aviso");return}
+  ocultarMensaje();
+  const boton=$("btnCalcular");boton.disabled=true;boton.textContent="⏳ CALCULANDO...";
+  try{
+    await cargarFichajes();await cargarGastos();
+    const r=resumenHoras();
+    $("horasTrabajadas").value=r.horas.toFixed(2);$("diasTrabajados").value=r.dias;
+    calculoListo=true;calcularTotal();
+    if(!r.cerrados.length)mostrarMensaje("No hay fichajes cerrados con duración válida en esta semana. Podés ingresar las horas manualmente, pero las extras requieren revisión.","aviso");
+    else mostrarMensaje(`Semana calculada: ${horasTexto(r.segundos)} en ${r.dias} día(s). Extras sugeridas: ${r.horas50.toFixed(2)} h al 50% y ${r.horas100.toFixed(2)} h al 100%. Revisá el régimen y los fichajes antes de guardar.`,"ok");
+  }catch(e){console.error(e);mostrarMensaje("No se pudieron calcular los datos: "+e.message,"error")}
+  finally{boton.disabled=false;boton.textContent="🧮 CALCULAR LIQUIDACIÓN"}
+});
+function calcularTotal(){
+  const horas=Math.max(0,numero($("horasTrabajadas").value)),rate=pagoHoraActual();
+  $("pagoHora").value=dinero(rate)+" / hora";
+  const r=resumenHoras();
+  const tieneFichajes=fichajesActuales.some(x=>x.cerrado&&x.segundos>0);
+  const horasNormales=tieneFichajes?r.horasNormales:horas;
+  const horas50=tieneFichajes?r.horas50:0;
+  const horas100=tieneFichajes?r.horas100:0;
+  const base=(horasNormales*rate)+(horas50*rate*1.5)+(horas100*rate*2);
+  const adicionales=Math.max(0,numero($("adicionales").value));
+  const descuentos=Math.max(0,numero($("descuentos").value)),anticipos=Math.max(0,numero($("anticipos").value));
+  const totalDescuentos=descuentos+anticipos,total=Math.max(0,base+adicionales-totalDescuentos);
+  $("resumenHorasNormales").textContent=horasNormales.toFixed(2)+" h";
+  $("resumenHoras50").textContent=horas50.toFixed(2)+" h";
+  $("resumenHoras100").textContent=horas100.toFixed(2)+" h";
+  $("resumenBase").textContent=dinero(base);$("resumenAdicionales").textContent=dinero(adicionales);
+  $("resumenDescuentos").textContent=dinero(totalDescuentos);$("resumenTotal").textContent=dinero(total);
+  if(fichajesActuales.length)mostrarFichajes();
+  return {horas,rate,base,adicionales,descuentos,anticipos,totalDescuentos,total,horasNormales,horas50,horas100};
+}
+["pagoDiario","horasTrabajadas","adicionales","descuentos","anticipos"].forEach(id=>$(id).addEventListener("input",calcularTotal));
+async function cargarHistorial(){
+  const tabla=$("tablaHistorial");tabla.innerHTML='<tr><td colspan="7" class="vacio">Cargando historial...</td></tr>';
+  try{
+    const q=query(collection(db,"liquidaciones"),where("empresaId","==",empresaActualId),where("empleadoId","==",empleadoSeleccionado.id)),snap=await getDocs(q);
+    if(snap.empty){tabla.innerHTML='<tr><td colspan="7" class="vacio">No hay liquidaciones anteriores.</td></tr>';return}
+    const registros=snap.docs.map(d=>({id:d.id,datos:d.data()}));
+    registros.sort((a,b)=>String(b.datos.semanaInicio||`${b.datos.anio}-${b.datos.mes}`).localeCompare(String(a.datos.semanaInicio||`${a.datos.anio}-${a.datos.mes}`)));
+    tabla.innerHTML=registros.map(({datos:d})=>{
+      const estado=texto(d.estado)||"Pendiente",clase=estado==="Pagada"?"estado-pagada":estado==="Liquidada"?"estado-liquidada":"estado-pendiente";
+      const unidad=d.horasTrabajadas!==undefined?`${numero(d.horasTrabajadas).toFixed(2)} h`:`${numero(d.diasTrabajados)} días`;
+      const periodo=d.semanaInicio&&d.semanaFin?`${d.semanaInicio} al ${d.semanaFin}`:`${d.mes||"?"}/${d.anio||"?"} (anterior)`;
+      return `<tr><td>${escapar(periodo)}</td><td>${escapar(unidad)}<br><small>Extras 50%: ${numero(d.horasExtra50).toFixed(2)} h · 100%: ${numero(d.horasExtra100).toFixed(2)} h</small></td><td>${dinero(d.base)}</td><td>${dinero(d.adicionales)}</td><td>${dinero(d.totalDescuentos)}</td><td><strong>${dinero(d.total)}</strong></td><td><span class="estado ${clase}">${escapar(estado)}</span><br><button type="button" class="btn btn-gray" onclick="window.print()">🖨️ Imprimir</button></td></tr>`;
+    }).join("");
+  }catch(e){console.warn("Error historial:",e);tabla.innerHTML='<tr><td colspan="7" class="vacio">No se pudo consultar el historial.</td></tr>'}
+}
+$("btnGuardar").addEventListener("click",async()=>{
+  if(!empleadoSeleccionado){mostrarMensaje("Seleccioná un empleado.","aviso");return}
+  const {inicio,fin}=rangoSemana(),c=calcularTotal();
+  if(!inicio||!fin||fin<inicio){mostrarMensaje("Ingresá una semana válida.","aviso");return}
+  if(c.horas<=0){mostrarMensaje("Ingresá las horas trabajadas o calculalas desde los fichajes.","aviso");return}
+  const nombre=(texto(empleadoSeleccionado.datos.nombre)+" "+texto(empleadoSeleccionado.datos.apellido)).trim();
+  const semanaInicio=fechaISO(inicio),semanaFin=fechaISO(fin);
+  const existente=query(collection(db,"liquidaciones"),where("empresaId","==",empresaActualId),where("empleadoId","==",empleadoSeleccionado.id));
+  const previas=await getDocs(existente);
+  const duplicada=previas.docs.some(d=>{const x=d.data();return x.semanaInicio===semanaInicio&&x.semanaFin===semanaFin});
+  if(duplicada){mostrarMensaje("Ya existe una liquidación guardada para este empleado y esta semana. Revisá el historial para evitar duplicados.","aviso");return}
+  const confirmacion=confirm(`¿Guardar la liquidación semanal de ${nombre} (${semanaInicio} al ${semanaFin}) por ${dinero(c.total)}?`);
+  if(!confirmacion)return;
+  const boton=$("btnGuardar");boton.disabled=true;boton.textContent="⏳ GUARDANDO...";
+  try{
+    const liq={
+      empresaId:empresaActualId,empleadoId:empleadoSeleccionado.id,empleadoNombre:nombre,
+      semanaInicio,semanaFin,mes:inicio.getMonth()+1,anio:inicio.getFullYear(),
+      horasTrabajadas:c.horas,horasNormales:c.horasNormales,horasExtra50:c.horas50,horasExtra100:c.horas100,
+      pagoDiarioReferencia:pagoDiarioActual(),pagoHora:c.rate,recargoExtra50:1.5,recargoExtra100:2,
+      diasTrabajados:numero($("diasTrabajados").value),base:c.base,adicionales:c.adicionales,
+      descuentos:c.descuentos,anticipos:c.anticipos,totalDescuentos:c.totalDescuentos,gastos:totalGastos,
+      total:c.total,estado:$("estadoLiquidacion").value,observaciones:texto($("observaciones").value),
+      fichajesCantidad:fichajesActuales.filter(x=>x.cerrado&&x.segundos>0).length,
+      fichajesDetalle:fichajesActuales.filter(x=>x.cerrado&&x.segundos>0).map(x=>({
+        fichajeId:x.id,fecha:x.fecha.toISOString().slice(0,10),duracionSegundos:Math.round(x.segundos),
+        horasTrabajadas:x.segundos/3600,
+        horasNormales:(x.segundosNormales||0)/3600,
+        horasExtra50:(x.segundos50||0)/3600,
+        horasExtra100:(x.segundos100||0)/3600,
+        importe:((x.segundosNormales||0)/3600*c.rate)+((x.segundos50||0)/3600*c.rate*1.5)+((x.segundos100||0)/3600*c.rate*2)
+      })),
+      gastosCantidad:gastosActuales.length,creadoPor:usuarioActual.uid,creadoEn:serverTimestamp()
+    };
+    await addDoc(collection(db,"liquidaciones"),liq);
+    mostrarMensaje("✅ Liquidación guardada correctamente.","ok");await cargarHistorial();
+  }catch(e){console.error("Error guardando liquidación:",e);mostrarMensaje("❌ No se pudo guardar la liquidación: "+e.message,"error")}
+  finally{boton.disabled=false;boton.textContent="💾 GUARDAR LIQUIDACIÓN"}
+});
+$("semanaInicio").addEventListener("change",()=>{
+  const d=normalizarFecha($("semanaInicio").value);if(!d)return;
+  d.setHours(12,0,0,0);
+  const lunes=new Date(d);lunes.setDate(lunes.getDate()-((lunes.getDay()+6)%7));
+  const domingo=new Date(lunes);domingo.setDate(domingo.getDate()+6);
+  $("semanaInicio").value=fechaISO(lunes);$("semanaFin").value=fechaISO(domingo);
+  calculoListo=false;
+});
+$("semanaFin").addEventListener("change",()=>{calculoListo=false;});
+$("btnLimpiar").addEventListener("click",()=>{
+  if(!empleadoSeleccionado)return;
+  cargarDatosEmpleado();
+  $("tablaGastos").innerHTML='<tr><td colspan="4" class="vacio">Presioná "Calcular liquidación" para consultar los gastos.</td></tr>';
+  $("tablaFichajes").innerHTML='<tr><td colspan="6" class="vacio">Presioná "Calcular liquidación" para consultar los fichajes.</td></tr>';
+  mostrarMensaje("Formulario preparado nuevamente.","ok");
+});
+$("btnVolver").addEventListener("click",()=>{window.location.href="administrar-empleados.html"});
+onAuthStateChanged(auth,async usuario=>{
+  if(!usuario){window.location.replace("login.html");return}
+  usuarioActual=usuario;
+  try{await obtenerEmpresa();await cargarEmpleados()}
+  catch(e){console.error(e);mostrarMensaje("❌ "+e.message,"error")}
+});
+</script>
+</body>
+</html>
