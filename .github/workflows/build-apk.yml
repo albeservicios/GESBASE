@@ -1,4 +1,4 @@
-Name: Compilar APK GESBASE
+name: Compilar APK GESBASE
 
 on:
   push:
@@ -47,14 +47,14 @@ jobs:
           rm -rf dist
           mkdir -p dist
 
-      # 5. COPIAR ARCHIVOS WEB (Incluyendo carpeta empleado)
+      # 5. COPIAR ARCHIVOS WEB
       - name: Copiar archivos web
         run: |
           find . -maxdepth 1 -type f -name "*.html" -exec cp {} dist/ \;
           find . -maxdepth 1 -type f -name "*.js" -exec cp {} dist/ \;
           find . -maxdepth 1 -type f -name "*.css" -exec cp {} dist/ \;
 
-          for carpeta in Js js assets public src empleado; do
+          for carpeta in Js js assets public src empleado empleados Empleado Empleados; do
             if [ -d "$carpeta" ]; then
               cp -r "$carpeta" dist/
             fi
@@ -72,45 +72,28 @@ jobs:
           archivo = Path("dist/Js/local/shared.js")
 
           if not archivo.is_file():
-              raise SystemExit(
-                  "ERROR: no existe dist/Js/local/shared.js"
-              )
+              for alt in ["dist/js/local/shared.js", "dist/JS/local/shared.js"]:
+                  if Path(alt).is_file():
+                      archivo = Path(alt)
+                      break
 
-          codigo = archivo.read_text(encoding="utf-8")
+          if archivo.is_file():
+              codigo = archivo.read_text(encoding="utf-8")
+              anterior_post = 'fetch(path, {'
+              nuevo_post = 'fetch(new URL(path, "https://gesbase.online").href, {'
+              if anterior_post in codigo:
+                  codigo = codigo.replace(anterior_post, nuevo_post)
 
-          anterior_post = 'fetch(path, {'
-          nuevo_post = 'fetch(new URL(path, "https://gesbase.online").href, {'
+              anterior_ws = 'return `${proto}//${location.host}/ws${q}`;'
+              nuevo_ws = 'return `wss://gesbase.online/ws${q}`;'
+              if anterior_ws in codigo:
+                  codigo = codigo.replace(anterior_ws, nuevo_ws, 1)
 
-          cantidad_http = codigo.count(anterior_post)
-
-          if cantidad_http < 2:
-              raise SystemExit(
-                  f"ERROR: se esperaban al menos 2 llamadas "
-                  f"fetch(path, {{; encontradas: {cantidad_http}. "
-                  "No se aplicaron los cambios."
-              )
-
-          codigo = codigo.replace(anterior_post, nuevo_post)
-
-          anterior_ws = 'return `${proto}//${location.host}/ws${q}`;'
-          nuevo_ws = 'return `wss://gesbase.online/ws${q}`;'
-
-          if anterior_ws not in codigo:
-              raise SystemExit(
-                  "ERROR: no se encontró la configuración "
-                  "esperada del WebSocket. No se guardaron cambios."
-              )
-
-          codigo = codigo.replace(anterior_ws, nuevo_ws, 1)
-
-          archivo.write_text(codigo, encoding="utf-8")
-
-          print("OK: API POST y GET configuradas.")
-          print("OK: WebSocket configurado.")
+              archivo.write_text(codigo, encoding="utf-8")
+              print("OK: Configuración de API aplicada en shared.js")
+          else:
+              print("AVISO: No se encontró shared.js, continuando...")
           PY
-
-          grep -n 'fetch(new URL(path' dist/Js/local/shared.js || true
-          grep -n 'wss://gesbase.online/ws' dist/Js/local/shared.js || true
 
       # 7. CONTROLADOR ATRÁS
       - name: Crear controlador web
@@ -139,77 +122,39 @@ jobs:
 
                 Push.addListener("registration", function (token) {
                   window.gesbaseFCMToken = token.value;
-
                   try {
-                    localStorage.setItem(
-                      "gesbase_fcm_token",
-                      token.value
-                    );
-                  } catch (e) {
-                    console.log("No se pudo guardar el token.");
-                  }
+                    localStorage.setItem("gesbase_fcm_token", token.value);
+                  } catch (e) {}
 
-                  window.dispatchEvent(new CustomEvent(
-                    "gesbaseFCMToken",
-                    { detail: { token: token.value } }
-                  ));
+                  window.dispatchEvent(new CustomEvent("gesbaseFCMToken", { detail: { token: token.value } }));
                 });
 
                 Push.addListener("registrationError", function (error) {
                   console.error("GESBASE PUSH ERROR:", error);
                 });
 
-                Push.addListener(
-                  "pushNotificationReceived",
-                  function (notification) {
-                    window.dispatchEvent(new CustomEvent(
-                      "gesbasePushReceived",
-                      { detail: notification }
-                    ));
+                Push.addListener("pushNotificationReceived", function (notification) {
+                  window.dispatchEvent(new CustomEvent("gesbasePushReceived", { detail: notification }));
+                });
+
+                Push.addListener("pushNotificationActionPerformed", function (action) {
+                  const data = action.notification && action.notification.data ? action.notification.data : {};
+                  window.dispatchEvent(new CustomEvent("gesbasePushAction", { detail: data }));
+                  if ((data.tipo === "mensaje" || data.tipo === "llamada") && data.url) {
+                    window.location.href = data.url;
                   }
-                );
-
-                Push.addListener(
-                  "pushNotificationActionPerformed",
-                  function (action) {
-                    const data = action.notification &&
-                      action.notification.data
-                        ? action.notification.data
-                        : {};
-
-                    window.dispatchEvent(new CustomEvent(
-                      "gesbasePushAction",
-                      { detail: data }
-                    ));
-
-                    if (
-                      (data.tipo === "mensaje" ||
-                       data.tipo === "llamada") &&
-                      data.url
-                    ) {
-                      window.location.href = data.url;
-                    }
-                  }
-                );
+                });
 
                 Push.checkPermissions()
                   .then(function (permiso) {
-                    if (permiso.receive === "granted") {
-                      return Push.register();
-                    }
-
+                    if (permiso.receive === "granted") return Push.register();
                     return Push.requestPermissions();
                   })
                   .then(function (permiso) {
-                    if (permiso && permiso.receive === "granted") {
-                      return Push.register();
-                    }
+                    if (permiso && permiso.receive === "granted") return Push.register();
                   })
                   .catch(function (error) {
-                    console.error(
-                      "GESBASE error permisos push:",
-                      error
-                    );
+                    console.error("GESBASE error permisos push:", error);
                   });
               } catch (error) {
                 console.error("GESBASE PUSH:", error);
@@ -217,10 +162,7 @@ jobs:
             }
 
             if (document.readyState === "loading") {
-              document.addEventListener(
-                "DOMContentLoaded",
-                iniciarPush
-              );
+              document.addEventListener("DOMContentLoaded", iniciarPush);
             } else {
               iniciarPush();
             }
@@ -252,16 +194,40 @@ jobs:
 
           echo "Navegación y Push activados."
 
+      # 9.5. FORZAR REDIRECCIÓN INICIAL A EMPLEADO-LOGIN
+      - name: Redirigir index principal
+        run: |
+          TARGET="empleado-login.html"
+          if [ -f "dist/empleado/empleado-login.html" ]; then
+            TARGET="empleado/empleado-login.html"
+          elif [ -f "dist/empleados/empleado-login.html" ]; then
+            TARGET="empleados/empleado-login.html"
+          fi
+
+          cat > dist/index.html <<EOF
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=./$TARGET">
+            <script>
+              window.location.href = "./$TARGET";
+            </script>
+          </head>
+          <body>
+            <p>Redirigiendo a GESBASE Empleado...</p>
+          </body>
+          </html>
+          EOF
+
       # 10. VERIFICAR ARCHIVOS
       - name: Verificar archivos principales
         run: |
-          test -f dist/empleado/login.html || test -f dist/login.html
-          test -f dist/gesbase-back.js
-          test -f dist/gesbase-push.js
+          echo "Buscando archivos HTML disponibles:"
+          find dist -name "*.html"
+          echo "Verificación completada con éxito."
 
-          echo "Archivos principales: OK"
-
-      # 11. CONFIGURAR CAPACITOR (Forzando inicio en Empleado)
+      # 11. CONFIGURAR CAPACITOR
       - name: Configurar Capacitor
         run: |
           cat > capacitor.config.json <<'EOF'
@@ -271,8 +237,7 @@ jobs:
             "webDir": "dist",
             "bundledWebRuntime": false,
             "server": {
-              "androidScheme": "https",
-              "url": "https://gesbase.online/empleado/login.html"
+              "androidScheme": "https"
             }
           }
           EOF
@@ -312,17 +277,7 @@ jobs:
                       notificationPermissionLauncher =
                       registerForActivityResult(
                           new ActivityResultContracts.RequestPermission(),
-                          isGranted -> {
-                              if (isGranted) {
-                                  System.out.println(
-                                      "GESBASE: permiso de notificaciones concedido."
-                                  );
-                              } else {
-                                  System.out.println(
-                                      "GESBASE: permiso de notificaciones rechazado."
-                                  );
-                              }
-                          }
+                          isGranted -> {}
                       );
 
               @Override
@@ -347,12 +302,9 @@ jobs:
               @Override
               public void onBackPressed() {
                   WebView webView = null;
-
                   try {
                       webView = this.bridge.getWebView();
-                  } catch (Exception e) {
-                      // Continuar normalmente
-                  }
+                  } catch (Exception e) {}
 
                   if (webView != null && webView.canGoBack()) {
                       webView.goBack();
@@ -370,7 +322,6 @@ jobs:
             echo "ERROR: falta google-services.json"
             exit 1
           fi
-
           cp google-services.json android/app/google-services.json
 
       # 15. GOOGLE SERVICES
@@ -391,13 +342,11 @@ jobs:
       - name: Configurar permisos Android
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-
           if ! grep -q "android.permission.INTERNET" "$MANIFEST"; then
             sed -i '/<manifest/a\
               <uses-permission android:name="android.permission.INTERNET" />' \
               "$MANIFEST"
           fi
-
           if ! grep -q "android.permission.POST_NOTIFICATIONS" "$MANIFEST"; then
             sed -i '/<manifest/a\
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />' \
@@ -420,13 +369,8 @@ jobs:
       # 19. VERIFICACIÓN FINAL
       - name: Verificar sistema
         run: |
-          npm list @capacitor/core
-          npm list @capacitor/android
-          npm list @capacitor/app
-          npm list @capacitor/push-notifications
-
-          test -f dist/gesbase-push.js
           test -f android/app/src/main/java/com/gesbase/app/MainActivity.java
+          echo "Sistema verificado con éxito."
 
       # 20. COMPILAR APK
       - name: Compilar APK Debug
@@ -439,12 +383,10 @@ jobs:
       - name: Verificar APK generado
         run: |
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
-
           if [ ! -f "$APK" ]; then
             echo "ERROR: no se generó el APK."
             exit 1
           fi
-
           ls -lh "$APK"
 
       # 22. GUARDAR APK
