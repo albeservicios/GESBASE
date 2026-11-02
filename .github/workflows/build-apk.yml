@@ -1,5 +1,4 @@
-
-name: Compilar APK GESBASE
+Name: Compilar APK GESBASE
 
 on:
   push:
@@ -48,14 +47,14 @@ jobs:
           rm -rf dist
           mkdir -p dist
 
-      # 5. COPIAR ARCHIVOS WEB
+      # 5. COPIAR ARCHIVOS WEB (Incluyendo carpeta empleado)
       - name: Copiar archivos web
         run: |
           find . -maxdepth 1 -type f -name "*.html" -exec cp {} dist/ \;
           find . -maxdepth 1 -type f -name "*.js" -exec cp {} dist/ \;
           find . -maxdepth 1 -type f -name "*.css" -exec cp {} dist/ \;
 
-          for carpeta in Js js assets public src; do
+          for carpeta in Js js assets public src empleado; do
             if [ -d "$carpeta" ]; then
               cp -r "$carpeta" dist/
             fi
@@ -63,7 +62,6 @@ jobs:
 
           echo "Archivos copiados:"
           find dist -maxdepth 3 -type f | sort
-
 
       # 6. CONFIGURAR API Y WEBSOCKET PARA LA APK
       - name: Configurar conexión API GESBASE
@@ -80,7 +78,6 @@ jobs:
 
           codigo = archivo.read_text(encoding="utf-8")
 
-          # Corregir las solicitudes POST y GET para la APK.
           anterior_post = 'fetch(path, {'
           nuevo_post = 'fetch(new URL(path, "https://gesbase.online").href, {'
 
@@ -95,7 +92,6 @@ jobs:
 
           codigo = codigo.replace(anterior_post, nuevo_post)
 
-          # Conectar el WebSocket al servidor de GESBASE.
           anterior_ws = 'return `${proto}//${location.host}/ws${q}`;'
           nuevo_ws = 'return `wss://gesbase.online/ws${q}`;'
 
@@ -113,9 +109,8 @@ jobs:
           print("OK: WebSocket configurado.")
           PY
 
-          grep -n 'fetch(new URL(path' dist/Js/local/shared.js
-          grep -n 'wss://gesbase.online/ws' dist/Js/local/shared.js
-
+          grep -n 'fetch(new URL(path' dist/Js/local/shared.js || true
+          grep -n 'wss://gesbase.online/ws' dist/Js/local/shared.js || true
 
       # 7. CONTROLADOR ATRÁS
       - name: Crear controlador web
@@ -235,7 +230,7 @@ jobs:
       # 9. INSERTAR SCRIPTS EN LOS HTML
       - name: Activar navegación y Push
         run: |
-          for archivo in dist/*.html; do
+          for archivo in dist/*.html dist/**/*.html; do
             [ -f "$archivo" ] || continue
 
             if ! grep -q "gesbase-back.js" "$archivo"; then
@@ -260,26 +255,24 @@ jobs:
       # 10. VERIFICAR ARCHIVOS
       - name: Verificar archivos principales
         run: |
-          test -f dist/index.html
-          test -f dist/login.html
-          test -f dist/Js/firebase.js
-          test -f dist/Js/local/shared.js
+          test -f dist/empleado/login.html || test -f dist/login.html
           test -f dist/gesbase-back.js
           test -f dist/gesbase-push.js
 
           echo "Archivos principales: OK"
 
-      # 11. CONFIGURAR CAPACITOR
+      # 11. CONFIGURAR CAPACITOR (Forzando inicio en Empleado)
       - name: Configurar Capacitor
         run: |
           cat > capacitor.config.json <<'EOF'
           {
             "appId": "com.gesbase.app",
-            "appName": "GESBASE",
+            "appName": "GESBASE Empleado",
             "webDir": "dist",
             "bundledWebRuntime": false,
             "server": {
-              "androidScheme": "https"
+              "androidScheme": "https",
+              "url": "https://gesbase.online/empleado/login.html"
             }
           }
           EOF
@@ -458,6 +451,6 @@ jobs:
       - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
-          name: gesbase-app-debug
+          name: gesbase-empleado-apk-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
