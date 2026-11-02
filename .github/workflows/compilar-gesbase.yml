@@ -252,16 +252,35 @@ jobs:
 
           echo "Navegación y Push activados."
 
+      # 9.5. FORZAR REDIRECCIÓN INICIAL A EMPLEADO
+      - name: Redirigir index principal a empleado
+        run: |
+          cat > dist/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=./empleado/login.html">
+            <script>
+              window.location.href = "./empleado/login.html";
+            </script>
+          </head>
+          <body>
+            <p>Redirigiendo a GESBASE Empleado...</p>
+          </body>
+          </html>
+          EOF
+
       # 10. VERIFICAR ARCHIVOS
       - name: Verificar archivos principales
         run: |
-          test -f dist/empleado/login.html || test -f dist/login.html
+          test -f dist/empleado/login.html
           test -f dist/gesbase-back.js
           test -f dist/gesbase-push.js
 
           echo "Archivos principales: OK"
 
-           # 11. CONFIGURAR CAPACITOR (Forzando la ruta exacta de empleados)
+      # 11. CONFIGURAR CAPACITOR (Modo local estático)
       - name: Configurar Capacitor
         run: |
           cat > capacitor.config.json <<'EOF'
@@ -271,13 +290,10 @@ jobs:
             "webDir": "dist",
             "bundledWebRuntime": false,
             "server": {
-              "androidScheme": "https",
-              "url": "https://gesbase.online/empleado/login.html",
-              "cleartext": true
+              "androidScheme": "https"
             }
           }
           EOF
-
 
       # 12. CREAR ANDROID
       - name: Crear plataforma Android
