@@ -1,66 +1,456 @@
-
 name: Compilar APK GESBASE
 
 on:
+  push:
+    branches:
+      - main
+      - master
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Descargar codigo
+      # 1. DESCARGAR CÓDIGO
+      - name: Descargar código
         uses: actions/checkout@v4
 
-      - name: Configurar Java
+      # 2. CONFIGURAR NODE
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verificar Node.js
+        run: |
+          node --version
+          npm --version
+
+      # 3. INSTALAR CAPACITOR
+      - name: Preparar proyecto Node
+        run: |
+          if [ ! -f package.json ]; then
+            npm init -y
+          fi
+
+          npm install \
+            @capacitor/core@8.5.2 \
+            @capacitor/cli@8.5.2 \
+            @capacitor/android@8.5.2 \
+            @capacitor/app@8.1.2 \
+            @capacitor/push-notifications@8.1.3
+
+      # 4. CREAR DIST
+      - name: Preparar carpeta dist
+        run: |
+          rm -rf dist
+          mkdir -p dist
+
+      # 5. COPIAR ARCHIVOS WEB (Incluyendo carpeta empleado)
+      - name: Copiar archivos web
+        run: |
+          find . -maxdepth 1 -type f -name "*.html" -exec cp {} dist/ \;
+          find . -maxdepth 1 -type f -name "*.js" -exec cp {} dist/ \;
+          find . -maxdepth 1 -type f -name "*.css" -exec cp {} dist/ \;
+
+          for carpeta in Js js assets public src empleado; do
+            if [ -d "$carpeta" ]; then
+              cp -r "$carpeta" dist/
+            fi
+          done
+
+          echo "Archivos copiados:"
+          find dist -maxdepth 3 -type f | sort
+
+      # 6. CONFIGURAR API Y WEBSOCKET PARA LA APK
+      - name: Configurar conexión API GESBASE
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          archivo = Path("dist/Js/local/shared.js")
+
+          if not archivo.is_file():
+              raise SystemExit(
+                  "ERROR: no existe dist/Js/local/shared.js"
+              )
+
+          codigo = archivo.read_text(encoding="utf-8")
+
+          anterior_post = 'fetch(path, {'
+          nuevo_post = 'fetch(new URL(path, "https://gesbase.online").href, {'
+
+          cantidad_http = codigo.count(anterior_post)
+
+          if cantidad_http < 2:
+              raise SystemExit(
+                  f"ERROR: se esperaban al menos 2 llamadas "
+                  f"fetch(path, {{; encontradas: {cantidad_http}. "
+                  "No se aplicaron los cambios."
+              )
+
+          codigo = codigo.replace(anterior_post, nuevo_post)
+
+          anterior_ws = 'return `${proto}//${location.host}/ws${q}`;'
+          nuevo_ws = 'return `wss://gesbase.online/ws${q}`;'
+
+          if anterior_ws not in codigo:
+              raise SystemExit(
+                  "ERROR: no se encontró la configuración "
+                  "esperada del WebSocket. No se guardaron cambios."
+              )
+
+          codigo = codigo.replace(anterior_ws, nuevo_ws, 1)
+
+          archivo.write_text(codigo, encoding="utf-8")
+
+          print("OK: API POST y GET configuradas.")
+          print("OK: WebSocket configurado.")
+          PY
+
+          grep -n 'fetch(new URL(path' dist/Js/local/shared.js || true
+          grep -n 'wss://gesbase.online/ws' dist/Js/local/shared.js || true
+
+      # 7. CONTROLADOR ATRÁS
+      - name: Crear controlador web
+        run: |
+          cat > dist/gesbase-back.js <<'EOF'
+          (function () {
+            "use strict";
+            console.log("GESBASE: navegación cargada.");
+          })();
+          EOF
+
+      # 8. SISTEMA PUSH
+      - name: Crear sistema de notificaciones push
+        run: |
+          cat > dist/gesbase-push.js <<'EOF'
+          (function () {
+            "use strict";
+
+            function iniciarPush() {
+              try {
+                if (!window.Capacitor) return;
+
+                const plugins = window.Capacitor.Plugins || {};
+                const Push = plugins.PushNotifications;
+                if (!Push) return;
+
+                Push.addListener("registration", function (token) {
+                  window.gesbaseFCMToken = token.value;
+
+                  try {
+                    localStorage.setItem(
+                      "gesbase_fcm_token",
+                      token.value
+                    );
+                  } catch (e) {
+                    console.log("No se pudo guardar el token.");
+                  }
+
+                  window.dispatchEvent(new CustomEvent(
+                    "gesbaseFCMToken",
+                    { detail: { token: token.value } }
+                  ));
+                });
+
+                Push.addListener("registrationError", function (error) {
+                  console.error("GESBASE PUSH ERROR:", error);
+                });
+
+                Push.addListener(
+                  "pushNotificationReceived",
+                  function (notification) {
+                    window.dispatchEvent(new CustomEvent(
+                      "gesbasePushReceived",
+                      { detail: notification }
+                    ));
+                  }
+                );
+
+                Push.addListener(
+                  "pushNotificationActionPerformed",
+                  function (action) {
+                    const data = action.notification &&
+                      action.notification.data
+                        ? action.notification.data
+                        : {};
+
+                    window.dispatchEvent(new CustomEvent(
+                      "gesbasePushAction",
+                      { detail: data }
+                    ));
+
+                    if (
+                      (data.tipo === "mensaje" ||
+                       data.tipo === "llamada") &&
+                      data.url
+                    ) {
+                      window.location.href = data.url;
+                    }
+                  }
+                );
+
+                Push.checkPermissions()
+                  .then(function (permiso) {
+                    if (permiso.receive === "granted") {
+                      return Push.register();
+                    }
+
+                    return Push.requestPermissions();
+                  })
+                  .then(function (permiso) {
+                    if (permiso && permiso.receive === "granted") {
+                      return Push.register();
+                    }
+                  })
+                  .catch(function (error) {
+                    console.error(
+                      "GESBASE error permisos push:",
+                      error
+                    );
+                  });
+              } catch (error) {
+                console.error("GESBASE PUSH:", error);
+              }
+            }
+
+            if (document.readyState === "loading") {
+              document.addEventListener(
+                "DOMContentLoaded",
+                iniciarPush
+              );
+            } else {
+              iniciarPush();
+            }
+          })();
+          EOF
+
+      # 9. INSERTAR SCRIPTS EN LOS HTML
+      - name: Activar navegación y Push
+        run: |
+          for archivo in dist/*.html dist/**/*.html; do
+            [ -f "$archivo" ] || continue
+
+            if ! grep -q "gesbase-back.js" "$archivo"; then
+              if grep -qi "</body>" "$archivo"; then
+                sed -i 's#</body>#<script src="./gesbase-back.js"></script>\n</body>#I' "$archivo"
+              else
+                echo '<script src="./gesbase-back.js"></script>' >> "$archivo"
+              fi
+            fi
+
+            if ! grep -q "gesbase-push.js" "$archivo"; then
+              if grep -qi "</body>" "$archivo"; then
+                sed -i 's#</body>#<script src="./gesbase-push.js"></script>\n</body>#I' "$archivo"
+              else
+                echo '<script src="./gesbase-push.js"></script>' >> "$archivo"
+              fi
+            fi
+          done
+
+          echo "Navegación y Push activados."
+
+      # 10. VERIFICAR ARCHIVOS
+      - name: Verificar archivos principales
+        run: |
+          test -f dist/empleado/login.html || test -f dist/login.html
+          test -f dist/gesbase-back.js
+          test -f dist/gesbase-push.js
+
+          echo "Archivos principales: OK"
+
+      # 11. CONFIGURAR CAPACITOR (Forzando inicio en Empleado)
+      - name: Configurar Capacitor
+        run: |
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.gesbase.app",
+            "appName": "GESBASE Empleado",
+            "webDir": "dist",
+            "bundledWebRuntime": false,
+            "server": {
+              "androidScheme": "https",
+              "url": "https://gesbase.online/empleado/login.html"
+            }
+          }
+          EOF
+
+      # 12. CREAR ANDROID
+      - name: Crear plataforma Android
+        run: |
+          rm -rf android
+          npx cap add android
+          npx cap copy android
+          npx cap sync android
+
+      # 13. MAIN ACTIVITY
+      - name: Configurar MainActivity
+        run: |
+          MAIN_ACTIVITY="android/app/src/main/java/com/gesbase/app/MainActivity.java"
+          mkdir -p "$(dirname "$MAIN_ACTIVITY")"
+
+          cat > "$MAIN_ACTIVITY" <<'EOF'
+          package com.gesbase.app;
+
+          import android.Manifest;
+          import android.content.pm.PackageManager;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.webkit.WebView;
+
+          import androidx.activity.result.ActivityResultLauncher;
+          import androidx.activity.result.contract.ActivityResultContracts;
+          import androidx.core.content.ContextCompat;
+
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+
+              private final ActivityResultLauncher<String>
+                      notificationPermissionLauncher =
+                      registerForActivityResult(
+                          new ActivityResultContracts.RequestPermission(),
+                          isGranted -> {
+                              if (isGranted) {
+                                  System.out.println(
+                                      "GESBASE: permiso de notificaciones concedido."
+                                  );
+                              } else {
+                                  System.out.println(
+                                      "GESBASE: permiso de notificaciones rechazado."
+                                  );
+                              }
+                          }
+                      );
+
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  solicitarPermisoNotificaciones();
+              }
+
+              private void solicitarPermisoNotificaciones() {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      if (ContextCompat.checkSelfPermission(
+                              this,
+                              Manifest.permission.POST_NOTIFICATIONS
+                          ) != PackageManager.PERMISSION_GRANTED) {
+                          notificationPermissionLauncher.launch(
+                              Manifest.permission.POST_NOTIFICATIONS
+                          );
+                      }
+                  }
+              }
+
+              @Override
+              public void onBackPressed() {
+                  WebView webView = null;
+
+                  try {
+                      webView = this.bridge.getWebView();
+                  } catch (Exception e) {
+                      // Continuar normalmente
+                  }
+
+                  if (webView != null && webView.canGoBack()) {
+                      webView.goBack();
+                  } else {
+                      super.onBackPressed();
+                  }
+              }
+          }
+          EOF
+
+      # 14. COPIAR GOOGLE SERVICES
+      - name: Copiar google-services.json
+        run: |
+          if [ ! -f google-services.json ]; then
+            echo "ERROR: falta google-services.json"
+            exit 1
+          fi
+
+          cp google-services.json android/app/google-services.json
+
+      # 15. GOOGLE SERVICES
+      - name: Configurar Google Services
+        run: |
+          if ! grep -q 'com.google.gms:google-services' android/build.gradle; then
+            sed -i '/dependencies {/a\
+                classpath "com.google.gms:google-services:4.4.2"' \
+                android/build.gradle
+          fi
+
+          if ! grep -q 'com.google.gms.google-services' android/app/build.gradle; then
+            echo '' >> android/app/build.gradle
+            echo 'apply plugin: "com.google.gms.google-services"' >> android/app/build.gradle
+          fi
+
+      # 16. PERMISOS ANDROID
+      - name: Configurar permisos Android
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+
+          if ! grep -q "android.permission.INTERNET" "$MANIFEST"; then
+            sed -i '/<manifest/a\
+              <uses-permission android:name="android.permission.INTERNET" />' \
+              "$MANIFEST"
+          fi
+
+          if ! grep -q "android.permission.POST_NOTIFICATIONS" "$MANIFEST"; then
+            sed -i '/<manifest/a\
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />' \
+              "$MANIFEST"
+          fi
+
+      # 17. JAVA 21
+      - name: Configurar Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "21"
+          cache: gradle
 
-      - name: Configurar Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Preparar proyecto independiente
+      # 18. SINCRONIZAR CAPACITOR
+      - name: Sincronizar Capacitor
         run: |
-          mkdir -p android-wrapper
-          cd android-wrapper
-          npm init -y
-          npm install @capacitor/core@6 @capacitor/android@6
-          npm install --save-dev @capacitor/cli@6
-          mkdir -p dist
-          cat > dist/index.html <<'HTML'
-          <!doctype html>
-          <html lang="es">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>GESBASE</title>
-          </head>
-          <body>
-            <p>Conectando con GESBASE...</p>
-          </body>
-          </html>
-          HTML
-          npx cap init GESBASE com.gesbase.app --web-dir dist
-          node -e "const fs=require('fs'); const p='capacitor.config.json'; const c=JSON.parse(fs.readFileSync(p,'utf8')); c.server={url:'https://gesbase.online', cleartext:false}; fs.writeFileSync(p,JSON.stringify(c,null,2));"
-          npx cap add android
           npx cap sync android
 
-      - name: Compilar APK
+      # 19. VERIFICACIÓN FINAL
+      - name: Verificar sistema
         run: |
-          cd android-wrapper/android
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          npm list @capacitor/core
+          npm list @capacitor/android
+          npm list @capacitor/app
+          npm list @capacitor/push-notifications
 
+          test -f dist/gesbase-push.js
+          test -f android/app/src/main/java/com/gesbase/app/MainActivity.java
+
+      # 20. COMPILAR APK
+      - name: Compilar APK Debug
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      # 21. VERIFICAR APK
+      - name: Verificar APK generado
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+
+          if [ ! -f "$APK" ]; then
+            echo "ERROR: no se generó el APK."
+            exit 1
+          fi
+
+          ls -lh "$APK"
+
+      # 22. GUARDAR APK
       - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
-          name: GESBASE-APK
-          path: android-wrapper/android/app/build/outputs/apk/debug/app-debug.apk
+          name: gesbase-empleado-apk-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
