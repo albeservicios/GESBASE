@@ -227,7 +227,7 @@ jobs:
           find dist -name "*.html"
           echo "Verificación completada con éxito."
 
-      # 11. CONFIGURAR CAPACITOR (Modo local estático)
+      # 11. CONFIGURAR CAPACITOR
       - name: Configurar Capacitor
         run: |
           cat > capacitor.config.json <<'EOF'
@@ -250,7 +250,7 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      # 13. MAIN ACTIVITY
+      # 13. MAIN ACTIVITY CON SOPORTE DE UBICACIÓN Y NOTIFICACIONES
       - name: Configurar MainActivity
         run: |
           MAIN_ACTIVITY="android/app/src/main/java/com/gesbase/app/MainActivity.java"
@@ -263,6 +263,8 @@ jobs:
           import android.content.pm.PackageManager;
           import android.os.Build;
           import android.os.Bundle;
+          import android.webkit.GeolocationPermissions;
+          import android.webkit.WebChromeClient;
           import android.webkit.WebView;
 
           import androidx.activity.result.ActivityResultLauncher;
@@ -273,29 +275,62 @@ jobs:
 
           public class MainActivity extends BridgeActivity {
 
-              private final ActivityResultLauncher<String>
-                      notificationPermissionLauncher =
+              private final ActivityResultLauncher<String[]> multiplePermissionsLauncher =
                       registerForActivityResult(
-                          new ActivityResultContracts.RequestPermission(),
-                          isGranted -> {}
+                          new ActivityResultContracts.RequestMultiplePermissions(),
+                          result -> {
+                              Boolean notifGranted = result.getOrDefault(Manifest.permission.POST_NOTIFICATIONS, false);
+                              Boolean locGranted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
+                              if (notifGranted != null && notifGranted) {
+                                  System.out.println("GESBASE: Permiso de notificaciones concedido.");
+                              }
+                              if (locGranted != null && locGranted) {
+                                  System.out.println("GESBASE: Permiso de ubicación concedido.");
+                              }
+                          }
                       );
 
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
-                  solicitarPermisoNotificaciones();
+                  solicitarPermisosSistema();
+                  configurarGeolocalizacionWebView();
               }
 
-              private void solicitarPermisoNotificaciones() {
+              private void solicitarPermisosSistema() {
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                      if (ContextCompat.checkSelfPermission(
-                              this,
-                              Manifest.permission.POST_NOTIFICATIONS
-                          ) != PackageManager.PERMISSION_GRANTED) {
-                          notificationPermissionLauncher.launch(
-                              Manifest.permission.POST_NOTIFICATIONS
-                          );
+                      if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED ||
+                          ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                          
+                          multiplePermissionsLauncher.launch(new String[]{
+                              Manifest.permission.POST_NOTIFICATIONS,
+                              Manifest.permission.ACCESS_FINE_LOCATION,
+                              Manifest.permission.ACCESS_COARSE_LOCATION
+                          });
                       }
+                  } else {
+                      if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                          multiplePermissionsLauncher.launch(new String[]{
+                              Manifest.permission.ACCESS_FINE_LOCATION,
+                              Manifest.permission.ACCESS_COARSE_LOCATION
+                          });
+                      }
+                  }
+              }
+
+              private void configurarGeolocalizacionWebView() {
+                  try {
+                      WebView webView = this.bridge.getWebView();
+                      if (webView != null) {
+                          webView.setWebChromeClient(new WebChromeClient() {
+                              @Override
+                              public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                                  callback.invoke(origin, true, false);
+                              }
+                          });
+                      }
+                  } catch (Exception e) {
+                      System.err.println("GESBASE Error WebChromeClient: " + e.getMessage());
                   }
               }
 
@@ -342,14 +377,23 @@ jobs:
       - name: Configurar permisos Android
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
+          
           if ! grep -q "android.permission.INTERNET" "$MANIFEST"; then
             sed -i '/<manifest/a\
               <uses-permission android:name="android.permission.INTERNET" />' \
               "$MANIFEST"
           fi
+          
           if ! grep -q "android.permission.POST_NOTIFICATIONS" "$MANIFEST"; then
             sed -i '/<manifest/a\
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />' \
+              "$MANIFEST"
+          fi
+
+          if ! grep -q "android.permission.ACCESS_FINE_LOCATION" "$MANIFEST"; then
+            sed -i '/<manifest/a\
+              <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\
+              <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />' \
               "$MANIFEST"
           fi
 
