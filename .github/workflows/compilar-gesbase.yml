@@ -27,7 +27,7 @@ jobs:
           node --version
           npm --version
 
-      # 3. INSTALAR CAPACITOR
+      # 3. INSTALAR CAPACITOR Y PLUGIN DE GEOLOCALIZACIÓN
       - name: Preparar proyecto Node
         run: |
           if [ ! -f package.json ]; then
@@ -39,7 +39,8 @@ jobs:
             @capacitor/cli@8.5.2 \
             @capacitor/android@8.5.2 \
             @capacitor/app@8.1.2 \
-            @capacitor/push-notifications@8.1.3
+            @capacitor/push-notifications@8.1.3 \
+            @capacitor/geolocation@6.0.0
 
       # 4. CREAR DIST
       - name: Preparar carpeta dist
@@ -105,18 +106,39 @@ jobs:
           })();
           EOF
 
-      # 8. SISTEMA PUSH
-      - name: Crear sistema de notificaciones push
+      # 8. SISTEMA PUSH Y GEOLOCALIZACIÓN NATIVA
+      - name: Crear sistema de notificaciones push y GPS
         run: |
           cat > dist/gesbase-push.js <<'EOF'
           (function () {
             "use strict";
 
-            function iniciarPush() {
+            function iniciarSistemaNativo() {
               try {
                 if (!window.Capacitor) return;
-
                 const plugins = window.Capacitor.Plugins || {};
+
+                // Geolocalización nativa disponible globalmente
+                if (plugins.Geolocation) {
+                  window.gesbaseGetPosition = async function() {
+                    try {
+                      const permissions = await plugins.Geolocation.checkPermissions();
+                      if (permissions.location !== 'granted') {
+                        await plugins.Geolocation.requestPermissions();
+                      }
+                      const coordinates = await plugins.Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+                      return {
+                        lat: coordinates.coords.latitude,
+                        lng: coordinates.coords.longitude
+                      };
+                    } catch (e) {
+                      console.error("GESBASE GPS Error:", e);
+                      return null;
+                    }
+                  };
+                }
+
+                // Push notifications
                 const Push = plugins.PushNotifications;
                 if (!Push) return;
 
@@ -125,7 +147,6 @@ jobs:
                   try {
                     localStorage.setItem("gesbase_fcm_token", token.value);
                   } catch (e) {}
-
                   window.dispatchEvent(new CustomEvent("gesbaseFCMToken", { detail: { token: token.value } }));
                 });
 
@@ -157,14 +178,14 @@ jobs:
                     console.error("GESBASE error permisos push:", error);
                   });
               } catch (error) {
-                console.error("GESBASE PUSH:", error);
+                console.error("GESBASE SISTEMA NATIVO:", error);
               }
             }
 
             if (document.readyState === "loading") {
-              document.addEventListener("DOMContentLoaded", iniciarPush);
+              document.addEventListener("DOMContentLoaded", iniciarSistemaNativo);
             } else {
-              iniciarPush();
+              iniciarSistemaNativo();
             }
           })();
           EOF
