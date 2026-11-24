@@ -1,0 +1,199 @@
+
+name: Compilar APK GESBASE Gestion
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Preparar proyecto independiente
+        run: |
+          set -e
+
+          if [ ! -f login.html ]; then
+            echo "ERROR: No existe login.html"
+            exit 1
+          fi
+
+          mkdir -p build-gestion/www
+
+          # Copiar archivos web principales
+          find . -maxdepth 1 -type f \
+            \( -name "*.html" -o -name "*.js" -o -name "*.css" \
+            -o -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \
+            -o -name "*.webp" -o -name "*.svg" -o -name "*.json" \
+            -o -name "*.ico" -o -name "*.woff" -o -name "*.woff2" \) \
+            -exec cp {} build-gestion/www/ \;
+
+          # Copiar carpetas necesarias
+          for carpeta in Js js assets public images img css; do
+            if [ -d "$carpeta" ]; then
+              cp -R "$carpeta" build-gestion/www/
+            fi
+          done
+
+          echo "Archivos web copiados:"
+          find build-gestion/www -maxdepth 2 -type f | sort | head -200
+
+      - name: Configurar conexion con GESBASE
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          archivo = Path("build-gestion/www/Js/local/shared.js")
+
+          if not archivo.is_file():
+              alternativas = [
+                  Path("build-gestion/www/js/local/shared.js"),
+                  Path("build-gestion/www/JS/local/shared.js")
+              ]
+              archivo = next((p for p in alternativas if p.is_file()), None)
+
+          if archivo is None:
+              raise SystemExit("ERROR: No se encontro shared.js")
+
+          codigo = archivo.read_text(encoding="utf-8")
+
+          codigo = codigo.replace(
+              'fetch(path, {',
+              'fetch(new URL(path, "https://gesbase.online").href, {'
+          )
+
+          codigo = codigo.replace(
+              'return `${proto}//${location.host}/ws${q}`;',
+              'return `wss://gesbase.online/ws${q}`;'
+          )
+
+          archivo.write_text(codigo, encoding="utf-8")
+          print("Conexion API preparada.")
+          PY
+
+      - name: Configurar pantalla inicial
+        run: |
+          cat > build-gestion/www/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta http-equiv="refresh" content="0; url=./login.html">
+            <title>GESBASE Gestión</title>
+          </head>
+          <body>
+            <p>Abriendo GESBASE Gestión...</p>
+            <script>
+              window.location.replace("./login.html");
+            </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Instalar Capacitor
+        working-directory: build-gestion
+        run: |
+          npm init -y
+
+          npm install \
+            @capacitor/core@8.5.2 \
+            @capacitor/cli@8.5.2 \
+            @capacitor/android@8.5.2 \
+            @capacitor/geolocation@^8.0.0 \
+            --legacy-peer-deps
+
+      - name: Configurar aplicacion Android
+        working-directory: build-gestion
+        run: |
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.gesbase.gestion",
+            "appName": "GESBASE Gestión",
+            "webDir": "www",
+            "android": {
+              "allowMixedContent": false
+            }
+          }
+          EOF
+
+          npx cap add android
+          npx cap sync android
+
+      - name: Configurar permisos Android
+        working-directory: build-gestion
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          archivo = Path("android/app/src/main/AndroidManifest.xml")
+          texto = archivo.read_text(encoding="utf-8")
+
+          permisos = [
+              "android.permission.INTERNET",
+              "android.permission.ACCESS_FINE_LOCATION",
+              "android.permission.ACCESS_COARSE_LOCATION"
+          ]
+
+          faltantes = [
+              f'    <uses-permission android:name="{p}" />'
+              for p in permisos
+              if p not in texto
+          ]
+
+          if faltantes:
+              texto = texto.replace(
+                  "<manifest",
+                  "<manifest",
+                  1
+              )
+              posicion = texto.find(">")
+              texto = texto[:posicion + 1] + "\n" + "\n".join(faltantes) + texto[posicion + 1:]
+
+          archivo.write_text(texto, encoding="utf-8")
+          print("Permisos Android configurados.")
+          PY
+
+      - name: Verificar archivos
+        working-directory: build-gestion
+        run: |
+          test -f www/login.html
+          test -f android/app/src/main/AndroidManifest.xml
+          echo "Proyecto GESBASE Gestión verificado."
+
+      - name: Compilar APK
+        working-directory: build-gestion/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Verificar APK
+        run: |
+          APK="build-gestion/android/app/build/outputs/apk/debug/app-debug.apk"
+          test -f "$APK"
+          ls -lh "$APK"
+
+      - name: Guardar APK GESBASE Gestión
+        uses: actions/upload-artifact@v4
+        with:
+          name: gesbase-gestion-apk-debug
+          path: build-gestion/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
