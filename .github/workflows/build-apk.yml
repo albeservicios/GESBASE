@@ -1,4 +1,5 @@
-name: Compilar APK GESBASE
+
+name: Compilar APK GESBASE - Gestión y Empleados
 
 on:
   push:
@@ -7,392 +8,326 @@ on:
       - master
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    name: GESBASE ${{ matrix.nombre }}
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: gestion
+            nombre: Gestión
+            appId: com.gesbase.gestion
+            appName: GESBASE Gestión
+            inicio: login.html
+            artifact: gesbase-gestion-apk-debug
+            gps: false
+
+          - app: empleados
+            nombre: Empleados
+            appId: com.gesbase.app
+            appName: GESBASE Empleados
+            inicio: empleado-login.html
+            artifact: gesbase-empleado-apk-debug
+            gps: true
+
     steps:
-      # 1. DESCARGAR CÓDIGO
+      # 1. DESCARGAR REPOSITORIO
       - name: Descargar código
         uses: actions/checkout@v4
 
-      # 2. CONFIGURAR NODE
+      # 2. NODE
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Verificar Node.js
-        run: |
-          node --version
-          npm --version
+      # 3. JAVA
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
 
-      # 3. INSTALAR CAPACITOR
-      - name: Preparar proyecto Node
+      # 4. PREPARAR CARPETAS INDEPENDIENTES
+      - name: Preparar archivos web
+        shell: bash
         run: |
-          if [ ! -f package.json ]; then
-            npm init -y
+          set -e
+
+          APP_DIR="build-apks/${{ matrix.app }}"
+          WEB_DIR="$APP_DIR/www"
+
+          mkdir -p "$WEB_DIR"
+
+          find . -maxdepth 1 -type f \
+            \( -name "*.html" -o -name "*.js" -o -name "*.css" \) \
+            -exec cp {} "$WEB_DIR/" \;
+
+          for carpeta in Js js assets public src empleado empleados Empleado Empleados images img css; do
+            if [ -d "$carpeta" ]; then
+              cp -R "$carpeta" "$WEB_DIR/"
+            fi
+          done
+
+          echo "Archivos preparados:"
+          find "$WEB_DIR" -maxdepth 3 -type f | sort
+
+      # 5. VERIFICAR PÁGINA DE INICIO
+      - name: Verificar pantalla inicial
+        shell: bash
+        run: |
+          set -e
+
+          WEB_DIR="build-apks/${{ matrix.app }}/www"
+          TARGET="${{ matrix.inicio }}"
+
+          if [ ! -f "$WEB_DIR/$TARGET" ]; then
+            echo "ERROR: No se encontró $TARGET"
+            exit 1
           fi
+
+          echo "Pantalla inicial encontrada: $TARGET"
+
+      # 6. CONFIGURAR API
+      - name: Configurar conexión al servidor
+        shell: bash
+        run: |
+          set -e
+
+          WEB_DIR="build-apks/${{ matrix.app }}/www"
+
+          python3 - "$WEB_DIR" <<'PY'
+          import sys
+          from pathlib import Path
+
+          web = Path(sys.argv[1])
+
+          posibles = [
+              web / "Js/local/shared.js",
+              web / "js/local/shared.js",
+              web / "JS/local/shared.js"
+          ]
+
+          archivo = next((p for p in posibles if p.is_file()), None)
+
+          if archivo:
+              codigo = archivo.read_text(encoding="utf-8")
+
+              codigo = codigo.replace(
+                  'fetch(path, {',
+                  'fetch(new URL(path, "https://gesbase.online").href, {'
+              )
+
+              codigo = codigo.replace(
+                  'return `${proto}//${location.host}/ws${q}`;',
+                  'return `wss://gesbase.online/ws${q}`;',
+                  1
+              )
+
+              archivo.write_text(codigo, encoding="utf-8")
+              print("Conexión API preparada.")
+          else:
+              print("AVISO: shared.js no encontrado.")
+          PY
+
+      # 7. CONFIGURAR INDEX
+      - name: Configurar inicio de aplicación
+        shell: bash
+        run: |
+          set -e
+
+          WEB_DIR="build-apks/${{ matrix.app }}/www"
+          TARGET="${{ matrix.inicio }}"
+
+          cat > "$WEB_DIR/index.html" <<EOF
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${{ matrix.appName }}</title>
+            <script>
+              window.location.replace("./$TARGET");
+            </script>
+          </head>
+          <body>
+            <p>Iniciando ${{ matrix.appName }}...</p>
+          </body>
+          </html>
+          EOF
+
+      # 8. PREPARAR CAPACITOR
+      - name: Instalar Capacitor
+        shell: bash
+        run: |
+          set -e
+
+          APP_DIR="build-apks/${{ matrix.app }}"
+
+          cd "$APP_DIR"
+
+          npm init -y
 
           npm install \
             @capacitor/core@8.5.2 \
             @capacitor/cli@8.5.2 \
             @capacitor/android@8.5.2 \
-            @capacitor/app@8.1.2 \
-            @capacitor/push-notifications@8.1.3
+            @capacitor/app@8.1.2
 
-      # 4. CREAR DIST
-      - name: Preparar carpeta dist
-        run: |
-          rm -rf dist
-          mkdir -p dist
-
-      # 5. COPIAR ARCHIVOS WEB
-      - name: Copiar archivos web
-        run: |
-          find . -maxdepth 1 -type f -name "*.html" -exec cp {} dist/ \;
-          find . -maxdepth 1 -type f -name "*.js" -exec cp {} dist/ \;
-          find . -maxdepth 1 -type f -name "*.css" -exec cp {} dist/ \;
-
-          for carpeta in Js js assets public src empleado empleados Empleado Empleados; do
-            if [ -d "$carpeta" ]; then
-              cp -r "$carpeta" dist/
-            fi
-          done
-
-          echo "Archivos copiados:"
-          find dist -maxdepth 3 -type f | sort
-
-      # 6. CONFIGURAR API Y WEBSOCKET PARA LA APK
-      - name: Configurar conexión API GESBASE
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          archivo = Path("dist/Js/local/shared.js")
-
-          if not archivo.is_file():
-              for alt in ["dist/js/local/shared.js", "dist/JS/local/shared.js"]:
-                  if Path(alt).is_file():
-                      archivo = Path(alt)
-                      break
-
-          if archivo.is_file():
-              codigo = archivo.read_text(encoding="utf-8")
-              anterior_post = 'fetch(path, {'
-              nuevo_post = 'fetch(new URL(path, "https://gesbase.online").href, {'
-              if anterior_post in codigo:
-                  codigo = codigo.replace(anterior_post, nuevo_post)
-
-              anterior_ws = 'return `${proto}//${location.host}/ws${q}`;'
-              nuevo_ws = 'return `wss://gesbase.online/ws${q}`;'
-              if anterior_ws in codigo:
-                  codigo = codigo.replace(anterior_ws, nuevo_ws, 1)
-
-              archivo.write_text(codigo, encoding="utf-8")
-              print("OK: Configuración de API aplicada en shared.js")
-          else:
-              print("AVISO: No se encontró shared.js, continuando...")
-          PY
-
-      # 7. CONTROLADOR ATRÁS
-      - name: Crear controlador web
-        run: |
-          cat > dist/gesbase-back.js <<'EOF'
-          (function () {
-            "use strict";
-            console.log("GESBASE: navegación cargada.");
-          })();
-          EOF
-
-      # 8. SISTEMA PUSH
-      - name: Crear sistema de notificaciones push
-        run: |
-          cat > dist/gesbase-push.js <<'EOF'
-          (function () {
-            "use strict";
-
-            function iniciarPush() {
-              try {
-                if (!window.Capacitor) return;
-
-                const plugins = window.Capacitor.Plugins || {};
-                const Push = plugins.PushNotifications;
-                if (!Push) return;
-
-                Push.addListener("registration", function (token) {
-                  window.gesbaseFCMToken = token.value;
-                  try {
-                    localStorage.setItem("gesbase_fcm_token", token.value);
-                  } catch (e) {}
-
-                  window.dispatchEvent(new CustomEvent("gesbaseFCMToken", { detail: { token: token.value } }));
-                });
-
-                Push.addListener("registrationError", function (error) {
-                  console.error("GESBASE PUSH ERROR:", error);
-                });
-
-                Push.addListener("pushNotificationReceived", function (notification) {
-                  window.dispatchEvent(new CustomEvent("gesbasePushReceived", { detail: notification }));
-                });
-
-                Push.addListener("pushNotificationActionPerformed", function (action) {
-                  const data = action.notification && action.notification.data ? action.notification.data : {};
-                  window.dispatchEvent(new CustomEvent("gesbasePushAction", { detail: data }));
-                  if ((data.tipo === "mensaje" || data.tipo === "llamada") && data.url) {
-                    window.location.href = data.url;
-                  }
-                });
-
-                Push.checkPermissions()
-                  .then(function (permiso) {
-                    if (permiso.receive === "granted") return Push.register();
-                    return Push.requestPermissions();
-                  })
-                  .then(function (permiso) {
-                    if (permiso && permiso.receive === "granted") return Push.register();
-                  })
-                  .catch(function (error) {
-                    console.error("GESBASE error permisos push:", error);
-                  });
-              } catch (error) {
-                console.error("GESBASE PUSH:", error);
-              }
-            }
-
-            if (document.readyState === "loading") {
-              document.addEventListener("DOMContentLoaded", iniciarPush);
-            } else {
-              iniciarPush();
-            }
-          })();
-          EOF
-
-      # 9. INSERTAR SCRIPTS EN LOS HTML
-      - name: Activar navegación y Push
-        run: |
-          for archivo in dist/*.html dist/**/*.html; do
-            [ -f "$archivo" ] || continue
-
-            if ! grep -q "gesbase-back.js" "$archivo"; then
-              if grep -qi "</body>" "$archivo"; then
-                sed -i 's#</body>#<script src="./gesbase-back.js"></script>\n</body>#I' "$archivo"
-              else
-                echo '<script src="./gesbase-back.js"></script>' >> "$archivo"
-              fi
-            fi
-
-            if ! grep -q "gesbase-push.js" "$archivo"; then
-              if grep -qi "</body>" "$archivo"; then
-                sed -i 's#</body>#<script src="./gesbase-push.js"></script>\n</body>#I' "$archivo"
-              else
-                echo '<script src="./gesbase-push.js"></script>' >> "$archivo"
-              fi
-            fi
-          done
-
-          echo "Navegación y Push activados."
-
-      # 9.5. FORZAR REDIRECCIÓN INICIAL A EMPLEADO-LOGIN
-      - name: Redirigir index principal
-        run: |
-          TARGET="empleado-login.html"
-          if [ -f "dist/empleado/empleado-login.html" ]; then
-            TARGET="empleado/empleado-login.html"
-          elif [ -f "dist/empleados/empleado-login.html" ]; then
-            TARGET="empleados/empleado-login.html"
+          if [ "${{ matrix.gps }}" = "true" ]; then
+            npm install @capacitor/geolocation
           fi
 
-          cat > dist/index.html <<EOF
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <meta http-equiv="refresh" content="0; url=./$TARGET">
-            <script>
-              window.location.href = "./$TARGET";
-            </script>
-          </head>
-          <body>
-            <p>Redirigiendo a GESBASE Empleado...</p>
-          </body>
-          </html>
-          EOF
-
-      # 10. VERIFICAR ARCHIVOS
-      - name: Verificar archivos principales
+      # 9. CONFIGURAR CAPACITOR
+      - name: Configurar aplicación Android
+        shell: bash
         run: |
-          echo "Buscando archivos HTML disponibles:"
-          find dist -name "*.html"
-          echo "Verificación completada con éxito."
+          set -e
 
-      # 11. CONFIGURAR CAPACITOR
-      - name: Configurar Capacitor
-        run: |
-          cat > capacitor.config.json <<'EOF'
+          APP_DIR="build-apks/${{ matrix.app }}"
+
+          cat > "$APP_DIR/capacitor.config.json" <<EOF
           {
-            "appId": "com.gesbase.app",
-            "appName": "GESBASE Empleado",
-            "webDir": "dist",
-            "bundledWebRuntime": false,
+            "appId": "${{ matrix.appId }}",
+            "appName": "${{ matrix.appName }}",
+            "webDir": "www",
             "server": {
               "androidScheme": "https"
             }
           }
           EOF
 
-      # 12. CREAR ANDROID
+      # 10. CREAR ANDROID
       - name: Crear plataforma Android
+        shell: bash
         run: |
-          rm -rf android
+          set -e
+
+          APP_DIR="build-apks/${{ matrix.app }}"
+
+          cd "$APP_DIR"
+
           npx cap add android
-          npx cap copy android
           npx cap sync android
 
-      # 13. MAIN ACTIVITY
-      - name: Configurar MainActivity
+      # 11. PERMISOS DE CÁMARA Y MICRÓFONO
+      - name: Configurar cámara y micrófono
+        shell: bash
         run: |
-          MAIN_ACTIVITY="android/app/src/main/java/com/gesbase/app/MainActivity.java"
-          mkdir -p "$(dirname "$MAIN_ACTIVITY")"
+          set -e
 
-          cat > "$MAIN_ACTIVITY" <<'EOF'
-          package com.gesbase.app;
+          MANIFEST="build-apks/${{ matrix.app }}/android/app/src/main/AndroidManifest.xml"
 
-          import android.Manifest;
-          import android.content.pm.PackageManager;
-          import android.os.Build;
-          import android.os.Bundle;
-          import android.webkit.WebView;
+          python3 - "$MANIFEST" <<'PY'
+          import sys
+          from pathlib import Path
 
-          import androidx.activity.result.ActivityResultLauncher;
-          import androidx.activity.result.contract.ActivityResultContracts;
-          import androidx.core.content.ContextCompat;
+          archivo = Path(sys.argv[1])
+          contenido = archivo.read_text(encoding="utf-8")
 
-          import com.getcapacitor.BridgeActivity;
+          permisos = [
+              "android.permission.INTERNET",
+              "android.permission.CAMERA",
+              "android.permission.RECORD_AUDIO"
+          ]
 
-          public class MainActivity extends BridgeActivity {
+          for permiso in permisos:
+              linea = f'<uses-permission android:name="{permiso}" />'
+              if permiso not in contenido:
+                  contenido = contenido.replace(
+                      "<manifest",
+                      "<manifest",
+                      1
+                  )
+                  posicion = contenido.find(">")
+                  contenido = contenido[:posicion + 1] + "\n    " + linea + contenido[posicion + 1:]
 
-              private final ActivityResultLauncher<String>
-                      notificationPermissionLauncher =
-                      registerForActivityResult(
-                          new ActivityResultContracts.RequestPermission(),
-                          isGranted -> {}
-                      );
+          archivo.write_text(contenido, encoding="utf-8")
+          print("Permisos de comunicación configurados.")
+          PY
 
-              @Override
-              public void onCreate(Bundle savedInstanceState) {
-                  super.onCreate(savedInstanceState);
-                  solicitarPermisoNotificaciones();
-              }
-
-              private void solicitarPermisoNotificaciones() {
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                      if (ContextCompat.checkSelfPermission(
-                              this,
-                              Manifest.permission.POST_NOTIFICATIONS
-                          ) != PackageManager.PERMISSION_GRANTED) {
-                          notificationPermissionLauncher.launch(
-                              Manifest.permission.POST_NOTIFICATIONS
-                          );
-                      }
-                  }
-              }
-
-              @Override
-              public void onBackPressed() {
-                  WebView webView = null;
-                  try {
-                      webView = this.bridge.getWebView();
-                  } catch (Exception e) {}
-
-                  if (webView != null && webView.canGoBack()) {
-                      webView.goBack();
-                  } else {
-                      super.onBackPressed();
-                  }
-              }
-          }
-          EOF
-
-      # 14. COPIAR GOOGLE SERVICES
-      - name: Copiar google-services.json
+      # 12. GPS SOLO EMPLEADOS
+      - name: Configurar permisos GPS
+        if: matrix.gps == true
+        shell: bash
         run: |
-          if [ ! -f google-services.json ]; then
-            echo "ERROR: falta google-services.json"
-            exit 1
-          fi
-          cp google-services.json android/app/google-services.json
+          set -e
 
-      # 15. GOOGLE SERVICES
-      - name: Configurar Google Services
-        run: |
-          if ! grep -q 'com.google.gms:google-services' android/build.gradle; then
-            sed -i '/dependencies {/a\
-                classpath "com.google.gms:google-services:4.4.2"' \
-                android/build.gradle
-          fi
+          MANIFEST="build-apks/${{ matrix.app }}/android/app/src/main/AndroidManifest.xml"
 
-          if ! grep -q 'com.google.gms.google-services' android/app/build.gradle; then
-            echo '' >> android/app/build.gradle
-            echo 'apply plugin: "com.google.gms.google-services"' >> android/app/build.gradle
-          fi
+          python3 - "$MANIFEST" <<'PY'
+          import sys
+          from pathlib import Path
 
-      # 16. PERMISOS ANDROID
-      - name: Configurar permisos Android
-        run: |
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-          if ! grep -q "android.permission.INTERNET" "$MANIFEST"; then
-            sed -i '/<manifest/a\
-              <uses-permission android:name="android.permission.INTERNET" />' \
-              "$MANIFEST"
-          fi
-          if ! grep -q "android.permission.POST_NOTIFICATIONS" "$MANIFEST"; then
-            sed -i '/<manifest/a\
-              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />' \
-              "$MANIFEST"
-          fi
+          archivo = Path(sys.argv[1])
+          contenido = archivo.read_text(encoding="utf-8")
 
-      # 17. JAVA 21
-      - name: Configurar Java 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-          cache: gradle
+          permisos = [
+              "android.permission.ACCESS_COARSE_LOCATION",
+              "android.permission.ACCESS_FINE_LOCATION"
+          ]
 
-      # 18. SINCRONIZAR CAPACITOR
+          for permiso in permisos:
+              if permiso not in contenido:
+                  linea = f'<uses-permission android:name="{permiso}" />'
+                  posicion = contenido.find(">")
+                  contenido = contenido[:posicion + 1] + "\n    " + linea + contenido[posicion + 1:]
+
+          archivo.write_text(contenido, encoding="utf-8")
+          print("GPS habilitado para Empleados.")
+          PY
+
+      # 13. SINCRONIZAR
       - name: Sincronizar Capacitor
+        shell: bash
         run: |
+          set -e
+
+          APP_DIR="build-apks/${{ matrix.app }}"
+
+          cd "$APP_DIR"
+
           npx cap sync android
 
-      # 19. VERIFICACIÓN FINAL
-      - name: Verificar sistema
+      # 14. COMPILAR
+      - name: Compilar APK
+        shell: bash
         run: |
-          test -f android/app/src/main/java/com/gesbase/app/MainActivity.java
-          echo "Sistema verificado con éxito."
+          set -e
 
-      # 20. COMPILAR APK
-      - name: Compilar APK Debug
-        run: |
-          cd android
+          APP_DIR="build-apks/${{ matrix.app }}"
+
+          cd "$APP_DIR/android"
+
           chmod +x gradlew
+
           ./gradlew assembleDebug --no-daemon
 
-      # 21. VERIFICAR APK
-      - name: Verificar APK generado
+      # 15. VERIFICAR APK
+      - name: Verificar APK
+        shell: bash
         run: |
-          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          set -e
+
+          APK="build-apks/${{ matrix.app }}/android/app/build/outputs/apk/debug/app-debug.apk"
+
           if [ ! -f "$APK" ]; then
-            echo "ERROR: no se generó el APK."
+            echo "ERROR: No se generó la APK."
             exit 1
           fi
+
           ls -lh "$APK"
 
-      # 22. GUARDAR APK
-      - name: Guardar APK
+      # 16. GUARDAR APK
+      - name: Publicar artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: gesbase-empleado-apk-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: ${{ matrix.artifact }}
+          path: build-apks/${{ matrix.app }}/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
