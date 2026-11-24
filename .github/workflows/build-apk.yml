@@ -92,7 +92,13 @@ jobs:
             exit 1
           fi
 
+          if [ ! -f "$WEB_DIR/index.html" ]; then
+            echo "ERROR: No se encontró index.html original."
+            exit 1
+          fi
+
           echo "Pantalla inicial encontrada: $TARGET"
+          echo "Index original encontrado."
 
       # 6. CONFIGURAR CONEXIÓN API
       - name: Configurar conexión al servidor
@@ -131,12 +137,13 @@ jobs:
               )
 
               archivo.write_text(codigo, encoding="utf-8")
-              print("Conexión API preparada.")
+              print(f"Conexión API revisada: {archivo}")
           else:
               print("AVISO: shared.js no encontrado.")
+
           PY
 
-      # 7. CONFIGURAR INDEX
+      # 7. CONFIGURAR INDEX Y CONSERVAR INICIO ORIGINAL
       - name: Configurar inicio de aplicación
         shell: bash
         run: |
@@ -145,22 +152,66 @@ jobs:
           WEB_DIR="build-apks/${{ matrix.app }}/www"
           TARGET="${{ matrix.inicio }}"
 
-          cat > "$WEB_DIR/index.html" <<EOF
+          if [ ! -f "$WEB_DIR/index.html" ]; then
+            echo "ERROR: No se encontró el index.html original."
+            exit 1
+          fi
+
+          if [ ! -f "$WEB_DIR/$TARGET" ]; then
+            echo "ERROR: No se encontró $TARGET."
+            exit 1
+          fi
+
+          # Conservar el index original sin modificarlo
+          cp "$WEB_DIR/index.html" "$WEB_DIR/inicio-empresa.html"
+
+          # Crear entrada de la aplicación
+          cat > "$WEB_DIR/index.html" <<'EOF'
           <!DOCTYPE html>
           <html lang="es">
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${{ matrix.appName }}</title>
-            <script>
-              window.location.replace("./$TARGET");
-            </script>
+            <meta name="theme-color" content="#111827">
+            <title>GESBASE</title>
           </head>
           <body>
-            <p>Iniciando ${{ matrix.appName }}...</p>
+            <p style="font-family:Arial,sans-serif;text-align:center;margin-top:40px">
+              Cargando GESBASE...
+            </p>
+
+            <script>
+              (function () {
+                let tipo = "";
+
+                try {
+                  tipo = sessionStorage.getItem("gesbaseTipoUsuario") || "";
+                } catch (error) {
+                  console.error("Error consultando sesión:", error);
+                }
+
+                let destino;
+
+                if (tipo === "empresa") {
+                  destino = "./inicio-empresa.html";
+                } else if (tipo === "empleado") {
+                  destino = "./panel-empleado.html";
+                } else {
+                  destino = "./__LOGIN_TARGET__";
+                }
+
+                window.location.replace(destino);
+              })();
+            </script>
           </body>
           </html>
           EOF
+
+          # Colocar el login correspondiente a cada aplicación
+          sed -i "s|__LOGIN_TARGET__|${TARGET}|g" "$WEB_DIR/index.html"
+
+          echo "Entrada de aplicación configurada."
+          echo "Index original conservado como inicio-empresa.html."
 
       # 8. INSTALAR CAPACITOR
       - name: Instalar Capacitor
