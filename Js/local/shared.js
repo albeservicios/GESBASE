@@ -14,7 +14,16 @@ const USER_KEY = "gesbase_auth_user";
 const API_BASE = "https://gesbase.online";
 
 function apiUrl(path) {
-    return new URL(path, API_BASE).toString();
+    const cleanPath = String(path || "");
+
+    if (/^https?:\/\//i.test(cleanPath)) {
+        return cleanPath;
+    }
+
+    return new URL(
+        cleanPath.replace(/^\/+/, ""),
+        API_BASE + "/"
+    ).toString();
 }
 
 // ============================================================
@@ -26,21 +35,29 @@ export function getToken() {
 }
 
 export function setToken(t) {
-    if (t) localStorage.setItem(TOKEN_KEY, t);
-    else localStorage.removeItem(TOKEN_KEY);
+    if (t) {
+        localStorage.setItem(TOKEN_KEY, t);
+    } else {
+        localStorage.removeItem(TOKEN_KEY);
+    }
 }
 
 export function getStoredUser() {
     try {
-        return JSON.parse(localStorage.getItem(USER_KEY) || "null");
+        return JSON.parse(
+            localStorage.getItem(USER_KEY) || "null"
+        );
     } catch {
         return null;
     }
 }
 
 export function setStoredUser(u) {
-    if (u) localStorage.setItem(USER_KEY, JSON.stringify(u));
-    else localStorage.removeItem(USER_KEY);
+    if (u) {
+        localStorage.setItem(USER_KEY, JSON.stringify(u));
+    } else {
+        localStorage.removeItem(USER_KEY);
+    }
 }
 
 // ============================================================
@@ -50,8 +67,70 @@ export function setStoredUser(u) {
 export class LocalFirebaseError extends Error {
     constructor(code, message) {
         super(message || code);
+        this.name = "LocalFirebaseError";
         this.code = code;
     }
+}
+
+// ============================================================
+// PROCESAR RESPUESTA DEL SERVIDOR
+// ============================================================
+
+async function procesarRespuesta(resp) {
+    const texto = await resp.text();
+
+    let data = {};
+
+    if (texto) {
+        try {
+            data = JSON.parse(texto);
+        } catch {
+            data = {
+                message: texto
+            };
+        }
+    }
+
+    if (!resp.ok) {
+        const errorData = data?.error;
+
+        const code =
+            typeof errorData === "object"
+                ? errorData?.code || `http/${resp.status}`
+                : errorData || `http/${resp.status}`;
+
+        const message =
+            typeof errorData === "object"
+                ? errorData?.message || data?.message
+                : data?.message || errorData;
+
+        throw new LocalFirebaseError(
+            code,
+            message || `Error del servidor: ${resp.status}`
+        );
+    }
+
+    return data;
+}
+
+// ============================================================
+// ERRORES DE CONEXIÓN
+// ============================================================
+
+function convertirErrorConexion(error) {
+    if (error instanceof LocalFirebaseError) {
+        return error;
+    }
+
+    console.error(
+        "GESBASE - Error de conexión:",
+        error
+    );
+
+    return new LocalFirebaseError(
+        "network/request-failed",
+        "No se pudo conectar con el servidor GESBASE. Verificá tu conexión a Internet e intentá nuevamente."
+    );
 }
 
 // ============================================================
@@ -60,7 +139,8 @@ export class LocalFirebaseError extends Error {
 
 export async function api(path, body) {
     const headers = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Accept": "application/json"
     };
 
     const token = getToken();
@@ -69,31 +149,20 @@ export async function api(path, body) {
         headers.Authorization = `Bearer ${token}`;
     }
 
-    const resp = await fetch(apiUrl(path), {
-        method: "POST",
-        headers,
-        body: JSON.stringify(
-            body === undefined ? {} : body
-        )
-    });
+    try {
+        const resp = await fetch(apiUrl(path), {
+            method: "POST",
+            headers,
+            body: JSON.stringify(
+                body === undefined ? {} : body
+            )
+        });
 
-    const data = await resp.json().catch(() => ({}));
+        return await procesarRespuesta(resp);
 
-    if (!resp.ok) {
-        const code =
-            data?.error?.code ||
-            data?.error ||
-            `http/${resp.status}`;
-
-        const message =
-            data?.error?.message ||
-            data?.message ||
-            `Error ${resp.status}`;
-
-        throw new LocalFirebaseError(code, message);
+    } catch (error) {
+        throw convertirErrorConexion(error);
     }
-
-    return data;
 }
 
 // ============================================================
@@ -101,28 +170,27 @@ export async function api(path, body) {
 // ============================================================
 
 export async function apiGet(path) {
-    const headers = {};
+    const headers = {
+        "Accept": "application/json"
+    };
+
     const token = getToken();
 
     if (token) {
         headers.Authorization = `Bearer ${token}`;
     }
 
-    const resp = await fetch(apiUrl(path), {
-        method: "GET",
-        headers
-    });
+    try {
+        const resp = await fetch(apiUrl(path), {
+            method: "GET",
+            headers
+        });
 
-    const data = await resp.json().catch(() => ({}));
+        return await procesarRespuesta(resp);
 
-    if (!resp.ok) {
-        throw new LocalFirebaseError(
-            data?.error || `http/${resp.status}`,
-            data?.message || `Error ${resp.status}`
-        );
+    } catch (error) {
+        throw convertirErrorConexion(error);
     }
-
-    return data;
 }
 
 // ============================================================
@@ -179,6 +247,7 @@ export function encodeWire(value) {
 
         for (const [k, v] of Object.entries(value)) {
             if (v === undefined) continue;
+
             out[k] = encodeWire(v);
         }
 
@@ -233,49 +302,66 @@ function send(msg) {
 function connect() {
     if (wsReady) return wsReady;
 
-    wsReady = new Promise(resolve => {
-        ws = new WebSocket(wsUrl());
+    wsReady = new Promise((resolve, reject) => {
+        try {
+            ws = new WebSocket(wsUrl());
 
-        ws.onopen = () => {
-            for (const [id, spec] of pendingSubs) {
-                send({
-                    t: "sub",
-                    id,
-                    spec
-                });
-            }
+            ws.onopen = () => {
+                for (const [id, spec] of pendingSubs) {
+                    send({
+                        t: "sub",
+                        id,
+                        spec
+                    });
+                }
 
-            resolve();
-        };
+                resolve();
+            };
 
-        ws.onmessage = e => {
-            let msg;
+            ws.onmessage = e => {
+                let msg;
 
-            try {
-                msg = JSON.parse(e.data);
-            } catch {
-                return;
-            }
+                try {
+                    msg = JSON.parse(e.data);
+                } catch {
+                    return;
+                }
 
-            const cb = listeners.get(msg.id);
+                const cb = listeners.get(msg.id);
 
-            if (cb) {
-                cb(msg);
-            }
-        };
+                if (cb) {
+                    cb(msg);
+                }
+            };
 
-        ws.onclose = () => {
+            ws.onclose = () => {
+                ws = null;
+                wsReady = null;
+
+                if (pendingSubs.size) {
+                    setTimeout(() => {
+                        connect().catch(error => {
+                            console.error(
+                                "GESBASE - Error reconectando WebSocket:",
+                                error
+                            );
+                        });
+                    }, 1500);
+                }
+            };
+
+            ws.onerror = error => {
+                console.error(
+                    "GESBASE - Error WebSocket:",
+                    error
+                );
+            };
+
+        } catch (error) {
             ws = null;
             wsReady = null;
-
-            if (pendingSubs.size) {
-                setTimeout(connect, 1500);
-            }
-        };
-
-        ws.onerror = () => {
-            // La reconexión se gestiona mediante onclose.
-        };
+            reject(error);
+        }
     });
 
     return wsReady;
@@ -293,15 +379,23 @@ export async function subscribe(spec, onMessage) {
     pendingSubs.set(id, spec);
     listeners.set(id, onMessage);
 
-    await connect();
+    try {
+        await connect();
 
-    send({
-        t: "sub",
-        id,
-        spec
-    });
+        send({
+            t: "sub",
+            id,
+            spec
+        });
 
-    return id;
+        return id;
+
+    } catch (error) {
+        pendingSubs.delete(id);
+        listeners.delete(id);
+
+        throw convertirErrorConexion(error);
+    }
 }
 
 // ============================================================
