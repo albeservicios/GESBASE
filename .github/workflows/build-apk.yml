@@ -54,7 +54,7 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      # 4. PREPARAR CARPETAS INDEPENDIENTES
+      # 4. PREPARAR ARCHIVOS WEB
       - name: Preparar archivos web
         shell: bash
         run: |
@@ -78,7 +78,7 @@ jobs:
           echo "Archivos preparados:"
           find "$WEB_DIR" -maxdepth 3 -type f | sort
 
-      # 5. VERIFICAR PÁGINA DE INICIO
+      # 5. VERIFICAR PANTALLA INICIAL
       - name: Verificar pantalla inicial
         shell: bash
         run: |
@@ -94,7 +94,7 @@ jobs:
 
           echo "Pantalla inicial encontrada: $TARGET"
 
-      # 6. CONFIGURAR API
+      # 6. CONFIGURAR CONEXIÓN API
       - name: Configurar conexión al servidor
         shell: bash
         run: |
@@ -162,7 +162,7 @@ jobs:
           </html>
           EOF
 
-      # 8. PREPARAR CAPACITOR
+      # 8. INSTALAR CAPACITOR
       - name: Instalar Capacitor
         shell: bash
         run: |
@@ -181,7 +181,7 @@ jobs:
             @capacitor/app@8.1.2
 
           if [ "${{ matrix.gps }}" = "true" ]; then
-            npm install @capacitor/geolocation
+            npm install @capacitor/geolocation@^8.0.0
           fi
 
       # 9. CONFIGURAR CAPACITOR
@@ -216,7 +216,7 @@ jobs:
           npx cap add android
           npx cap sync android
 
-      # 11. PERMISOS DE CÁMARA Y MICRÓFONO
+      # 11. CONFIGURAR PERMISOS GENERALES
       - name: Configurar cámara y micrófono
         shell: bash
         run: |
@@ -226,10 +226,18 @@ jobs:
 
           python3 - "$MANIFEST" <<'PY'
           import sys
+          import xml.etree.ElementTree as ET
           from pathlib import Path
 
           archivo = Path(sys.argv[1])
-          contenido = archivo.read_text(encoding="utf-8")
+
+          ET.register_namespace(
+              "android",
+              "http://schemas.android.com/apk/res/android"
+          )
+
+          tree = ET.parse(archivo)
+          root = tree.getroot()
 
           permisos = [
               "android.permission.INTERNET",
@@ -237,19 +245,31 @@ jobs:
               "android.permission.RECORD_AUDIO"
           ]
 
-          for permiso in permisos:
-              linea = f'<uses-permission android:name="{permiso}" />'
-              if permiso not in contenido:
-                  contenido = contenido.replace(
-                      "<manifest",
-                      "<manifest",
-                      1
-                  )
-                  posicion = contenido.find(">")
-                  contenido = contenido[:posicion + 1] + "\n    " + linea + contenido[posicion + 1:]
+          existentes = {
+              elemento.get(
+                  "{http://schemas.android.com/apk/res/android}name"
+              )
+              for elemento in root.findall("uses-permission")
+          }
 
-          archivo.write_text(contenido, encoding="utf-8")
-          print("Permisos de comunicación configurados.")
+          for permiso in permisos:
+              if permiso not in existentes:
+                  ET.SubElement(
+                      root,
+                      "uses-permission",
+                      {
+                          "{http://schemas.android.com/apk/res/android}name": permiso
+                      }
+                  )
+
+          tree.write(
+              archivo,
+              encoding="utf-8",
+              xml_declaration=True
+          )
+
+          ET.parse(archivo)
+          print("Manifest válido. Permisos generales configurados.")
           PY
 
       # 12. GPS SOLO EMPLEADOS
@@ -263,27 +283,68 @@ jobs:
 
           python3 - "$MANIFEST" <<'PY'
           import sys
+          import xml.etree.ElementTree as ET
           from pathlib import Path
 
           archivo = Path(sys.argv[1])
-          contenido = archivo.read_text(encoding="utf-8")
+
+          ET.register_namespace(
+              "android",
+              "http://schemas.android.com/apk/res/android"
+          )
+
+          tree = ET.parse(archivo)
+          root = tree.getroot()
 
           permisos = [
               "android.permission.ACCESS_COARSE_LOCATION",
               "android.permission.ACCESS_FINE_LOCATION"
           ]
 
-          for permiso in permisos:
-              if permiso not in contenido:
-                  linea = f'<uses-permission android:name="{permiso}" />'
-                  posicion = contenido.find(">")
-                  contenido = contenido[:posicion + 1] + "\n    " + linea + contenido[posicion + 1:]
+          existentes = {
+              elemento.get(
+                  "{http://schemas.android.com/apk/res/android}name"
+              )
+              for elemento in root.findall("uses-permission")
+          }
 
-          archivo.write_text(contenido, encoding="utf-8")
-          print("GPS habilitado para Empleados.")
+          for permiso in permisos:
+              if permiso not in existentes:
+                  ET.SubElement(
+                      root,
+                      "uses-permission",
+                      {
+                          "{http://schemas.android.com/apk/res/android}name": permiso
+                      }
+                  )
+
+          tree.write(
+              archivo,
+              encoding="utf-8",
+              xml_declaration=True
+          )
+
+          ET.parse(archivo)
+          print("GPS configurado. Manifest XML válido.")
           PY
 
-      # 13. SINCRONIZAR
+      # 13. VALIDAR MANIFEST
+      - name: Validar AndroidManifest
+        shell: bash
+        run: |
+          set -e
+
+          MANIFEST="build-apks/${{ matrix.app }}/android/app/src/main/AndroidManifest.xml"
+
+          python3 - "$MANIFEST" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+
+          ET.parse(sys.argv[1])
+          print("OK: AndroidManifest.xml es válido.")
+          PY
+
+      # 14. SINCRONIZAR CAPACITOR
       - name: Sincronizar Capacitor
         shell: bash
         run: |
@@ -295,8 +356,8 @@ jobs:
 
           npx cap sync android
 
-      # 14. COMPILAR
-      - name: Compilar APK
+      # 15. COMPILAR APK
+      - name: Compilar APK Debug
         shell: bash
         run: |
           set -e
@@ -309,8 +370,8 @@ jobs:
 
           ./gradlew assembleDebug --no-daemon
 
-      # 15. VERIFICAR APK
-      - name: Verificar APK
+      # 16. VERIFICAR APK
+      - name: Verificar APK generado
         shell: bash
         run: |
           set -e
@@ -324,8 +385,8 @@ jobs:
 
           ls -lh "$APK"
 
-      # 16. GUARDAR APK
-      - name: Publicar artefacto
+      # 17. GUARDAR APK
+      - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
