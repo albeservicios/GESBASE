@@ -814,32 +814,36 @@
             }
 
 
-            try {
+            if (email) {
 
-                const q = query(
-                    collection(db, "empleados"),
-                    where("email", "==", email)
-                );
+                try {
 
-                const resultado = await getDocs(q);
+                    const q = query(
+                        collection(db, "empleados"),
+                        where("email", "==", email)
+                    );
 
-                if (!resultado.empty) {
+                    const resultado = await getDocs(q);
 
-                    const encontrado = resultado.docs[0];
+                    if (!resultado.empty) {
 
-                    return {
-                        id: encontrado.id,
-                        ...encontrado.data()
-                    };
+                        const encontrado = resultado.docs[0];
+
+                        return {
+                            id: encontrado.id,
+                            ...encontrado.data()
+                        };
+
+                    }
+
+                } catch (error) {
+
+                    console.warn(
+                        "No se pudo buscar empleado por email.",
+                        error
+                    );
 
                 }
-
-            } catch (error) {
-
-                console.warn(
-                    "No se pudo buscar empleado por email.",
-                    error
-                );
 
             }
 
@@ -993,7 +997,7 @@
 
 
             /*
-             * 1. PRIMERO BUSCAMOS EMPLEADO
+             * 1. BUSCAR EMPLEADO
              */
 
             const empleado =
@@ -1038,7 +1042,7 @@
 
 
             /*
-             * 2. BUSCAMOS USUARIO
+             * 2. BUSCAR USUARIO
              */
 
             const usuario =
@@ -1046,7 +1050,7 @@
 
 
             /*
-             * 3. BUSCAMOS EMPRESA
+             * 3. BUSCAR EMPRESA
              */
 
             const empresa =
@@ -1087,14 +1091,11 @@
 
 
                 /*
-                 * CORRECCIÓN:
-                 * En la APK index.html vuelve al login.
-                 * La empresa debe entrar directamente
-                 * al panel de empresa.
+                 * DESTINO CORRECTO PARA EMPRESAS
                  */
 
                 window.location.replace(
-                    "./empresa.html"
+                    "./index.html"
                 );
 
                 return;
@@ -1103,7 +1104,7 @@
 
 
             /*
-             * SI NO ENCONTRAMOS PERFIL
+             * NO SE ENCONTRÓ PERFIL
              */
 
             mostrarMensaje(
@@ -1266,13 +1267,12 @@
 
 
         /*
-         * SESIÓN EXISTENTE
+         * OBSERVADOR DE SESIÓN
          *
-         * No redireccionamos automáticamente desde
-         * este observador porque el inicio de sesión
-         * ya realiza la búsqueda y la redirección.
+         * No redirecciona automáticamente.
+         * El formulario controla el acceso y
+         * realiza la búsqueda del perfil.
          */
-
 
         onAuthStateChanged(
             auth,
@@ -1282,8 +1282,8 @@
                     return;
                 }
 
-                // La redirección se realiza desde
-                // el envío del formulario de acceso.
+                // La redirección se realiza
+                // desde el envío del formulario.
 
             }
         );
